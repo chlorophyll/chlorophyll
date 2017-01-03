@@ -10,11 +10,12 @@
 		<div id="container"></div>
 		<script src="build/three.js"></script>
 		<script src="model.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/libs/stats.min.js"></script>
 		<script>
 var container, stats;
-var camera, scene, renderer, particles, geometry, material, i, h, color, sprite, size;
+var camera, scene, controls, renderer, particles, group, geometry, material, i, h, color, sprite, size;
 var mouseX = 0, mouseY = 0;
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
@@ -23,11 +24,74 @@ var positions;
 var selected = {};
 init();
 animate();
+
+function roundRect(ctx, x, y, w, h, r) 
+{
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y);
+    ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+    ctx.lineTo(x+w, y+h-r);
+    ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    ctx.lineTo(x+r, y+h);
+    ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+    ctx.lineTo(x, y+r);
+    ctx.quadraticCurveTo(x, y, x+r, y);
+    ctx.closePath();
+    ctx.fill();
+	ctx.stroke();
+}
+
+// This place is not a place of honor.
+// No highly esteemed deed is commemorated here.
+// Nothing valued is here. What is here is repulsive to us. 
+// It came from StackOverflow.
+function textSprite(message, parameters) {
+	if ( parameters === undefined ) parameters = {};
+	var fontface = parameters.hasOwnProperty("fontface") ? parameters["fontface"] : "Arial";
+	var fontsize = parameters.hasOwnProperty("fontsize") ? parameters["fontsize"] : 18;
+	//fontsize *= 4;
+	var borderThickness = parameters.hasOwnProperty("borderThickness") ? parameters["borderThickness"] : 4;
+	var borderColor = parameters.hasOwnProperty("borderColor") ?parameters["borderColor"] : { r:0, g:0, b:0, a:1.0 };
+	var backgroundColor = parameters.hasOwnProperty("backgroundColor") ?parameters["backgroundColor"] : { r:255, g:255, b:255, a:1.0 };
+	var textColor = parameters.hasOwnProperty("textColor") ?parameters["textColor"] : { r:0, g:0, b:0, a:1.0 };
+
+	var canvas = document.createElement('canvas');
+	var context = canvas.getContext('2d');
+	context.font = "Bold " + fontsize + "px " + fontface;
+	var metrics = context.measureText( message );
+	var textWidth = metrics.width;
+	var width = (textWidth + borderThickness);
+	var height = fontsize * 1.4 + borderThickness;
+
+	canvas.width = width;
+	canvas.height = height;
+	context.font = "Bold " + fontsize + "px " + fontface;
+
+	context.fillStyle   = "rgba(" + backgroundColor.r + "," + backgroundColor.g + "," + backgroundColor.b + "," + backgroundColor.a + ")";
+	context.strokeStyle = "rgba(" + borderColor.r + "," + borderColor.g + "," + borderColor.b + "," + borderColor.a + ")";
+
+	context.lineWidth = borderThickness;
+	roundRect(context, borderThickness/2, borderThickness/2, width, height, 8);
+
+	context.fillStyle = "rgba("+textColor.r+", "+textColor.g+", "+textColor.b+", 1.0)";
+	context.fillText( message, borderThickness, fontsize + borderThickness);
+
+	var texture = new THREE.Texture(canvas);
+	texture.minFilter = THREE.LinearFilter; // NearestFilter;
+	texture.needsUpdate = true;
+
+	var spriteMaterial = new THREE.SpriteMaterial( { map: texture} );
+	var sprite = new THREE.Sprite( spriteMaterial );
+	sprite.scale.set(fontsize, fontsize / 2, 0.1 * fontsize);
+	return sprite;
+}
 function init() {
 	container = document.getElementById('container');
 	//
-	camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 2, 2000 );
+	camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 2, 2000 );
 	camera.position.z = 1000;
+
 	scene = new THREE.Scene();
 	scene.fog = new THREE.FogExp2(0x000000, 0.0008);
 	//
@@ -40,9 +104,9 @@ function init() {
 		for (var j = 0; j < 3; j++) {
 			positions[3*i + j] = icosahedron[i][j];
 		}
-		colors[3*i+0] = 255;
-		colors[3*i+1] = 0;
-		colors[3*i+2] = 0;
+		colors[3*i+0] = 0;
+		colors[3*i+1] = 127;
+		colors[3*i+2] = 127;
 	}
 	geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
 	geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3).setDynamic(true));
@@ -57,12 +121,17 @@ function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	container.appendChild(renderer.domElement);
+
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
+	controls.enableDamping = true;
+	controls.dampingFactor = 0.75;
+	controls.enableZoom = false;
+
 	//
 	stats = new Stats();
 	container.appendChild(stats.dom);
 	//
-	//document.addEventListener('mousemove', onDocumentMouseMove, false);
-	document.addEventListener( 'mousedown', onDocumentMouseDown);
+	document.addEventListener( "mousedown", onDocumentMouseDown);
 	window.addEventListener('resize', onWindowResize, false);
 }
 
@@ -71,7 +140,6 @@ function onDocumentMouseMove(event) {
 	mouseY = event.clientY - windowHalfY;
 }
 function onDocumentMouseDown( event ) {
-	event.preventDefault();
 	var mouse3D = new THREE.Vector3(
 			(event.clientX / window.innerWidth) * 2 - 1,
 			-(event.clientY / window.innerHeight) * 2 + 1,
@@ -87,11 +155,19 @@ function onDocumentMouseDown( event ) {
 	var idx = intersects[0].index;
 
 	if (idx in selected) {
-		var color = [255, 0, 0];
+		var color = [0, 127, 127];
+		sprite = selected[idx];
+		scene.remove(sprite);
 		delete selected[idx]
 	} else {
 		var color = [255, 255, 255];
-		selected[idx] = true;
+		var text = textSprite("test", {
+			fontface: 'helvetica',
+			fontsize: 24
+		});
+		text.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+		scene.add(text);
+		selected[idx] = text;
 	}
 
 	for (var i = 0; i < 3; i++) {
@@ -105,18 +181,17 @@ function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 	renderer.setSize(window.innerWidth, window.innerHeight);
+	controls.handleResize();
 }
 //
 function animate() {
 	requestAnimationFrame(animate);
 	render();
 	stats.update();
+	controls.update();
 }
 
 function render() {
-	camera.position.x += ( mouseX - camera.position.x) * 0.05;
-	camera.position.y += (-mouseY - camera.position.y) * 0.05;
-	camera.lookAt(scene.position);
 	renderer.render(scene, camera);
 }
 		</script>
