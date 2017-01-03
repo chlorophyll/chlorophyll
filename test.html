@@ -10,6 +10,7 @@
 		<div id="container"></div>
 		<script src="build/three.js"></script>
 		<script src="model.js"></script>
+		<script src="js/renderers/Projector.js"></script>
 		<script src="js/libs/stats.min.js"></script>
 		<script>
 var container, stats;
@@ -17,19 +18,22 @@ var camera, scene, renderer, particles, geometry, material, i, h, color, sprite,
 var mouseX = 0, mouseY = 0;
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
+var colors;
+var positions;
+var selected = {};
 init();
 animate();
 function init() {
 	container = document.getElementById('container');
 	//
-	camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 3500);
-	camera.position.z = 2750;
+	camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 2, 2000 );
+	camera.position.z = 1000;
 	scene = new THREE.Scene();
 	scene.fog = new THREE.FogExp2(0x000000, 0.0008);
 	//
-	var geometry = new THREE.BufferGeometry();
-	var positions = new Float32Array(icosahedron.length * 3);
-	var colors = new Float32Array(icosahedron.length * 3);
+	geometry = new THREE.BufferGeometry();
+	positions = new Float32Array(icosahedron.length * 3);
+	colors = new Float32Array(icosahedron.length * 3);
 	var color = new THREE.Color();
 
 	for (var i = 0; i < icosahedron.length; i++) {
@@ -41,12 +45,12 @@ function init() {
 		colors[3*i+2] = 0;
 	}
 	geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-	geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+	geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3).setDynamic(true));
 	geometry.computeBoundingSphere();
 	//
-	var material = new THREE.PointsMaterial({ size: 20, vertexColors: THREE.VertexColors });
-	points = new THREE.Points(geometry, material);
-	scene.add(points);
+	var material = new THREE.PointsMaterial({ size: 10, vertexColors: THREE.VertexColors });
+	particles = new THREE.Points(geometry, material);
+	scene.add(particles);
 	//
 	renderer = new THREE.WebGLRenderer({ antialias: false });
 	renderer.setClearColor(scene.fog.color);
@@ -57,7 +61,8 @@ function init() {
 	stats = new Stats();
 	container.appendChild(stats.dom);
 	//
-	document.addEventListener('mousemove', onDocumentMouseMove, false);
+	//document.addEventListener('mousemove', onDocumentMouseMove, false);
+	document.addEventListener( 'mousedown', onDocumentMouseDown);
 	window.addEventListener('resize', onWindowResize, false);
 }
 
@@ -65,6 +70,37 @@ function onDocumentMouseMove(event) {
 	mouseX = event.clientX - windowHalfX;
 	mouseY = event.clientY - windowHalfY;
 }
+function onDocumentMouseDown( event ) {
+	event.preventDefault();
+	var mouse3D = new THREE.Vector3(
+			(event.clientX / window.innerWidth) * 2 - 1,
+			-(event.clientY / window.innerHeight) * 2 + 1,
+			0.5);
+	var projector = new THREE.Projector();
+	var raycaster = new THREE.Raycaster();
+	raycaster.params.Points.threshold = 5;
+	raycaster.setFromCamera(mouse3D, camera);
+	var intersects = raycaster.intersectObject(particles);
+
+	if (intersects.length == 0) return;
+	console.log(intersects[0]);
+	var idx = intersects[0].index;
+
+	if (idx in selected) {
+		var color = [255, 0, 0];
+		delete selected[idx]
+	} else {
+		var color = [255, 255, 255];
+		selected[idx] = true;
+	}
+
+	for (var i = 0; i < 3; i++) {
+		colors[3*idx + i] = color[i];
+	}
+
+	geometry.attributes.color.needsUpdate = true;
+}
+
 function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
