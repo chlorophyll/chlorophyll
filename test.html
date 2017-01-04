@@ -8,11 +8,11 @@
 	</head>
 	<body>
 		<div id="container"></div>
-		<script src="build/three.js"></script>
 		<script src="model.js"></script>
-		<script src="js/controls/OrbitControls.js"></script>
-		<script src="js/renderers/Projector.js"></script>
-		<script src="js/libs/stats.min.js"></script>
+		<script src="three/build/three.js"></script>
+		<script src="three/js/controls/OrbitControls.js"></script>
+		<script src="three/js/renderers/Projector.js"></script>
+		<script src="three/js/libs/stats.min.js"></script>
 		<script>
 var container, stats;
 var camera, scene, controls, renderer, particles, group, geometry, material, i, h, color, sprite, size;
@@ -125,7 +125,7 @@ function init() {
 	controls = new THREE.OrbitControls(camera, renderer.domElement);
 	controls.enableDamping = true;
 	controls.dampingFactor = 0.75;
-	controls.enableZoom = false;
+	controls.enableZoom = true;
 
 	//
 	stats = new Stats();
@@ -162,8 +162,8 @@ function onDocumentMouseDown( event ) {
 	} else {
 		var color = [255, 255, 255];
 		var text = textSprite("test", {
-			fontface: 'helvetica',
-			fontsize: 24
+			fontface: 'courier new',
+			fontsize: 36
 		});
 		text.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
 		scene.add(text);
