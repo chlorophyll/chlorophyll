@@ -93,20 +93,30 @@ function init() {
 	camera.position.z = 1000;
 
 	scene = new THREE.Scene();
-	scene.fog = new THREE.FogExp2(0x000000, 0.0008);
+	//scene.fog = new THREE.FogExp2(0x000000, 0.0003);
+	scene.fog = new THREE.Fog(0x000000, 750, 2000);
 	//
 	geometry = new THREE.BufferGeometry();
-	positions = new Float32Array(icosahedron.length * 3);
-	colors = new Float32Array(icosahedron.length * 3);
-	var color = new THREE.Color();
 
-	for (var i = 0; i < icosahedron.length; i++) {
-		for (var j = 0; j < 3; j++) {
-			positions[3*i + j] = icosahedron[i][j];
+	positions = new Float32Array(900 * 3);
+	colors = new Float32Array(900 * 3);
+	var color = new THREE.Color();
+	var strip_colors = [
+		[  0,   1,   0],
+		[0.5,   0,   1],
+		[  1,   0,   0],
+		[  1, 0.5,   0],
+		[  1,   1,   0]
+	]
+	var i = 0;
+	for (var s = 0; s < icosahedron_strips.length; s++) {
+		for (var p = 0; p < icosahedron_strips[s].length; p++) {
+			for (var j = 0; j < 3; j++) {
+				positions[3*i + j] = icosahedron_strips[s][p][j];
+				colors[3*i+j] = strip_colors[s][j];
+			}
+			i++;
 		}
-		colors[3*i+0] = 0;
-		colors[3*i+1] = 127;
-		colors[3*i+2] = 127;
 	}
 	geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
 	geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3).setDynamic(true));
