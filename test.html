@@ -8,14 +8,15 @@
 	</head>
 	<body>
 		<div id="container"></div>
-		<script src="model.js"></script>
+		<script src="icosahedron.js"></script>
+		<script src="js/model.js"></script>
 		<script src="three/build/three.js"></script>
 		<script src="three/js/controls/OrbitControls.js"></script>
 		<script src="three/js/renderers/Projector.js"></script>
 		<script src="three/js/libs/stats.min.js"></script>
 		<script>
 var container, stats;
-var camera, scene, controls, renderer, particles, group, geometry, material, i, h, color, sprite, size;
+var camera, scene, controls, renderer, particles, group, geometry, i, h, color, sprite, size;
 var mouseX = 0, mouseY = 0;
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
@@ -109,21 +110,26 @@ function init() {
 		[  1,   1,   0]
 	]
 	var i = 0;
-	for (var s = 0; s < icosahedron_strips.length; s++) {
-		for (var p = 0; p < icosahedron_strips[s].length; p++) {
-			for (var j = 0; j < 3; j++) {
-				positions[3*i + j] = icosahedron_strips[s][p][j];
-				colors[3*i+j] = strip_colors[s][j];
-			}
-			i++;
-		}
-	}
-	geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-	geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3).setDynamic(true));
-	geometry.computeBoundingSphere();
-	//
-	var material = new THREE.PointsMaterial({ size: 10, vertexColors: THREE.VertexColors });
-	particles = new THREE.Points(geometry, material);
+
+	model = new Model();
+	model.loadData(icosahedron_data);
+	//icosahedron_strips = JSON.parse(icosahedron_data)['strips'];
+	//for (var s = 0; s < icosahedron_strips.length; s++) {
+	//	for (var p = 0; p < icosahedron_strips[s].length; p++) {
+	//		for (var j = 0; j < 3; j++) {
+	//			positions[3*i + j] = icosahedron_strips[s][p][j];
+	//			colors[3*i+j] = strip_colors[s][j];
+	//		}
+	//		i++;
+	//	}
+	//}
+	//geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+	//geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3).setDynamic(true));
+	//geometry.computeBoundingSphere();
+	////
+	//var material = new THREE.PointsMaterial({ size: 10, vertexColors: THREE.VertexColors });
+	//particles = new THREE.Points(geometry, material);
+	particles = model.makeMesh(geometry);
 	scene.add(particles);
 	//
 	renderer = new THREE.WebGLRenderer({ antialias: false });

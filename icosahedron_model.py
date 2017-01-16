@@ -141,7 +141,7 @@ def scale(v1, v2, v3):
     return v1n, v2n, v3n
 
 pixels = []
-
+num_pixels = 0
 
 for strip in strips:
     pixel_strip = list()
@@ -149,7 +149,12 @@ for strip in strips:
         va, vb, _ = scale(hubs[a], hubs[b], hubs[c])
         for p in xrange(1, 16):
             pixel_strip.append(lerp(va, vb, p / 16.0))
+    num_pixels += len(pixel_strip)
     pixels.append(list(pixel_strip))
+
+data = {
+    'num_pixels': num_pixels,
+    'strips': pixels,
+}
 import json
-print "icosahedron_strips =",
-print json.dumps(pixels)
+print "icosahedron_data ='%s'" % (json.dumps(data),)
