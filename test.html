@@ -3,13 +3,22 @@
 		<title>My first three.js app</title>
 		<style>
 			body { margin: 0; }
-			canvas { width: 100%; height: 100% }
+			#parent {
+				display: flex;
+			}
+			#container {
+				width: 100%;
+				height: 100%;
+			}
 		</style>
 	</head>
 	<body>
-		<div id="container"></div>
+		<div id="parent">
+			<div id="container"></div>
+		</div>
 		<script src="icosahedron.js"></script>
 		<script src="js/model.js"></script>
+		<script src="js/marquee.js"></script>
 		<script src="three/build/three.js"></script>
 		<script src="three/js/controls/OrbitControls.js"></script>
 		<script src="three/js/renderers/Projector.js"></script>
@@ -17,17 +26,30 @@
 		<script>
 var container, stats;
 var camera, scene, controls, renderer, particles, group, geometry, i, h, color, sprite, size;
+var model;
 var mouseX = 0, mouseY = 0;
-var windowHalfX = window.innerWidth / 2;
-var windowHalfY = window.innerHeight / 2;
+var width, height;
 var colors;
 var positions;
 var selected = {};
 init();
 animate();
 
-function roundRect(ctx, x, y, w, h, r) 
-{
+function screenCoords(position) {
+	var vector = position.clone();
+	var canvas = renderer.domElement;
+
+	// map to normalized device coordinate (NDC) space
+	vector.project( camera );
+
+	vector.x = Math.round( (   vector.x + 1 ) * canvas.width  / 4 );
+	vector.y = Math.round( ( - vector.y + 1 ) * canvas.height / 4 );
+
+	vector.z = 0;
+	return vector;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x+r, y);
     ctx.lineTo(x+w-r, y);
@@ -89,8 +111,10 @@ function textSprite(message, parameters) {
 }
 function init() {
 	container = document.getElementById('container');
+	width = container.clientWidth;
+	height = container.clientHeight;
 	//
-	camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 2, 2000 );
+	camera = new THREE.PerspectiveCamera(55, width/height, 2, 2000 );
 	camera.position.z = 1000;
 
 	scene = new THREE.Scene();
@@ -111,31 +135,15 @@ function init() {
 	]
 	var i = 0;
 
-	model = new Model();
+	model = new Model(geometry);
 	model.loadData(icosahedron_data);
-	//icosahedron_strips = JSON.parse(icosahedron_data)['strips'];
-	//for (var s = 0; s < icosahedron_strips.length; s++) {
-	//	for (var p = 0; p < icosahedron_strips[s].length; p++) {
-	//		for (var j = 0; j < 3; j++) {
-	//			positions[3*i + j] = icosahedron_strips[s][p][j];
-	//			colors[3*i+j] = strip_colors[s][j];
-	//		}
-	//		i++;
-	//	}
-	//}
-	//geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-	//geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3).setDynamic(true));
-	//geometry.computeBoundingSphere();
-	////
-	//var material = new THREE.PointsMaterial({ size: 10, vertexColors: THREE.VertexColors });
-	//particles = new THREE.Points(geometry, material);
-	particles = model.makeMesh(geometry);
+	particles = model.makeMesh();
 	scene.add(particles);
-	//
+
 	renderer = new THREE.WebGLRenderer({ antialias: false });
 	renderer.setClearColor(scene.fog.color);
 	renderer.setPixelRatio(window.devicePixelRatio);
-	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setSize(width, height);
 	container.appendChild(renderer.domElement);
 
 	controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -143,63 +151,62 @@ function init() {
 	controls.dampingFactor = 0.75;
 	controls.enableZoom = true;
 
-	//
+	marquee = new Marquee(controls);
+	container.appendChild(marquee.dom);
+
 	stats = new Stats();
 	container.appendChild(stats.dom);
-	//
+
+	document.addEventListener('marquee-move', onMarqueeMove, false);
 	document.addEventListener( "mousedown", onDocumentMouseDown);
 	window.addEventListener('resize', onWindowResize, false);
 }
 
-function onDocumentMouseMove(event) {
-	mouseX = event.clientX - windowHalfX;
-	mouseY = event.clientY - windowHalfY;
-}
-function onDocumentMouseDown( event ) {
-	var mouse3D = new THREE.Vector3(
-			(event.clientX / window.innerWidth) * 2 - 1,
-			-(event.clientY / window.innerHeight) * 2 + 1,
-			0.5);
-	var projector = new THREE.Projector();
-	var raycaster = new THREE.Raycaster();
-	raycaster.params.Points.threshold = 5;
-	raycaster.setFromCamera(mouse3D, camera);
-	var intersects = raycaster.intersectObject(particles);
+function onMarqueeMove(event) {
+	var l = Math.min(event.detail.startX, event.detail.endX);
+	var r = Math.max(event.detail.startX, event.detail.endX);
+	var t = Math.min(event.detail.startY, event.detail.endY);
+	var b = Math.max(event.detail.startY, event.detail.endY);
+	console.log(l,r,t,b);
 
-	if (intersects.length == 0) return;
-	console.log(intersects[0]);
-	var idx = intersects[0].index;
+	var c = new THREE.Color(1, 1, 1);
 
-	if (idx in selected) {
-		var color = [0, 127, 127];
-		sprite = selected[idx];
-		scene.remove(sprite);
-		delete selected[idx]
-	} else {
-		var color = [255, 255, 255];
-		var text = textSprite("test", {
-			fontface: 'courier new',
-			fontsize: 36
-		});
-		text.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-		scene.add(text);
-		selected[idx] = text;
-	}
+	model.forEachStrip(function(strip, i) {
+		var v = model.getPosition(i);
+		var s = screenCoords(v);
 
-	for (var i = 0; i < 3; i++) {
-		colors[3*idx + i] = color[i];
-	}
+		if (i < 5) {
+			console.log(s);
+		}
 
-	geometry.attributes.color.needsUpdate = true;
+		if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
+			model.setColor(i, c);
+		}
+	});
 }
 
 function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.aspect = container.clientWidth / container.clientHeight;
 	camera.updateProjectionMatrix();
-	renderer.setSize(window.innerWidth, window.innerHeight);
-	controls.handleResize();
+	renderer.setSize(container.clientWidth, container.clientHeight);
 }
-//
+
+function onDocumentMouseDown( event ) {
+       var mouse3D = new THREE.Vector3(
+                       (event.clientX / window.innerWidth) * 2 - 1,
+                       -(event.clientY / window.innerHeight) * 2 + 1,
+                       0.5);
+       var projector = new THREE.Projector();
+       var raycaster = new THREE.Raycaster();
+       raycaster.params.Points.threshold = 5;
+       raycaster.setFromCamera(mouse3D, camera);
+       var intersects = raycaster.intersectObject(particles);
+
+       if (intersects.length == 0) return;
+       console.log(event.clientX, event.clientY);
+	   console.log(screenCoords(intersects[0].point));
+}
+
 function animate() {
 	requestAnimationFrame(animate);
 	render();

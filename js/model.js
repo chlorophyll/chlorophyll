@@ -1,4 +1,4 @@
-function Model() {
+function Model(geometry) {
 	var stripOffsets;
 	var numPixels;
 	var pixelData;
@@ -43,8 +43,18 @@ function Model() {
 	}
 
 	this.getPosition = function(i) {
-		return pixelData.slice(3*i, 3*(i+1));
+		return new THREE.Vector3(pixelData[3*i+0],
+			pixelData[3*i+1],
+			pixelData[3*i+2]
+		);
 	};
+
+	this.setColor = function(i, color) {
+		colors[3*i + 0] = color.r;
+		colors[3*i + 1] = color.g;
+		colors[3*i + 2] = color.b;
+		geometry.attributes.color.needsUpdate = true;
+	}
 
 	this.getStrip = function(i) {
 		for (var s = 0; s < stripOffsets.length-1; s++) {
@@ -56,7 +66,7 @@ function Model() {
 		return undefined;//
 	}
 
-	this.makeMesh = function(geometry) {
+	this.makeMesh = function() {
 		var stripColors = [
 			[  0,   1,   0],
 			[0.5,   0,   1],
