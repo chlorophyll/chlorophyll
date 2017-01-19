@@ -1,0 +1,15 @@
+{
+  "name": "controlkit",
+  "homepage": "https://github.com/automat/controlkit",
+  "version": "0.1.9",
+  "_release": "0.1.9",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.1.9",
+    "commit": "e98efb3b88978ece7cba19bc6ca5f328755dd370"
+  },
+  "_source": "https://github.com/automat/controlkit.git",
+  "_target": "^0.1.9",
+  "_originalSource": "automat/controlkit",
+  "_direct": true
+}
