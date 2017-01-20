@@ -2,7 +2,7 @@
 var container;
 
 // threejs objects
-var camera, scene, controls, renderer, particles, geometry;
+var camera, scene, controls, renderer, particles, geometry, handle;
 
 // chlorophyll objects
 var marquee, model;
@@ -47,6 +47,9 @@ function init() {
 
 	marquee = new Marquee(model, container);
 	container.appendChild(marquee.dom);
+    
+    handle = new ViewportHandle(scene, camera, renderer);
+    handle.setMode("translate");
 
 	window.addEventListener('resize', onWindowResize, false);
 
@@ -121,6 +124,7 @@ function animate() {
 	backPlane.normal = v.clone().negate();
 	render();
 	controls.update();
+    handle.update();
 }
 
 function render() {
