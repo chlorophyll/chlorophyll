@@ -6,6 +6,9 @@ var camera, scene, controls, renderer, particles, geometry;
 
 // chlorophyll objects
 var marquee, model;
+
+var frontPlane, backPlane;
+
 init();
 animate();
 
@@ -40,31 +43,53 @@ function init() {
 	controls.enableDamping = true;
 	controls.dampingFactor = 0.75;
 	controls.enableZoom = true;
+	controls.enableKeys = false;
 
-	marquee = new Marquee(controls);
+	marquee = new Marquee(model, container);
 	container.appendChild(marquee.dom);
 
-	document.addEventListener('marquee-move', onMarqueeMove, false);
-	document.addEventListener("mousedown", onDocumentMouseDown);
 	window.addEventListener('resize', onWindowResize, false);
-}
 
-function onMarqueeMove(event) {
-	var l = Math.min(event.detail.startX, event.detail.endX);
-	var r = Math.max(event.detail.startX, event.detail.endX);
-	var t = Math.min(event.detail.startY, event.detail.endY);
-	var b = Math.max(event.detail.startY, event.detail.endY);
+	var v = new THREE.Vector3();
+	camera.getWorldDirection(v);
+	var nv = v.clone().negate();
+	console.log(v);
+	console.log(nv);
 
-	var c = new THREE.Color(1, 1, 1);
+	frontPlane = new THREE.Plane(v, 1000);
+	backPlane =  new THREE.Plane(nv, 1000);
 
-	model.forEachStrip(function(strip, i) {
-		var v = model.getPosition(i);
-		var s = Util.screenCoords(v);
+	model.setColor(0, new THREE.Color(0,0,1));
 
-		if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
-			model.setColor(i, c);
-		}
-	});
+	renderer.clippingPlanes = [frontPlane, backPlane];
+
+	var uiShim = {
+		set navigate(val) {
+			controls.enabled = val;
+			marquee.enabled = !val;
+		},
+
+		get navigate() {
+			return controls.enabled;
+		},
+
+		set backPlane(val) {
+			backPlane.constant = -val;
+		},
+
+		set frontPlane(val) {
+			frontPlane.constant = val;
+		},
+	};
+
+	uiShim.navigate = true;
+
+	QuickSettings.useExtStyleSheet();
+
+	var settings = QuickSettings.create(0, 0, "Controls");
+	settings.bindRange('backPlane', -1000, 1000, -1000, 1, uiShim);
+	settings.bindRange('frontPlane', -1000, 1000, 1000, 1, uiShim);
+	settings.bindBoolean('navigate', true, uiShim);
 }
 
 function onWindowResize() {
@@ -73,23 +98,12 @@ function onWindowResize() {
 	renderer.setSize(container.clientWidth, container.clientHeight);
 }
 
-function onDocumentMouseDown( event ) {
-       var mouse3D = new THREE.Vector3(
-                       (event.clientX / window.innerWidth) * 2 - 1,
-                       -(event.clientY / window.innerHeight) * 2 + 1,
-                       0.5);
-       var raycaster = new THREE.Raycaster();
-       raycaster.params.Points.threshold = 5;
-       raycaster.setFromCamera(mouse3D, camera);
-       var intersects = raycaster.intersectObject(particles);
-
-       if (intersects.length === 0) return;
-       console.log(event.clientX, event.clientY);
-	   console.log(Util.screenCoords(intersects[0].point));
-}
-
 function animate() {
 	requestAnimationFrame(animate);
+	var v = new THREE.Vector3();
+	camera.getWorldDirection(v);
+	frontPlane.normal = v;
+	backPlane.normal = v.clone().negate();
 	render();
 	controls.update();
 }
