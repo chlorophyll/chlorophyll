@@ -1,9 +1,6 @@
 // dom
 var container;
 
-// ui
-var stats;
-
 // threejs objects
 var camera, scene, controls, renderer, particles, geometry;
 
@@ -46,9 +43,6 @@ function init() {
 
 	marquee = new Marquee(controls);
 	container.appendChild(marquee.dom);
-
-	stats = new Stats();
-	container.appendChild(stats.dom);
 
 	document.addEventListener('marquee-move', onMarqueeMove, false);
 	document.addEventListener("mousedown", onDocumentMouseDown);
@@ -97,7 +91,6 @@ function onDocumentMouseDown( event ) {
 function animate() {
 	requestAnimationFrame(animate);
 	render();
-	stats.update();
 	controls.update();
 }
 
