@@ -26,6 +26,7 @@
   ],
   "dependencies": {
     "three": "*",
-    "controlkit": "automat/controlkit#^0.1.9"
+    "mousetrap": "^1.6.0",
+    "quicksettings": "bit101/quicksettings#^3.0.1"
   }
 }
