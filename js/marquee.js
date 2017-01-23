@@ -21,6 +21,7 @@ Marquee = function(model, domElement) {
 
 	function onMouseDown(event) {
 		if (!scope.enabled) return;
+		scope.isSelecting = !event.altKey;
 		dragging = true;
 		scope.rect.startX = event.clientX;
         scope.rect.startY = event.clientY;
@@ -46,6 +47,8 @@ Marquee = function(model, domElement) {
 		dragging = false;
 
 		scope.dom.style.display = 'none';
+		scope.dom.style.left = 0;
+		scope.dom.style.top = 0;
 		scope.dom.style.width = 0;
 		scope.dom.style.height = 0;
 	}
@@ -71,7 +74,11 @@ Marquee = function(model, domElement) {
 			var s = Util.screenCoords(v);
 
 			if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
-				model.setColor(i, c);
+				if (scope.isSelecting) {
+					model.selectPixel(i);
+				} else {
+					model.deselectPixel(i);
+				}
 			}
 		});
 	}
