@@ -53,8 +53,6 @@ function init() {
 	var v = new THREE.Vector3();
 	camera.getWorldDirection(v);
 	var nv = v.clone().negate();
-	console.log(v);
-	console.log(nv);
 
 	frontPlane = new THREE.Plane(v, 1000);
 	backPlane =  new THREE.Plane(nv, 1000);
@@ -73,11 +71,11 @@ function init() {
 			return controls.enabled;
 		},
 
-		set backPlane(val) {
+		set "Back Clipping" (val) {
 			backPlane.constant = -val;
 		},
 
-		set frontPlane(val) {
+		set "Front Clipping" (val) {
 			frontPlane.constant = val;
 		},
 	};
@@ -87,9 +85,26 @@ function init() {
 	QuickSettings.useExtStyleSheet();
 
 	var settings = QuickSettings.create(0, 0, "Controls");
-	settings.bindRange('backPlane', -1000, 1000, -1000, 1, uiShim);
-	settings.bindRange('frontPlane', -1000, 1000, 1000, 1, uiShim);
+	settings.bindRange('Back Clipping', -1000, 1000, -1000, 1, uiShim);
+	settings.bindRange('Front Clipping', -1000, 1000, 1000, 1, uiShim);
 	settings.bindBoolean('navigate', true, uiShim);
+
+	Mousetrap.prototype.stopCallback = function(e, element, combo) {
+		if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+			return false;
+		}
+
+		var textbox = (element.tagName == 'INPUT' && element.type == 'text');
+		var select = (element.tagName == 'SELECT');
+		var textarea = (element.tagName == 'TEXTAREA');
+		var editable = (element.contentEditable && element.contentEditable == 'true')
+
+		return textbox || select || textarea || editable;
+	}
+
+	Mousetrap.bind('n', function() {
+		settings.setValue('navigate', !uiShim.navigate);
+	});
 }
 
 function onWindowResize() {
