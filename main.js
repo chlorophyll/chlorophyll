@@ -47,8 +47,8 @@ function init() {
 
 	marquee = new Marquee(model, container);
 	container.appendChild(marquee.dom);
-    
-    handle = new ViewportHandle(scene, camera, renderer);
+
+	handle = new ViewportHandle(scene, camera, renderer);
     handle.setMode("translate");
 
 	window.addEventListener('resize', onWindowResize, false);
@@ -122,9 +122,9 @@ function animate() {
 	camera.getWorldDirection(v);
 	frontPlane.normal = v;
 	backPlane.normal = v.clone().negate();
+	handle.update();
 	render();
 	controls.update();
-    handle.update();
 }
 
 function render() {
