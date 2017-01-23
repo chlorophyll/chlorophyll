@@ -1,8 +1,16 @@
 function Model(geometry) {
+	var stripColors = [
+		[  0,   1,   0],
+		[0.5,   0,   1],
+		[  1,   0,   0],
+		[  1, 0.5,   0],
+		[  1,   1,   0]
+	]
 	var stripOffsets;
 	var numPixels;
 	var pixelData;
 	var colors;
+	var selected = {};
 	this.loadData = function(json) {
 		var model = JSON.parse(json);
 
@@ -59,7 +67,8 @@ function Model(geometry) {
 	this.getStrip = function(i) {
 		for (var s = 0; s < stripOffsets.length-1; s++) {
 			var start = stripOffsets[s];
-			if (start >= i) {
+			var end = stripOffsets[s+1];
+			if (start <= i && i < end) {
 				return s;
 			}
 		}
@@ -67,13 +76,6 @@ function Model(geometry) {
 	}
 
 	this.makeMesh = function() {
-		var stripColors = [
-			[  0,   1,   0],
-			[0.5,   0,   1],
-			[  1,   0,   0],
-			[  1, 0.5,   0],
-			[  1,   1,   0]
-		]
 
 		this.forEachStrip(function(strip, i) {
 			for (var j = 0; j < 3; j++) {
@@ -88,5 +90,17 @@ function Model(geometry) {
 		particles = new THREE.Points(geometry, material);
 
 		return particles;
+	};
+
+	this.selectPixel = function(i) {
+		this.setColor(i, new THREE.Color(0xffffff));
+		selected[i] = true;
+	};
+
+	this.deselectPixel = function(i) {
+		var strip = this.getStrip(i);
+		var c = stripColors[this.getStrip(i)];
+		this.setColor(i, new THREE.Color(c[0], c[1], c[2]));
+		selected[i] = false;
 	};
 }
