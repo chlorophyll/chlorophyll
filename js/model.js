@@ -136,7 +136,7 @@ function Model() {
 		geometry.colors = colors;
 
 		geometry.computeBoundingSphere();
-		var material = new THREE.PointsMaterial({ size: 10, vertexColors: THREE.VertexColors });
+		var material = new THREE.PointsMaterial({ size: 15, vertexColors: THREE.VertexColors });
 		particles = new THREE.Points(geometry, material);
 		console.log(particles);
 
