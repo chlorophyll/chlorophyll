@@ -7,7 +7,6 @@ var camera, scene, controls, renderer, particles, geometry;
 // chlorophyll objects
 var marquee, model, handle;
 var worldState = {
-	activeSelection: {}
 };
 
 var frontPlane, backPlane;
@@ -32,6 +31,7 @@ function init() {
 	colors = new Float32Array(900 * 3);
 
 	model = new Model(geometry);
+	worldState.activeSelection = model.createOverlay();
 	//model.loadData(icosahedron_data);
 	particles = model.makeMesh(icosahedron_data);
 	scene.add(particles);
