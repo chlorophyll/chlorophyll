@@ -1,35 +1,31 @@
-function Model(geometry) {
+function Model() {
 	var stripColors = [
-		[  0,   1,   0],
-		[0.5,   0,   1],
-		[  1,   0,   0],
-		[  1, 0.5,   0],
-		[  1,   1,   0]
+		new THREE.Color(0x00ff00),
+		new THREE.Color(0x8000ff),
+		new THREE.Color(0xff0000),
+		new THREE.Color(0xff8000),
+		new THREE.Color(0xffff00)
 	]
 	var stripOffsets;
 	var numPixels;
 	var pixelData;
 	var colors;
+	var geometry;
 	var selected = {};
-	this.loadData = function(json) {
-		var model = JSON.parse(json);
 
-		numPixels = model['num_pixels'];
-		stripOffsets = [0]
+	this.octree = new THREE.Octree( {
+		// when undeferred = true, objects are inserted immediately
+		// instead of being deferred until next octree.update() call
+		// this may decrease performance as it forces a matrix update
+		undeferred: true,
+		// set the max depth of tree
+		depthMax: Infinity,
+		// max number of objects before nodes split or merge
+		objectsThreshold: 8,
+	});
 
-		pixelData = new Float32Array(numPixels*3);
-		colors = new Float32Array(numPixels*3);
-		var i = 0;
-		strips = model['strips'];
-		for (var strip = 0; strip < strips.length; strip++) {
-			for (var pixel = 0; pixel < strips[strip].length; pixel++) {
-				for (var coord = 0; coord < 3; coord++) {
-					pixelData[3*i + coord] = strips[strip][pixel][coord];
-				}
-				i++;
-			}
-			stripOffsets.push(i);
-		}
+	this.getPosition = function(i) {
+		return pixelData[i];
 	};
 
 	this.forEachStrip = function(func) {
@@ -50,18 +46,10 @@ function Model(geometry) {
 		}
 	}
 
-	this.getPosition = function(i) {
-		return new THREE.Vector3(pixelData[3*i+0],
-			pixelData[3*i+1],
-			pixelData[3*i+2]
-		);
-	};
 
 	this.setColor = function(i, color) {
-		colors[3*i + 0] = color.r;
-		colors[3*i + 1] = color.g;
-		colors[3*i + 2] = color.b;
-		geometry.attributes.color.needsUpdate = true;
+		colors[i] = color;
+		geometry.colorsNeedUpdate = true;
 	}
 
 	this.getStrip = function(i) {
@@ -75,22 +63,51 @@ function Model(geometry) {
 		return undefined;//
 	}
 
-	this.makeMesh = function() {
+	this.makeMesh = function(json) {
+		var model = JSON.parse(json);
+
+		numPixels = model['num_pixels'];
+		stripOffsets = [0]
+
+		pixelData = [];
+		colors = [];
+		var i = 0;
+		strips = model['strips'];
+		for (var strip = 0; strip < strips.length; strip++) {
+			for (var pixel = 0; pixel < strips[strip].length; pixel++) {
+				for (var coord = 0; coord < 3; coord++) {
+					pixelData[i] = new THREE.Vector3().fromArray(strips[strip][pixel]);
+				}
+				i++;
+			}
+			stripOffsets.push(i);
+		}
+		geometry = new THREE.Geometry();
+
+		geometry.vertices = pixelData;
 
 		this.forEachStrip(function(strip, i) {
-			for (var j = 0; j < 3; j++) {
-				colors[3*i + j] = stripColors[strip][j];
-			}
+			colors[i] = stripColors[strip];
 		});
-		geometry.addAttribute('position', new THREE.BufferAttribute(pixelData, 3));
-		geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3).setDynamic(true));
+		geometry.colors = colors;
 
 		geometry.computeBoundingSphere();
 		var material = new THREE.PointsMaterial({ size: 10, vertexColors: THREE.VertexColors });
 		particles = new THREE.Points(geometry, material);
+		console.log(particles);
+
+		this.octree.add(particles, {useVertices: true});
+
+		for (var i = 0; i < this.octree.objectsData.length; i++) {
+			this.octree.objectsData[i].index = i;
+		}
 
 		return particles;
 	};
+
+	this.pointsWithinRadius = function(point, radius) {
+		return this.octree.search(point, radius);
+	}
 
 	this.selectPixel = function(i) {
 		this.setColor(i, new THREE.Color(0xffffff));
@@ -100,7 +117,7 @@ function Model(geometry) {
 	this.deselectPixel = function(i) {
 		var strip = this.getStrip(i);
 		var c = stripColors[this.getStrip(i)];
-		this.setColor(i, new THREE.Color(c[0], c[1], c[2]));
+		this.setColor(i, c);
 		selected[i] = false;
 	};
 }

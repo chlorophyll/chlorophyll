@@ -17,7 +17,7 @@ function init() {
 	var width = container.clientWidth;
 	var height = container.clientHeight;
 	//
-	camera = new THREE.PerspectiveCamera(55, width/height, 2, 2000 );
+	camera = new THREE.PerspectiveCamera(45, width/height, 2, 2000 );
 	camera.position.z = 1000;
 
 	scene = new THREE.Scene();
@@ -29,8 +29,8 @@ function init() {
 	colors = new Float32Array(900 * 3);
 
 	model = new Model(geometry);
-	model.loadData(icosahedron_data);
-	particles = model.makeMesh();
+	//model.loadData(icosahedron_data);
+	particles = model.makeMesh(icosahedron_data);
 	scene.add(particles);
 
 	renderer = new THREE.WebGLRenderer({ antialias: false });
@@ -46,6 +46,7 @@ function init() {
 	controls.enableKeys = false;
 
 	marquee = new Marquee(model, container);
+	l = new LineSelection(model);
 	container.appendChild(marquee.dom);
 
 	handle = new ViewportHandle(scene, camera, renderer);
@@ -73,14 +74,6 @@ function init() {
 		get navigate() {
 			return controls.enabled;
 		},
-
-		set "Back Clipping" (val) {
-			backPlane.constant = -val;
-		},
-
-		set "Front Clipping" (val) {
-			frontPlane.constant = val;
-		},
 	};
 
 	uiShim.navigate = true;
@@ -88,8 +81,19 @@ function init() {
 	QuickSettings.useExtStyleSheet();
 
 	var settings = QuickSettings.create(0, 0, "Controls");
-	settings.bindRange('Back Clipping', -1000, 1000, -1000, 1, uiShim);
-	settings.bindRange('Front Clipping', -1000, 1000, 1000, 1, uiShim);
+	settings.addRange('Back Clipping', -1000, 1000, -1000, 1, function(val) {
+		backPlane.constant = -val;
+	});
+	settings.addRange('Front Clipping', -1000, 1000, 1000, 1, function(val) {
+		frontPlane.constant = val;
+	});
+	settings.addDropDown(
+		'Selection Mode',
+		['marquee', 'line', 'plane'],
+		function(obj) {
+			console.log(obj.value);
+		}
+	);
 	settings.bindBoolean('navigate', true, uiShim);
 
 	Mousetrap.prototype.stopCallback = function(e, element, combo) {
