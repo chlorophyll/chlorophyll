@@ -17,6 +17,7 @@ Marquee = function(model, domElement) {
 	var dragging = false;
 	var isSelecting = true;
 	rect = {};
+	var selectedPoints = {};
 
 	this.dom = document.createElement('div');
 	this.dom.style.position = 'absolute';
@@ -28,13 +29,12 @@ Marquee = function(model, domElement) {
 	this.domElement.addEventListener('mouseup', onMouseUp, false);
 	this.domElement.addEventListener('mousemove', onMouseMove, false);
 
-
 	function onMouseDown(event) {
 		if (!self.enabled) return;
 		isSelecting = !event.altKey;
 		dragging = true;
 		rect.startX = event.clientX;
-        rect.startY = event.clientY;
+		rect.startY = event.clientY;
 		self.dom.style.display = 'block';
 	}
 
@@ -56,12 +56,26 @@ Marquee = function(model, domElement) {
 
 		dragging = false;
 
+		/*
+		 * Set the current selection of points to the global state and clear it.
+		 */
+		if (isSelecting) {
+			worldState.activeSelection = selectedPoints;
+		} else {
+			for (var i in selectedPoints) {
+				delete worldState.activeSelection[i];
+			}
+		}
+		selectedPoints = {};
+		model.updateColors();
+
 		self.dom.style.display = 'none';
 		self.dom.style.left = 0;
 		self.dom.style.top = 0;
 		self.dom.style.width = 0;
 		self.dom.style.height = 0;
 	}
+
 
 	function selectPoints() {
 		var l = Math.min(rect.startX, rect.endX);
@@ -71,6 +85,7 @@ Marquee = function(model, domElement) {
 
 		var c = new THREE.Color(1, 1, 1);
 
+		selectedPoints = {};
 
 		model.forEachStrip(function(strip, i) {
 			var v = model.getPosition(i);
@@ -80,7 +95,8 @@ Marquee = function(model, domElement) {
 			var s = Util.screenCoords(v);
 
 			if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
-				if (self.isSelecting) {
+				selectedPoints[i] = true;
+				if (isSelecting) {
 					model.selectPixel(i);
 				} else {
 					model.deselectPixel(i);
