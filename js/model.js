@@ -1,5 +1,45 @@
+function Overlay(model) {
+	this.colors = {};
+
+	this.set = function(i, color) {
+		this.colors[i] = color;
+		model.updateColors();
+	}
+
+	this.unset = function(i) {
+		delete this.colors[i];
+		model.updateColors();
+	}
+
+	this.updateColors = function() {
+		for (var i in this.colors) {
+			model.setColor(i, this.colors[i]);
+		}
+	}
+
+	this.setAll = function(overlay) {
+		for (var i in overlay.colors) {
+			this.colors[i] = overlay.colors[i];
+		}
+		model.updateColors();
+	}
+
+	this.unsetAll = function(overlay) {
+		for (var i in overlay.colors) {
+			delete this.colors[i];
+		}
+		model.updateColors();
+	}
+
+	this.clear = function() {
+		this.colors = {};
+		model.updateColors();
+	}
+}
+
 function Model() {
 	var self = this;
+	this.overlays = [];
 	var stripColors = [
 		new THREE.Color(0x00ff00),
 		new THREE.Color(0x8000ff),
@@ -12,7 +52,6 @@ function Model() {
 	var pixelData;
 	var colors;
 	var geometry;
-	var displaySelected = {};
 
 	this.octree = new THREE.Octree( {
 		// when undeferred = true, objects are inserted immediately
@@ -64,6 +103,12 @@ function Model() {
 		return undefined;//
 	}
 
+	var setDefaultColors = function() {
+		self.forEachStrip(function(strip, i) {
+			colors[i] = stripColors[strip]
+		});
+	}
+
 	this.makeMesh = function(json) {
 		var model = JSON.parse(json);
 
@@ -87,9 +132,7 @@ function Model() {
 
 		geometry.vertices = pixelData;
 
-		this.forEachStrip(function(strip, i) {
-			colors[i] = stripColors[strip];
-		});
+		setDefaultColors();
 		geometry.colors = colors;
 
 		geometry.computeBoundingSphere();
@@ -110,40 +153,25 @@ function Model() {
 		return this.octree.search(point, radius);
 	}
 
-	/* Just changes the displayed selection status of a point
-	 * For use while e.g. changing an active selection of some points before
-	 * writing it out */
-	this.updatePixelColor = function(i) {
-		if (displaySelected[i]) {
-			this.setColor(i, new THREE.Color(0xffffff));
-		} else {
-			this.setColor(i, stripColors[this.getStrip(i)]);
-		}
-	}
-
-	/* Does a full reload of the selection state, then updates all the point
-	 * colors */
 	this.updateColors = function() {
-		for (var i in worldState.activeSelection) {
-			displaySelected[i] = true;
+		setDefaultColors();
+		for (var i = 0, l = this.overlays.length; i < l; i++) {
+			this.overlays[i].updateColors();
 		}
-		this.forEachStrip(function (strip, i) {
-			self.updatePixelColor(i);
-		});
 	}
 
-	this.selectPixel = function(i) {
-		console.log("selected pixel?");
-		displaySelected[i] = true;
-		this.updatePixelColor(i);
-	};
+	this.createOverlay = function() {
+		var overlay = new Overlay(this);
+		this.overlays.push(overlay);
+		return overlay;
+	}
 
-	this.deselectPixel = function(i) {
-		delete displaySelected[i];
-		this.updatePixelColor(i);
-	};
+	this.removeOverlay = function(overlay) {
+		var index = this.overlays.indexOf(overlay);
 
-	this.resetSelected = function() {
-		displaySelected = {};
+		if (index == -1)
+			return;
+
+		this.overlays.splice(index, 1);
 	}
 }

@@ -16,8 +16,8 @@ Marquee = function(model, domElement) {
 
 	var dragging = false;
 	var isSelecting = true;
-	rect = {};
-	var selectedPoints = {};
+	var rect = {};
+	var selectedPoints = model.createOverlay();
 
 	this.dom = document.createElement('div');
 	this.dom.style.position = 'absolute';
@@ -60,14 +60,13 @@ Marquee = function(model, domElement) {
 		 * Set the current selection of points to the global state and clear it.
 		 */
 		if (isSelecting) {
-			worldState.activeSelection = selectedPoints;
+			worldState.activeSelection.setAll(selectedPoints);
 		} else {
 			for (var i in selectedPoints) {
-				delete worldState.activeSelection[i];
+				worldState.activeSelection.unset(i);
 			}
 		}
-		selectedPoints = {};
-		model.updateColors();
+		selectedPoints.clear();
 
 		self.dom.style.display = 'none';
 		self.dom.style.left = 0;
@@ -85,7 +84,7 @@ Marquee = function(model, domElement) {
 
 		var c = new THREE.Color(1, 1, 1);
 
-		selectedPoints = {};
+		selectedPoints.clear();
 
 		model.forEachStrip(function(strip, i) {
 			var v = model.getPosition(i);
@@ -95,11 +94,10 @@ Marquee = function(model, domElement) {
 			var s = Util.screenCoords(v);
 
 			if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
-				selectedPoints[i] = true;
 				if (isSelecting) {
-					model.selectPixel(i);
+					selectedPoints.set(i,c);
 				} else {
-					model.deselectPixel(i);
+					seletectedPoints.unset(i);
 				}
 			}
 		});
