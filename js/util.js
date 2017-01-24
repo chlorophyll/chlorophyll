@@ -12,6 +12,18 @@ var Util = {
 		vector.z = 0;
 		return vector;
 	},
+	distanceToLine: function(point, line) {
+		//var d1 = point.clone().sub(line.start);
+		//var d2 = point.clone().sub(line.end);
+
+		//d1.cross(d2);
+
+		//return d1.length() / line.distance();
+		//
+		var closest = line.closestPointToPoint(point, true);
+		var ret = closest.sub(point).length();
+		return ret;
+	}
 };
 
 var _Unused = {

@@ -1,12 +1,22 @@
+function isClipped(v) {
+	if (frontPlane.distanceToPoint(v) < 0)
+		return true;
+
+	if (backPlane.distanceToPoint(v) < 0)
+		return true;
+	return false;
+}
+
 Marquee = function(model, domElement) {
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
-	var scope = this;
+	var self = this;
 
-	this.rect = {};
-	this.model = model;
 	this.enabled = true
+
 	var dragging = false;
+	var isSelecting = true;
+	rect = {};
 
 	this.dom = document.createElement('div');
 	this.dom.style.position = 'absolute';
@@ -20,25 +30,25 @@ Marquee = function(model, domElement) {
 
 
 	function onMouseDown(event) {
-		if (!scope.enabled) return;
-		scope.isSelecting = !event.altKey;
+		if (!self.enabled) return;
+		isSelecting = !event.altKey;
 		dragging = true;
-		scope.rect.startX = event.clientX;
-        scope.rect.startY = event.clientY;
-		scope.dom.style.display = 'block';
+		rect.startX = event.clientX;
+        rect.startY = event.clientY;
+		self.dom.style.display = 'block';
 	}
 
 	function drawRect() {
-		l = Math.min(scope.rect.startX, scope.rect.endX);
-		r = Math.max(scope.rect.startX, scope.rect.endX);
+		l = Math.min(rect.startX, rect.endX);
+		r = Math.max(rect.startX, rect.endX);
 
-		t = Math.min(scope.rect.startY, scope.rect.endY);
-		b = Math.max(scope.rect.startY, scope.rect.endY);
+		t = Math.min(rect.startY, rect.endY);
+		b = Math.max(rect.startY, rect.endY);
 
-		scope.dom.style.left = l+'px';
-		scope.dom.style.top = t+'px';
-		scope.dom.style.width = (r - l) + 'px';
-		scope.dom.style.height = (b - t) + 'px';
+		self.dom.style.left = l+'px';
+		self.dom.style.top = t+'px';
+		self.dom.style.width = (r - l) + 'px';
+		self.dom.style.height = (b - t) + 'px';
 	}
 
 	function onMouseUp(event) {
@@ -46,35 +56,31 @@ Marquee = function(model, domElement) {
 
 		dragging = false;
 
-		scope.dom.style.display = 'none';
-		scope.dom.style.left = 0;
-		scope.dom.style.top = 0;
-		scope.dom.style.width = 0;
-		scope.dom.style.height = 0;
+		self.dom.style.display = 'none';
+		self.dom.style.left = 0;
+		self.dom.style.top = 0;
+		self.dom.style.width = 0;
+		self.dom.style.height = 0;
 	}
 
 	function selectPoints() {
-		var l = Math.min(scope.rect.startX, scope.rect.endX);
-		var r = Math.max(scope.rect.startX, scope.rect.endX);
-		var t = Math.min(scope.rect.startY, scope.rect.endY);
-		var b = Math.max(scope.rect.startY, scope.rect.endY);
+		var l = Math.min(rect.startX, rect.endX);
+		var r = Math.max(rect.startX, rect.endX);
+		var t = Math.min(rect.startY, rect.endY);
+		var b = Math.max(rect.startY, rect.endY);
 
 		var c = new THREE.Color(1, 1, 1);
 
 
 		model.forEachStrip(function(strip, i) {
 			var v = model.getPosition(i);
-
-			if (frontPlane.distanceToPoint(v) < 0)
-				return;
-
-			if (backPlane.distanceToPoint(v) < 0)
+			if (isClipped(v))
 				return;
 
 			var s = Util.screenCoords(v);
 
 			if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
-				if (scope.isSelecting) {
+				if (self.isSelecting) {
 					model.selectPixel(i);
 				} else {
 					model.deselectPixel(i);
@@ -83,15 +89,74 @@ Marquee = function(model, domElement) {
 		});
 	}
 
-
 	function onMouseMove(event) {
 		if (!dragging) return;
 		event.preventDefault();
 
-		scope.rect.endX = event.clientX;
-		scope.rect.endY = event.clientY;
+		rect.endX = event.clientX;
+		rect.endY = event.clientY;
 
 		drawRect();
 		selectPoints();
 	}
 }
+
+LineSelection = function(model, domElement) {
+	this.domElement = ( domElement !== undefined ) ? domElement : document;
+
+	var self = this;
+
+	var p1 = undefined;
+
+
+	function onMouseDown(event) {
+		var mouse3D = new THREE.Vector3(
+			(event.clientX / window.innerWidth) * 2 - 1,
+			-(event.clientY / window.innerHeight) * 2 + 1,
+			0.5);
+		var raycaster = new THREE.Raycaster();
+		raycaster.params.Points.threshold = 10;
+		raycaster.setFromCamera(mouse3D, camera);
+		var intersects = raycaster.intersectObject(particles);
+		var chosen;
+		for (var i = 0; i < intersects.length; i++) {
+			if (!isClipped(intersects[i].point)) {
+				chosen = intersects[i];
+				break;
+			}
+		}
+
+		if (!chosen)
+			return;
+
+		if (!p1) {
+			p1 = chosen.index;
+			model.selectPixel(p1);
+		} else {
+			var p2 = chosen.index;
+			var pos1 = model.getPosition(p1);
+			var pos2 = model.getPosition(p2);
+
+			var midPoint = pos1.clone().add(pos2).divideScalar(2);
+
+			var rad = midPoint.clone().sub(pos1).length() + 0.1;
+			var points = model.pointsWithinRadius(pos1, rad);
+
+			var line = new THREE.Line3(pos1, pos2);
+
+			for ( var i = 0; i < points.length; i++) {
+				var objData = points[i];
+				var point = objData.position;
+
+				var dist = Util.distanceToLine(point, line);
+				if (dist < 5) {
+					model.selectPixel(objData.index);
+				}
+			}
+			//model.deselectPixel(p1);
+			p1 = p2 = undefined;
+		}
+	}
+	this.domElement.addEventListener('mousedown', onMouseDown, false);
+}
+
