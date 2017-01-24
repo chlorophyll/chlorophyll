@@ -1,4 +1,5 @@
 function Model() {
+	var self = this;
 	var stripColors = [
 		new THREE.Color(0x00ff00),
 		new THREE.Color(0x8000ff),
@@ -11,7 +12,7 @@ function Model() {
 	var pixelData;
 	var colors;
 	var geometry;
-	var selected = {};
+	var displaySelected = {};
 
 	this.octree = new THREE.Octree( {
 		// when undeferred = true, objects are inserted immediately
@@ -109,15 +110,40 @@ function Model() {
 		return this.octree.search(point, radius);
 	}
 
+	/* Just changes the displayed selection status of a point
+	 * For use while e.g. changing an active selection of some points before
+	 * writing it out */
+	this.updatePixelColor = function(i) {
+		if (displaySelected[i]) {
+			this.setColor(i, new THREE.Color(0xffffff));
+		} else {
+			this.setColor(i, stripColors[this.getStrip(i)]);
+		}
+	}
+
+	/* Does a full reload of the selection state, then updates all the point
+	 * colors */
+	this.updateColors = function() {
+		for (var i in worldState.activeSelection) {
+			displaySelected[i] = true;
+		}
+		this.forEachStrip(function (strip, i) {
+			self.updatePixelColor(i);
+		});
+	}
+
 	this.selectPixel = function(i) {
-		this.setColor(i, new THREE.Color(0xffffff));
-		selected[i] = true;
+		console.log("selected pixel?");
+		displaySelected[i] = true;
+		this.updatePixelColor(i);
 	};
 
 	this.deselectPixel = function(i) {
-		var strip = this.getStrip(i);
-		var c = stripColors[this.getStrip(i)];
-		this.setColor(i, c);
-		selected[i] = false;
+		delete displaySelected[i];
+		this.updatePixelColor(i);
 	};
+
+	this.resetSelected = function() {
+		displaySelected = {};
+	}
 }

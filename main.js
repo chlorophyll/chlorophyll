@@ -2,10 +2,13 @@
 var container;
 
 // threejs objects
-var camera, scene, controls, renderer, particles, geometry, handle;
+var camera, scene, controls, renderer, particles, geometry;
 
 // chlorophyll objects
-var marquee, model;
+var marquee, model, handle;
+var worldState = {
+	activeSelection: {}
+};
 
 var frontPlane, backPlane;
 
@@ -50,7 +53,7 @@ function init() {
 	container.appendChild(marquee.dom);
 
 	handle = new ViewportHandle(scene, camera, renderer);
-    handle.setMode("translate");
+	handle.setMode("translate");
 
 	window.addEventListener('resize', onWindowResize, false);
 
