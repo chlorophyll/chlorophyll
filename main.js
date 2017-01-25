@@ -7,6 +7,7 @@ var camera, scene, controls, renderer, particles, geometry;
 // chlorophyll objects
 var marquee, model, handle;
 var worldState = {
+
 };
 
 var frontPlane, backPlane;
@@ -31,7 +32,7 @@ function init() {
 	colors = new Float32Array(900 * 3);
 
 	model = new Model(geometry);
-	worldState.activeSelection = model.createOverlay();
+	worldState = new WorldState({activeSelection: model.createOverlay()});
 	//model.loadData(icosahedron_data);
 	particles = model.makeMesh(icosahedron_data);
 	scene.add(particles);
@@ -114,6 +115,14 @@ function init() {
 
 	Mousetrap.bind('n', function() {
 		settings.setValue('navigate', !uiShim.navigate);
+	});
+
+	Mousetrap.bind('mod+z', function() {
+		worldState.undo();
+	});
+
+	Mousetrap.bind('mod+shift+z', function() {
+		worldState.redo();
 	});
 }
 
