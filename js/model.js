@@ -103,10 +103,15 @@ function Model() {
 		return undefined;//
 	}
 
+
 	var setDefaultColors = function() {
 		self.forEachStrip(function(strip, i) {
 			colors[i] = stripColors[strip]
 		});
+	}
+
+	this.defaultColor = function(strip) {
+		return stripColors[strip];
 	}
 
 	this.makeMesh = function(json) {

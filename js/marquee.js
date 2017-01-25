@@ -62,9 +62,7 @@ Marquee = function(model, domElement) {
 		if (isSelecting) {
 			worldState.activeSelection.setAll(selectedPoints);
 		} else {
-			for (var i in selectedPoints) {
-				worldState.activeSelection.unset(i);
-			}
+			worldState.activeSelection.unsetAll(selectedPoints);
 		}
 		selectedPoints.clear();
 
@@ -94,11 +92,10 @@ Marquee = function(model, domElement) {
 			var s = Util.screenCoords(v);
 
 			if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
-				if (isSelecting) {
-					selectedPoints.set(i,c);
-				} else {
-					seletectedPoints.unset(i);
+				if (!isSelecting) {
+					c = model.defaultColor(strip);
 				}
+				selectedPoints.set(i,c);
 			}
 		});
 	}
@@ -171,6 +168,6 @@ LineSelection = function(model, domElement) {
 			p1 = p2 = undefined;
 		}
 	}
-	this.domElement.addEventListener('mousedown', onMouseDown, false);
+	//this.domElement.addEventListener('mousedown', onMouseDown, false);
 }
 
