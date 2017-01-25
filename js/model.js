@@ -106,7 +106,7 @@ function Model() {
 
 	var setDefaultColors = function() {
 		self.forEachStrip(function(strip, i) {
-			colors[i] = stripColors[strip]
+			model.setColor(i, stripColors[strip]);
 		});
 	}
 
@@ -178,5 +178,7 @@ function Model() {
 			return;
 
 		this.overlays.splice(index, 1);
+
+		model.updateColors();
 	}
 }
