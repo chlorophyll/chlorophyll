@@ -178,7 +178,6 @@ function Model() {
 			return;
 
 		this.overlays.splice(index, 1);
-
-		model.updateColors();
+		this.updateColors();
 	}
 }
