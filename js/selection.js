@@ -136,7 +136,6 @@ LineSelection = function(model, domElement) {
 	function onMouseDown(event) {
 		if (!self.enabled)
 			return;
-		console.log('mousedown - line');
 		var mouse3D = new THREE.Vector3(
 			(event.clientX / window.innerWidth) * 2 - 1,
 			-(event.clientY / window.innerHeight) * 2 + 1,
