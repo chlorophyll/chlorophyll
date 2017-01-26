@@ -32,7 +32,7 @@ Marquee = function(model, domElement) {
 		if (!self.enabled) return;
 		isSelecting = !event.altKey;
 		dragging = true;
-		self.selectedPoints = model.createOverlay();
+		selectedPoints = model.createOverlay();
 		rect.startX = event.clientX;
 		rect.startY = event.clientY;
 		self.dom.style.display = 'block';
@@ -59,23 +59,16 @@ Marquee = function(model, domElement) {
 		/*
 		 * Set the current selection of points to the global state and clear it.
 		 */
-		var points = self.selectedPoints
-
-		add = function(state) {
-			state.activeSelection.setAll(points);
+		if (selectedPoints.size() > 0) {
+			if (isSelecting) {
+				worldState.activeSelection.setAll(selectedPoints);
+			} else {
+				worldState.activeSelection.unsetAll(selectedPoints);
+			}
+			worldState.checkpoint();
 		}
 
-		remove = function(state) {
-			state.activeSelection.unsetAll(points);
-		}
-		if (isSelecting) {
-			worldState.update(add, remove);
-		} else {
-			worldState.update(remove, add);
-		}
-
-		model.removeOverlay(self.selectedPoints);
-		self.selectedPoints = undefined;
+		model.removeOverlay(selectedPoints);
 
 		self.dom.style.display = 'none';
 		self.dom.style.left = 0;
@@ -93,7 +86,7 @@ Marquee = function(model, domElement) {
 
 		var c = new THREE.Color(1, 1, 1);
 
-		self.selectedPoints.clear();
+		selectedPoints.clear();
 
 		model.forEachStrip(function(strip, i) {
 			var v = model.getPosition(i);
@@ -106,7 +99,7 @@ Marquee = function(model, domElement) {
 				if (!isSelecting) {
 					c = model.defaultColor(strip);
 				}
-				self.selectedPoints.set(i,c);
+				selectedPoints.set(i,c);
 			}
 		});
 	}
