@@ -1,38 +1,50 @@
 function Overlay(model) {
-	this.colors = {};
+	var self = this;
+	this.colors = Immutable.Map();
+
+	this.size = function() {
+		return this.colors.size;
+	}
 
 	this.set = function(i, color) {
-		this.colors[i] = color;
+		this.colors = this.colors.set(i, color);
 		model.updateColors();
 	}
 
 	this.unset = function(i) {
-		delete this.colors[i];
+		this.colors = this.colors.delete(i);
 		model.updateColors();
 	}
 
 	this.updateColors = function() {
-		for (var i in this.colors) {
-			model.setColor(i, this.colors[i]);
-		}
+		this.colors.keySeq().forEach(function(i) {
+			model.setColor(i, self.colors.get(i));
+		});
 	}
 
 	this.setAll = function(overlay) {
-		for (var i in overlay.colors) {
-			this.colors[i] = overlay.colors[i];
-		}
+		this.colors = this.colors.merge(overlay.colors);
 		model.updateColors();
 	}
 
 	this.unsetAll = function(overlay) {
-		for (var i in overlay.colors) {
-			delete this.colors[i];
-		}
+		overlay.colors.keySeq().forEach(function(i) {
+			self.colors = self.colors.delete(i);
+		});
 		model.updateColors();
 	}
 
 	this.clear = function() {
-		this.colors = {};
+		this.colors = this.colors.clear();
+		model.updateColors();
+	}
+
+	this.snapshot = function() {
+		return this.colors;
+	}
+
+	this.setFromSnapshot = function(snapshot) {
+		this.colors = snapshot;
 		model.updateColors();
 	}
 }

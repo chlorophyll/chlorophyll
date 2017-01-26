@@ -1,34 +1,48 @@
 WorldState = function(start) {
+	var self = this;
 
-	for (prop in start) {
-		this[prop] = start[prop];
+	function restore() {
+		var snapshot = history[idx];
+		for (prop in snapshot) {
+			self[prop].setFromSnapshot(snapshot[prop]);
+		}
 	}
 
 	var history = [];
 	var idx = -1;
 
-	this.update = function(fn, undo) {
-		fn(this);
-		// delete the future (maybe could branch)
+	this.checkpoint = function() {
+		var snapshot = {};
+		// future optimization: only snapshot properties that have changed
+		// would be nice for not making empty snapshots as well.
+		for (prop in self) {
+			if (self[prop].hasOwnProperty('snapshot')) {
+				snapshot[prop] = self[prop].snapshot();
+			}
+		}
 		history = history.slice(0, idx + 1);
-		history.push({
-			redo: fn,
-			undo: undo,
-		});
+		history.push(snapshot);
 		idx++;
 	}
 
 	this.undo = function() {
-		if (idx == -1)
+		if (idx == 0)
 			return;
-		history[idx].undo(this);
+
 		idx--;
+		restore();
 	}
 
 	this.redo = function() {
 		if (idx == history.length-1)
 			return;
 		idx++;
-		history[idx].redo(this);
+		restore();
 	}
+
+	// fill in initial properties
+	for (prop in start) {
+		this[prop] = start[prop];
+	}
+	this.checkpoint();
 }
