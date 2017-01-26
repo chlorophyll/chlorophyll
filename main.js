@@ -59,8 +59,6 @@ function init() {
 	frontPlane = new THREE.Plane(v, 1000);
 	backPlane =  new THREE.Plane(nv, 1000);
 
-	model.setColor(0, new THREE.Color(0,0,1));
-
 	renderer.clippingPlanes = [frontPlane, backPlane];
 
 	QuickSettings.useExtStyleSheet();

@@ -30,7 +30,6 @@ CommandManager = function() {
 	}
 
 	this.endCommand = function() {
-		console.log('endCommand');
 		if (returnToDefault) {
 			startCommand(defaultCommand);
 		}
