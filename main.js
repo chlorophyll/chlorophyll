@@ -5,10 +5,8 @@ var container;
 var camera, scene, controls, renderer, particles, geometry;
 
 // chlorophyll objects
-var marquee, model, handle;
-var worldState = {
-
-};
+var model, handle;
+var worldState;
 
 var frontPlane, backPlane;
 
@@ -49,10 +47,6 @@ function init() {
 	controls.enableZoom = true;
 	controls.enableKeys = false;
 
-	marquee = new Marquee(model, container);
-	l = new LineSelection(model);
-	container.appendChild(marquee.dom);
-
 	handle = new ViewportHandle(scene, camera, renderer);
 	handle.setMode("translate");
 
@@ -69,19 +63,6 @@ function init() {
 
 	renderer.clippingPlanes = [frontPlane, backPlane];
 
-	var uiShim = {
-		set navigate(val) {
-			controls.enabled = val;
-			marquee.enabled = !val;
-		},
-
-		get navigate() {
-			return controls.enabled;
-		},
-	};
-
-	uiShim.navigate = true;
-
 	QuickSettings.useExtStyleSheet();
 
 	var settings = QuickSettings.create(0, 0, "Controls");
@@ -91,14 +72,11 @@ function init() {
 	settings.addRange('Front Clipping', -1000, 1000, 1000, 1, function(val) {
 		frontPlane.constant = val;
 	});
-	settings.addDropDown(
-		'Selection Mode',
-		['marquee', 'line', 'plane'],
-		function(obj) {
-			console.log(obj.value);
-		}
-	);
-	settings.bindBoolean('navigate', true, uiShim);
+
+	commandManager = new CommandManager();
+	commandManager.addCommand('marquee', new MarqueeSelection(model, container), 'm');
+	commandManager.addCommand('line', new LineSelection(model, container), 'l');
+	commandManager.addCommand('navigate', controls, 'n', true);
 
 	Mousetrap.prototype.stopCallback = function(e, element, combo) {
 		if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {

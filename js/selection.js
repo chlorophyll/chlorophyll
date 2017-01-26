@@ -7,7 +7,7 @@ function isClipped(v) {
 	return false;
 }
 
-Marquee = function(model, domElement) {
+MarqueeSelection = function(model, domElement) {
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
 	var self = this;
@@ -23,6 +23,8 @@ Marquee = function(model, domElement) {
 	this.dom.style.borderStyle = 'dotted';
 	this.dom.style.borderWidth = '1px';
 	this.dom.style.borderColor = 'white';
+
+	this.domElement.appendChild(this.dom);
 
 	this.domElement.addEventListener('mousedown', onMouseDown, false);
 	this.domElement.addEventListener('mouseup', onMouseUp, false);
@@ -75,6 +77,8 @@ Marquee = function(model, domElement) {
 		self.dom.style.top = 0;
 		self.dom.style.width = 0;
 		self.dom.style.height = 0;
+
+		self.manager.endCommand();
 	}
 
 
@@ -121,10 +125,18 @@ LineSelection = function(model, domElement) {
 
 	var self = this;
 
+	this.enabled = false;
+
 	var p1 = undefined;
 
+	var selectedPoints = model.createOverlay();
+
+	var highlight = new THREE.Color(0xffffff);
 
 	function onMouseDown(event) {
+		if (!self.enabled)
+			return;
+		console.log('mousedown - line');
 		var mouse3D = new THREE.Vector3(
 			(event.clientX / window.innerWidth) * 2 - 1,
 			-(event.clientY / window.innerHeight) * 2 + 1,
@@ -146,16 +158,17 @@ LineSelection = function(model, domElement) {
 
 		if (!p1) {
 			p1 = chosen.index;
-			model.selectPixel(p1);
+			selectedPoints.set(p1, highlight);
 		} else {
 			var p2 = chosen.index;
+			selectedPoints.set(p2, highlight);
 			var pos1 = model.getPosition(p1);
 			var pos2 = model.getPosition(p2);
 
 			var midPoint = pos1.clone().add(pos2).divideScalar(2);
 
-			var rad = midPoint.clone().sub(pos1).length() + 0.1;
-			var points = model.pointsWithinRadius(pos1, rad);
+			var rad = midPoint.clone().sub(pos1).length() + 15;
+			var points = model.pointsWithinRadius(midPoint, rad);
 
 			var line = new THREE.Line3(pos1, pos2);
 
@@ -164,14 +177,17 @@ LineSelection = function(model, domElement) {
 				var point = objData.position;
 
 				var dist = Util.distanceToLine(point, line);
-				if (dist < 5) {
-					model.selectPixel(objData.index);
+				if (dist < 15) {
+					selectedPoints.set(objData.index, highlight);
 				}
 			}
-			//model.deselectPixel(p1);
+			worldState.activeSelection.setAll(selectedPoints);
+			worldState.checkpoint();
+			selectedPoints.clear();
 			p1 = p2 = undefined;
+			self.manager.endCommand();
 		}
 	}
-	//this.domElement.addEventListener('mousedown', onMouseDown, false);
+	this.domElement.addEventListener('mousedown', onMouseDown, false);
 }
 
