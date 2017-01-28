@@ -39,6 +39,10 @@ function Overlay(model) {
 		model.updateColors();
 	}
 
+	this.pixelSet = function() {
+		return Immutable.Set.fromKeys(this.colors);
+	}
+
 	this.snapshot = function() {
 		return this.colors;
 	}

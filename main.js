@@ -30,10 +30,13 @@ function init() {
 	colors = new Float32Array(900 * 3);
 
 	model = new Model(geometry);
-	worldState = new WorldState({activeSelection: model.createOverlay()});
-	//model.loadData(icosahedron_data);
 	particles = model.makeMesh(icosahedron_data);
 	scene.add(particles);
+
+	worldState = new WorldState({
+		activeSelection: model.createOverlay(),
+		groupSet: new GroupManager(model)
+	});
 
 	renderer = new THREE.WebGLRenderer({ antialias: false });
 	renderer.setClearColor(scene.fog.color);
@@ -75,6 +78,12 @@ function init() {
 	commandManager.addCommand('marquee', new MarqueeSelection(model, container), 'm');
 	commandManager.addCommand('line', new LineSelection(model, container), 'l');
 	commandManager.addCommand('navigate', controls, 'n', true);
+
+	var groups = worldState.groupSet;
+	var groupControls = QuickSettings.create(container.clientWidth - 200, 0,
+		"Group Management");
+
+	groupControls.addButton('Create group', groups.createFromActiveSelection);
 
 	Mousetrap.prototype.stopCallback = function(e, element, combo) {
 		if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
