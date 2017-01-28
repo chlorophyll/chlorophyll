@@ -21,9 +21,9 @@ CommandManager = function() {
 		settings.addButton(name, f);
 
 		if (isDefault) {
-			settings.addBoolean('Default to '+name, function(val) {
+			settings.addBoolean('Default to '+name, returnToDefault, function(val) {
 				returnToDefault = val;
-			}, returnToDefault);
+			});
 			defaultCommand = command;
 			startCommand(command);
 		}
