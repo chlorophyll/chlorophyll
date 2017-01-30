@@ -16,11 +16,13 @@ function PixelGroup(manager) {
 	this.hidden = false;
 
 	this.hide = function(id) {
+		console.log(this.name + " hidden");
 		this.hidden = true;
 		manager.updateOverlay();
 	}
 
 	this.show = function(id) {
+		console.log(this.name + " shown");
 		this.hidden = false;
 		manager.updateOverlay();
 	}

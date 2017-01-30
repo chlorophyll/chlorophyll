@@ -34,7 +34,7 @@ function init() {
 	scene.add(particles);
 
 	worldState = new WorldState({
-		activeSelection: model.createOverlay(),
+		activeSelection: model.createOverlay(10),
 		groupSet: new GroupManager(model)
 	});
 
