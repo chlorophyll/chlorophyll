@@ -16,13 +16,11 @@ function PixelGroup(manager) {
 	this.hidden = false;
 
 	this.hide = function(id) {
-		console.log(this.name + " hidden");
 		this.hidden = true;
 		manager.updateOverlay();
 	}
 
 	this.show = function(id) {
-		console.log(this.name + " shown");
 		this.hidden = false;
 		manager.updateOverlay();
 	}
@@ -126,7 +124,6 @@ function GroupManager(model) {
 		//var hiddenColor = new THREE.Color(0x101010);
 		self.overlay.clear();
 		self.groups.forEach(function(group) {
-			console.log("Updating overlay for group " + group.name);
 			if (!group.hidden) {
 				self.overlay.setAllFromSet(group.pixels, group.color);
 			}
