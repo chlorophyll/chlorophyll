@@ -164,6 +164,7 @@ function GroupManager(model) {
 		});
 
 		self.groups = newgroups;
+		self.updateOverlay();
 	}
 
 	this.groupControls.addButton('Create group', this.createFromActiveSelection);

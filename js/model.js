@@ -193,7 +193,7 @@ function Model() {
 
 	this.updateColors = function() {
 		setDefaultColors();
-		this.overlays.forEach(function (pri, pri_i) {
+		this.overlays.forEach(function (pri) {
 			for (var i = 0, l = pri.length; i < l; i++) {
 				pri[i].updateColors();
 			}
