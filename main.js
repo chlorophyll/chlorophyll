@@ -79,12 +79,6 @@ function init() {
 	commandManager.addCommand('line', new LineSelection(model, container), 'l');
 	commandManager.addCommand('navigate', controls, 'n', true);
 
-	var groups = worldState.groupSet;
-	var groupControls = QuickSettings.create(container.clientWidth - 200, 0,
-		"Group Management");
-
-	groupControls.addButton('Create group', groups.createFromActiveSelection);
-
 	Mousetrap.prototype.stopCallback = function(e, element, combo) {
 		if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
 			return false;
