@@ -2,6 +2,8 @@ function Overlay(model) {
 	var self = this;
 	this.colors = Immutable.Map();
 
+	this.priority = 0;
+
 	this.size = function() {
 		return this.colors.size;
 	}
@@ -34,13 +36,28 @@ function Overlay(model) {
 		model.updateColors();
 	}
 
+	this.setAllFromSet = function(pixels, color) {
+		pixels.forEach(function(i) {
+			self.colors = self.colors.set(i, color);
+		});
+		model.updateColors();
+	}
+
 	this.clear = function() {
 		this.colors = this.colors.clear();
 		model.updateColors();
 	}
 
-	this.pixelSet = function() {
+	this.getPixels = function() {
 		return Immutable.Set.fromKeys(this.colors);
+	}
+
+	this.setPriority = function (pri) {
+		this.priority = pri;
+	}
+
+	this.getPriority = function() {
+		return this.priority;
 	}
 
 	this.snapshot = function() {
@@ -176,24 +193,35 @@ function Model() {
 
 	this.updateColors = function() {
 		setDefaultColors();
-		for (var i = 0, l = this.overlays.length; i < l; i++) {
-			this.overlays[i].updateColors();
-		}
+		this.overlays.forEach(function (pri) {
+			for (var i = 0, l = pri.length; i < l; i++) {
+				pri[i].updateColors();
+			}
+		});
 	}
 
-	this.createOverlay = function() {
+	this.createOverlay = function(priority) {
+		if (!priority)
+			priority = 0;
+
 		var overlay = new Overlay(this);
-		this.overlays.push(overlay);
+		overlay.setPriority(priority);
+
+		if (!this.overlays[priority])
+			this.overlays[priority] = [];
+		this.overlays[priority].push(overlay);
+
 		return overlay;
 	}
 
 	this.removeOverlay = function(overlay) {
-		var index = this.overlays.indexOf(overlay);
+		var pri = overlay.getPriority();
+		var index = this.overlays[pri].indexOf(overlay);
 
 		if (index == -1)
 			return;
 
-		this.overlays.splice(index, 1);
+		this.overlays[pri].splice(index, 1);
 		this.updateColors();
 	}
 }

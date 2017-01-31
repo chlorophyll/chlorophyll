@@ -34,7 +34,7 @@ MarqueeSelection = function(model, domElement) {
 		if (!self.enabled) return;
 		isSelecting = !event.altKey;
 		dragging = true;
-		selectedPoints = model.createOverlay();
+		selectedPoints = model.createOverlay(20);
 		rect.startX = event.clientX;
 		rect.startY = event.clientY;
 		self.dom.style.display = 'block';
@@ -129,7 +129,7 @@ LineSelection = function(model, domElement) {
 
 	var p1 = undefined;
 
-	var selectedPoints = model.createOverlay();
+	var selectedPoints = model.createOverlay(20);
 
 	var highlight = new THREE.Color(0xffffff);
 
