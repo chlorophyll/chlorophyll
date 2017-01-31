@@ -7,12 +7,12 @@
  * combination of the two.
  */
 
-function PixelGroup(manager) {
+function PixelGroup(manager, pixels, name, color) {
 	var self = this;
-	this.name = "unnamed";
-	this.pixels = Immutable.Map();
+	this.name = name ? name : "unnamed"
+	this.pixels = pixels ? pixels : Immutable.Map();
+	this.color = color ? color : new THREE.Color(0xff0000);
 	this.mappings = Immutable.Map();
-	this.color = new THREE.Color(0xff0000);
 	this.hidden = false;
 
 	this.hide = function(id) {
@@ -33,18 +33,18 @@ function PixelGroup(manager) {
 		}
 	}
 
-	this.setName = function(name) {
+	this.setName = function(newName) {
 		manager.groupControls.removeControl(this.name);
-		manager.groupControls.addBoolean(name, setVisible);
-		this.name = name;
+		manager.groupControls.addBoolean(newName, setVisible);
+		this.name = newName;
 	}
 
-	this.setPixels = function(pixels) {
-		this.pixels = pixels;
+	this.setPixels = function(newPixels) {
+		this.pixels = newPixels;
 	}
 
-	this.setColor = function(color) {
-		this.color = new THREE.Color(color)
+	this.setColor = function(newColor) {
+		this.color = newColor;
 	}
 
 	// Clean up UI, to be called before destroying the group.
@@ -108,10 +108,8 @@ function GroupManager(model) {
 		var id = newgid();
 		var defaultName = "group-" + id;
 
-		var newgroup = new PixelGroup(self);
-		newgroup.setName(defaultName);
-		newgroup.setPixels(groupPixels);
-		newgroup.setColor(ColorPool.random());
+		var newgroup = new PixelGroup(self, groupPixels, defaultName,
+			ColorPool.random());
 
 		self.groups = self.groups.set(id, newgroup);
 
