@@ -2,7 +2,7 @@
 var container;
 
 // threejs objects
-var camera, scene, controls, renderer, particles, geometry;
+var camera, scene, controls, renderer;
 
 // chlorophyll objects
 var model, handle;
@@ -28,12 +28,9 @@ function init() {
 
 	geometry = new THREE.BufferGeometry();
 
-	positions = new Float32Array(900 * 3);
-	colors = new Float32Array(900 * 3);
+	model = new Model(icosahedron_data);
 
-	model = new Model(geometry);
-	particles = model.makeMesh(icosahedron_data);
-	scene.add(particles);
+	model.addToScene(scene);
 
 	worldState = new WorldState({
 		activeSelection: model.createOverlay(10),
@@ -78,6 +75,7 @@ function init() {
 	settings.addRange('Search Threshold', 0, 15, selectionThreshold, 0.1, function(val) {
 		selectionThreshold = val;
 	});
+	settings.addBoolean('Show Strips', false, model.setStripVisibility);
 
 	var selectionManager = new CommandManager();
 	selectionManager.addCommand('marquee', new MarqueeSelection(model, container), 'm');

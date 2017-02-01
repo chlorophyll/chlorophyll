@@ -70,7 +70,7 @@ function Overlay(model) {
 	}
 }
 
-function Model() {
+function Model(json) {
 	var self = this;
 	this.overlays = [];
 	var stripColors = [
@@ -81,6 +81,7 @@ function Model() {
 		new THREE.Color(0xffff00)
 	]
 	var stripOffsets;
+	var stripModels = [];
 	var numPixels;
 	var pixelData;
 	var colors;
@@ -139,7 +140,7 @@ function Model() {
 
 	var setDefaultColors = function() {
 		self.forEachStrip(function(strip, i) {
-			model.setColor(i, stripColors[strip]);
+			self.setColor(i, stripColors[strip]);
 		});
 	}
 
@@ -147,45 +148,6 @@ function Model() {
 		return stripColors[strip];
 	}
 
-	this.makeMesh = function(json) {
-		var model = JSON.parse(json);
-
-		numPixels = model['num_pixels'];
-		stripOffsets = [0]
-
-		pixelData = [];
-		colors = [];
-		var i = 0;
-		strips = model['strips'];
-		for (var strip = 0; strip < strips.length; strip++) {
-			for (var pixel = 0; pixel < strips[strip].length; pixel++) {
-				for (var coord = 0; coord < 3; coord++) {
-					pixelData[i] = new THREE.Vector3().fromArray(strips[strip][pixel]);
-				}
-				i++;
-			}
-			stripOffsets.push(i);
-		}
-		geometry = new THREE.Geometry();
-
-		geometry.vertices = pixelData;
-
-		setDefaultColors();
-		geometry.colors = colors;
-
-		geometry.computeBoundingSphere();
-		var material = new THREE.PointsMaterial({ size: 15, vertexColors: THREE.VertexColors });
-		particles = new THREE.Points(geometry, material);
-		console.log(particles);
-
-		this.octree.add(particles, {useVertices: true});
-
-		for (var i = 0; i < this.octree.objectsData.length; i++) {
-			this.octree.objectsData[i].index = i;
-		}
-
-		return particles;
-	};
 
 	this.pointsWithinRadius = function(point, radius) {
 		return this.octree.search(point, radius);
@@ -224,4 +186,67 @@ function Model() {
 		this.overlays[pri].splice(index, 1);
 		this.updateColors();
 	}
+
+	this.addToScene = function(scene) {
+		scene.add(particles);
+		for (var i = 0; i < stripModels.length; i++) {
+			scene.add(stripModels[i]);
+		}
+	}
+
+	this.setStripVisibility = function(val) {
+		for (var i = 0; i < stripModels.length; i++) {
+			stripModels[i].visible = val;
+		}
+	}
+
+	// Initialize
+	function init() {
+		var model = JSON.parse(json);
+
+		numPixels = model['num_pixels'];
+		stripOffsets = [0];
+
+		pixelData = [];
+		colors = [];
+		var i = 0;
+		strips = model['strips'];
+		var lineMaterial = new THREE.LineBasicMaterial({
+			color: 0xffffff,
+			linewidth: 1,
+			opacity: 0.35,
+			transparent: true
+		});
+		for (var strip = 0; strip < strips.length; strip++) {
+			var stripGeometry = new THREE.Geometry();
+			for (var pixel = 0; pixel < strips[strip].length; pixel++) {
+				pixelData[i] = new THREE.Vector3().fromArray(strips[strip][pixel]);
+				if (pixel > 0) {
+					stripGeometry.vertices.push(pixelData[i-1]);
+					stripGeometry.vertices.push(pixelData[i]);
+				}
+				i++;
+			}
+			var model = new THREE.LineSegments(stripGeometry, lineMaterial);
+			model.visible = false;
+			stripModels.push(model);
+			stripOffsets.push(i);
+		}
+
+		geometry = new THREE.Geometry();
+		geometry.vertices = pixelData;
+
+		setDefaultColors();
+		geometry.colors = colors;
+
+		geometry.computeBoundingSphere();
+		var material = new THREE.PointsMaterial({ size: 15, vertexColors: THREE.VertexColors });
+		particles = new THREE.Points(geometry, material);
+		self.octree.add(particles, {useVertices: true});
+
+		for (var i = 0; i < numPixels; i++) {
+			self.octree.objectsData[i].index = i;
+		}
+	}
+	init();
 }
