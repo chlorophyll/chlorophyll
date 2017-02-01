@@ -214,7 +214,7 @@ function Model(json) {
 		var lineMaterial = new THREE.LineBasicMaterial({
 			color: 0xffffff,
 			linewidth: 1,
-			opacity: 0.35,
+			opacity: 0.50,
 			transparent: true
 		});
 		for (var strip = 0; strip < strips.length; strip++) {
