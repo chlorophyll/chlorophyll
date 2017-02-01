@@ -111,7 +111,7 @@ MarqueeSelection = function(model, domElement) {
 
 		selectedPoints.clear();
 
-		model.forEachStrip(function(strip, i) {
+		model.forEach(function(strip, i) {
 			var v = model.getPosition(i);
 			if (isClipped(v))
 				return;
@@ -219,7 +219,7 @@ PlaneSelection = function(model, domElement) {
 		if (points.length == 3) {
 			var plane = new THREE.Plane().setFromCoplanarPoints(points[0], points[1], points[2]);
 
-			model.forEachStrip(function(strip, i) {
+			model.forEach(function(strip, i) {
 				if (Math.abs(plane.distanceToPoint(model.getPosition(i))) < selectionThreshold) {
 					selectedPoints.set(i, highlight);
 				}

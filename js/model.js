@@ -102,7 +102,7 @@ function Model(json) {
 		return pixelData[i];
 	};
 
-	this.forEachStrip = function(func) {
+	this.forEach = function(func) {
 		var strip = 0;
 		for (var i = 0; i < numPixels; i++) {
 			var stripEnd = stripOffsets[strip+1];
@@ -139,7 +139,7 @@ function Model(json) {
 
 
 	var setDefaultColors = function() {
-		self.forEachStrip(function(strip, i) {
+		self.forEach(function(strip, i) {
 			self.setColor(i, stripColors[strip]);
 		});
 	}
