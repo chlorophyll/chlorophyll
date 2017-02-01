@@ -1,6 +1,6 @@
 CommandManager = function() {
 	var commands = [];
-	var settings = QuickSettings.create(window.innerWidth-210, 0, "Commands");
+	settings = QuickSettings.create(window.innerWidth-210, 0, "Commands");
 	var returnToDefault = true;
 	var defaultCommand;
 

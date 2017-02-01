@@ -7,6 +7,25 @@ function isClipped(v) {
 	return false;
 }
 
+function getPointAt(model,x,y) {
+	var mouse3D = new THREE.Vector3(
+		 (x /  window.innerWidth) * 2 - 1,
+		-(y / window.innerHeight) * 2 + 1,
+		0.5);
+	var raycaster = new THREE.Raycaster();
+	raycaster.params.Points.threshold = 10;
+	raycaster.setFromCamera(mouse3D, camera);
+	var intersects = raycaster.intersectObject(particles);
+	var chosen = undefined;
+	for (var i = 0; i < intersects.length; i++) {
+		if (!isClipped(intersects[i].point)) {
+			chosen = intersects[i];
+			break;
+		}
+	}
+	return chosen;
+}
+
 MarqueeSelection = function(model, domElement) {
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
@@ -136,22 +155,8 @@ LineSelection = function(model, domElement) {
 	function onMouseDown(event) {
 		if (!self.enabled)
 			return;
-		var mouse3D = new THREE.Vector3(
-			(event.clientX / window.innerWidth) * 2 - 1,
-			-(event.clientY / window.innerHeight) * 2 + 1,
-			0.5);
-		var raycaster = new THREE.Raycaster();
-		raycaster.params.Points.threshold = 10;
-		raycaster.setFromCamera(mouse3D, camera);
-		var intersects = raycaster.intersectObject(particles);
-		var chosen;
-		for (var i = 0; i < intersects.length; i++) {
-			if (!isClipped(intersects[i].point)) {
-				chosen = intersects[i];
-				break;
-			}
-		}
 
+		var chosen = getPointAt(model, event.clientX, event.clientY);
 		if (!chosen)
 			return;
 
@@ -166,7 +171,7 @@ LineSelection = function(model, domElement) {
 
 			var midPoint = pos1.clone().add(pos2).divideScalar(2);
 
-			var rad = midPoint.clone().sub(pos1).length() + 15;
+			var rad = midPoint.clone().sub(pos1).length() + 0.1;
 			var points = model.pointsWithinRadius(midPoint, rad);
 
 			var line = new THREE.Line3(pos1, pos2);
@@ -176,7 +181,7 @@ LineSelection = function(model, domElement) {
 				var point = objData.position;
 
 				var dist = Util.distanceToLine(point, line);
-				if (dist < 15) {
+				if (dist < selectionThreshold) {
 					selectedPoints.set(objData.index, highlight);
 				}
 			}
@@ -190,3 +195,41 @@ LineSelection = function(model, domElement) {
 	this.domElement.addEventListener('mousedown', onMouseDown, false);
 }
 
+PlaneSelection = function(model, domElement) {
+	this.domElement = ( domElement !== undefined ) ? domElement : document;
+
+	var self = this;
+	var highlight = new THREE.Color(0xffffff);
+
+	this.enabled = true;
+	var points = [];
+	var selectedPoints = model.createOverlay();
+	function onMouseDown(event) {
+		if (!self.enabled)
+			return;
+		var chosen = getPointAt(model, event.clientX, event.clientY);
+		if (!chosen)
+			return;
+
+		if (points.length < 3) {
+			points.push(model.getPosition(chosen.index));
+			selectedPoints.set(chosen.index, highlight);
+		}
+
+		if (points.length == 3) {
+			var plane = new THREE.Plane().setFromCoplanarPoints(points[0], points[1], points[2]);
+
+			model.forEachStrip(function(strip, i) {
+				if (Math.abs(plane.distanceToPoint(model.getPosition(i))) < selectionThreshold) {
+					selectedPoints.set(i, highlight);
+				}
+			});
+			worldState.activeSelection.setAll(selectedPoints);
+			worldState.checkpoint();
+			selectedPoints.clear();
+			points = [];
+			self.manager.endCommand();
+		}
+	}
+	this.domElement.addEventListener('mousedown', onMouseDown, false);
+}

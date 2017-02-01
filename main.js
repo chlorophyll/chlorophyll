@@ -8,6 +8,8 @@ var camera, scene, controls, renderer, particles, geometry;
 var model, handle;
 var worldState;
 
+var selectionThreshold = 5; // put this somewhere reasonable...?
+
 var frontPlane, backPlane;
 
 init();
@@ -66,18 +68,22 @@ function init() {
 
 	QuickSettings.useExtStyleSheet();
 
-	var settings = QuickSettings.create(0, 0, "Controls");
+	var settings = QuickSettings.create(0, 0, "Settings");
 	settings.addRange('Back Clipping', -1000, 1000, -1000, 1, function(val) {
 		backPlane.constant = -val;
 	});
 	settings.addRange('Front Clipping', -1000, 1000, 1000, 1, function(val) {
 		frontPlane.constant = val;
 	});
+	settings.addRange('Search Threshold', 0, 15, selectionThreshold, 0.1, function(val) {
+		selectionThreshold = val;
+	});
 
-	commandManager = new CommandManager();
-	commandManager.addCommand('marquee', new MarqueeSelection(model, container), 'm');
-	commandManager.addCommand('line', new LineSelection(model, container), 'l');
-	commandManager.addCommand('navigate', controls, 'n', true);
+	var selectionManager = new CommandManager();
+	selectionManager.addCommand('marquee', new MarqueeSelection(model, container), 'm');
+	selectionManager.addCommand('line', new LineSelection(model, container), 'l');
+	selectionManager.addCommand('plane', new PlaneSelection(model, container), 'p');
+	selectionManager.addCommand('navigate', controls, 'n', true);
 
 	Mousetrap.prototype.stopCallback = function(e, element, combo) {
 		if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
