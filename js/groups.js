@@ -25,18 +25,9 @@ function PixelGroup(manager, pixels, name, color) {
 		manager.updateOverlay();
 	}
 
-	function setVisible(val) {
-		if (val) {
-			self.show();
-		} else {
-			self.hide();
-		}
-	}
-
 	this.setName = function(newName) {
-		manager.groupControls.removeControl(this.name);
-		manager.groupControls.addBoolean(newName, setVisible);
 		this.name = newName;
+		manager.updateControls();
 	}
 
 	this.setPixels = function(newPixels) {
@@ -45,6 +36,7 @@ function PixelGroup(manager, pixels, name, color) {
 
 	this.setColor = function(newColor) {
 		this.color = newColor;
+		manager.updateOverlay();
 	}
 
 	// Clean up UI, to be called before destroying the group.
@@ -63,18 +55,12 @@ function PixelGroup(manager, pixels, name, color) {
 	}
 
 	this.setFromSnapshot = function(snapshot) {
-		manager.groupControls.removeControl(this.name);
-
 		this.name = snapshot.get("name");
 		this.pixels = snapshot.get("pixels");
 		this.mappings = snapshot.get("mappings");
 		this.color = snapshot.get("color");
 		this.hidden = snapshot.get("hidden");
-
-		manager.groupControls.addBoolean(name, setVisible);
 	}
-
-	manager.groupControls.addBoolean(this.name, setVisible);
 }
 
 function GroupManager(model) {
@@ -112,6 +98,13 @@ function GroupManager(model) {
 			ColorPool.random());
 
 		self.groups = self.groups.set(id, newgroup);
+
+		self.groupControls.addBoolean(defaultName, true, function (val) {
+			if (val)
+				self.groups.get(id).show();
+			else
+				self.groups.get(id).hide();
+		});
 
 		// Mark the group on the model
 		self.updateOverlay();
