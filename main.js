@@ -15,6 +15,34 @@ var frontPlane, backPlane;
 init();
 animate();
 
+function initModelFromJson(json) {
+	model = new Model(json);
+	model.addToScene(scene);
+	worldState = new WorldState({
+		activeSelection: model.createOverlay(10),
+		groupSet: new GroupManager(model)
+	});
+
+	selectionManager = new CommandManager();
+	selectionManager.addCommand('marquee', new MarqueeSelection(model, container), 'm');
+	selectionManager.addCommand('line', new LineSelection(model, container), 'l');
+	selectionManager.addCommand('plane', new PlaneSelection(model, container), 'p');
+	selectionManager.addCommand('navigate', controls, 'n', true);
+
+}
+
+function chooseModelFile(file) {
+	var reader = new FileReader();
+	reader.onload = function (e) {
+		try {
+			initModelFromJson(e.target.result);
+		} catch (ex) {
+			console.log('ex when trying to parse json = ' + ex);
+		}
+	}
+	reader.readAsText(file);
+}
+
 function init() {
 	container = document.getElementById('container');
 	var width = container.clientWidth;
@@ -25,17 +53,6 @@ function init() {
 
 	scene = new THREE.Scene();
 	scene.fog = new THREE.Fog(0x000000, 750, 2000);
-
-	geometry = new THREE.BufferGeometry();
-
-	model = new Model(icosahedron_data);
-
-	model.addToScene(scene);
-
-	worldState = new WorldState({
-		activeSelection: model.createOverlay(10),
-		groupSet: new GroupManager(model)
-	});
 
 	renderer = new THREE.WebGLRenderer({ antialias: false });
 	renderer.setClearColor(scene.fog.color);
@@ -75,13 +92,11 @@ function init() {
 	settings.addRange('Search Threshold', 0, 15, selectionThreshold, 0.1, function(val) {
 		selectionThreshold = val;
 	});
-	settings.addBoolean('Show Strips', false, model.setStripVisibility);
+	settings.addBoolean('Show Strips', false, function(val) { model.setStripVisibility(val)});
 
-	var selectionManager = new CommandManager();
-	selectionManager.addCommand('marquee', new MarqueeSelection(model, container), 'm');
-	selectionManager.addCommand('line', new LineSelection(model, container), 'l');
-	selectionManager.addCommand('plane', new PlaneSelection(model, container), 'p');
-	selectionManager.addCommand('navigate', controls, 'n', true);
+	settings.addFileChooser('Model Loader', 'choose a model file', "application/json", chooseModelFile);
+	settings.disableControl('Model Loader');
+	initModelFromJson(icosahedron_data);
 
 	Mousetrap.prototype.stopCallback = function(e, element, combo) {
 		if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
@@ -95,10 +110,6 @@ function init() {
 
 		return textbox || select || textarea || editable;
 	}
-
-	Mousetrap.bind('n', function() {
-		settings.setValue('navigate', !uiShim.navigate);
-	});
 
 	Mousetrap.bind('mod+z', function() {
 		worldState.undo();
