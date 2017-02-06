@@ -1,17 +1,4 @@
 var Util = {
-	screenCoords: function(position) {
-		var vector = position.clone();
-		var canvas = renderer.domElement;
-
-		// map to normalized device coordinate (NDC) space
-		vector.project( camera );
-
-		vector.x = Math.round( (   vector.x + 1 ) * canvas.width  / 4 );
-		vector.y = Math.round( ( - vector.y + 1 ) * canvas.height / 4 );
-
-		vector.z = 0;
-		return vector;
-	},
 	distanceToLine: function(point, line) {
 		//var d1 = point.clone().sub(line.start);
 		//var d2 = point.clone().sub(line.end);

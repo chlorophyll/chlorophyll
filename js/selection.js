@@ -7,25 +7,6 @@ function isClipped(v) {
 	return false;
 }
 
-function getPointAt(model,x,y) {
-	var mouse3D = new THREE.Vector3(
-		 (x /  window.innerWidth) * 2 - 1,
-		-(y / window.innerHeight) * 2 + 1,
-		0.5);
-	var raycaster = new THREE.Raycaster();
-	raycaster.params.Points.threshold = 10;
-	raycaster.setFromCamera(mouse3D, camera);
-	var intersects = raycaster.intersectObject(particles);
-	var chosen = undefined;
-	for (var i = 0; i < intersects.length; i++) {
-		if (!isClipped(intersects[i].point)) {
-			chosen = intersects[i];
-			break;
-		}
-	}
-	return chosen;
-}
-
 MarqueeSelection = function(model, domElement) {
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
@@ -116,7 +97,7 @@ MarqueeSelection = function(model, domElement) {
 			if (isClipped(v))
 				return;
 
-			var s = Util.screenCoords(v);
+			var s = screenManager.activeScreen.screenCoords(v);
 
 			if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
 				if (!isSelecting) {
@@ -156,7 +137,7 @@ LineSelection = function(model, domElement) {
 		if (!self.enabled)
 			return;
 
-		var chosen = getPointAt(model, event.clientX, event.clientY);
+		var chosen = screenManager.activeScreen.getPointAt(model, event.clientX, event.clientY);
 		if (!chosen)
 			return;
 
@@ -207,7 +188,7 @@ PlaneSelection = function(model, domElement) {
 	function onMouseDown(event) {
 		if (!self.enabled)
 			return;
-		var chosen = getPointAt(model, event.clientX, event.clientY);
+		var chosen = screenManager.activeScreen.getPointAt(model, event.clientX, event.clientY);
 		if (!chosen)
 			return;
 

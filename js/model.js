@@ -188,7 +188,7 @@ function Model(json) {
 	}
 
 	this.addToScene = function(scene) {
-		scene.add(particles);
+		scene.add(this.particles);
 		for (var i = 0; i < stripModels.length; i++) {
 			scene.add(stripModels[i]);
 		}
@@ -241,8 +241,8 @@ function Model(json) {
 
 		geometry.computeBoundingSphere();
 		var material = new THREE.PointsMaterial({ size: 15, vertexColors: THREE.VertexColors });
-		particles = new THREE.Points(geometry, material);
-		self.octree.add(particles, {useVertices: true});
+		self.particles = new THREE.Points(geometry, material);
+		self.octree.add(self.particles, {useVertices: true});
 
 		for (var i = 0; i < numPixels; i++) {
 			self.octree.objectsData[i].index = i;

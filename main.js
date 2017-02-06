@@ -2,10 +2,10 @@
 var container;
 
 // threejs objects
-var camera, scene, controls, renderer;
+var scene, renderer, screenManager;
 
 // chlorophyll objects
-var model, handle;
+var model;
 var worldState;
 
 var selectionThreshold = 5; // put this somewhere reasonable...?
@@ -27,7 +27,7 @@ function initModelFromJson(json) {
 	selectionManager.addCommand('marquee', new MarqueeSelection(model, container), 'm');
 	selectionManager.addCommand('line', new LineSelection(model, container), 'l');
 	selectionManager.addCommand('plane', new PlaneSelection(model, container), 'p');
-	selectionManager.addCommand('navigate', controls, 'n', true);
+	selectionManager.addCommand('navigate', screenManager.controls, 'n', true);
 
 }
 
@@ -48,8 +48,6 @@ function init() {
 	var width = container.clientWidth;
 	var height = container.clientHeight;
 	//
-	camera = new THREE.PerspectiveCamera(45, width/height, 2, 2000 );
-	camera.position.z = 1000;
 
 	scene = new THREE.Scene();
 	scene.fog = new THREE.Fog(0x000000, 750, 2000);
@@ -59,20 +57,19 @@ function init() {
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(width, height);
 	container.appendChild(renderer.domElement);
+	var cameraP = new THREE.PerspectiveCamera(45, width/height, 2, 2000 );
+	var cameraO = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, 2, 2000);
+	cameraP.position.z = 1000;
+	cameraO.position.z = 1000;
 
-	controls = new THREE.OrbitControls(camera, renderer.domElement);
-	controls.enableDamping = true;
-	controls.dampingFactor = 0.75;
-	controls.enableZoom = true;
-	controls.enableKeys = false;
-
-	handle = new ViewportHandle(scene, camera, renderer);
-	handle.setMode("translate");
+	screenManager = new ScreenManager(renderer, scene);
+	screenManager.addScreen('main', cameraP, true);
+	screenManager.addScreen('ortho', cameraO);
 
 	window.addEventListener('resize', onWindowResize, false);
 
 	var v = new THREE.Vector3();
-	camera.getWorldDirection(v);
+	screenManager.activeScreen.camera.getWorldDirection(v);
 	var nv = v.clone().negate();
 
 	frontPlane = new THREE.Plane(v, 1000);
@@ -121,22 +118,16 @@ function init() {
 }
 
 function onWindowResize() {
-	camera.aspect = container.clientWidth / container.clientHeight;
-	camera.updateProjectionMatrix();
-	renderer.setSize(container.clientWidth, container.clientHeight);
+	screenManager.resize();
 }
 
 function animate() {
 	requestAnimationFrame(animate);
+
 	var v = new THREE.Vector3();
-	camera.getWorldDirection(v);
+	screenManager.activeScreen.camera.getWorldDirection(v);
 	frontPlane.normal = v;
 	backPlane.normal = v.clone().negate();
-	handle.update();
-	render();
-	controls.update();
-}
 
-function render() {
-	renderer.render(scene, camera);
+	screenManager.render();
 }
