@@ -1,15 +1,66 @@
 var Util = {
 	distanceToLine: function(point, line) {
-		//var d1 = point.clone().sub(line.start);
-		//var d2 = point.clone().sub(line.end);
-
-		//d1.cross(d2);
-
-		//return d1.length() / line.distance();
-		//
 		var closest = line.closestPointToPoint(point, true);
 		var ret = closest.sub(point).length();
 		return ret;
+	},
+
+	centroid: function(points) {
+		var sum = new THREE.Vector3();
+
+		for (var i = 0; i < points.length; i++) {
+			sum.add(points[i]);
+		}
+		return sum.divideScalar(points.length);
+	},
+
+	// Code based on http://www.ilikebigbits.com/blog/2015/3/2/plane-from-points
+	bestFitPlane: function(points) {
+		var centroid = Util.centroid(points);
+
+		// Calc full 3x3 covariance matrix, excluding symmetries:
+		var xx = 0.0, xy = 0.0, xz = 0.0;
+		var yy = 0.0, yz = 0.0, zz = 0.0;
+
+		for (var i = 0; i < points.length; i++) {
+			var r = points[i].clone().sub(centroid);
+			xx += r.x * r.x;
+			xy += r.x * r.y;
+			xz += r.x * r.z;
+			yy += r.y * r.y;
+			yz += r.y * r.z;
+			zz += r.z * r.z;
+		}
+		var det_x = yy*zz - yz*yz;
+		var det_y = xx*zz - xz*xz;
+		var det_z = xx*yy - xy*xy;
+
+		var det_max = Math.max(det_x, det_y, det_z);
+
+		var dir = new THREE.Vector3();
+        if (det_max == det_x) {
+            var a = (xz*yz - xy*zz) / det_x;
+            var b = (xy*yz - xz*yy) / det_x;
+			dir.set(1.0, a, b);
+        } else if (det_max == det_y) {
+            var a = (yz*xz - xy*zz) / det_y;
+            var b = (xy*xz - yz*xx) / det_y;
+            dir.set(a, 1.0, b);
+		} else {
+			var a = (yz*xy - xz*yy) / det_z;
+			var b = (xz*xy - yz*xx) / det_z;
+			dir.set(a, b, 1.0);
+		}
+		dir.normalize();
+		return new THREE.Plane().setFromNormalAndCoplanarPoint(dir, centroid);
+	},
+
+	alignWithVector: function(vec, camera) {
+		var radius = camera.position.length();
+		var s = new THREE.Spherical().setFromVector3(vec);
+		s.radius = radius;
+		s.makeSafe();
+		camera.position.setFromSpherical(s);
 	}
 };
 
