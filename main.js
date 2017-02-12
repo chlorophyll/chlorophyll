@@ -91,8 +91,8 @@ function init() {
 	settings.addBoolean('Show Strips', false, function(val) { model.setStripVisibility(val)});
 
 	settings.addFileChooser('Model Loader', 'choose a model file', "application/json", function(val) { chooseModelFile(scene, val); } );
-	settings.disableControl('Model Loader');
-	initModelFromJson(scene, icosahedron_data);
+	//settings.disableControl('Model Loader');
+	//initModelFromJson(scene, icosahedron_data);
 
 	Mousetrap.prototype.stopCallback = function(e, element, combo) {
 		if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {

@@ -247,13 +247,21 @@ function Model(json) {
 
 		var factor = 750 / max;
 
+		var avgDist = 0;
+
 		for (var i = 0; i < numPixels; i++) {
 			pixelData[i] = pixelData[i].multiplyScalar(factor);
+			if (i > 0) {
+				avgDist += pixelData[i].distanceTo(pixelData[i-1]);
+			}
 		}
+		avgDist /= numPixels;
 		geometry.computeBoundingSphere();
 		geometry.computeBoundingBox();
 
-		var material = new THREE.PointsMaterial({ size: 15, vertexColors: THREE.VertexColors });
+		var size = THREE.Math.clamp(avgDist / 3, 5, 15);
+
+		var material = new THREE.PointsMaterial({ size: size, vertexColors: THREE.VertexColors });
 		self.particles = new THREE.Points(geometry, material);
 		self.octree.add(self.particles, {useVertices: true});
 
