@@ -5,6 +5,20 @@ var Util = {
 		return ret;
 	},
 
+	cameraPlaneCoords: function(camera, renderer, position) {
+		var vector = position.clone();
+		var canvas = renderer.domElement;
+
+		// map to normalized device coordinate (NDC) space
+		vector.project( camera );
+
+		vector.x = Math.round( (   vector.x + 1 ) * canvas.width  / 4 );
+		vector.y = Math.round( ( - vector.y + 1 ) * canvas.height / 4 );
+
+		vector.z = 0;
+		return vector;
+	},
+
 	centroid: function(points) {
 		var sum = new THREE.Vector3();
 

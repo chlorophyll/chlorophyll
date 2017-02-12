@@ -2,12 +2,11 @@
 var container;
 
 // threejs objects
-var scene, renderer, screenManager;
+var screenManager;
 
 // chlorophyll objects
 var model;
 var worldState;
-
 var selectionThreshold = 5; // put this somewhere reasonable...?
 
 var frontPlane, backPlane;
@@ -15,7 +14,7 @@ var frontPlane, backPlane;
 init();
 animate();
 
-function initModelFromJson(json) {
+function initModelFromJson(scene, json) {
 	model = new Model(json);
 	model.addToScene(scene);
 	worldState = new WorldState({
@@ -31,11 +30,11 @@ function initModelFromJson(json) {
 
 }
 
-function chooseModelFile(file) {
+function chooseModelFile(scene, file) {
 	var reader = new FileReader();
 	reader.onload = function (e) {
 		try {
-			initModelFromJson(e.target.result);
+			initModelFromJson(scene, e.target.result);
 		} catch (ex) {
 			console.log('ex when trying to parse json = ' + ex);
 		}
@@ -49,10 +48,10 @@ function init() {
 	var height = container.clientHeight;
 	//
 
-	scene = new THREE.Scene();
+	var scene = new THREE.Scene();
 	scene.fog = new THREE.Fog(0x000000, 750, 2000);
 
-	renderer = new THREE.WebGLRenderer({ antialias: false });
+	var renderer = new THREE.WebGLRenderer({ antialias: false });
 	renderer.setClearColor(scene.fog.color);
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(width, height);
@@ -91,9 +90,9 @@ function init() {
 	});
 	settings.addBoolean('Show Strips', false, function(val) { model.setStripVisibility(val)});
 
-	settings.addFileChooser('Model Loader', 'choose a model file', "application/json", chooseModelFile);
+	settings.addFileChooser('Model Loader', 'choose a model file', "application/json", function(val) { chooseModelFile(scene, val); } );
 	settings.disableControl('Model Loader');
-	initModelFromJson(icosahedron_data);
+	initModelFromJson(scene, icosahedron_data);
 
 	Mousetrap.prototype.stopCallback = function(e, element, combo) {
 		if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {

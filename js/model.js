@@ -140,7 +140,7 @@ function Model(json) {
 
 	var setDefaultColors = function() {
 		self.forEach(function(strip, i) {
-			self.setColor(i, stripColors[strip]);
+			self.setColor(i, stripColors[strip] || new THREE.Color(0xffffff));
 		});
 	}
 
@@ -202,15 +202,14 @@ function Model(json) {
 
 	// Initialize
 	function init() {
-		var model = JSON.parse(json);
+		var model_dict = JSON.parse(json);
 
-		numPixels = model['num_pixels'];
 		stripOffsets = [0];
 
 		pixelData = [];
 		colors = [];
 		var i = 0;
-		strips = model['strips'];
+		strips = model_dict['strips'];
 		var lineMaterial = new THREE.LineBasicMaterial({
 			color: 0xffffff,
 			linewidth: 1,
@@ -232,6 +231,7 @@ function Model(json) {
 			stripModels.push(model);
 			stripOffsets.push(i);
 		}
+		numPixels = i;
 
 		geometry = new THREE.Geometry();
 		geometry.vertices = pixelData;
@@ -240,6 +240,19 @@ function Model(json) {
 		geometry.colors = colors;
 
 		geometry.computeBoundingSphere();
+		geometry.computeBoundingBox();
+
+		var size = geometry.boundingBox.getSize();
+		var max = Math.max(size.x, size.y, size.z);
+
+		var factor = 750 / max;
+
+		for (var i = 0; i < numPixels; i++) {
+			pixelData[i] = pixelData[i].multiplyScalar(factor);
+		}
+		geometry.computeBoundingSphere();
+		geometry.computeBoundingBox();
+
 		var material = new THREE.PointsMaterial({ size: 15, vertexColors: THREE.VertexColors });
 		self.particles = new THREE.Points(geometry, material);
 		self.octree.add(self.particles, {useVertices: true});
