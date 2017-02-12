@@ -10,6 +10,7 @@ var worldState;
 var selectionThreshold = 5; // put this somewhere reasonable...?
 
 var frontPlane, backPlane;
+var UI;
 
 init();
 animate();
@@ -78,20 +79,62 @@ function init() {
 
 	QuickSettings.useExtStyleSheet();
 
-	var settings = QuickSettings.create(0, 0, "Settings");
-	settings.addRange('Back Clipping', -1000, 1000, -1000, 1, function(val) {
-		backPlane.constant = -val;
-	});
-	settings.addRange('Front Clipping', -1000, 1000, 1000, 1, function(val) {
-		frontPlane.constant = val;
-	});
-	settings.addRange('Search Threshold', 0, 15, selectionThreshold, 0.1, function(val) {
-		selectionThreshold = val;
-	});
-	settings.addBoolean('Show Strips', false, function(val) { model.setStripVisibility(val)});
+	UI = new UIManager();
+	var globalUI = {
+		panels: [],
+		controls: [],
+		hotkeys: [
+			{key: 'mod+z', callback: function() { worldState.undo(); }},
+			{key: 'mod+shift+z', callback: function() { worldState.redo(); }},
+		]
+	};
+	var globalView = UI.newMode("global", globalUI);
+	UI.enableMode("global");
 
-	settings.addFileChooser('Model Loader', 'choose a model file', "application/json", function(val) { chooseModelFile(scene, val); } );
+	var groupMapUI = {
+		panels: [{
+			name: "settings",
+			x: 0, y: 0
+		}],
+		controls: [
+			{
+				panel: "settings", type: QuickSettings.addRange,
+				params: ['Back Clipping', -1000, 1000, -1000, 1, function(val) {
+					backPlane.constant = -val;
+				}]
+			},
+			{
+				panel: "settings", type: QuickSettings.addRange,
+				params: ['Front Clipping', -1000, 1000, 1000, 1, function(val) {
+					frontPlane.constant = val;
+				}]
+			},
+			{
+				panel: "settings", type: QuickSettings.addRange,
+				params: ['Search Threshold', 0, 15, selectionThreshold, 0.1, function(val) {
+					selectionThreshold = val;
+				}]
+			},
+			{
+				panel: "settings", type: QuickSettings.addBoolean,
+				params: ['Show Strips', false, function(val) {
+					model.setStripVisibility(val)
+				}]
+			},
+			{
+				panel: "settings", type: QuickSettings.addFileChooser,
+				params: ['Model Loader', 'choose a model file', "application/json", function(val) {
+					chooseModelFile(scene, val);
+				}]
+			},
+		]
+	}
+	var groupConfigView = UI.newMode("grouping_mapping", groupMapUI, "global");
+	UI.enableMode("grouping_mapping");
+
+	// TODO handle disabling controls in UI manager
 	//settings.disableControl('Model Loader');
+
 	//initModelFromJson(scene, icosahedron_data);
 
 	Mousetrap.prototype.stopCallback = function(e, element, combo) {
@@ -107,13 +150,6 @@ function init() {
 		return textbox || select || textarea || editable;
 	}
 
-	Mousetrap.bind('mod+z', function() {
-		worldState.undo();
-	});
-
-	Mousetrap.bind('mod+shift+z', function() {
-		worldState.redo();
-	});
 }
 
 function onWindowResize() {
