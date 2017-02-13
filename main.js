@@ -81,15 +81,13 @@ function init() {
 
 	UI = new UIManager();
 	var globalUI = {
-		panels: [],
-		controls: [],
 		hotkeys: [
 			{key: 'mod+z', callback: function() { worldState.undo(); }},
 			{key: 'mod+shift+z', callback: function() { worldState.redo(); }},
 		]
 	};
-	var globalView = UI.newMode("global", globalUI);
-	UI.enableMode("global");
+	var globalView = UI.newView("global", globalUI);
+	UI.enableView("global");
 
 	var groupMapUI = {
 		panels: [{
@@ -129,8 +127,8 @@ function init() {
 			},
 		]
 	}
-	var groupConfigView = UI.newMode("grouping_mapping", groupMapUI, "global");
-	UI.enableMode("grouping_mapping");
+	var groupConfigView = UI.newView("grouping_mapping", groupMapUI, "global");
+	UI.enableView("grouping_mapping");
 
 	// TODO handle disabling controls in UI manager
 	//settings.disableControl('Model Loader');

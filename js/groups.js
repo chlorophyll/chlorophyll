@@ -101,7 +101,7 @@ function GroupManager(model) {
 				x: container.clientWidth - 400, y: 300
 			}],
 			controls: [{
-				panel: defaultName, type: QuickSettings.addBoolean,
+				panel: "groups", type: QuickSettings.addBoolean,
 				params: [defaultName, true],
 				callback: function (val) {
 					if (val)
