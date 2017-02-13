@@ -71,10 +71,6 @@ function GroupManager(model) {
 	// referencing group IDs, to keep groups in order
 	this.groups = Immutable.Map();
 
-	// UI stuff in here for now
-	this.groupControls = QuickSettings.create(container.clientWidth - 200, 200,
-		"Group Management");
-
 	this.overlay = model.createOverlay(1);
 
 	// Manually assign group id labels so that deleting a group doesn't
@@ -99,12 +95,24 @@ function GroupManager(model) {
 
 		self.groups = self.groups.set(id, newgroup);
 
-		self.groupControls.addBoolean(defaultName, true, function (val) {
-			if (val)
-				self.groups.get(id).show();
-			else
-				self.groups.get(id).hide();
-		});
+		var thisGroupUI = {
+			panels: [{
+				name: defaultName,
+				x: container.clientWidth - 400, y: 300
+			}],
+			controls: [{
+				panel: defaultName, type: QuickSettings.addBoolean,
+				params: [defaultName, true],
+				callback: function (val) {
+					if (val)
+						self.groups.get(id).show();
+					else
+						self.groups.get(id).hide();
+				}
+			}]
+		};
+		UI.newView(defaultName, thisGroupUI, "groupmanager");
+		UI.enableView(defaultName);
 
 		// Mark the group on the model
 		self.updateOverlay();
@@ -154,6 +162,21 @@ function GroupManager(model) {
 		self.groups = newgroups;
 		self.updateOverlay();
 	}
-
-	this.groupControls.addButton('Create group', this.createFromActiveSelection);
+	/*
+	 * UI View Spec
+	 */
+	var groupUI = {
+		panels: [{
+			name: "groups",
+			x: container.clientWidth - 200, y: 300
+		}],
+		controls: [{
+			panel: "groups", type: QuickSettings.addButton,
+			params: ["Create group"],
+			callback: this.createFromActiveSelection,
+			hotkey: 'g'
+		}]
+	};
+	this.groupControls = UI.newView("groupmanager", groupUI, "global");
+	UI.enableView("groupmanager");
 }

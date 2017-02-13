@@ -53,7 +53,11 @@ CommandManager = function() {
  * 	{
  * 		panel: "panelname",
  * 		type: QuickSettings.addButton,
- * 		params: ["Bhutan", somefunc]
+ * 		params: ["Bhutan"],
+ * 		callback: fn,
+ * 		hotkey: "x"
+ * 			(hotkeys optional, more complicated callbacks can be specified
+ * 			 in the hotkey list)
  * 	}
  *
  * Hotkey:
@@ -64,10 +68,10 @@ CommandManager = function() {
  * 		label: "Frobnicate"
  * 	}
  *
- * Mode definition:
+ * View definition:
  * 	{
- * 		panels: [ listopanelz ],
- * 		controls: [ listocontrolz ],
+ * 		panels: [ panel list ],
+ * 		controls: [ control list ],
  * 		hotkeys: [ listohotkeyz ]
  * 	}
  */
@@ -78,9 +82,9 @@ function getQsPos(panel) {
 	return {x: x, y: y}
 }
 
-// A UI mode, consisting of a set of controls assigned to panels and hotkeys.
+// A UI view, consisting of a set of controls assigned to panels and hotkeys.
 // setup() and teardown() functions are optional
-UIMode = function(manager, name, modespec, parent, setup, teardown) {
+UIView = function(manager, name, viewspec, parent, setup, teardown) {
 	this.name = name;
 	this.parent = parent;
 	this.children = [];
@@ -92,15 +96,15 @@ UIMode = function(manager, name, modespec, parent, setup, teardown) {
 	this.teardown = function() {};
 	this.enabled = false;
 
-	if (modespec.panels) this.panels = modespec.panels;
-	if (modespec.controls) this.controls = modespec.controls;
-	if (modespec.hotkeys) this.hotkeys = modespec.hotkeys;
-	if (setup) this.setup = setup;
-	if (teardown) this.teardown = teardown;
+	if ("panels" in viewspec) this.panels = viewspec.panels;
+	if ("controls" in viewspec) this.controls = viewspec.controls;
+	if ("hotkeys" in viewspec) this.hotkeys = viewspec.hotkeys;
+	if (typeof setup !== 'undefined') this.setup = setup;
+	if (typeof teardown !== 'undefined') this.teardown = teardown;
 
 	for (var panel of this.panels) {
 		if (panel.name in manager.panels) {
-			console.error("UIMode: panel already exists: ", panel.name);
+			console.error("UIView: panel already exists: ", panel.name);
 		}
 		// TODO create in the right spot wrt parent, handle dragging
 		// var parentPos = getQsPos(panel.parent);
@@ -112,6 +116,9 @@ UIMode = function(manager, name, modespec, parent, setup, teardown) {
 
 	for (var control of this.controls) {
 		var panel = manager.getPanel(control.panel);
+		// The control callback is specified separately from the rest of the
+		// control arguments - append it to the parameter list.
+		control.params.push(control.callback);
 		// The type of a control is the QuickSettings add/bind function.
 		// Apply it to the panel with the given paremeters.
 		control.type.apply(panel.qs, control.params);
@@ -125,115 +132,140 @@ UIMode = function(manager, name, modespec, parent, setup, teardown) {
 
 UIManager = function() {
 
-	this.active_modes = {};
+	this.active_views = {};
 	this.active_panels = {};
 	this.active_hotkeys = {};
 
-	this.modes = {};
+	this.views = {};
 	this.panels = {};
 
-	this.newMode = function(name, controls, parent, setup, teardown) {
-		if (name in this.modes) {
-			console.error("UIManager: mode already exists: ", name);
+	this.newView = function(name, controls, parent, setup, teardown) {
+		if (name in this.views) {
+			console.error("UIManager: view already exists: ", name);
 			return;
 		}
-		if (parent && !(parent in this.modes)) {
+		if (parent && !(parent in this.views)) {
 			console.error("UIManager: parent does not exist: ", parent);
 			return;
 		}
-		var mode = new UIMode(this, name, controls, this.modes[parent], setup,
+		var view = new UIView(this, name, controls, this.views[parent], setup,
 			teardown);
-		this.modes[name] = mode;
+		this.views[name] = view;
 
-		return mode;
+		return view;
 	}
 
-	// Used to completely remove a mode (e.g. if the object it's bound to is
+	// Used to completely remove a view (e.g. if the object it's bound to is
 	// destroyed).
-	this.destroyMode = function(name) {
-		var mode = this.modes[name];
-		if (mode.enabled) {
-			this.disableMode(name);
+	this.destroyView = function(name) {
+		var view = this.views[name];
+
+		// Destroy any existing children and remove from parent.
+		var subViews = view.children;
+		for (var child of subViews) {
+			this.destroyView(subm.name);
 		}
-		var subModes = this.children;
-		for (var child of subModes) {
-			this.destroyMode(subm.name);
+		if (view.parent) {
+			delete view.parent.children[name];
 		}
-		delete mode.parent.children[name];
-		// TODO: destroy controls too
-		for (var panel of mode.panels) {
+		// Run any necessary cleanup first
+		if (view.enabled) {
+			this.disableView(name);
+		}
+
+		// Destroy all the actual UI components
+		for (var control of view.controls) {
+			var panel = this.panels[control.panel];
+			panel.qs.removeControl(control.title);
+		}
+		for (var panel of view.panels) {
 			panel.qs.destroy();
 			delete this.panels[panel.name];
 		}
-		delete this.modes[name];
+		delete this.views[name];
 	}
 
-	// Show a mode's panels and enable its hotkeys
-	this.enableMode = function(name) {
-		// need to store panel hidden/shown state separately in the object
-		// so that enable/disable doesn't clobber it.
-		var mode = this.modes[name];
-		if (!mode.enabled) {
-			mode.setup();
-			mode.enabled = true;
-			for (var panel of mode.panels) {
+	function enableHotkey(key, callback, upCallback) {
+		if (typeof upCallback !== 'undefined') {
+			Mousetrap.bind(key, callback, "keydown");
+			Mousetrap.bind(key, upCallback, "keyup");
+		} else {
+			Mousetrap.bind(key, callback);
+		}
+	}
+
+	function disableHotkey(hotkey) {
+		Mousetrap.unbind(hotkey.key);
+	}
+
+	// Show a view's panels and enable its hotkeys
+	this.enableView = function(name) {
+		// Panel hidden/shown state is stored separately in the object (i.e. it
+		// doesn't always match the QuickSettings state) so that enable/disable
+		// doesn't clobber visibility state when switching between UI views.
+		var view = this.views[name];
+		if (!view.enabled) {
+			view.setup();
+			view.enabled = true;
+			for (var panel of view.panels) {
 				if (!panel.hidden) {
 					panel.qs.show();
 				}
 			}
-			for (var control of mode.controls) {
+			for (var control of view.controls) {
 				var title = control.params[0];
 				var panel = this.panels[control.panel];
 				panel.qs.showControl(title);
-			}
-			for (var hotkey of mode.hotkeys) {
-				if ('upCallback' in hotkey) {
-					Mousetrap.bind(hotkey.key, hotkey.callback, "keydown");
-					Mousetrap.bind(hotkey.key, hotkey.upCallback, "keyup");
-				} else {
-					Mousetrap.bind(hotkey.key, hotkey.callback);
+				if ('hotkey' in control) {
+					enableHotkey(control.hotkey, control.callback);
 				}
+			}
+			for (var hotkey of view.hotkeys) {
+				enableHotkey(hotkey.key, hotkey.callback, hotkey.upCallback);
 			}
 		}
 	}
 
-	// Hide a mode's panels and disable its hotkeys
+	// Hide a view's panels and disable its hotkeys
 	// Also disables all children
-	this.disableMode = function(name) {
-		var mode = this.modes[name];
-		var subModes = mode.children;
-		for (var child of subModes) {
-			this.disableMode(child.name);
+	this.disableView = function(name) {
+		var view = this.views[name];
+		var subViews = view.children;
+		for (var child of subViews) {
+			this.disableView(child.name);
 		}
 
-		if (mode.enabled) {
-			mode.teardown();
-			mode.enabled = false;
-			for (var panel of mode.panels) {
+		if (view.enabled) {
+			view.teardown();
+			view.enabled = false;
+			for (var panel of view.panels) {
 				panel.qs.hide();
 			}
-			for (var control of mode.controls) {
+			for (var control of view.controls) {
 				var title = control.params[0];
 				var panel = this.panels[control.panel];
 				panel.qs.hideControl(title);
+				if ('hotkey' in control) {
+					disableHotkey(control.hotkey);
+				}
 			}
-			for (var hotkey of mode.hotkeys) {
-				Mousetrap.unbind(hotkey.key);
+			for (var hotkey of view.hotkeys) {
+				disableHotkey(hotkey.key);
 			}
 		}
 	}
 
-	// Enable one mode and hide all its siblings (other children of its parent)
-	this.setModeExclusive = function(name) {
-		var mode = this.modes[name];
-		if (!mode.parent) {
-			this.enableMode(name);
+	// Enable one view and hide all its siblings (other children of its parent)
+	this.setViewExclusive = function(name) {
+		var view = this.views[name];
+		if (!view.parent) {
+			this.enableView(name);
 		}
-		for (var sibling of mode.parent.children) {
-			if (sibling !== mode) {
-				this.disableMode(sibling.name);
+		for (var sibling of view.parent.children) {
+			if (sibling !== view) {
+				this.disableView(sibling.name);
 			}
-			this.enableMode(name);
+			this.enableView(name);
 		}
 	}
 
@@ -256,22 +288,6 @@ UIManager = function() {
 }
 
 
-// Toolbox: circular?
-// need buttons to set Mode
-// need to add a Mode specifically for selecting Modes
-// 	Toolbox object: created from UIManager, handle coloring toolbox buttons?
-// 	^ nah, can just create a mode for it & enable in bigger mode init
-//
-// notion of parents/children:
-//		top level: changing between main views etc. can keep controls around
-//		as long as the objects that refer to them still exist (just hide/show).
-//		objects can be responsible for cleaning up their UI stuff (calling
-//		destroyMode())
-//
-//		calling enable: just enables that mode/panels
-//		calling disable: disables + all children
-//			destroy behaves similar
-//
 //		panel position is in relation to its parent
 //			attach mode: unattached/top/bottom/left/right/absolute
 //
