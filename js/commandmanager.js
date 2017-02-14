@@ -1,8 +1,6 @@
-var globalSettingsTest;
 CommandManager = function() {
 	var commands = [];
 	var settings = QuickSettings.create(window.innerWidth-210, 0, "Commands");
-	globalSettingsTest = settings;
 	var returnToDefault = true;
 	var defaultCommand;
 
@@ -312,25 +310,3 @@ UIManager = function() {
 		return this.panels[panelName].qs;
 	}
 }
-
-
-// for toolbox: Create toolbox as child of Model-editing-mode in init func.
-// 		tracks active thing internally. Sets colors when appropriate key/bhutan
-// 		/etc. pushed to indicate active tool.
-//
-// 		Other things will need to do this too: how should we express
-//		"add a thingus to that panel over there?" maybe just toolbox name,
-//		like
-//		setup(manager) {
-//			manager.addControl("toolbox", function(panel){ panel.addButton(...)})
-//		}
-//		could make this nicer. Maybe could even just get away with object:
-//		controls_to_add = [ { "toolbox", addButton, params, "k", momentary=false},
-//						    { "settings", "addButton, params ...},
-//						    ...
-//						  ]
-//		can use ".apply()" real nice - just apply the param list
-//		can also be used as a "stuff to remove when done" list
-//		this makes setup/teardown functions p optional
-//
-//		undoing: maybe snap to just the top-level mode?
