@@ -71,6 +71,8 @@ function disableHotkey(key) {
  * 		panels: [ panel list ],
  * 		controls: [ control list ],
  * 		hotkeys: [ listohotkeyz ]
+ * 		setup: fn()
+ * 		teardown: fn()
  * 	}
  *
  * Panel:
@@ -102,7 +104,7 @@ function disableHotkey(key) {
  * 		label: "Frobnicate"
  * 	}
  */
-UIView = function(manager, name, viewspec, parent, setup, teardown) {
+UIView = function(manager, name, parent, viewspec) {
 	this.name = name;
 	this.parent = parent;
 	this.children = [];
@@ -118,8 +120,8 @@ UIView = function(manager, name, viewspec, parent, setup, teardown) {
 	if ("panels" in viewspec) this.panels = viewspec.panels;
 	if ("controls" in viewspec) this.controls = viewspec.controls;
 	if ("hotkeys" in viewspec) this.hotkeys = viewspec.hotkeys;
-	if (typeof setup !== 'undefined') this.setup = setup;
-	if (typeof teardown !== 'undefined') this.teardown = teardown;
+	if ("setup" in viewspec) this.setup = viewspec.setup;
+	if ("teardown" !== viewspec) this.teardown = viewspec.teardown;
 
 	for (var panel of this.panels) {
 		if (panel.name in manager.panels) {
@@ -213,7 +215,7 @@ UIManager = function() {
 	this.views = {};
 	this.panels = {};
 
-	this.newView = function(name, controls, parent, setup, teardown) {
+	this.newView = function(name, parent, controls) {
 		if (name in this.views) {
 			console.error("UIManager: view already exists: ", name);
 			return;
@@ -222,8 +224,7 @@ UIManager = function() {
 			console.error("UIManager: parent does not exist: ", parent);
 			return;
 		}
-		var view = new UIView(this, name, controls, this.views[parent], setup,
-			teardown);
+		var view = new UIView(this, name, this.views[parent], controls);
 		this.views[name] = view;
 
 		return view;

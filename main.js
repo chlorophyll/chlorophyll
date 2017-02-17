@@ -80,16 +80,15 @@ function init() {
 	QuickSettings.useExtStyleSheet();
 
 	UI = new UIManager();
-	var globalUI = {
+	var globalView = UI.newView("global", null, {
 		hotkeys: [
 			{key: 'mod+z', callback: function() { worldState.undo(); }},
 			{key: 'mod+shift+z', callback: function() { worldState.redo(); }},
 		]
-	};
-	var globalView = UI.newView("global", globalUI);
+	});
 	UI.enableView("global");
 
-	var groupMapUI = {
+	var groupConfigView = UI.newView("grouping_mapping", "global", {
 		panels: [{
 			name: "settings",
 			x: 0, y: 0
@@ -126,8 +125,7 @@ function init() {
 				}]
 			},
 		]
-	}
-	var groupConfigView = UI.newView("grouping_mapping", groupMapUI, "global");
+	});
 	UI.enableView("grouping_mapping");
 
 	// TODO handle disabling controls in UI manager
