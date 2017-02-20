@@ -52,14 +52,6 @@ function Overlay(model) {
 		return Immutable.Set.fromKeys(this.colors);
 	}
 
-	this.setPriority = function (pri) {
-		this.priority = pri;
-	}
-
-	this.getPriority = function() {
-		return this.priority;
-	}
-
 	this.snapshot = function() {
 		return this.colors;
 	}
@@ -167,7 +159,7 @@ function Model(json) {
 			priority = 0;
 
 		var overlay = new Overlay(this);
-		overlay.setPriority(priority);
+		overlay.priority = priority;
 
 		if (!this.overlays[priority])
 			this.overlays[priority] = [];
@@ -177,7 +169,7 @@ function Model(json) {
 	}
 
 	this.removeOverlay = function(overlay) {
-		var pri = overlay.getPriority();
+		var pri = overlay.priority;
 		var index = this.overlays[pri].indexOf(overlay);
 
 		if (index == -1)
