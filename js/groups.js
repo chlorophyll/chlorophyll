@@ -95,7 +95,8 @@ function GroupManager(model) {
 
 		self.groups = self.groups.set(id, newgroup);
 
-		UI.newView(defaultName, "groupmanager", {
+		/*
+		UI.newView(defaultName, "groupmanager"), {
 			panels: [{
 				name: defaultName,
 				x: container.clientWidth - 400, y: 300
@@ -112,6 +113,7 @@ function GroupManager(model) {
 			}]
 		});
 		UI.enableView(defaultName);
+		*/
 
 		// Mark the group on the model
 		self.updateOverlay();
@@ -164,17 +166,9 @@ function GroupManager(model) {
 	/*
 	 * UI View Spec
 	 */
-	this.groupControls = UI.newView("groupmanager", "global", {
-		panels: [{
-			name: "groups",
-			x: container.clientWidth - 200, y: 300
-		}],
-		controls: [{
-			panel: "groups", type: QuickSettings.addButton,
-			params: ["Create group"],
-			callback: this.createFromActiveSelection,
-			hotkey: 'g'
-		}]
-	});
-	UI.enableView("groupmanager");
+	this.groupControls = UI.newView("groupmanager", "global");
+	this.groupControls.panel("groups", container.clientWidth - 200, 300)
+		.addControl(QuickSettings.addButton, ["Create group"],
+			this.createFromActiveSelection, 'g');
+	this.groupControls.enable();
 }

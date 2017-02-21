@@ -65,92 +65,96 @@ function disableHotkey(key) {
  *
  * The optional setup() and teardown() functions will be called when the view
  * is enabled and disabled, respectively.
- *
- * View definition (viewspec):
- * 	{
- * 		panels: [ panel list ],
- * 		controls: [ control list ],
- * 		hotkeys: [ listohotkeyz ]
- * 		setup: fn()
- * 		teardown: fn()
- * 	}
- *
- * Panel:
- * 	{
- *		name: "panelname",
- *		x: 0
- *		y: 0
- *		parent: "someotherpanelname"
- *		attach: "none/left/right/bottom/top/offset"
- *		qs: *filled in on creation*
- * 	}
- *
- * Control:
- * 	{
- * 		panel: "panelname",
- * 		type: QuickSettings.addButton,
- * 		params: ["Bhutan"],
- * 		callback: fn,
- * 		hotkey: "x"
- * 			(hotkeys optional, more complicated callbacks can be specified
- * 			 in the hotkey list)
- * 	}
- *
- * Hotkey:
- * 	{
- * 		key: "x",
- * 		callback: somefunc,
- * 		upCallback: otherfunc, <- optional, called on release
- * 		label: "Frobnicate"
- * 	}
  */
-UIView = function(manager, name, parent, viewspec) {
+UIPanel = function(view, name, x, y) {
+	this.view = view;
+	this.manager = view.manager;
+	this.name = name;
+	this.x = x;
+	this.y = y;
+
+	this.controls = [];
+
+	this.qs = QuickSettings.create(this.x, this.y, this.name);
+	this.qs.hide();
+
+	this.hidden = false;
+
+	// Controls can be added to a view other than the one which owns the panel,
+	// so the view for the control is passed in.
+	this.addControl = function(controlView, type, params, callback, hotkey) {
+		// The control callback is specified separately from the rest of the
+		// control arguments - append it to the parameter list.
+		params.push(control.callback);
+		// The type of a control is just the QuickSettings add function.
+		type.apply(this.qs, params);
+
+		var title = control.params[0];
+		panel.qs.hideControl(control.title);
+
+		var control = {
+			title: title,
+			type: type,
+			params: params,
+			callback: callback,
+			hotkey: hotkey
+		}
+		this.controls[title] = control;
+		controlView.controls[title] = control;
+
+		return this;
+	}
+}
+
+UIView = function(manager, name, parent) {
+	self = this;
 	this.name = name;
 	this.parent = parent;
 	this.children = [];
 
-	this.panels = [];
-	this.controls = [];
-	this.hotkeys = [];
+	this.panels = {};
+	this.controls = {};
+	this.hotkeys = {};
 	this.setup = function() {};
 	this.teardown = function() {};
 	this.enabled = false;
 	this.wasEnabled = false;
 
-	if ("panels" in viewspec) this.panels = viewspec.panels;
-	if ("controls" in viewspec) this.controls = viewspec.controls;
-	if ("hotkeys" in viewspec) this.hotkeys = viewspec.hotkeys;
-	if ("setup" in viewspec) this.setup = viewspec.setup;
-	if ("teardown" !== viewspec) this.teardown = viewspec.teardown;
-
-	for (var panel of this.panels) {
-		if (panel.name in manager.panels) {
-			console.error("UIView: panel already exists: ", panel.name);
-		}
-		// TODO create in the right spot wrt parent, handle dragging
-		// var parentPos = getQsPos(panel.parent);
-		panel.qs = QuickSettings.create(panel.x, panel.y, panel.name);
-		panel.qs.hide();
-		// Panel hidden/shown state is stored separately in the object (i.e. it
-		// doesn't always match the QuickSettings state) so that enable/disable
-		// doesn't clobber visibility state when switching between UI views.
-		panel.hidden = false;
-		manager.panels[panel.name] = panel;
-	}
-
-	for (var control of this.controls) {
-		var panel = manager.panels[control.panel];
-		// The control callback is specified separately from the rest of the
-		// control arguments - append it to the parameter list.
-		control.params.push(control.callback);
-		// The type of a control is just the QuickSettings add function.
-		control.type.apply(panel.qs, control.params);
-		control.title = control.params[0];
-		panel.qs.hideControl(control.title);
-	}
-
 	if (parent)
 		parent.children.push(this);
+
+	// Get a panel by name, or create it if it doesn't exist.
+	// Doesn't return the actual panel object, just accessor functions.
+	this.panel = function(name, x, y) {
+		var panel;
+		if (name in manager.panels) {
+			panel = manager.panels[name];
+		} else {
+			panel = new UIPanel(this, name, x, y);
+			manager.panels[name] = panel;
+			this.panels[name] = panel;
+		}
+		// Return an object containing utility functions
+		return {
+			addControl: function(type, params, callback, hotkey) {
+				panel.addControl(self, type, params, callback, hotkey);
+			}
+		};
+	}
+
+	this.addHotkey = function(key, callback, upCallback, label) {
+		if (key in this.hotkeys) {
+			console.error("Duplicate hotkey in view %s: %s", this.name, key);
+			return this;
+		}
+		this.hotkeys[key] = {
+			key: key,
+			callback: callback,
+			upCallback: upCallback,
+			label: label
+		};
+		return this;
+	}
 
 	// Show a view's panels & controls and enable its hotkeys
 	this.enable = function() {
@@ -207,15 +211,10 @@ UIView = function(manager, name, parent, viewspec) {
 }
 
 UIManager = function() {
-
-	this.active_views = {};
-	this.active_panels = {};
-	this.active_hotkeys = {};
-
 	this.views = {};
 	this.panels = {};
 
-	this.newView = function(name, parent, controls) {
+	this.newView = function(name, parent) {
 		if (name in this.views) {
 			console.error("UIManager: view already exists: ", name);
 			return;
@@ -224,7 +223,7 @@ UIManager = function() {
 			console.error("UIManager: parent does not exist: ", parent);
 			return;
 		}
-		var view = new UIView(this, name, this.views[parent], controls);
+		var view = new UIView(this, name, this.views[parent]);
 		this.views[name] = view;
 
 		return view;

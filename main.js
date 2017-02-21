@@ -80,53 +80,40 @@ function init() {
 	QuickSettings.useExtStyleSheet();
 
 	UI = new UIManager();
-	var globalView = UI.newView("global", null, {
-		hotkeys: [
-			{key: 'mod+z', callback: function() { worldState.undo(); }},
-			{key: 'mod+shift+z', callback: function() { worldState.redo(); }},
-		]
-	});
-	UI.enableView("global");
 
-	var groupConfigView = UI.newView("grouping_mapping", "global", {
-		panels: [{
-			name: "settings",
-			x: 0, y: 0
-		}],
-		controls: [
-			{
-				panel: "settings", type: QuickSettings.addRange,
-				params: ['Back Clipping', -1000, 1000, -1000, 1, function(val) {
+	var globalView = UI.newView("global", null)
+		.addHotkey('mod+z', function() { worldState.undo(); })
+		.addHotkey('mod+shift+z', function() { worldState.redo(); });
+	globalView.enable();
+
+	var groupConfigView = UI.newView("grouping_mapping", "global");
+	groupConfigView.panel("settings", 0, 0)
+		.addControl(QuickSettings.addRange,
+			['Back Clipping', -1000, 1000, -1000, 1],
+			function(val) {
 					backPlane.constant = -val;
-				}]
-			},
-			{
-				panel: "settings", type: QuickSettings.addRange,
-				params: ['Front Clipping', -1000, 1000, 1000, 1, function(val) {
+			})
+		.addControl(QuickSettings.addRange,
+			['Front Clipping', -1000, 1000, 1000, 1],
+			function(val) {
 					frontPlane.constant = val;
-				}]
-			},
-			{
-				panel: "settings", type: QuickSettings.addRange,
-				params: ['Search Threshold', 0, 15, selectionThreshold, 0.1, function(val) {
+			})
+		.addControl(QuickSettings.addRange,
+			['Search Threshold', 0, 15, selectionThreshold, 0.1],
+			function(val) {
 					selectionThreshold = val;
-				}]
-			},
-			{
-				panel: "settings", type: QuickSettings.addBoolean,
-				params: ['Show Strips', false, function(val) {
+			})
+		.addControl(QuickSettings.addBoolean,
+			['Show Strips', false],
+			function(val) {
 					model.setStripVisibility(val)
-				}]
-			},
-			{
-				panel: "settings", type: QuickSettings.addFileChooser,
-				params: ['Model Loader', 'choose a model file', "application/json", function(val) {
+			})
+		.addControl(QuickSettings.addFileChooser,
+			['Model Loader', 'choose a model file', "application/json"],
+			function(val) {
 					chooseModelFile(scene, val);
-				}]
-			},
-		]
-	});
-	UI.enableView("grouping_mapping");
+			});
+	groupConfigView.enable();
 
 	// TODO handle disabling controls in UI manager
 	//settings.disableControl('Model Loader');
