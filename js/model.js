@@ -79,6 +79,18 @@ function Model(json) {
 	var colors;
 	var geometry;
 
+	var showWithoutOverlays = true;
+
+	this.showUnderlyingModel = function() {
+		showWithoutOverlays = true;
+		this.updateColors();
+	}
+
+	this.hideUnderlyingModel = function() {
+		showWithoutOverlays = false;
+		this.updateColors();
+	}
+
 	this.octree = new THREE.Octree( {
 		// when undeferred = true, objects are inserted immediately
 		// instead of being deferred until next octree.update() call
@@ -129,10 +141,13 @@ function Model(json) {
 		return undefined;//
 	}
 
-
 	var setDefaultColors = function() {
 		self.forEach(function(strip, i) {
-			self.setColor(i, stripColors[strip] || new THREE.Color(0xffffff));
+			var color = new THREE.Color(0x000000);
+			if (showWithoutOverlays) {
+				color = stripColors[strip] || new THREE.Color(0xffffff);
+			}
+			self.setColor(i, color);
 		});
 	}
 
