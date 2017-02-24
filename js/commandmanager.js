@@ -109,7 +109,7 @@ UIPanel = function(view, name, x, y) {
 }
 
 UIView = function(manager, name, parent) {
-	self = this;
+	var self = this;
 	this.name = name;
 	this.parent = parent;
 	this.children = [];
@@ -203,7 +203,7 @@ UIView = function(manager, name, parent) {
 			}
 			for (var controlname in this.controls) {
 				var control = this.controls[controlname];
-				control.panel.hideControl(control.title);
+				control.panel.qs.hideControl(control.title);
 				if ('hotkey' in control) {
 					disableHotkey(control.hotkey);
 				}
