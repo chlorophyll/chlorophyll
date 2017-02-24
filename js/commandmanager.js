@@ -85,20 +85,22 @@ UIPanel = function(view, name, x, y) {
 	this.addControl = function(controlView, type, params, callback, hotkey) {
 		// The control callback is specified separately from the rest of the
 		// control arguments - append it to the parameter list.
-		params.push(control.callback);
+		params.push(callback);
 		// The type of a control is just the QuickSettings add function.
 		type.apply(this.qs, params);
+		this.qs.hideControl(title);
 
-		var title = control.params[0];
-		panel.qs.hideControl(control.title);
+		var title = params[0];
 
 		var control = {
+			panel: this,
 			title: title,
 			type: type,
 			params: params,
-			callback: callback,
-			hotkey: hotkey
 		}
+		if (typeof callback !== 'undefined') control.callback = callback;
+		if (typeof hotkey !== 'undefined') control.hotkey = hotkey;
+
 		this.controls[title] = control;
 		controlView.controls[title] = control;
 
@@ -138,6 +140,7 @@ UIView = function(manager, name, parent) {
 		return {
 			addControl: function(type, params, callback, hotkey) {
 				panel.addControl(self, type, params, callback, hotkey);
+				return this;
 			}
 		};
 	}
@@ -162,18 +165,21 @@ UIView = function(manager, name, parent) {
 			this.setup();
 			this.enabled = true;
 			this.wasEnabled = true;
-			for (var panel of this.panels) {
+			for (var panelname in this.panels) {
+				var panel = this.panels[panelname];
 				if (!panel.hidden) {
 					panel.qs.show();
 				}
 			}
-			for (var control of this.controls) {
-				manager.getPanel(control.panel).showControl(control.title);
+			for (var controlname in this.controls) {
+				var control = this.controls[controlname];
+				control.panel.qs.showControl(control.title);
 				if ('hotkey' in control) {
 					enableHotkey(control.hotkey, control.callback);
 				}
 			}
-			for (var hotkey of this.hotkeys) {
+			for (var hotkeyname in this.hotkeys) {
+				var hotkey = this.hotkeys[hotkeyname];
 				enableHotkey(hotkey.key, hotkey.callback, hotkey.upCallback);
 			}
 		}
@@ -192,17 +198,18 @@ UIView = function(manager, name, parent) {
 			this.teardown();
 			this.enabled = false;
 			this.wasEnabled = true;
-			for (var panel of this.panels) {
-				panel.qs.hide();
+			for (var panelname in this.panels) {
+				this.panels[panelname].qs.hide();
 			}
-			for (var control of this.controls) {
-				manager.getPanel(control.panel).hideControl(control.title);
+			for (var controlname in this.controls) {
+				var control = this.controls[controlname];
+				control.panel.hideControl(control.title);
 				if ('hotkey' in control) {
 					disableHotkey(control.hotkey);
 				}
 			}
-			for (var hotkey of this.hotkeys) {
-				disableHotkey(hotkey.key);
+			for (var hotkey in this.hotkeys) {
+				disableHotkey(this.hotkeys[hotkey].key);
 			}
 		} else {
 			this.wasEnabled = false;
@@ -237,22 +244,23 @@ UIManager = function() {
 		// Destroy any existing children and remove from parent.
 		var subViews = view.children;
 		for (var child of subViews) {
-			this.destroyView(subm.name);
+			this.destroyView(child.name);
 		}
 		if (view.parent) {
 			delete view.parent.children[name];
 		}
 		// Run any necessary cleanup first
 		if (view.enabled) {
-			this.disableView(name);
+			view.disable();
 		}
 
 		// Destroy all the actual UI components
-		for (var control of view.controls) {
-			var panel = this.panels[control.panel];
-			panel.qs.removeControl(control.title);
+		for (var controlname in view.controls) {
+			var control = view.controls[controlname];
+			control.panel.qs.removeControl(control.title);
 		}
-		for (var panel of view.panels) {
+		for (var panelname in view.panels) {
+			var panel = view.panels[panelname];
 			panel.qs.destroy();
 			delete this.panels[panel.name];
 		}

@@ -47,7 +47,6 @@ function init() {
 	container = document.getElementById('container');
 	var width = container.clientWidth;
 	var height = container.clientHeight;
-	//
 
 	var scene = new THREE.Scene();
 	scene.fog = new THREE.Fog(0x000000, 750, 2000);
