@@ -12,17 +12,16 @@ function PixelGroup(manager, pixels, name, color) {
 	this.name = name ? name : "unnamed"
 	this.pixels = pixels ? pixels : Immutable.Map();
 	this.color = color ? color : new THREE.Color(0xff0000);
+	this.model = manager.model;
+	this.overlay = model.createOverlay(1);
 	this.mappings = Immutable.Map();
-	this.hidden = false;
 
 	this.hide = function(id) {
-		this.hidden = true;
-		manager.updateOverlay();
+		this.overlay.clear();
 	}
 
 	this.show = function(id) {
-		this.hidden = false;
-		manager.updateOverlay();
+		this.overlay.setAllFromSet(this.pixels, this.color);
 	}
 
 	this.setName = function(newName) {
@@ -36,7 +35,8 @@ function PixelGroup(manager, pixels, name, color) {
 
 	this.setColor = function(newColor) {
 		this.color = newColor;
-		manager.updateOverlay();
+		if (this.overlay.size() > 0)
+			this.show();
 	}
 
 	// Clean up UI, to be called before destroying the group.
@@ -50,7 +50,7 @@ function PixelGroup(manager, pixels, name, color) {
 			pixels: this.pixels,
 			mappings: this.mappings,
 			color: this.color,
-			hidden: this.hidden
+			overlay: this.overlay.snapshot(),
 		});
 	}
 
@@ -59,7 +59,7 @@ function PixelGroup(manager, pixels, name, color) {
 		this.pixels = snapshot.get("pixels");
 		this.mappings = snapshot.get("mappings");
 		this.color = snapshot.get("color");
-		this.hidden = snapshot.get("hidden");
+		this.overlay.setFromSnapshot(snapshot.get('overlay'))
 	}
 }
 
@@ -70,8 +70,6 @@ function GroupManager(model) {
 	// Future work: nice group reordering UI, probably a layer on top of this
 	// referencing group IDs, to keep groups in order
 	this.groups = Immutable.Map();
-
-	this.overlay = model.createOverlay(1);
 
 	// Manually assign group id labels so that deleting a group doesn't
 	// reassign ids
@@ -95,39 +93,20 @@ function GroupManager(model) {
 
 		self.groups = self.groups.set(id, newgroup);
 
-		/*
-		UI.newView(defaultName, "groupmanager"), {
-			panels: [{
-				name: defaultName,
-				x: container.clientWidth - 400, y: 300
-			}],
-			controls: [{
-				panel: "groups", type: QuickSettings.addBoolean,
-				params: [defaultName, true],
-				callback: function (val) {
-					if (val)
-						self.groups.get(id).show();
-					else
-						self.groups.get(id).hide();
-				}
-			}]
-		});
-		UI.enableView(defaultName);
-		*/
+		newgroup.show();
+		self.groupControls.panel('groups')
+	        .addControl(QuickSettings.addBoolean, [defaultName, true], function(val) {
+			if (val) {
+				newgroup.show();
+				newgroup.view.enable();
+			} else {
+				newgroup.hide();
+				newgroup.view.disable();
+			}
+		})
 
 		// Mark the group on the model
-		self.updateOverlay();
 		worldState.checkpoint();
-	}
-
-	this.updateOverlay = function() {
-		//var hiddenColor = new THREE.Color(0x101010);
-		self.overlay.clear();
-		self.groups.forEach(function(group) {
-			if (!group.hidden) {
-				self.overlay.setAllFromSet(group.pixels, group.color);
-			}
-		});
 	}
 
 	this.snapshot = function () {
@@ -161,7 +140,6 @@ function GroupManager(model) {
 		});
 
 		self.groups = newgroups;
-		self.updateOverlay();
 	}
 	/*
 	 * UI View Spec
