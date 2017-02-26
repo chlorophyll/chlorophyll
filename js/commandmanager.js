@@ -226,13 +226,18 @@ UIManager = function() {
 			console.error("UIManager: view already exists: ", name);
 			return;
 		}
-		if (parent && !(parent in this.views)) {
-			console.error("UIManager: parent does not exist: ", parent);
-			return;
+		if (parent) {
+			if (!(parent instanceof UIView)) {
+				if (parent in this.views) {
+					parent = this.views[parent];
+				} else {
+					console.error("UIManager: parent does not exist: ", parent);
+					return;
+				}
+			}
 		}
-		var view = new UIView(this, name, this.views[parent]);
+		var view = new UIView(this, name, parent);
 		this.views[name] = view;
-
 		return view;
 	}
 
