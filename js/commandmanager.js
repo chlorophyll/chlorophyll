@@ -159,6 +159,14 @@ UIView = function(manager, name, parent) {
 		return this;
 	}
 
+	this.setSetup = function(setupfn) {
+		this.setup = setupfn;
+	}
+
+	this.setTeardown = function(teardownfn) {
+		this.teardown = teardownfn;
+	}
+
 	// Show a view's panels & controls and enable its hotkeys
 	this.enable = function() {
 		if (!this.enabled) {
