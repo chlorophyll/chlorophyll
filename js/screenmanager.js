@@ -34,6 +34,18 @@ Screen = function(camera, renderer, scene) {
 		}
 		return chosen;
 	}
+
+	this.saveCameraState = function() {
+		return {
+			quaternion: this.camera.quaternion.clone(),
+			position: this.camera.position.clone(),
+		}
+	}
+
+	this.setCameraState = function(cameraState) {
+		this.camera.quaternion = cameraState.quaternion;
+		this.camera.position = cameraState.position;
+	}
 }
 
 ScreenManager = function(renderer, scene) {

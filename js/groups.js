@@ -2,14 +2,28 @@ function PixelGroupMapping(manager, group, id, name) {
 	var self = this;
 
 	this.group = group;
+	this.model = group.model;
 
 	var tree_id = group.group_id + '-map-' + id;
+	this.widget = new Cartesian2Widget(container);
 
 	var elem = manager.tree.insertItem({
 		id: tree_id,
 		content: name,
 		dataset: {mapping: self}
 	}, group.group_id);
+
+	this.enable = function() {
+		self.model.hideUnderlyingModel();
+		screenManager.setActive('ortho');
+		self.widget.showAt(200,200);
+	}
+
+	this.disable = function() {
+		self.cameraState = screenManager.activeScreen.saveCameraState();
+		self.model.showUnderlyingModel();
+		screenManager.setActive('main');
+	}
 }
 
 /*
