@@ -76,8 +76,11 @@ UIPanel = function(view, name, x, y) {
 	this.controls = [];
 
 	this.qs = QuickSettings.create(this.x, this.y, this.name);
-	this.qs.hide();
+	this.w = this.qs._panel.clientWidth;
+	this.h = this.qs._panel.clientHeight;
+	// TODO: monkey patch in 'after' calback for dragging to update pos
 
+	this.qs.hide();
 	this.hidden = false;
 
 	// Controls can be added to a view other than the one which owns the panel,
@@ -103,6 +106,9 @@ UIPanel = function(view, name, x, y) {
 
 		this.controls[title] = control;
 		controlView.controls[title] = control;
+
+		this.w = this.qs._panel.clientWidth;
+		this.h = this.qs._panel.clientHeight;
 
 		return this;
 	}
