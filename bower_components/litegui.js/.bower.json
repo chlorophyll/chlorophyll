@@ -1,0 +1,14 @@
+{
+  "name": "litegui.js",
+  "homepage": "https://github.com/jagenjo/litegui.js",
+  "_release": "6ecfee4c30",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "6ecfee4c30c86a71795432e22b1d7bd416dd5473"
+  },
+  "_source": "https://github.com/jagenjo/litegui.js.git",
+  "_target": "*",
+  "_originalSource": "jagenjo/litegui.js",
+  "_direct": true
+}

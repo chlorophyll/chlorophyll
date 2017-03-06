@@ -28,6 +28,7 @@
     "three": "*",
     "mousetrap": "^1.6.0",
     "quicksettings": "bit101/quicksettings#^3.0.1",
-    "immutable": "^3.8.1"
+    "immutable": "^3.8.1",
+    "litegui.js": "jagenjo/litegui.js"
   }
 }
