@@ -1,19 +1,31 @@
 var Util = {
-	distanceToLine: function(point, line) {
-		var closest = line.closestPointToPoint(point, true);
+	distanceToLine: function(point, line, clamp) {
+		if (clamp == undefined) {
+			clamp = true;
+		}
+		var closest = line.closestPointToPoint(point, clamp);
 		var ret = closest.sub(point).length();
 		return ret;
 	},
 
+	relativeCoords: function relativeCoords(pageX, pageY) {
+		var offset = $(container).offset();
+		return {
+			x: pageX - offset.left,
+			y: pageY - offset.top
+		}
+	},
+
 	cameraPlaneCoords: function(camera, renderer, position) {
 		var vector = position.clone();
-		var canvas = renderer.domElement;
+		var width = container.clientWidth;
+		var height = container.clientHeight;
 
 		// map to normalized device coordinate (NDC) space
 		vector.project( camera );
 
-		vector.x = Math.round( (   vector.x + 1 ) * canvas.width  / 4 );
-		vector.y = Math.round( ( - vector.y + 1 ) * canvas.height / 4 );
+		vector.x = Math.round( (   vector.x + 1 ) * width  / 2 );
+		vector.y = Math.round( ( - vector.y + 1 ) * height / 2 );
 
 		vector.z = 0;
 		return vector;

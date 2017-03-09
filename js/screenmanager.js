@@ -18,8 +18,8 @@ Screen = function(camera, renderer, scene) {
 
 	this.getPointAt = function(model, x, y) {
 		var mouse3D = new THREE.Vector3(
-			(x /  window.innerWidth) * 2 - 1,
-			-(y / window.innerHeight) * 2 + 1,
+			 (x / container.clientWidth ) * 2 - 1,
+			-(y / container.clientHeight) * 2 + 1,
 			0.5);
 		var raycaster = new THREE.Raycaster();
 		raycaster.params.Points.threshold = 10;

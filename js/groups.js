@@ -1,3 +1,17 @@
+function PixelGroupMapping(manager, group, id, name) {
+	var self = this;
+
+	this.group = group;
+
+	var tree_id = group.group_id + '-map-' + id;
+
+	var elem = manager.tree.insertItem({
+		id: tree_id,
+		content: name,
+		dataset: {mapping: self}
+	}, group.group_id);
+}
+
 /*
  * Pixel group management
  *
@@ -7,59 +21,96 @@
  * combination of the two.
  */
 
-function PixelGroup(manager, pixels, name, color) {
+function PixelGroup(manager, id, pixels, name, color) {
 	var self = this;
-	this.name = name ? name : "unnamed"
+	this.group_id = 'group-'+id;
+	group_name = name ? name : "unnamed"
+	group_color = color ? color : new THREE.Color(0xff0000);
+	group_mappings = Immutable.Map();
 	this.pixels = pixels ? pixels : Immutable.Map();
-	this.color = color ? color : new THREE.Color(0xff0000);
 	this.model = manager.model;
 	this.overlay = model.createOverlay(1);
-	this.mappings = Immutable.Map();
 
-	this.hide = function(id) {
+	_nextid = 0;
+	function newgid() {
+		return _nextid++;
+	}
+
+	var elem = manager.tree.insertItem({
+		id: this.group_id,
+		content: group_name,
+		dataset: {group: self}},
+		'root'
+	);
+
+	var checkbox = new LiteGUI.Checkbox(true, function(v) {
+		if (v) {
+			self.show();
+		} else {
+			self.hide();
+		}
+	});
+
+	checkbox.root.style.float = 'right';
+
+	elem.querySelector('.postcontent').appendChild(checkbox.root);
+
+	Object.defineProperty(this, 'name', {
+		get: function() { return group_name; },
+		set: function(v) {
+			group_name = v;
+			manager.tree.updateItem(this.group_id, {
+				content: group_name,
+				dataset: {group: this}
+			});
+		}
+	});
+
+	Object.defineProperty(this, 'color', {
+		get: function() { return group_color; },
+		set: function(v) {
+			group_color = v;
+			if (this.overlay.size() > 0)
+				this.show();
+		}
+	});
+
+	this.hide = function() {
 		this.overlay.clear();
 	}
 
-	this.show = function(id) {
+	this.show = function() {
 		this.overlay.setAllFromSet(this.pixels, this.color);
 	}
 
-	this.setName = function(newName) {
-		this.name = newName;
-		manager.updateControls();
-	}
+	this.addMapping = function() {
+		var map_id = newgid();
 
-	this.setPixels = function(newPixels) {
-		this.pixels = newPixels;
-	}
+		var name = 'map-'+map_id;
+		var mapping = new PixelGroupMapping(manager, this, map_id, name);
 
-	this.setColor = function(newColor) {
-		this.color = newColor;
-		if (this.overlay.size() > 0)
-			this.show();
-	}
-
-	// Clean up UI, to be called before destroying the group.
-	this.cleanup = function() {
-		manager.groupControls.removeControl(this.name);
+		group_mappings = group_mappings.set(map_id, mapping);
+		worldState.checkpoint();
 	}
 
 	this.snapshot = function() {
 		return Immutable.fromJS({
-			name: this.name,
+			name: group_name,
+			id: this.group_id,
 			pixels: this.pixels,
-			mappings: this.mappings,
-			color: this.color,
+			mappings: group_mappings,
+			color: group_color,
 			overlay: this.overlay.snapshot(),
 		});
 	}
 
 	this.setFromSnapshot = function(snapshot) {
 		this.name = snapshot.get("name");
+		this.group_id = snapshot.get('id');
+		group_mappings = snapshot.get("mappings");
+		group_color = snapshot.get("color");
 		this.pixels = snapshot.get("pixels");
-		this.mappings = snapshot.get("mappings");
-		this.color = snapshot.get("color");
-		this.overlay.setFromSnapshot(snapshot.get('overlay'))
+		this.overlay.setFromSnapshot(snapshot.get('overlay'));
 	}
 }
 
@@ -67,16 +118,115 @@ function GroupManager(model) {
 	var self = this;
 	this.model = model;
 
+	var currentGroup = undefined;
+
 	// Future work: nice group reordering UI, probably a layer on top of this
 	// referencing group IDs, to keep groups in order
 	this.groups = Immutable.Map();
 
 	// Manually assign group id labels so that deleting a group doesn't
 	// reassign ids
-	this._nextid = 0;
+	_nextid = 0;
 	function newgid() {
-		return self._nextid++;
+		return _nextid++;
 	}
+
+	var treePanel = new LiteGUI.Panel('group-tree', {
+		title: 'Group Management',
+		scroll: true
+	});
+
+	var panel = new LiteGUI.Panel('group-panel');
+
+	var groupCmds = new LiteGUI.Inspector();
+	groupCmds.addSeparator();
+	groupCmds.addButton(undefined, 'Make Group', function() {
+		self.createFromActiveSelection();
+	});
+	groupCmds.addSeparator();
+
+	var currGroupInspector = new LiteGUI.Inspector();
+
+	function setCurrentGroup(group) {
+		currentGroup = group;
+		currGroupInspector.clear();
+		currGroupInspector.addSection('Current Group');
+		currGroupInspector.addButton(null, 'Add Mapping', function() {
+			currentGroup.addMapping()
+		});
+		currGroupInspector.addButton(null, 'Delete Group');
+		currGroupInspector.addButton(null, 'Add Active Selection to Group');
+		currGroupInspector.addButton(null, 'Deselect', function() {
+			clearCurrentGroup()
+		});
+		currGroupInspector.addSeparator();
+		currGroupInspector.addColor('color', group.color.toArray(), {
+			callback: function(v) {
+				currentGroup.color = new THREE.Color(v[0], v[1], v[2]);
+			}
+		});
+		currGroupInspector.addString('name', group.name, {
+			callback: function(v) {
+				currentGroup.name = v;
+			}
+		});
+	}
+
+	function setCurrentMapping(mapping) {
+		setCurrentGroup(mapping.group);
+		console.log('beep boop');
+	}
+
+	function clearCurrentGroup() {
+		for (var elem of self.tree.root.querySelectorAll('.selected, .semiselected')) {
+			elem.classList.remove('selected');
+			elem.classList.remove('semiselected');
+		}
+		currentGroup = undefined;
+		currGroupInspector.clear();
+	}
+
+
+
+	this.tree = new LiteGUI.Tree('group-tree',
+		{id: 'root', children: [], visible: false},
+		{height: '100%', allow_rename: true}
+	);
+
+	this.tree.onBackgroundClicked = function() {
+		clearCurrentGroup();
+	}
+
+	this.tree.root.addEventListener('item_selected', function(event) {
+		var dataset = event.detail.data.dataset;
+
+		if (dataset.group) {
+			setCurrentGroup(dataset.group);
+		} else if (dataset.mapping) {
+			setCurrentMapping(dataset.mapping);
+		}
+	});
+
+	this.tree.root.addEventListener('item_renamed', function(event) {
+		var dataset = event.detail.data.dataset;
+
+		if (dataset.group) {
+			var group = dataset.group;
+			group.name = event.detail.new_name;
+		}
+	});
+
+	console.log(treePanel);
+
+	treePanel.add(this.tree);
+	panel.add(groupCmds);
+	panel.add(currGroupInspector);
+
+	UI.sidebar.split('vertical', ['30%', null], true);
+	UI.sidebar.getSection(0).add(treePanel);
+	UI.sidebar.getSection(1).add(panel);
+	UI.sidebar = UI.sidebar.getSection(1); //hm
+	//UI.sidebar.add(groupCmds);
 
 	this.createFromActiveSelection = function() {
 		// Don't create an empty group
@@ -88,29 +238,21 @@ function GroupManager(model) {
 		var id = newgid();
 		var defaultName = "group-" + id;
 
-		var newgroup = new PixelGroup(self, groupPixels, defaultName,
+		var newgroup = new PixelGroup(self, id, groupPixels, defaultName,
 			ColorPool.random());
 
-		self.groups = self.groups.set(id, newgroup);
+		this.groups = this.groups.set(id, newgroup);
+
 
 		newgroup.show();
-		self.groupControls.panel('groups')
-	        .addControl(QuickSettings.addBoolean, [defaultName, true], function(val) {
-			if (val) {
-				newgroup.show();
-				newgroup.view.enable();
-			} else {
-				newgroup.hide();
-				newgroup.view.disable();
-			}
-		})
-
 		// Mark the group on the model
 		worldState.checkpoint();
+
+		return newgroup;
 	}
 
 	this.snapshot = function () {
-		return self.groups.map(function(groupobj) {
+		return this.groups.map(function(groupobj) {
 			return groupobj.snapshot();
 		});
 	}
@@ -122,7 +264,7 @@ function GroupManager(model) {
 		 * update, and similarly if it stopped existing it should be deleted.
 		 */
 		var newgroups = snapshot.map(function(groupsnap, id) {
-			var existingGroup = self.groups.get(id);
+			var existingGroup = this.groups.get(id);
 			if (existingGroup) {
 				existingGroup.setFromSnapshot(groupsnap);
 				return existingGroup;
@@ -133,20 +275,12 @@ function GroupManager(model) {
 			}
 		});
 		// Check for destroyed groups
-		self.groups.forEach(function(group, id) {
+		this.groups.forEach(function(group, id) {
 			if (!newgroups.get(id)) {
 				group.cleanup();
 			}
 		});
 
-		self.groups = newgroups;
+		this.groups = newgroups;
 	}
-	/*
-	 * UI View Spec
-	 */
-	this.groupControls = UI.newView("groupmanager", "global");
-	this.groupControls.panel("groups", container.clientWidth - 200, 300)
-		.addControl(QuickSettings.addButton, ["Create group"],
-			this.createFromActiveSelection, 'g');
-	this.groupControls.enable();
 }

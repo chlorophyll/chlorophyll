@@ -7,12 +7,12 @@ function isClipped(v) {
 	return false;
 }
 
-MarqueeSelection = function(model, domElement) {
+MarqueeSelection = function(domElement) {
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
 	var self = this;
 
-	this.enabled = true
+	this.enabled = false;
 
 	var dragging = false;
 	var isSelecting = true;
@@ -30,13 +30,39 @@ MarqueeSelection = function(model, domElement) {
 	this.domElement.addEventListener('mouseup', onMouseUp, false);
 	this.domElement.addEventListener('mousemove', onMouseMove, false);
 
+	this.start = function() {
+		self.enabled = true;
+		screenManager.controls.enabled = false;
+		selectedPoints = self.model.createOverlay(20);
+
+		Mousetrap.bind('esc', end);
+	}
+
+	function end() {
+		Mousetrap.unbind('esc');
+		dragging = false;
+		self.model.removeOverlay(selectedPoints);
+		self.dom.style.display = 'none';
+		self.dom.style.left = 0;
+		self.dom.style.top = 0;
+		self.dom.style.width = 0;
+		self.dom.style.height = 0;
+		screenManager.controls.enabled = true;
+		self.enabled = false;
+		self.manager.endCommand();
+	}
+
+	function isEnabled() {
+		return self.enabled && self.model;
+	}
+
 	function onMouseDown(event) {
-		if (!self.enabled) return;
+		if (!isEnabled()) return;
 		isSelecting = !event.altKey;
 		dragging = true;
-		selectedPoints = model.createOverlay(20);
-		rect.startX = event.clientX;
-		rect.startY = event.clientY;
+		var coords = Util.relativeCoords(event.pageX, event.pageY);
+		rect.startX = coords.x;
+		rect.startY = coords.y;
 		self.dom.style.display = 'block';
 	}
 
@@ -56,7 +82,6 @@ MarqueeSelection = function(model, domElement) {
 	function onMouseUp(event) {
 		if (!dragging) return;
 
-		dragging = false;
 
 		/*
 		 * Set the current selection of points to the global state and clear it.
@@ -70,15 +95,7 @@ MarqueeSelection = function(model, domElement) {
 			worldState.checkpoint();
 		}
 
-		model.removeOverlay(selectedPoints);
-
-		self.dom.style.display = 'none';
-		self.dom.style.left = 0;
-		self.dom.style.top = 0;
-		self.dom.style.width = 0;
-		self.dom.style.height = 0;
-
-		self.manager.endCommand();
+		end();
 	}
 
 
@@ -92,8 +109,8 @@ MarqueeSelection = function(model, domElement) {
 
 		selectedPoints.clear();
 
-		model.forEach(function(strip, i) {
-			var v = model.getPosition(i);
+		self.model.forEach(function(strip, i) {
+			var v = self.model.getPosition(i);
 			if (isClipped(v))
 				return;
 
@@ -101,7 +118,7 @@ MarqueeSelection = function(model, domElement) {
 
 			if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
 				if (!isSelecting) {
-					c = model.defaultColor(strip);
+					c = self.model.defaultColor(strip);
 				}
 				selectedPoints.set(i,c);
 			}
@@ -112,15 +129,16 @@ MarqueeSelection = function(model, domElement) {
 		if (!dragging) return;
 		event.preventDefault();
 
-		rect.endX = event.clientX;
-		rect.endY = event.clientY;
+		var coords = Util.relativeCoords(event.pageX, event.pageY);
+		rect.endX = coords.x;
+		rect.endY = coords.y;
 
 		drawRect();
 		selectPoints();
 	}
 }
 
-LineSelection = function(model, domElement) {
+LineSelection = function(domElement) {
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
 	var self = this;
@@ -129,15 +147,39 @@ LineSelection = function(model, domElement) {
 
 	var p1 = undefined;
 
-	var selectedPoints = model.createOverlay(20);
+	var selectedPoints = undefined;
 
 	var highlight = new THREE.Color(0xffffff);
 
+
+	function isEnabled() {
+		return self.enabled && self.model;
+	}
+
+	function end() {
+		Mousetrap.unbind('esc');
+		self.enabled = false;
+		screenManager.controls.enabled = true;
+		p1 = p2 = undefined;
+		self.model.removeOverlay(selectedPoints);
+		self.manager.endCommand();
+	}
+
+	this.start = function() {
+		Mousetrap.bind('esc', end);
+		self.enabled = true;
+		screenManager.controls.enabled = false;
+	}
+
 	function onMouseDown(event) {
-		if (!self.enabled)
+		if (!isEnabled())
 			return;
 
-		var chosen = screenManager.activeScreen.getPointAt(model, event.clientX, event.clientY);
+		selectedPoints = self.model.createOverlay(20);
+
+		var coords = Util.relativeCoords(event.pageX, event.pageY);
+
+		var chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
 		if (!chosen)
 			return;
 
@@ -147,13 +189,13 @@ LineSelection = function(model, domElement) {
 		} else {
 			var p2 = chosen.index;
 			selectedPoints.set(p2, highlight);
-			var pos1 = model.getPosition(p1);
-			var pos2 = model.getPosition(p2);
+			var pos1 = self.model.getPosition(p1);
+			var pos2 = self.model.getPosition(p2);
 
 			var midPoint = pos1.clone().add(pos2).divideScalar(2);
 
 			var rad = midPoint.clone().sub(pos1).length() + 0.1;
-			var points = model.pointsWithinRadius(midPoint, rad);
+			var points = self.model.pointsWithinRadius(midPoint, rad);
 
 			var line = new THREE.Line3(pos1, pos2);
 
@@ -168,48 +210,75 @@ LineSelection = function(model, domElement) {
 			}
 			worldState.activeSelection.setAll(selectedPoints);
 			worldState.checkpoint();
-			selectedPoints.clear();
-			p1 = p2 = undefined;
-			self.manager.endCommand();
+			end();
 		}
 	}
 	this.domElement.addEventListener('mousedown', onMouseDown, false);
 }
 
-PlaneSelection = function(model, domElement) {
+PlaneSelection = function(domElement) {
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
 	var self = this;
 	var highlight = new THREE.Color(0xffffff);
 
-	this.enabled = true;
+	this.enabled = false;
 	var points = [];
-	var selectedPoints = model.createOverlay();
+	var selectedPoints;
+
+
+	function end() {
+		Mousetrap.unbind('esc');
+		points = [];
+		self.enabled = false;
+		screenManager.controls.enabled = true;
+		self.model.removeOverlay(selectedPoints);
+		self.manager.endCommand();
+	}
+
+	function isEnabled() {
+		return self.enabled && self.model;
+	}
+
+	this.start = function() {
+		Mousetrap.bind('esc', end);
+		this.enabled = true;
+		screenManager.controls.enabled = false;
+		selectedPoints = this.model.createOverlay();
+	}
+
 	function onMouseDown(event) {
-		if (!self.enabled)
+		if (!isEnabled())
 			return;
-		var chosen = screenManager.activeScreen.getPointAt(model, event.clientX, event.clientY);
+		var coords = Util.relativeCoords(event.pageX, event.pageY);
+		var chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
 		if (!chosen)
 			return;
 
 		if (points.length < 3) {
-			points.push(model.getPosition(chosen.index));
+			points.push(self.model.getPosition(chosen.index));
 			selectedPoints.set(chosen.index, highlight);
 		}
 
 		if (points.length == 3) {
+			var line = new THREE.Line3(points[0], points[1]);
+			var dist = Util.distanceToLine(points[2], line, false);
+
+			if (dist < selectionThreshold) {
+				LiteGUI.showMessage("Points must not be collinear");
+				end();
+				return;
+			}
 			var plane = new THREE.Plane().setFromCoplanarPoints(points[0], points[1], points[2]);
 
-			model.forEach(function(strip, i) {
-				if (Math.abs(plane.distanceToPoint(model.getPosition(i))) < selectionThreshold) {
+			self.model.forEach(function(strip, i) {
+				if (Math.abs(plane.distanceToPoint(self.model.getPosition(i))) < selectionThreshold) {
 					selectedPoints.set(i, highlight);
 				}
 			});
 			worldState.activeSelection.setAll(selectedPoints);
 			worldState.checkpoint();
-			selectedPoints.clear();
-			points = [];
-			self.manager.endCommand();
+			end();
 		}
 	}
 	this.domElement.addEventListener('mousedown', onMouseDown, false);

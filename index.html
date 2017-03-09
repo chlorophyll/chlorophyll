@@ -1,52 +1,30 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Chlorophyll</title>
-		<link rel="stylesheet" type="text/css" href="litegui/build/litegui.css">
-		<link rel="stylesheet" href="style/quicksettings_chlorophyll.css">
-		<style>
-			body { margin: 0; }
-			#parent {
-				display: flex;
-			}
-			#container {
-				width: 100%;
-				height: 100%;
-			}
-
-			.qs_button {
-				width: 100%;
-				border: 0;
-			}
-			.qs_button:active, .qs_button:focus {
-				border: 0;
-			}
-		</style>
+		<link rel="stylesheet" type="text/css" href="bower_components/litegui/build/litegui.css">
 	</head>
 	<body>
-		<div id="parent">
-			<div id="container"></div>
-		</div>
 		<script src="bower_components/three/build/three.js"></script>
 		<script src="bower_components/three/examples/js/controls/OrbitControls.js"></script>
 		<script src="bower_components/three/examples/js/renderers/Projector.js"></script>
 		<script src="bower_components/three/examples/js/Octree.js"></script>
 		<script src="bower_components/three/examples/js/libs/stats.min.js"></script>
-		<script src="bower_components/quicksettings/quicksettings.js"></script>
 		<script src="bower_components/three/examples/js/controls/TransformControls.js"></script>
 
 		<script src="bower_components/mousetrap/mousetrap.js"></script>
 
-		<script type="text/javascript" src="litegui/external/jquery-2.1.1.min.js"></script>
-		<script type="text/javascript" src="litegui/external/jquery-ui-1.10.4.min.js"></script>
-		<script type="text/javascript" src="litegui/external/jscolor/jscolor.js"></script>
-		<script type="application/javascript" src="litegui/build/litegui.js"></script>
+		<script type="text/javascript" src="bower_components/litegui/external/jquery-2.1.1.min.js"></script>
+		<script type="text/javascript" src="bower_components/litegui/external/jquery-ui-1.10.4.min.js"></script>
+		<script type="text/javascript" src="bower_components/litegui/external/jscolor/jscolor.js"></script>
+		<script type="application/javascript" src="bower_components/litegui/build/litegui.js"></script>
 
 		<script src="bower_components/immutable/dist/immutable.js"></script>
 
 		<script src="js/screenmanager.js"></script>
+		<script src="js/commandmanager.js"></script>
 		<script src="js/util.js"></script>
 		<script src="js/worldstate.js"></script>
-		<script src="js/commandmanager.js"></script>
 		<script src="icosahedron.js"></script>
 		<script src="js/model.js"></script>
 		<script src="js/selection.js"></script>
