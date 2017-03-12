@@ -32,7 +32,7 @@ MarqueeSelection = function(domElement) {
 
 	this.start = function() {
 		self.enabled = true;
-		screenManager.controls.enabled = false;
+		screenManager.activeScreen.controlsEnabled = false;
 		selectedPoints = self.model.createOverlay(20);
 
 		Mousetrap.bind('esc', end);
@@ -47,7 +47,7 @@ MarqueeSelection = function(domElement) {
 		self.dom.style.top = 0;
 		self.dom.style.width = 0;
 		self.dom.style.height = 0;
-		screenManager.controls.enabled = true;
+		screenManager.activeScreen.controlsEnabled = true;
 		self.enabled = false;
 		self.manager.endCommand();
 	}
@@ -159,7 +159,7 @@ LineSelection = function(domElement) {
 	function end() {
 		Mousetrap.unbind('esc');
 		self.enabled = false;
-		screenManager.controls.enabled = true;
+		screenManager.activeScreen.controlsEnabled = true;
 		p1 = p2 = undefined;
 		self.model.removeOverlay(selectedPoints);
 		self.manager.endCommand();
@@ -168,7 +168,7 @@ LineSelection = function(domElement) {
 	this.start = function() {
 		Mousetrap.bind('esc', end);
 		self.enabled = true;
-		screenManager.controls.enabled = false;
+		screenManager.activeScreen.controlsEnabled = false;
 	}
 
 	function onMouseDown(event) {
@@ -231,7 +231,7 @@ PlaneSelection = function(domElement) {
 		Mousetrap.unbind('esc');
 		points = [];
 		self.enabled = false;
-		screenManager.controls.enabled = true;
+		screenManager.activeScreen.controlsEnabled = true;
 		self.model.removeOverlay(selectedPoints);
 		self.manager.endCommand();
 	}
@@ -243,7 +243,7 @@ PlaneSelection = function(domElement) {
 	this.start = function() {
 		Mousetrap.bind('esc', end);
 		this.enabled = true;
-		screenManager.controls.enabled = false;
+		screenManager.activeScreen.controlsEnabled = false;
 		selectedPoints = this.model.createOverlay();
 	}
 

@@ -131,8 +131,7 @@ function init() {
 	cameraO.position.z = 1000;
 
 	screenManager = new ScreenManager(renderer, scene);
-	screenManager.addScreen('main', cameraP, true);
-	screenManager.addScreen('ortho', cameraO);
+	screenManager.addScreen('main', {isOrtho: false, active: true});
 	var v = new THREE.Vector3();
 	screenManager.activeScreen.camera.getWorldDirection(v);
 	var nv = v.clone().negate();

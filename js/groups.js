@@ -7,6 +7,8 @@ function PixelGroupMapping(manager, group, id, name) {
 	var tree_id = group.group_id + '-map-' + id;
 	this.widget = new Cartesian2Widget(container);
 
+	var screen = screenManager.addScreen(tree_id, {isOrtho: true, inheritOrientation: true});
+
 	var elem = manager.tree.insertItem({
 		id: tree_id,
 		content: name,
@@ -15,14 +17,16 @@ function PixelGroupMapping(manager, group, id, name) {
 
 	this.enable = function() {
 		self.model.hideUnderlyingModel();
-		screenManager.setActive('ortho');
+		screenManager.setActive(tree_id);
+
 		self.widget.showAt(200,200);
 	}
 
 	this.disable = function() {
-		self.cameraState = screenManager.activeScreen.saveCameraState();
+		//self.cameraState = screenManager.activeScreen.saveCameraState();
 		self.model.showUnderlyingModel();
 		screenManager.setActive('main');
+		//screenManager.activeScreen.setCameraState(oldCameraState);
 	}
 }
 
@@ -102,6 +106,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 
 		var name = 'map-'+map_id;
 		var mapping = new PixelGroupMapping(manager, this, map_id, name);
+		console.log(mapping);
 
 		group_mappings = group_mappings.set(map_id, mapping);
 		worldState.checkpoint();
