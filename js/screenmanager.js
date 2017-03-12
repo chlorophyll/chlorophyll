@@ -89,13 +89,13 @@ ScreenManager = function(renderer, scene) {
 		} else {
 			camera = new THREE.PerspectiveCamera(45, width/height, 2, 2000);
 		}
-
-		//if (options.inheritOrientation && _activeScreen) {
-		//	camera.position = _activeScreen.camera.position.clone();
-		//	camera.rotation = _activeScreen.camera.rotation.clone();
-		//} else {
+		if (options.inheritOrientation && _activeScreen) {
+			camera.position.x = _activeScreen.camera.position.x;
+			camera.position.y = _activeScreen.camera.position.y;
+			camera.position.z = _activeScreen.camera.position.z;
+		} else {
 			camera.position.z = 1000;
-		//}
+		}
 		var screen = new Screen(camera, renderer, scene);
 		screens[name] = screen;
 
