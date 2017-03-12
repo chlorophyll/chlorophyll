@@ -84,6 +84,8 @@ ScreenManager = function(renderer, scene) {
 				width / -2,  width / 2,
 				height / 2, height / -2,
 				2, 2000);
+			camera.zoom /= 2;
+			camera.updateProjectionMatrix();
 		} else {
 			camera = new THREE.PerspectiveCamera(45, width/height, 2, 2000);
 		}
