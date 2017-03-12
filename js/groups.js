@@ -38,9 +38,9 @@ function PixelGroupMapping(manager, group, id, name) {
 function PixelGroup(manager, id, pixels, name, color) {
 	var self = this;
 	this.group_id = 'group-'+id;
-	group_name = name ? name : "unnamed"
-	group_color = color ? color : new THREE.Color(0xff0000);
-	group_mappings = Immutable.Map();
+	var group_name = name ? name : "unnamed"
+	var group_color = color ? color : new THREE.Color(0xff0000);
+	var group_mappings = Immutable.Map();
 	this.pixels = pixels ? pixels : Immutable.Map();
 	this.model = manager.model;
 	this.overlay = model.createOverlay(1);
