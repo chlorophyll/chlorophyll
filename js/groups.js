@@ -4,22 +4,68 @@ function PixelGroupMapping(manager, group, id, name) {
 	this.group = group;
 	this.model = group.model;
 
-	var tree_id = group.group_id + '-map-' + id;
+	this.mapping_valid = false;
+	this.origin = {};
+	this.proj_plane = {};
+
+	var first_enable = true;
+	this.tree_id = group.group_id + '-map-' + id;
 	this.widget = new Cartesian2Widget(container);
 
-	var screen = screenManager.addScreen(tree_id, {isOrtho: true, inheritOrientation: true});
+	var screen = screenManager.addScreen(this.tree_id, {isOrtho: true, inheritOrientation: true});
 
 	var elem = manager.tree.insertItem({
-		id: tree_id,
+		id: self.tree_id,
 		content: name,
 		dataset: {mapping: self}
 	}, group.group_id);
 
+	this.mapPoint = function(point) {
+		var fromOrigin = point.clone().sub(self.proj_plane.origin);
+		return new THREE.Vector2(self.proj_plane.xaxis.dot(fromOrigin),
+								 self.proj_plane.yaxis.dot(fromOrigin));
+	}
+
+	this.save = function() {
+		self.origin = self.widget.data();
+		var cam_quaternion = screenManager.activeScreen.camera.quaternion.clone();
+		var cam_up = screenManager.activeScreen.camera.up.clone();
+
+		// Create plane from the camera's look vector
+		var plane_normal = new THREE.Vector3(0, 0, -1);
+		plane_normal.applyQuaternion(cam_quaternion).normalize();
+		self.proj_plane.plane = new THREE.Plane(plane_normal);
+		console.log("plane normal:", plane_normal);
+
+		// Create axes for the projection and rotate them appropriately
+		self.proj_plane.yaxis = cam_up.clone().applyQuaternion(cam_quaternion);
+		self.proj_plane.yaxis.applyAxisAngle(plane_normal, self.origin.angle);
+		self.proj_plane.yaxis.normalize();
+
+		self.proj_plane.xaxis = plane_normal.clone().cross(self.proj_plane.yaxis);
+		self.proj_plane.xaxis.normalize();
+
+		// Project the screen position of the origin widget onto the proejction
+		// plane.  This is the 3d position of the mapping origin.
+		var raycaster = new THREE.Raycaster();
+		var widgetpos = new THREE.Vector2(self.origin.x_norm, self.origin.y_norm);
+		raycaster.setFromCamera(widgetpos, screenManager.activeScreen.camera);
+		self.proj_plane.origin = raycaster.ray.intersectPlane(self.proj_plane.plane);
+
+		self.mapping_valid = true;
+		global_test_mapping = self;
+	}
+
 	this.enable = function() {
 		self.model.hideUnderlyingModel();
-		screenManager.setActive(tree_id);
+		screenManager.setActive(self.tree_id);
 
-		self.widget.showAt(200,200);
+		if (first_enable) {
+			first_enable = false;
+			self.widget.showAt(200,200);
+		} else {
+			self.widget.show();
+		}
 	}
 
 	this.disable = function() {
@@ -27,6 +73,7 @@ function PixelGroupMapping(manager, group, id, name) {
 		self.model.showUnderlyingModel();
 		screenManager.setActive('main');
 		//screenManager.activeScreen.setCameraState(oldCameraState);
+		self.widget.hide();
 	}
 }
 
@@ -106,10 +153,11 @@ function PixelGroup(manager, id, pixels, name, color) {
 
 		var name = 'map-'+map_id;
 		var mapping = new PixelGroupMapping(manager, this, map_id, name);
-		console.log(mapping);
 
 		group_mappings = group_mappings.set(map_id, mapping);
 		worldState.checkpoint();
+
+		return mapping;
 	}
 
 	this.snapshot = function() {
@@ -138,6 +186,7 @@ function GroupManager(model) {
 	this.model = model;
 
 	var currentGroup = undefined;
+	var currentMapping = undefined;
 
 	// Future work: nice group reordering UI, probably a layer on top of this
 	// referencing group IDs, to keep groups in order
@@ -160,18 +209,24 @@ function GroupManager(model) {
 	var groupCmds = new LiteGUI.Inspector();
 	groupCmds.addSeparator();
 	groupCmds.addButton(undefined, 'Make Group', function() {
-		self.createFromActiveSelection();
+		var newgroup = self.createFromActiveSelection();
+		self.tree.setSelectedItem(newgroup.group_id);
+		setCurrentGroup(newgroup);
+		clearCurrentMapping();
 	});
 	groupCmds.addSeparator();
 
 	var currGroupInspector = new LiteGUI.Inspector();
+	var currMappingInspector = new LiteGUI.Inspector();
 
 	function setCurrentGroup(group) {
 		currentGroup = group;
 		currGroupInspector.clear();
 		currGroupInspector.addSection('Current Group');
 		currGroupInspector.addButton(null, 'Add Mapping', function() {
-			currentGroup.addMapping()
+			var map = currentGroup.addMapping()
+			self.tree.setSelectedItem(map.tree_id);
+			setCurrentMapping(map);
 		});
 		currGroupInspector.addButton(null, 'Delete Group');
 		currGroupInspector.addButton(null, 'Add Active Selection to Group');
@@ -193,7 +248,23 @@ function GroupManager(model) {
 
 	function setCurrentMapping(mapping) {
 		setCurrentGroup(mapping.group);
-		console.log('beep boop');
+		currentMapping = mapping;
+
+		currMappingInspector.clear();
+		currMappingInspector.addSection('Current Mapping');
+		// TODO hide/show based on in/out of mapping mode
+		currMappingInspector.addButton(null, 'Edit', function() {
+			currentMapping.enable();
+		});
+		currMappingInspector.addButton(null, 'Save', function() {
+			currentMapping.save();
+			currentMapping.disable();
+		});
+	}
+
+	function clearCurrentMapping() {
+		currentMapping = undefined;
+		currMappingInspector.clear();
 	}
 
 	function clearCurrentGroup() {
@@ -203,9 +274,8 @@ function GroupManager(model) {
 		}
 		currentGroup = undefined;
 		currGroupInspector.clear();
+		clearCurrentMapping();
 	}
-
-
 
 	this.tree = new LiteGUI.Tree('group-tree',
 		{id: 'root', children: [], visible: false},
@@ -221,6 +291,7 @@ function GroupManager(model) {
 
 		if (dataset.group) {
 			setCurrentGroup(dataset.group);
+			clearCurrentMapping();
 		} else if (dataset.mapping) {
 			setCurrentMapping(dataset.mapping);
 		}
@@ -240,6 +311,7 @@ function GroupManager(model) {
 	treePanel.add(this.tree);
 	panel.add(groupCmds);
 	panel.add(currGroupInspector);
+	panel.add(currMappingInspector);
 
 	UI.sidebar.split('vertical', ['30%', null], true);
 	UI.sidebar.getSection(0).add(treePanel);

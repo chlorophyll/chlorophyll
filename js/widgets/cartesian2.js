@@ -86,7 +86,11 @@ Cartesian2Widget = function(container) {
 	}
 
 	this.data = function() {
-		return {x: x, y: y, angle: angle};
+		// Normalize angle and position
+		angle = angle % (Math.PI * 2);
+		var x_norm = ( x / pw ) * 2 - 1;
+		var y_norm = - ( y / ph ) * 2 + 1;
+		return {x: x, y: y, x_norm: x_norm, y_norm: y_norm,  angle: angle};
 	}
 
 	this.hide = function() {
