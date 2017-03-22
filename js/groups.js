@@ -20,10 +20,16 @@ function PixelGroupMapping(manager, group, id, name) {
 		dataset: {mapping: self}
 	}, group.group_id);
 
-	this.mapPoint = function(point) {
-		var fromOrigin = point.clone().sub(self.proj_plane.origin);
+
+	var mapPoint = function(idx) {
+		var pos = model.getPosition(idx);
+		var fromOrigin = pos.clone().sub(self.proj_plane.origin);
 		return new THREE.Vector2(self.proj_plane.xaxis.dot(fromOrigin),
 								 self.proj_plane.yaxis.dot(fromOrigin));
+	}
+
+	this.getPositions = function() {
+		return group.pixels.keySeq().map(mapPoint);
 	}
 
 	this.save = function() {
