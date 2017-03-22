@@ -1,77 +1,209 @@
-Cartesian2Widget = function(container) {
-	var pw = container.clientWidth, ph = container.clientHeight;
+/*
+ * Drawing helpers
+ */
+function rotate(angleRad, origin) {
+	return 'rotate('+[THREE.Math.radToDeg(angleRad), origin.x, origin.y].join(',')+')';
+}
 
-	var origin = new THREE.Vector2(50,50);
+/*
+ * Return the clickable object, so that we can add onclick callbacks later
+ */
+function arrow(handle, color, angleOffset, origin) {
+	handle.attr('transform', rotate(-angleOffset, origin))
+		.append('line')
+		.attr('x1', 50).attr('y1', 50)
+		.attr('x2', 99).attr('y2', 50)
+		.style('stroke', color);
+	return handle.append('polygon')
+		.attr('class', 'handle')
+		.attr('points', '91,46 99,50 91,54')
+		.style('stroke', color)
+		.style('fill', color)
+}
 
-	var axesContainer = d3.select(container)
+/*
+ * Given a container, draw & generate a 2d handle
+ */
+CartesianHandle = function(container) {
+	// Scale for different window sizes but keep a minimum size
+	var size = 50 + (container.clientHeight * 0.2);
+	var center_x = size / 2;
+	var center_y = size / 2;
+
+	this.origin = new THREE.Vector2(50, 50);
+
+	this.handleContainer = d3.select(container)
 		.append('svg')
-		.attr('width',  0.3*ph + 'px')
-		.attr('height', 0.3*ph + 'px')
+		.attr('width',  size + 'px')
+		.attr('height', size + 'px')
 		.attr('viewBox', '0 0 100 100');
-	var center_x = 0.3 * ph / 2;
-	var center_y = 0.3 * ph / 2;
+
+	this.handle = this.handleContainer.append('g');
+
+	// Show a circular outline when mousing over arrows to indicate that
+	// rotation is possible
+	var rotateHint = this.handle.append('circle')
+		.attr('cx', 50).attr('cy', 50)
+		.attr('r', 50)
+		.style('stroke', '#fff')
+		.style('fill', 'none')
+		.style('opacity', 0.4);
+
+	var xaxis = this.handle.append("g");
+	var yaxis = this.handle.append("g");
+
+
+	function showRotateHint() {
+		rotateHint.style("visibility", "visible");
+	}
+
+	function hideRotateHint() {
+		rotateHint.style("visibility", "hidden");
+	}
+
+	var xaxis_arrow = xaxis.call(arrow, "#f00", 0, this.origin);
+	var yaxis_arrow = yaxis.call(arrow, "#0f0", Math.PI/2, this.origin);
+
+	this.rotHandles = [xaxis_arrow, yaxis_arrow];
+
+	hideRotateHint();
+	xaxis_arrow.on('mouseover', showRotateHint);
+	yaxis_arrow.on('mouseover', showRotateHint);
+	xaxis_arrow.on('mouseout', hideRotateHint);
+	yaxis_arrow.on('mouseout', hideRotateHint);
+
+	this.handle.append('circle')
+		.attr('cx', 50).attr('cy', 50)
+		.attr('r', 1)
+		.style('stroke', '#fff')
+		.style('fill', '#fff');
+
+	this.posHandle = this.handle.append('rect')
+		.attr('class', 'handle')
+		.attr('x', 50 - 8).attr('y', 50 - 8)
+		.attr('width', 16).attr('height', 16)
+		.style('stroke', '#fff')
+		.style('fill', '#fff')
+		.style('opacity', 0.3);
+
+	this.setPos = function(new_x, new_y) {
+		this.handleContainer.style('left', (new_x - center_x) + 'px')
+		                    .style('top',  (new_y - center_y) + 'px');
+	}
+
+	this.setRot = function(angle) {
+		this.handle.attr('transform', rotate(angle, this.origin));
+	}
+
+	this.refreshSize = function() {
+		size = 50 + (container.clientHeight * 0.2);
+		center_x = size / 2;
+		center_y = size / 2;
+		this.handleContainer.attr('width',  size + 'px')
+		               .attr('height', size + 'px')
+		               .attr('viewBox', '0 0 100 100');
+	}
+}
+
+/*
+ * Given a container, draw & generate a 2d handle
+ */
+PolarHandle = function(container) {
+	// Scale for different window sizes but keep a minimum size
+	var size = 50 + (container.clientHeight * 0.2);
+	var center_x = size / 2;
+	var center_y = size / 2;
+
+	this.origin = new THREE.Vector2(50, 50);
+
+	this.handleContainer = d3.select(container)
+		.append('svg')
+		.attr('width',  size + 'px')
+		.attr('height', size + 'px')
+		.attr('viewBox', '0 0 100 100');
+
+	this.handle = this.handleContainer.append('g');
+
+	// Show a circular outline when mousing over arrows to indicate that
+	// rotation is possible
+	var rotateHint = this.handle.append('circle')
+		.attr('cx', 50).attr('cy', 50)
+		.attr('r', 50)
+		.style('stroke', '#fff')
+		.style('fill', 'none')
+		.style('opacity', 0.4);
+
+	var axis = this.handle.append("g");
+
+	function showRotateHint() {
+		rotateHint.style("visibility", "visible");
+	}
+
+	function hideRotateHint() {
+		rotateHint.style("visibility", "hidden");
+	}
+
+	axis.call(arrow, "#f00", 0, this.origin);
+
+	this.rotHandles = [axis];
+
+	hideRotateHint();
+	axis.on('mouseover', showRotateHint);
+	axis.on('mouseout', hideRotateHint);
+
+	this.handle.append('circle')
+		.attr('cx', 50).attr('cy', 50)
+		.attr('r', 1)
+		.style('stroke', '#fff')
+		.style('fill', '#fff');
+
+	this.posHandle = this.handle.append('circle')
+		.attr('class', 'handle')
+		.attr('cx', 50).attr('cy', 50)
+		.attr('r', 8)
+		.style('stroke', '#fff')
+		.style('fill', '#fff')
+		.style('opacity', 0.3);
+
+	this.setPos = function(new_x, new_y) {
+		this.handleContainer.style('left', (new_x - center_x) + 'px')
+		                    .style('top',  (new_y - center_y) + 'px');
+	}
+
+	this.setRot = function(angle) {
+		this.handle.attr('transform', rotate(angle, this.origin));
+	}
+
+	this.refreshSize = function() {
+		size = 50 + (container.clientHeight * 0.2);
+		center_x = size / 2;
+		center_y = size / 2;
+		this.handleContainer.attr('width',  size + 'px')
+		               .attr('height', size + 'px')
+		               .attr('viewBox', '0 0 100 100');
+	}
+}
+
+Widget2D = function(container, widgetType) {
 	var self = this;
 
-	angle = 0;
-	var x = parseInt(axesContainer.node().style.left || 0) + center_x;
-	var y = parseInt(axesContainer.node().style.top  || 0) + center_y;
+	var widget = new widgetType(container);
+	var width = container.clientWidth, height = container.clientHeight;
+	var x = width / 2;
+	var y = height / 2;
 
-	var axes = axesContainer.append('g');
-	var xhandle = axes.append("g");
-	var yhandle = axes.append("g");
-
+	var angle = 0;
 	var snap_angles = false;
+	/*
+	 * Control bindings: modifier keys and draggable areas
+	 */
 	Mousetrap.bind('shift', function() { snap_angles = true; }, 'keydown');
 	Mousetrap.bind('shift', function() { snap_angles = false; }, 'keyup');
 
-	function rotate(angleRad) {
-		return 'rotate('+[THREE.Math.radToDeg(angleRad), origin.x, origin.y].join(',')+')';
-	}
-
-	var rotateBehavior = d3.drag().on('drag', function() {
-		var clk = new THREE.Vector2(d3.event.x, d3.event.y).sub(origin);
-		angle += clk.angle();
-		/* shift-snap to 15 degree angle increments */
-		if (snap_angles) {
-			angle = angle - (angle % (Math.PI / 12));
-		}
-		axes.attr('transform', rotate(angle));
-	});
-
-	var resetAxes = function() {
+	function resetAxes() {
 		angle = 0;
-		axes.attr('transform', rotate(angle));
+		widget.setRot(angle);
 	}
-
-	function arrow(handle, color, angleOffset) {
-		handle.attr('transform', rotate(-angleOffset))
-			.append('line')
-			.attr('x1', 50).attr('y1', 50)
-			.attr('x2', 99).attr('y2', 50)
-			.style('stroke', color);
-		handle.append('polygon')
-			.attr('class', 'handle')
-			.attr('points', '91,46 99,50 91,54')
-			.style('stroke', color)
-			.style('fill', color)
-			.on('dblclick', resetAxes)
-			.call(rotateBehavior);
-	}
-
-	xhandle.call(arrow, "#f00", 0);
-	yhandle.call(arrow, "#0f0", Math.PI/2);
-
-	axes.append('circle')
-		.attr('class', 'handle')
-		.attr('cx', 50).attr('cy', 50)
-		.attr('r', '4')
-		.style('stroke', '#fff')
-		.style('fill', '#fff')
-		.on('mousedown', function() {
-			container.addEventListener("mousemove", _drag);
-			container.addEventListener("mouseup", _endDrag);
-			d3.event.preventDefault();
-		});
 
 	function _drag(event) {
 		event.preventDefault();
@@ -85,20 +217,46 @@ Cartesian2Widget = function(container) {
 		container.removeEventListener("mouseup", _endDrag);
 	}
 
+	/*
+	 * Bind click events for the handle
+	 */
+	widget.posHandle.on('mousedown', function() {
+		container.addEventListener("mousemove", _drag);
+		container.addEventListener("mouseup", _endDrag);
+		d3.event.preventDefault();
+	});
+	for (var i = 0; i < widget.rotHandles.length; i++) {
+		widget.rotHandles[i].on('dblclick', resetAxes);
+		widget.rotHandles[i].call(d3.drag().on('drag', function() {
+			var clk = new THREE.Vector2(d3.event.x, d3.event.y);
+			angle += clk.sub(widget.origin).angle();
+			/* shift-snap to 15 degree angle increments */
+			if (snap_angles) {
+				angle = angle - (angle % (Math.PI / 12));
+			}
+			widget.setRot(angle);
+		}));
+	}
+
 	this.data = function() {
 		// Normalize angle and position
 		angle = angle % (Math.PI * 2);
-		var x_norm = ( x / pw ) * 2 - 1;
-		var y_norm = - ( y / ph ) * 2 + 1;
-		return {x: x, y: y, x_norm: x_norm, y_norm: y_norm,  angle: angle};
+		var x_norm = ( x / width ) * 2 - 1;
+		var y_norm = - ( y / height ) * 2 + 1;
+		return {x: x, y: y, x_norm: x_norm, y_norm: y_norm, angle: angle};
 	}
 
 	this.hide = function() {
-		axesContainer.style('display', 'none');
+		widget.handleContainer.style('display', 'none');
 	}
 
 	this.show = function() {
-		axesContainer.style('display', '');
+		widget.handleContainer.style('display', '');
+	}
+
+	this.destroy = function() {
+		Mousetrap.unbind('shift');
+		widget.handle.remove();
 	}
 
 	this.showAt = function(vx, vy) {
@@ -108,24 +266,21 @@ Cartesian2Widget = function(container) {
 
 	this.setPos = function(vx, vy) {
 		x = vx; y = vy;
-		axesContainer.style('left', (x - center_x) + 'px')
-			         .style('top',  (y - center_y) + 'px');
+		widget.setPos(vx, vy);
 	}
 
 	function onWindowResize() {
-		var pctx = x / pw;
-		var pcty = y / ph;
+		// Keep the widget in the same position proportional to the window
+		var pctx = x / width;
+		var pcty = y / height;
 
-		pw = container.clientWidth;
-		ph = container.clientHeight;
+		width = container.clientWidth;
+		height = container.clientHeight;
 
-		axesContainer.attr('width',  0.3*ph + 'px')
-		             .attr('height', 0.3*ph + 'px')
-		             .attr('viewBox', '0 0 100 100');
-		center_x = 0.3 * ph / 2;
-		center_y = 0.3 * ph / 2;
-		x = pctx * pw;
-		y = pcty * ph;
+		widget.refreshSize();
+
+		x = pctx * width;
+		y = pcty * height;
 		self.setPos(x,y);
 	}
 

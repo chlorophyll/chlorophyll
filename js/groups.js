@@ -1,16 +1,40 @@
-function PixelGroupMapping(manager, group, id, name) {
+function Cartesian2DMapping() {
+	this.widget = new Widget2D(container, CartesianHandle);
+
+	this.mapPoint = function(idx) {
+		var pos = model.getPosition(idx);
+		var fromOrigin = pos.clone().sub(this.proj_plane.origin);
+		return new THREE.Vector2(this.proj_plane.xaxis.dot(fromOrigin),
+								 this.proj_plane.yaxis.dot(fromOrigin));
+	}
+}
+
+function Polar2DMapping() {
+	this.widget = new Widget2D(container, PolarHandle);
+
+	this.mapPoint = function(idx) {
+		var pos = model.getPosition(idx);
+		var fromOrigin = pos.clone().sub(this.proj_plane.origin);
+		var point = new THREE.Vector2(this.proj_plane.xaxis.dot(fromOrigin),
+									  this.proj_plane.yaxis.dot(fromOrigin));
+		// map from x,y -> r, theta
+		return new THREE.Vector2(point.length(), point.angle());
+	}
+}
+
+function PixelGroupMapping(manager, group, id, name, maptype) {
 	var self = this;
 
 	this.group = group;
 	this.model = group.model;
 
 	this.mapping_valid = false;
-	this.origin = {};
 	this.proj_plane = {};
+	this.widget = null;
+	var type = null;
 
 	var first_enable = true;
 	this.tree_id = group.group_id + '-map-' + id;
-	this.widget = new Cartesian2Widget(container);
 
 	var screen = screenManager.addScreen(this.tree_id, {isOrtho: true, inheritOrientation: true});
 
@@ -20,22 +44,30 @@ function PixelGroupMapping(manager, group, id, name) {
 		dataset: {mapping: self}
 	}, group.group_id);
 
+	this.setType = function(newtype) {
+		if (newtype != type) {
+			if (self.widget) {
+				//self.widget.destroy();
+			}
+			self.mapping_valid = false;
+			first_enable = true;
+			type = newtype;
+			newtype.call(self);
+		}
+	}
 
-	var mapPoint = function(idx) {
-		var pos = model.getPosition(idx);
-		var fromOrigin = pos.clone().sub(self.proj_plane.origin);
-		return new THREE.Vector2(self.proj_plane.xaxis.dot(fromOrigin),
-								 self.proj_plane.yaxis.dot(fromOrigin));
+	if (typeof maptype !== 'undefined') {
+		this.setType(maptype);
 	}
 
 	this.getPositions = function() {
 		return group.pixels.map(function(idx) {
-			return [idx, mapPoint(idx)]
+			return [idx, this.mapPoint(idx)]
 		});
 	}
 
-	this.save = function() {
-		self.origin = self.widget.data();
+	this.saveMapping = function() {
+		var origin = self.widget.data();
 		var cam_quaternion = screenManager.activeScreen.camera.quaternion.clone();
 		var cam_up = screenManager.activeScreen.camera.up.clone();
 
@@ -43,11 +75,10 @@ function PixelGroupMapping(manager, group, id, name) {
 		var plane_normal = new THREE.Vector3(0, 0, -1);
 		plane_normal.applyQuaternion(cam_quaternion).normalize();
 		self.proj_plane.plane = new THREE.Plane(plane_normal);
-		console.log("plane normal:", plane_normal);
 
 		// Create axes for the projection and rotate them appropriately
 		self.proj_plane.yaxis = cam_up.clone().applyQuaternion(cam_quaternion);
-		self.proj_plane.yaxis.applyAxisAngle(plane_normal, self.origin.angle);
+		self.proj_plane.yaxis.applyAxisAngle(plane_normal, origin.angle);
 		self.proj_plane.yaxis.normalize();
 
 		self.proj_plane.xaxis = plane_normal.clone().cross(self.proj_plane.yaxis);
@@ -56,12 +87,11 @@ function PixelGroupMapping(manager, group, id, name) {
 		// Project the screen position of the origin widget onto the proejction
 		// plane.  This is the 3d position of the mapping origin.
 		var raycaster = new THREE.Raycaster();
-		var widgetpos = new THREE.Vector2(self.origin.x_norm, self.origin.y_norm);
+		var widgetpos = new THREE.Vector2(origin.x_norm, origin.y_norm);
 		raycaster.setFromCamera(widgetpos, screenManager.activeScreen.camera);
 		self.proj_plane.origin = raycaster.ray.intersectPlane(self.proj_plane.plane);
 
 		self.mapping_valid = true;
-		global_test_mapping = self;
 	}
 
 	this.enable = function() {
@@ -83,6 +113,7 @@ function PixelGroupMapping(manager, group, id, name) {
 		//screenManager.activeScreen.setCameraState(oldCameraState);
 		self.widget.hide();
 	}
+
 }
 
 /*
@@ -160,7 +191,8 @@ function PixelGroup(manager, id, pixels, name, color) {
 		var map_id = newgid();
 
 		var name = 'map-'+map_id;
-		var mapping = new PixelGroupMapping(manager, this, map_id, name);
+		var default_type = Cartesian2DMapping;
+		var mapping = new PixelGroupMapping(manager, this, map_id, name, Cartesian2DMapping);
 
 		group_mappings = group_mappings.set(map_id, mapping);
 		worldState.checkpoint();
@@ -260,12 +292,21 @@ function GroupManager(model) {
 
 		currMappingInspector.clear();
 		currMappingInspector.addSection('Current Mapping');
+		var map_types = {}
+		map_types["2d Cartesian"] = Cartesian2DMapping;
+		map_types["2d Polar"] = Polar2DMapping;
+		currMappingInspector.addCombo("Mapping type", "2d Cartesian", {
+			values: map_types,
+			callback: function(v) {
+				currentMapping.setType(v);
+			}
+		});
 		// TODO hide/show based on in/out of mapping mode
 		currMappingInspector.addButton(null, 'Edit', function() {
 			currentMapping.enable();
 		});
 		currMappingInspector.addButton(null, 'Save', function() {
-			currentMapping.save();
+			currentMapping.saveMapping();
 			currentMapping.disable();
 		});
 	}
