@@ -19,14 +19,14 @@ animate();
 function initModelFromJson(scene, json) {
 	model = new Model(json);
 	model.addToScene(scene);
-	var graphWidget = new GraphWidget();
+	var patternManager = new PatternManager();
 	worldState = new WorldState({
 		activeSelection: model.createOverlay(10),
 		groupSet: new GroupManager(model),
-		graphManager: graphWidget,
+		graphManager: patternManager,
 	});
 	UI.tabs.addTab('Pattern Builder', {
-		content: graphWidget.root,
+		content: patternManager.root,
 		width: '100%'
 	});
 
