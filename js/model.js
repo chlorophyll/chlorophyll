@@ -13,6 +13,14 @@ function Overlay(model) {
 		model.updateColors();
 	}
 
+	this.setNoUpdate = function(i, color) {
+		this.colors = this.colors.set(i, color);
+	}
+
+	this.get = function(i) {
+		return this.colors.get(i, new THREE.Color(0x000000));
+	}
+
 	this.unset = function(i) {
 		this.colors = this.colors.delete(i);
 		model.updateColors();
@@ -77,7 +85,10 @@ function Model(json) {
 	var numPixels;
 	var pixelData;
 	var colors;
+	var defaultColors;
 	var geometry;
+
+	this.displayOnly = false;
 
 	var showWithoutOverlays = true;
 
@@ -130,6 +141,20 @@ function Model(json) {
 		geometry.colorsNeedUpdate = true;
 	}
 
+	this.getDisplayColor = function(i) {
+		if (this.displayOnly) {
+			return [colors[i].r*255, colors[i].g*255,colors[i].b*255];
+		}
+	}
+
+	this.setDisplayColor = function(i, r, g, b) {
+		if (this.displayOnly) {
+			var c = new THREE.Color(r/255, g/255, b/255);
+			c.convertLinearToGamma();
+			colors[i] = c;
+		}
+	}
+
 	this.getStrip = function(i) {
 		for (var s = 0; s < stripOffsets.length-1; s++) {
 			var start = stripOffsets[s];
@@ -161,12 +186,16 @@ function Model(json) {
 	}
 
 	this.updateColors = function() {
-		setDefaultColors();
-		this.overlays.forEach(function (pri) {
-			for (var i = 0, l = pri.length; i < l; i++) {
-				pri[i].updateColors();
-			}
-		});
+		if (self.displayOnly) {
+			geometry.colorsNeedUpdate = true;
+		} else {
+			setDefaultColors();
+			this.overlays.forEach(function (pri) {
+				for (var i = 0, l = pri.length; i < l; i++) {
+					pri[i].updateColors();
+				}
+			});
+		}
 	}
 
 	this.createOverlay = function(priority) {

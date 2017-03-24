@@ -2,3 +2,4 @@
 .jshintrc
 models/*
 .DS_Store
+js/fastled/bindings.cpp

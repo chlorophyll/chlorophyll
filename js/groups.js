@@ -29,7 +29,9 @@ function PixelGroupMapping(manager, group, id, name) {
 	}
 
 	this.getPositions = function() {
-		return group.pixels.keySeq().map(mapPoint);
+		return group.pixels.map(function(idx) {
+			return [idx, mapPoint(idx)]
+		});
 	}
 
 	this.save = function() {
@@ -102,7 +104,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 	this.model = manager.model;
 	this.overlay = model.createOverlay(1);
 
-	_nextid = 0;
+	var _nextid = 0;
 	function newgid() {
 		return _nextid++;
 	}

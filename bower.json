@@ -29,6 +29,7 @@
     "mousetrap": "^1.6.0",
     "immutable": "^3.8.1",
     "litegui": "jagenjo/litegui.js",
-    "d3": "^4.7.0"
+    "d3": "^4.7.0",
+    "litegraph": "jagenjo/litegraph.js"
   }
 }

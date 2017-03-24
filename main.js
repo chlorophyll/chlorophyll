@@ -19,9 +19,15 @@ animate();
 function initModelFromJson(scene, json) {
 	model = new Model(json);
 	model.addToScene(scene);
+	var graphWidget = new GraphWidget();
 	worldState = new WorldState({
 		activeSelection: model.createOverlay(10),
-		groupSet: new GroupManager(model)
+		groupSet: new GroupManager(model),
+		graphManager: graphWidget,
+	});
+	UI.tabs.addTab('Pattern Builder', {
+		content: graphWidget.root,
+		width: '100%'
 	});
 
 }
@@ -65,7 +71,8 @@ function init() {
 	});
 	LiteGUI.add(mainarea);
 
-	mainarea.split("horizontal",[null,256],true);
+
+	mainarea.split("horizontal",[null,192],true);
 	//UI.sidebar = new LiteGUI.Panel("sidebar");
 	UI.sidebar = mainarea.getSection(1);
 	//mainarea.getSection(1).add(UI.sidebar);
@@ -80,8 +87,16 @@ function init() {
 	toolbar_panel.add(UI.toolbar);
 
 	mainarea.getSection(0).add(toolbar_panel);
+	mainarea = mainarea.getSection(1);
 
-	container = mainarea.getSection(1).content;
+	mainarea.split('vertical',[null,192], true);
+	var dock = mainarea.getSection(1);
+	UI.tabs = new LiteGUI.Tabs();
+
+	dock.add(UI.tabs);
+	mainarea = mainarea.getSection(0);
+
+	container = mainarea.content;
 	container.style.position = 'relative';
 	container.style.top = 0;
 	container.style.left = 0;
@@ -147,7 +162,7 @@ function init() {
 
 	UI.toolbar.addSeparator();
 
-	initModelFromJson(scene, icosahedron_data);
+	initModelFromJson(scene, chrysanthemum);
 	selectionManager.foreachCommand(function(command) {
 		command.model = model;
 	});
