@@ -1,28 +1,3 @@
-// The built-in context menu is not really sensible for what we want here.
-(function() {
-	oldMenuOptions = LGraphCanvas.prototype.getNodeMenuOptions;
-
-	LGraphCanvas.prototype.getNodeMenuOptions = function(node) {
-		var options = oldMenuOptions(node);
-
-		whitelist = [
-			"Collapse",
-			"Shapes",
-			"Clone",
-			"Remove"
-		]
-
-		out = [];
-
-		for (option of options) {
-			if (!option || whitelist.indexOf(option.content) != -1) {
-				out.push(option);
-			}
-		}
-
-		return out;
-	}
-})();
 
 // Structural node types for the pattern graph
 function OutputColor() {
@@ -190,26 +165,31 @@ function PatternManager() {
 
 	function updatePatternList() {
 		names = [];
+		var selected;
 		patterns.forEach(function(pattern,id) {
-			names.push(pattern.name);
+			var ob = {title:pattern.name, id:id};
+			if (pattern == curPattern)
+				selected = ob;
+			names.push(ob);
 		});
 
-		names.sort();
+		names.sort(function(a,b) {
+			return a.title.localeCompare(b.title);
+		});
 
-		var selected = curPattern ? curPattern.name : null;
 		patternList.setOptionValues(names, selected);
 	}
 
 	var init = function() {
 		self.root = document.createElement('div');
 		self.root.style.width = '100%';
-		self.top_widgets = new LiteGUI.Inspector( null, { one_line: true });
+		self.top_widgets = new LiteGUI.Inspector( null, { one_line: true});
 
 		var runningPattern = false;
 
-		self.top_widgets.addButton(null,"New", {width: 50, callback: function() { newGraph() }});
-		patternList = self.top_widgets.addCombo(null,"Open");
-		self.top_widgets.addButton(null,"Run", { callback: function() {
+		self.top_widgets.addButton(null,"Run", {
+			width: 50,
+			callback: function() {
 			if (!curPattern)
 				return;
 			if (runningPattern) {
@@ -221,13 +201,35 @@ function PatternManager() {
 			}
 			runningPattern = !runningPattern;
 		}});
-		nameWidget = self.top_widgets.addString('name', '', {
-			callback: function(v) {
+
+		self.top_widgets.addButton(null,"New", {width: 50, callback: function() { newGraph() }});
+		patternList = self.top_widgets.addCombo('Choose pattern',"Open", {
+			width: '15em',
+			callback: function(val) {
+				var pattern = patterns.get(val.id);
+				setCurrentPattern(pattern);
+			}
+		});
+
+		self.top_widgets.addSeparator();
+
+		nameWidget = self.top_widgets.addStringButton('name', '', {
+			button: 'rename',
+			button_width: '5em',
+			callback_button: function(v) {
 				if (curPattern)
 					curPattern.name = v;
 				updatePatternList();
 			}
 		});
+
+		stageWidget = self.top_widgets.addComboButtons('stage: ', 'pixel', {
+			values: ['precompute', 'pixel'],
+			callback: function(val) {
+				console.log(val);
+			}
+		});
+
 
 		self.root.appendChild( self.top_widgets.root );
 		var area = self.area = new LiteGUI.Area(null,{ className: "grapharea", height: -30});
