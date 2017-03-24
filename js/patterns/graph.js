@@ -237,7 +237,9 @@ function PatternManager() {
 			runningPattern = !runningPattern;
 		}});
 
-		self.top_widgets.addButton(null,"New", {width: 50, callback: function() { newGraph() }});
+		self.top_widgets.addButton(null,"New", {width: 50, callback: newPattern });
+		self.top_widgets.addButton(null,"Copy", {width: 50, callback: copyPattern });
+
 		patternList = self.top_widgets.addCombo('Choose pattern',"Open", {
 			width: '15em',
 			callback: function(val) {
@@ -280,18 +282,47 @@ function PatternManager() {
 		self.graphcanvas.background_image = 'img/litegraph_grid.png'
 	}
 
-	var newGraph = function() {
+	var newPattern = function() {
 		var id = newgid();
 		var name = 'pattern-'+id;
 		var pattern = new PatternGraph(id, name);
 
 		patterns = patterns.set(id, pattern);
 		setCurrentPattern(pattern);
-		updatePatternList();
 
 		worldState.checkpoint();
 
 		console.log(pattern);
+	}
+
+	function copyName(name) {
+		var re = / \(copy (\d+)\)$/;
+		var result = re.exec(name);
+		if (!result) {
+			return name + ' (copy 1)';
+		}
+		var copydigits = parseInt(result[1]);
+		var prefix = name.substring(0, result.index);
+		return prefix + ' (copy '+(copydigits+1)+')';
+	}
+
+	var copyPattern = function() {
+		if (!curPattern)
+			return;
+
+		var id = newgid();
+		var name = copyName(curPattern.name);
+		var snap = curPattern.snapshot();
+
+		var pattern = new PatternGraph();
+
+		pattern.setFromSnapshot(snap);
+		pattern.id = id;
+		pattern.name = name;
+
+		patterns = patterns.set(id, pattern);
+		setCurrentPattern(pattern);
+		worldState.checkpoint();
 	}
 
 	this.snapshot = function() {
