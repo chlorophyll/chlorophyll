@@ -50,32 +50,54 @@ function PatternGraph(id, name) {
 	self.name = name;
 	self.id = id;
 
+	self.curStage = 'pixel';
+
+	Object.defineProperty(this, 'curStageGraph', {
+		get: function() { return this.stages[this.curStage] }
+	});
+
 	var handle = undefined;
 	var restoring = false;
 
-	this.graph = new LGraph();
-	this.graph.fixedtime_lapse = 0;
+	this.stages = {
+		precompute: new LGraph(),
+		pixel: new LGraph(),
+	}
+
+	function forEachStage(f) {
+		for (var stage in self.stages) {
+			f(stage, self.stages[stage]);
+		}
+	}
+
+	forEachStage(function(stage, graph) {
+		graph.fixedtime_lapse = 0;
+	});
 
 	function enableUndo() {
-		self.graph.onConnectionChange = function() {
-			worldState.checkpoint();
-		}
+		forEachStage(function(stage, graph) {
+			graph.onConnectionChange = function() {
+				worldState.checkpoint();
+			}
 
-		self.graph.onNodeAdded = function() {
-			worldState.checkpoint();
-		}
+			graph.onNodeAdded = function() {
+				worldState.checkpoint();
+			}
 
-		self.graph.onNodeRemoved = function() {
-			worldState.checkpoint();
-		}
+			graph.onNodeRemoved = function() {
+				worldState.checkpoint();
+			}
+		});
 	}
 
 	enableUndo();
 
 	function disableUndo() {
-		self.graph.onConnectionChange = undefined;
-		self.graph.onNodeAdded = undefined;
-		self.graph.onNodeRemoved = undefined;
+		forEachStage(function(stage, graph) {
+			graph.onConnectionChange = undefined;
+			graph.onNodeAdded = undefined;
+			graph.onNodeRemoved = undefined;
+		});
 	}
 
 
@@ -87,22 +109,32 @@ function PatternGraph(id, name) {
 	outp.removable = false;
 	outp.clonable = false;
 
-	this.graph.add(inp);
-	this.graph.add(outp);
+	this.stages['pixel'].add(inp);
+	this.stages['pixel'].add(outp);
 
 	this.snapshot = function() {
+		var stages = {};
+
+		forEachStage(function(stage, graph) {
+			stages[stage] = JSON.stringify(graph.serialize());
+		});
+
 		return {
 			name: this.name,
 			id: this.id,
-			graph: JSON.stringify(this.graph.serialize())
+			curStage: this.curStage,
+			stages: stages
 		}
 	}
 
 	this.setFromSnapshot = function(snapshot) {
 		this.name = snapshot.name;
 		this.id = snapshot.id;
+		this.curStage = snapshot.curStage;
 		disableUndo();
-		this.graph.configure(JSON.parse(snapshot.graph));
+		forEachStage(function(stage, graph) {
+			graph.configure(JSON.parse(snapshot.stages[stage]));
+		});
 		enableUndo();
 	}
 
@@ -122,23 +154,24 @@ function PatternGraph(id, name) {
 
 		var incolor = new CRGB(0,0,0);
 
+		var graph = self.stages['pixel'];
+
 		handle = setInterval(function() {
-			self.graph.setGlobalInputData('t', self.time);
+			graph.setGlobalInputData('t', self.time);
 			mapping.getPositions().forEach(function([idx, pos]) {
 				var dc = model.getDisplayColor(idx);
 				var incolor = new CRGB(dc[0],dc[1],dc[2]);
-				self.graph.setGlobalInputData('x', pos.x);
-				self.graph.setGlobalInputData('y', pos.y);
-				self.graph.setGlobalInputData('color', incolor);
-				self.graph.runStep();
-				var outcolor = self.graph.getGlobalOutputData('outcolor');
+				graph.setGlobalInputData('x', pos.x);
+				graph.setGlobalInputData('y', pos.y);
+				graph.setGlobalInputData('color', incolor);
+				graph.runStep();
+				var outcolor = graph.getGlobalOutputData('outcolor');
 				model.setDisplayColor(idx, outcolor.r, outcolor.g, outcolor.b);
 			});
 			self.time += 1;
 			model.updateColors();
 		}, 1000/60);
 	}
-
 	this.cleanup = function() { }
 }
 
@@ -159,7 +192,9 @@ function PatternManager() {
 
 	var setCurrentPattern = function(pattern) {
 		curPattern = pattern;
-		self.graphcanvas.setGraph(curPattern ? curPattern.graph : null);
+		var graph = undefined;
+		nameWidget.setValue(curPattern ? curPattern.name : null);
+		self.graphcanvas.setGraph(curPattern ? curPattern.curStageGraph : null);
 		updatePatternList();
 	}
 
@@ -226,7 +261,10 @@ function PatternManager() {
 		stageWidget = self.top_widgets.addComboButtons('stage: ', 'pixel', {
 			values: ['precompute', 'pixel'],
 			callback: function(val) {
-				console.log(val);
+				if (!curPattern)
+					return;
+				curPattern.curStage = val;
+				self.graphanvas.setGraph(curPattern.curStageGraph);
 			}
 		});
 
