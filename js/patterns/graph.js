@@ -266,7 +266,7 @@ function PatternManager() {
 				if (!curPattern)
 					return;
 				curPattern.curStage = val;
-				self.graphanvas.setGraph(curPattern.curStageGraph);
+				self.graphcanvas.setGraph(curPattern.curStageGraph);
 			}
 		});
 
