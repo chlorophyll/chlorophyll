@@ -130,7 +130,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 	this.group_id = 'group-'+id;
 	var group_name = name ? name : "unnamed"
 	var group_color = color ? color : new THREE.Color(0xff0000);
-	var group_mappings = Immutable.Map();
+	this.mappings = Immutable.Map();
 	this.pixels = pixels ? pixels : Immutable.Map();
 	this.model = manager.model;
 	this.overlay = model.createOverlay(1);
@@ -194,7 +194,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 		var default_type = Cartesian2DMapping;
 		var mapping = new PixelGroupMapping(manager, this, map_id, name, Cartesian2DMapping);
 
-		group_mappings = group_mappings.set(map_id, mapping);
+		this.mappings = this.mappings.set(map_id, mapping);
 		worldState.checkpoint();
 
 		return mapping;
@@ -205,7 +205,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 			name: group_name,
 			id: this.group_id,
 			pixels: this.pixels,
-			mappings: group_mappings,
+			mappings: this.mappings,
 			color: group_color,
 			overlay: this.overlay.snapshot(),
 		});
@@ -214,7 +214,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 	this.setFromSnapshot = function(snapshot) {
 		this.name = snapshot.get("name");
 		this.group_id = snapshot.get('id');
-		group_mappings = snapshot.get("mappings");
+		this.mappings = snapshot.get("mappings");
 		group_color = snapshot.get("color");
 		this.pixels = snapshot.get("pixels");
 		this.overlay.setFromSnapshot(snapshot.get('overlay'));
