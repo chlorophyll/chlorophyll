@@ -1,56 +1,12 @@
-
-// Structural node types for the pattern graph
-function OutputColor() {
-	this.addInput('outcolor');
-}
-
-OutputColor.prototype.onAdded = function() {
-	this.graph.addGlobalOutput('outcolor');
-}
-
-OutputColor.prototype.onExecute = function() {
-	this.graph.setGlobalOutputData('outcolor', this.getInputData(0));
-}
-
-OutputColor.title = 'Output Color';
-
-LiteGraph.registerNodeType("output/color", OutputColor);
-
-function Cartesian2DInput() {
-	this.addOutput('x', 'number');
-	this.addOutput('y', 'number');
-	this.addOutput('t', 'number');
-	this.addOutput('color');
-}
-
-Cartesian2DInput.prototype.onAdded = function() {
-	this.graph.addGlobalInput('x');
-	this.graph.addGlobalInput('y');
-	this.graph.addGlobalInput('t');
-	this.graph.addGlobalInput('color');
-}
-
-Cartesian2DInput.prototype.onExecute = function() {
-	var x = this.graph.global_inputs['x'].value;
-	var y = this.graph.global_inputs['y'].value;
-	var t = this.graph.global_inputs['t'].value;
-	var color = this.graph.global_inputs['color'].value;
-
-	this.setOutputData(0, x);
-	this.setOutputData(1, y);
-	this.setOutputData(2, t);
-	this.setOutputData(3, color);
-}
-
-Cartesian2DInput.title = 'Cartesian2DInput';
-LiteGraph.registerNodeType('input/cartesian2d', Cartesian2DInput);
+var patternStages = ['precompute', 'pixel'];
+var defaultStage = 'pixel';
 
 function PatternGraph(id, name) {
 	var self = this;
 	self.name = name;
 	self.id = id;
 
-	self.curStage = 'pixel';
+	self.curStage = defaultStage;
 
 	Object.defineProperty(this, 'curStageGraph', {
 		get: function() { return this.stages[this.curStage] }
@@ -59,9 +15,10 @@ function PatternGraph(id, name) {
 	var handle = undefined;
 	var restoring = false;
 
-	this.stages = {
-		precompute: new LGraph(),
-		pixel: new LGraph(),
+	this.stages = {};
+
+	for (var stage of patternStages) {
+		this.stages[stage] = new LGraph();
 	}
 
 	function forEachStage(f) {
@@ -184,6 +141,7 @@ function PatternManager() {
 	}
 
 	var nameWidget;
+	var stageWidget;
 	var patternList;
 
 	var patterns = Immutable.Map();
@@ -192,10 +150,28 @@ function PatternManager() {
 
 	var setCurrentPattern = function(pattern) {
 		curPattern = pattern;
-		var graph = undefined;
-		nameWidget.setValue(curPattern ? curPattern.name : null);
-		self.graphcanvas.setGraph(curPattern ? curPattern.curStageGraph : null);
+
+		if (!curPattern)
+			return;
+
+		self.graphcanvas.setGraph(curPattern.curStageGraph);
+		nameWidget.setValue(curPattern.name);
+		setCurrentStage(curPattern.curStage);
 		updatePatternList();
+	}
+
+	function setCurrentStage(stage) {
+		if (!curPattern)
+			return;
+		curPattern.curStage = stage;
+
+		for (var type in LiteGraph.registered_node_types) {
+			var cls = LiteGraph.registered_node_types[type];
+			var visible_stages = cls.visible_stages || patternStages;
+			cls.skip_list = (visible_stages.indexOf(stage) == -1);
+		}
+		self.graphcanvas.setGraph(curPattern.curStageGraph);
+		stageWidget.setValue(stage);
 	}
 
 	function updatePatternList() {
@@ -260,14 +236,9 @@ function PatternManager() {
 			}
 		});
 
-		stageWidget = self.top_widgets.addComboButtons('stage: ', 'pixel', {
-			values: ['precompute', 'pixel'],
-			callback: function(val) {
-				if (!curPattern)
-					return;
-				curPattern.curStage = val;
-				self.graphcanvas.setGraph(curPattern.curStageGraph);
-			}
+		stageWidget = self.top_widgets.addComboButtons('stage: ', defaultStage, {
+			values: patternStages,
+			callback: setCurrentStage
 		});
 
 

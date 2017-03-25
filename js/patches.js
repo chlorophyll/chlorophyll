@@ -37,7 +37,7 @@ Inspector.prototype.addComboButtons = function(name, value, options)
 	var code = "";
 	if(options.values)
 		for(var v of options.values)
-			code += "<button class='wcombobutton "+(value == v ? "selected":"")+"' data-name='v'>" + v + "</button>";
+			code += "<button class='wcombobutton "+(value == v ? "selected":"")+"' data-name='"+v+"'>" + v + "</button>";
 
 	var element = this.createWidget(name,code, options);
 	var buttons = element.querySelectorAll( ".wcontent button" );
@@ -54,7 +54,37 @@ Inspector.prototype.addComboButtons = function(name, value, options)
 		Inspector.onWidgetChange.call( that,element,name,buttonname, options );
 	});
 
+	element.setValue = function(val) {
+		var selected;
+		for (var el of buttons) {
+			if (el.getAttribute('data-name') == val)
+				selected = el;
+			el.classList.remove('selected');
+		}
+
+		if (selected)
+			selected.classList.add('selected');
+
+		that.values[name] = val;
+	}
+
 	this.append(element,options);
 	this.processElement(element, options);
 	return element;
+}
+
+
+LiteGraph.getNodeTypesInCategory = function(category) {
+	var r = [];
+	for(var i in this.registered_node_types) {
+		if (this.registered_node_types[i].skip_list)
+			continue;
+		if(category == "") {
+			if (this.registered_node_types[i].category == null)
+				r.push(this.registered_node_types[i]);
+		} else if (this.registered_node_types[i].category == category) { 
+			r.push(this.registered_node_types[i]);
+		}
+	}
+	return r;
 }
