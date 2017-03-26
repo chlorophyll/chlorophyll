@@ -62,7 +62,7 @@ function PixelGroupMapping(manager, group, id, name, maptype) {
 
 	this.getPositions = function() {
 		return group.pixels.map(function(idx) {
-			return [idx, this.mapPoint(idx)]
+			return [idx, self.mapPoint(idx)]
 		});
 	}
 
@@ -225,8 +225,8 @@ function GroupManager(model) {
 	var self = this;
 	this.model = model;
 
-	var currentGroup = undefined;
-	var currentMapping = undefined;
+	this.currentGroup = null;
+	this.currentMapping = null;
 
 	// Future work: nice group reordering UI, probably a layer on top of this
 	// referencing group IDs, to keep groups in order
@@ -260,11 +260,11 @@ function GroupManager(model) {
 	var currMappingInspector = new LiteGUI.Inspector();
 
 	function setCurrentGroup(group) {
-		currentGroup = group;
+		self.currentGroup = group;
 		currGroupInspector.clear();
 		currGroupInspector.addSection('Current Group');
 		currGroupInspector.addButton(null, 'Add Mapping', function() {
-			var map = currentGroup.addMapping()
+			var map = self.currentGroup.addMapping()
 			self.tree.setSelectedItem(map.tree_id);
 			setCurrentMapping(map);
 		});
@@ -276,19 +276,19 @@ function GroupManager(model) {
 		currGroupInspector.addSeparator();
 		currGroupInspector.addColor('color', group.color.toArray(), {
 			callback: function(v) {
-				currentGroup.color = new THREE.Color(v[0], v[1], v[2]);
+				self.currentGroup.color = new THREE.Color(v[0], v[1], v[2]);
 			}
 		});
 		currGroupInspector.addString('name', group.name, {
 			callback: function(v) {
-				currentGroup.name = v;
+				self.currentGroup.name = v;
 			}
 		});
 	}
 
 	function setCurrentMapping(mapping) {
 		setCurrentGroup(mapping.group);
-		currentMapping = mapping;
+		self.currentMapping = mapping;
 
 		currMappingInspector.clear();
 		currMappingInspector.addSection('Current Mapping');
@@ -298,21 +298,21 @@ function GroupManager(model) {
 		currMappingInspector.addCombo("Mapping type", "2d Cartesian", {
 			values: map_types,
 			callback: function(v) {
-				currentMapping.setType(v);
+				self.currentMapping.setType(v);
 			}
 		});
 		// TODO hide/show based on in/out of mapping mode
 		currMappingInspector.addButton(null, 'Edit', function() {
-			currentMapping.enable();
+			self.currentMapping.enable();
 		});
 		currMappingInspector.addButton(null, 'Save', function() {
-			currentMapping.saveMapping();
-			currentMapping.disable();
+			self.currentMapping.saveMapping();
+			self.currentMapping.disable();
 		});
 	}
 
 	function clearCurrentMapping() {
-		currentMapping = undefined;
+		self.currentMapping = null;
 		currMappingInspector.clear();
 	}
 
@@ -321,7 +321,7 @@ function GroupManager(model) {
 			elem.classList.remove('selected');
 			elem.classList.remove('semiselected');
 		}
-		currentGroup = undefined;
+		self.currentGroup = null;
 		currGroupInspector.clear();
 		clearCurrentMapping();
 	}

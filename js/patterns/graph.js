@@ -207,7 +207,7 @@ function PatternManager() {
 				curPattern.stop();
 				this.setValue('Run');
 			} else {
-				curPattern.run(global_test_mapping);
+				curPattern.run(groupManager.currentMapping);
 				this.setValue('Stop');
 			}
 			runningPattern = !runningPattern;

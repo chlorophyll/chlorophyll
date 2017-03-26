@@ -1,8 +1,10 @@
 // dom
 var container;
 
-// threejs objects
+// Chlorophyll dataset manager objects
 var screenManager;
+var groupManager;
+var patternManager;
 
 // chlorophyll objects
 var model;
@@ -19,10 +21,11 @@ animate();
 function initModelFromJson(scene, json) {
 	model = new Model(json);
 	model.addToScene(scene);
-	var patternManager = new PatternManager();
+	groupManager = new GroupManager(model);
+	patternManager = new PatternManager();
 	worldState = new WorldState({
 		activeSelection: model.createOverlay(10),
-		groupSet: new GroupManager(model),
+		groupSet: groupManager,
 		graphManager: patternManager,
 	});
 	UI.tabs.addTab('Pattern Builder', {
