@@ -27,22 +27,34 @@ function PixelGroupMapping(manager, group, id, name, maptype) {
 
 	this.group = group;
 	this.model = group.model;
+	this.tree_id = group.group_id + '-map-' + id;
+	var mapping_name = name;
 
 	this.mapping_valid = false;
 	this.proj_plane = {};
 	this.widget = null;
-	var type = null;
 
+	var type = null;
 	var first_enable = true;
-	this.tree_id = group.group_id + '-map-' + id;
 
 	var screen = screenManager.addScreen(this.tree_id, {isOrtho: true, inheritOrientation: true});
 
 	var elem = manager.tree.insertItem({
 		id: self.tree_id,
-		content: name,
+		content: mapping_name,
 		dataset: {mapping: self}
 	}, group.group_id);
+
+	Object.defineProperty(this, 'name', {
+		get: function() { return mapping_name; },
+		set: function(v) {
+			mapping_name = v;
+			manager.tree.updateItem(self.tree_id, {
+				content: mapping_name,
+				dataset: {mapping: self}
+			});
+		}
+	});
 
 	this.setType = function(newtype) {
 		if (newtype != type) {
@@ -113,7 +125,6 @@ function PixelGroupMapping(manager, group, id, name, maptype) {
 		//screenManager.activeScreen.setCameraState(oldCameraState);
 		self.widget.hide();
 	}
-
 }
 
 /*
@@ -227,6 +238,8 @@ function GroupManager(model) {
 
 	this.currentGroup = null;
 	this.currentMapping = null;
+	var group_namefield = null;
+	var mapping_namefield = null;
 
 	// Future work: nice group reordering UI, probably a layer on top of this
 	// referencing group IDs, to keep groups in order
@@ -263,26 +276,28 @@ function GroupManager(model) {
 		self.currentGroup = group;
 		currGroupInspector.clear();
 		currGroupInspector.addSection('Current Group');
-		currGroupInspector.addButton(null, 'Add Mapping', function() {
-			var map = self.currentGroup.addMapping()
-			self.tree.setSelectedItem(map.tree_id);
-			setCurrentMapping(map);
+		group_namefield = currGroupInspector.addString('name', group.name, {
+			callback: function(v) {
+				self.currentGroup.name = v;
+			}
 		});
-		currGroupInspector.addButton(null, 'Delete Group');
-		currGroupInspector.addButton(null, 'Add Active Selection to Group');
-		currGroupInspector.addButton(null, 'Deselect', function() {
-			clearCurrentGroup()
-		});
-		currGroupInspector.addSeparator();
 		currGroupInspector.addColor('color', group.color.toArray(), {
 			callback: function(v) {
 				self.currentGroup.color = new THREE.Color(v[0], v[1], v[2]);
 			}
 		});
-		currGroupInspector.addString('name', group.name, {
-			callback: function(v) {
-				self.currentGroup.name = v;
-			}
+		currGroupInspector.addSeparator();
+		currGroupInspector.addButton(null, 'Add Active Selection to Group');
+		currGroupInspector.addButton(null, 'Deselect', function() {
+			clearCurrentGroup();
+		});
+		currGroupInspector.addButton(null, 'Add Mapping', function() {
+			var map = self.currentGroup.addMapping()
+			self.tree.setSelectedItem(map.tree_id);
+			setCurrentMapping(map);
+		});
+		currGroupInspector.addButton(null, 'Delete Group', function() {
+			console.log("TODO: delete group");
 		});
 	}
 
@@ -292,6 +307,11 @@ function GroupManager(model) {
 
 		currMappingInspector.clear();
 		currMappingInspector.addSection('Current Mapping');
+		mapping_namefield = currMappingInspector.addString('name', mapping.name, {
+			callback: function(v) {
+				self.currentMapping.name = v;
+			}
+		});
 		var map_types = {}
 		map_types["2d Cartesian"] = Cartesian2DMapping;
 		map_types["2d Polar"] = Polar2DMapping;
@@ -322,6 +342,7 @@ function GroupManager(model) {
 			elem.classList.remove('semiselected');
 		}
 		self.currentGroup = null;
+		group_namefield = null;
 		currGroupInspector.clear();
 		clearCurrentMapping();
 	}
@@ -349,9 +370,14 @@ function GroupManager(model) {
 	this.tree.root.addEventListener('item_renamed', function(event) {
 		var dataset = event.detail.data.dataset;
 
+		// Renaming a group from the tree view selects it, so update the
+		// name textbox for the current group/mapping
 		if (dataset.group) {
-			var group = dataset.group;
-			group.name = event.detail.new_name;
+			dataset.group.name = event.detail.new_name;
+			group_namefield.setValue(dataset.group.name, false);
+		} else if (dataset.mapping) {
+			dataset.mapping.name = event.detail.new_name;
+			mapping_namefield.setValue(dataset.mapping.name, false);
 		}
 	});
 
