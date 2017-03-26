@@ -1,53 +1,88 @@
 FastLED = Module;
+Math8 = {};
 
-Math8 = {
-	qadd8: FastLED.cwrap('qadd8', 'number', ["number", "number"]),
-	qadd7: FastLED.cwrap('qadd7', 'number', ["number", "number"]),
-	qsub8: FastLED.cwrap('qsub8', 'number', ["number", "number"]),
+(function() {
+	var make_node = function(name, ret, args) {
+		var argtypes = [];
 
-	qmul8: FastLED.cwrap('qmul8', 'number', ["number", "number"]),
+		for (var arg of args) {
+			argtypes.push(arg[1]);
+		}
 
-	avg8: FastLED.cwrap('avg8', 'number', ["number", "number"]),
-	avg7: FastLED.cwrap('avg7', 'number', ["number", "number"]),
-	avg15: FastLED.cwrap('avg15', 'number', ["number", "number"]),
-	avg16: FastLED.cwrap('avg16', 'number', ["number", "number"]),
-	abs8: FastLED.cwrap('abs8', 'number', ["number"]),
-	sqrt16: FastLED.cwrap('sqrt16', 'number', ["number"]),
+		var func = FastLED.cwrap(name, ret, argtypes);
 
-	sin16: FastLED.cwrap('sin16', 'number', ["number"]),
-	cos16: FastLED.cwrap('cos16', 'number', ["number"]),
-	sin8: FastLED.cwrap('sin8', 'number', ["number"]),
-	cos8: FastLED.cwrap('cos8', 'number', ["number"]),
+		Math8[name] = func;
 
-	scale8: FastLED.cwrap('scale8', 'number', ["number", "number"]),
-	scale8_video: FastLED.cwrap('scale8_video', 'number', ["number", "number"]),
-	scale16by8: FastLED.cwrap('scale16by8', 'number', ["number", "number"]),
-	scale16: FastLED.cwrap('scale16', 'number', ["number", "number"]),
+		function f() {
+			for (var arg of args) {
+				this.addInput(arg[0], arg[1]);
+			}
+			this.addOutput("result", ret);
+		}
 
-	nscale8x3: FastLED.cwrap('nscale8x3', 'number', ["number", "number", "number", "number"]),
-	nscale8x3_video: FastLED.cwrap('nscale8x3_video', 'number', ["number", "number", "number", "number"]),
+		f.title = name;
 
-	dim8_raw: FastLED.cwrap('dim8_raw', 'number', ["number"]),
-	dim8_video: FastLED.cwrap('dim8_video', 'number', ["number"]),
-	dim8_lin: FastLED.cwrap('dim8_lin', 'number', ["number" ]),
+		f.prototype.onExecute = function() {
+			var vals = [];
+			for (var i = 0; i < args.length; i++) {
+				vals[i] = this.getInputData(i);
+			}
+			this.setOutputData(0, Math8[name].apply(undefined, vals));
+		}
 
-	brighten8_raw: FastLED.cwrap('brighten8_raw', 'number', ["number"]),
-	brighten8_video: FastLED.cwrap('brighten8_video', 'number', ["number"]),
-	brighten8_lin: FastLED.cwrap('brighten8_lin', 'number', ["number"]),
+		LiteGraph.registerNodeType('math8/'+name, f);
+	}
 
-	lerp8by8: FastLED.cwrap('lerp8by8', 'number', ["number", "number", "number"]),
-	lerp16by16: FastLED.cwrap('lerp16by16', 'number', ["number", "number", "number"]),
-	lerp16by8: FastLED.cwrap('lerp16by8', 'number', ["number", "number", "number"]),
-	lerp15by8: FastLED.cwrap('lerp15by8', 'number', ["number", "number", "number"]),
-	lerp15by16: FastLED.cwrap('lerp15by16', 'number', ["number", "number", "number"]),
-	map8: FastLED.cwrap('map8', 'number', ["number", "number", "number"]),
+	make_node('qadd8', 'number', [["i", "number"], ["j", "number"]]);
+	make_node('qadd7', 'number', [["i", "number"], ["j", "number"]]);
+	make_node('qsub8', 'number', [["i", "number"], ["j", "number"]]);
 
-	ease8InOutQuad: FastLED.cwrap('ease8InOutQuad', 'number', ["number"]),
-	ease8InOutCubic: FastLED.cwrap('ease8InOutCubic', 'number', ["number"]),
-	ease8InOutApprox: FastLED.cwrap('ease8InOutApprox', 'number', ["number"]),
+	make_node('qmul8', 'number', [["i", "number"], ["j", "number"]]);
 
-	triwave8: FastLED.cwrap('triwave8', 'number', ["number"]),
-	quadwave8: FastLED.cwrap('quadwave8', 'number', ["number"]),
-	cubicwave8: FastLED.cwrap('cubicwave8', 'number', ["number"]),
-	squarewave8: FastLED.cwrap('squarewave8', 'number', ["number", "number"]),
-}
+	make_node('avg8', 'number', [["i", "number"], ["j", "number"]]);
+	make_node('avg7', 'number', [["i", "number"], ["j", "number"]]);
+	make_node('avg15', 'number', [["i", "number"], ["j", "number"]]);
+	make_node('avg16', 'number', [["i", "number"], ["j", "number"]]);
+	make_node('abs8', 'number', [["i", "number"]]);
+	make_node('sqrt16', 'number', [["x", "number"]]);
+
+	make_node('sin16', 'number', [["theta", "number"]]);
+	make_node('cos16', 'number', [["theta", "number"]]);
+	make_node('sin8', 'number', [["theta", "number"]]);
+	make_node('cos8', 'number', [["theta", "number"]]);
+
+	make_node('scale8', 'number', [["i", "number"], ["scale", "number"]]);
+	make_node('scale8_video', 'number', [["i", "number"], ["scale", "number"]]);
+	make_node('scale16by8', 'number', [["i", "number"], ["scale", "number"]]);
+	make_node('scale16', 'number', [["i", "number"], ["scale", "number"]]);
+
+	make_node('nscale8x3', 'number',
+		[["r", "number"], ["g", "number"], ["b", "number"], ["scale", "number"]]);
+	make_node('nscale8x3_video', 'number',
+		[["r", "number"], ["g", "number"], ["b", "number"], ["scale", "number"]]);
+
+	make_node('dim8_raw', 'number', [["x", "number"]]);
+	make_node('dim8_video', 'number', [["x", "number"]]);
+	make_node('dim8_lin', 'number', [["x", "number"] ]);
+
+	make_node('brighten8_raw', 'number', [["x", "number"]]);
+	make_node('brighten8_video', 'number', [["x", "number"]]);
+	make_node('brighten8_lin', 'number', [["x", "number"]]);
+
+	make_node('lerp8by8', 'number', [["a", "number"], ["b", "number"], ["fract", "number"]]);
+	make_node('lerp16by16', 'number', [["a", "number"], ["b", "number"], ["fract", "number"]]);
+	make_node('lerp16by8', 'number', [["a", "number"], ["b", "number"], ["fract", "number"]]);
+	make_node('lerp15by8', 'number', [["a", "number"], ["b", "number"], ["fract", "number"]]);
+	make_node('lerp15by16', 'number', [["a", "number"], ["b", "number"], ["fract", "number"]]);
+	make_node('map8', 'number',
+		[["in", "number"], ["rangeStart", "number"], ["rangeEnd", "number"]]);
+
+	make_node('ease8InOutQuad', 'number', [["i", "number"]]);
+	make_node('ease8InOutCubic', 'number', [["i", "number"]]);
+	make_node('ease8InOutApprox', 'number', [["i", "number"]]);
+
+	make_node('triwave8', 'number', [["in", "number"]]);
+	make_node('quadwave8', 'number', [["in", "number"]]);
+	make_node('cubicwave8', 'number', [["in", "number"]]);
+	make_node('squarewave8', 'number', [["in", "number"], ["pulsewidth", "number"]]);
+})();
