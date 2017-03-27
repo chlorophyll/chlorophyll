@@ -1,6 +1,6 @@
 // Structural node types for the pattern graph
 function OutputColor() {
-	this.addInput('outcolor');
+	this.addInput('outcolor', 'CRGB');
 }
 
 OutputColor.prototype.onAdded = function() {
@@ -20,7 +20,7 @@ function Cartesian2DInput() {
 	this.addOutput('x', 'number');
 	this.addOutput('y', 'number');
 	this.addOutput('t', 'number');
-	this.addOutput('color');
+	this.addOutput('color', 'CRGB');
 }
 
 Cartesian2DInput.prototype.onAdded = function() {

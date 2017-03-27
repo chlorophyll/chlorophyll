@@ -47,7 +47,7 @@ LogNode.title = 'log'
 LiteGraph.registerNodeType("basic/log", LogNode);
 
 function IfNode() {
-	this.addInput('clause');
+	this.addInput('clause', 'boolean');
 	this.addInput('trueBranch');
 	this.addInput('falseBranch');
 	this.addOutput('result');
@@ -66,7 +66,7 @@ LiteGraph.registerNodeType("logic/if", IfNode);
 function EqualsNode() {
 	this.addInput('a');
 	this.addInput('b');
-	this.addOutput('result');
+	this.addOutput('result', 'boolean');
 }
 
 EqualsNode.title = 'equals'
@@ -81,9 +81,9 @@ LiteGraph.registerNodeType("logic/equals", EqualsNode);
 
 
 function AddNode() {
-	this.addInput('a');
-	this.addInput('b');
-	this.addOutput('result');
+	this.addInput('a', 'number');
+	this.addInput('b', 'number');
+	this.addOutput('result', 'number');
 }
 AddNode.title = 'add';
 AddNode.prototype.onExecute = function() {
@@ -94,9 +94,9 @@ AddNode.prototype.onExecute = function() {
 LiteGraph.registerNodeType("math/add", AddNode);
 
 function DivNode() {
-	this.addInput('a');
-	this.addInput('b');
-	this.addOutput('result');
+	this.addInput('a', 'number');
+	this.addInput('b', 'number');
+	this.addOutput('result', 'number');
 }
 DivNode.title = 'div';
 DivNode.prototype.onExecute = function() {

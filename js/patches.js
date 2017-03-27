@@ -88,3 +88,7 @@ LiteGraph.getNodeTypesInCategory = function(category) {
 	}
 	return r;
 }
+
+LiteGraph.isValidConnection = function(type_a, type_b) {
+	return (!type_a || !type_b || type_a == type_b)
+}
