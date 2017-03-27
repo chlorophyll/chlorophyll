@@ -2,7 +2,7 @@
 
 // The built-in context menu is not really sensible for what we want here.
 (function() {
-	oldMenuOptions = LGraphCanvas.prototype.getNodeMenuOptions;
+	var oldMenuOptions = LGraphCanvas.prototype.getNodeMenuOptions;
 
 	LGraphCanvas.prototype.getNodeMenuOptions = function(node) {
 		var options = oldMenuOptions(node);
@@ -82,7 +82,7 @@ LiteGraph.getNodeTypesInCategory = function(category) {
 		if(category == "") {
 			if (this.registered_node_types[i].category == null)
 				r.push(this.registered_node_types[i]);
-		} else if (this.registered_node_types[i].category == category) { 
+		} else if (this.registered_node_types[i].category == category) {
 			r.push(this.registered_node_types[i]);
 		}
 	}
