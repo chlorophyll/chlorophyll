@@ -1,6 +1,21 @@
 var patternStages = ['precompute', 'pixel'];
 var defaultStage = 'pixel';
 
+(function() {
+	var oldGetInput = LGraphNode.prototype.getInputData;
+
+	LiteGraph.addNodeMethod('getInputData', function(slot, force_update) {
+		var data = oldGetInput.call(this, slot, force_update);
+
+		if (data) return data;
+
+		if (this.properties.default_inputs)
+			return this.properties.default_inputs[slot];
+
+		return null;
+	});
+})();
+
 function PatternGraph(id, name) {
 	var self = this;
 	self.name = name;
@@ -250,6 +265,63 @@ function PatternManager() {
 		area.add(self.canvas);
 		area.content.style.backgroundColor = "#222";
 		self.graphcanvas = new LGraphCanvas( self.canvas, null, { autoresize: true } );
+
+		self.graphcanvas.onShowNodePanel = function(node) {
+			console.log('beep boop');
+			var dialog = new LiteGUI.Dialog('Node Settings', {
+				title: 'Node Settings',
+				close: true,
+				minimize: false,
+				width: 256,
+				scroll: true,
+				resizeable: false,
+				draggable: true
+			});
+
+			var inspector = new LiteGUI.Inspector();
+
+			var inputs = node.inputs || [];
+
+			var widgets = [];
+			if (!node.properties.default_inputs) {
+				node.properties.default_inputs = [];
+			}
+
+			for (var i = 0; i < inputs.length; i++) {
+				var val;
+				val = node.properties.default_inputs[i];
+
+				if (inputs[i].type == 'string') {
+					widgets[i] = inspector.addString(inputs[i].name, val);
+				} else if (inputs[i].type == 'number') {
+					widgets[i] = inspector.addNumber(inputs[i].name, val, {
+						step: 1,
+						precision: 0,
+					});
+				}
+			}
+
+			function applyProperties() {
+				for (var i = 0; i < inputs.length; i++) {
+					var val = widgets[i].getValue();
+					node.properties.default_inputs[i] = val;
+					if (val) {
+						node.inputs[i].label = `${node.inputs[i].name} (${val})`;
+					} else {
+						node.inputs[i].label = null;
+					}
+					self.graphcanvas.setDirty(true,true);
+				}
+			}
+
+			dialog.add(inspector);
+
+			dialog.addButton('Ok', { close: true, callback: applyProperties});
+			dialog.addButton('Cancel', { close: true});
+
+			dialog.show();
+		}
+
 		self.graphcanvas.background_image = 'img/litegraph_grid.png'
 	}
 
