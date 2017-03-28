@@ -265,6 +265,9 @@ function PatternManager() {
 		area.add(self.canvas);
 		area.content.style.backgroundColor = "#222";
 		self.graphcanvas = new LGraphCanvas( self.canvas, null, { autoresize: true } );
+		self.graphcanvas.render_shadows = false;
+		self.graphcanvas.show_info = false;
+		self.graphcanvas.clear_background = false;
 
 		self.graphcanvas.onShowNodePanel = function(node) {
 			console.log('beep boop');
