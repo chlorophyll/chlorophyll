@@ -73,7 +73,6 @@ function PatternGraph(id, name) {
 		});
 	}
 
-
 	var inp = LiteGraph.createNode('input/cartesian2d', 'input');
 	inp.removable = false;
 	inp.clonable = false;
@@ -293,9 +292,11 @@ function PatternManager() {
 		self.graphcanvas.clear_background = false;
 
 		self.graphcanvas.onShowNodePanel = function(node) {
-			console.log('beep boop');
+			if (node.onDblClick)
+				return;
+
 			var dialog = new LiteGUI.Dialog('Node Settings', {
-				title: 'Node Settings',
+				title: node.title + ' defaults',
 				close: true,
 				minimize: false,
 				width: 256,
@@ -313,25 +314,35 @@ function PatternManager() {
 				node.properties.default_inputs = [];
 			}
 
-			for (var i = 0; i < inputs.length; i++) {
-				var val;
-				val = node.properties.default_inputs[i];
+			var values = [];
 
-				if (inputs[i].type == 'string') {
-					widgets[i] = inspector.addString(inputs[i].name, val);
-				} else if (inputs[i].type == 'number') {
-					widgets[i] = inspector.addNumber(inputs[i].name, val, {
+			inputs.forEach(function(input, i) {
+				var val = node.properties.default_inputs[i];
+
+				if (val !== undefined) {
+					values[i] = v;
+				}
+
+				var callback = function(v) {
+					values[i] = v;
+				}
+
+				if (input.type == 'string') {
+					widgets[i] = inspector.addString(input.name, val, { callback: callback });
+				} else if (input.type == 'number') {
+					widgets[i] = inspector.addNumber(input.name, val, {
 						step: 1,
 						precision: 0,
+						callback: callback
 					});
 				}
-			}
+			});
 
 			function applyProperties() {
 				for (var i = 0; i < inputs.length; i++) {
-					var val = widgets[i].getValue();
+					var val = values[i];
 					node.properties.default_inputs[i] = val;
-					if (val) {
+					if (val !== undefined) {
 						node.inputs[i].label = `${node.inputs[i].name} (${val})`;
 					} else {
 						node.inputs[i].label = null;
