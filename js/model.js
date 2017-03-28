@@ -137,7 +137,7 @@ function Model(json) {
 
 
 	this.setColor = function(i, color) {
-		colors[i] = color;
+		colors[i].set(color);
 		geometry.colorsNeedUpdate = true;
 	}
 
@@ -149,9 +149,7 @@ function Model(json) {
 
 	this.setDisplayColor = function(i, r, g, b) {
 		if (this.displayOnly) {
-			var c = new THREE.Color(r/255, g/255, b/255);
-			c.convertLinearToGamma();
-			colors[i] = c;
+			colors[i].setRGB(r/255, g/255, b/255);
 		}
 	}
 
@@ -261,6 +259,7 @@ function Model(json) {
 					stripGeometry.vertices.push(pixelData[i]);
 				}
 				i++;
+				colors.push(new THREE.Color());
 			}
 			var model = new THREE.LineSegments(stripGeometry, lineMaterial);
 			model.visible = false;
