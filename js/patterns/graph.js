@@ -76,10 +76,16 @@ function PatternGraph(id, name) {
 	var inp = LiteGraph.createNode('input/cartesian2d', 'input');
 	inp.removable = false;
 	inp.clonable = false;
+	inp.color = '#7496a6';
+	inp.boxcolor = '#69a4bf';
 
 	var outp = LiteGraph.createNode('output/color', 'output');
 	outp.removable = false;
 	outp.clonable = false;
+	outp.color = '#e5a88a';
+	outp.boxcolor = '#cc8866';
+	console.log(outp.pos);
+	outp.pos = [300,100];
 
 	this.stages['pixel'].add(inp);
 	this.stages['pixel'].add(outp);
