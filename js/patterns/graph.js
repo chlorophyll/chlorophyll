@@ -31,6 +31,7 @@ function PatternGraph(id, name) {
 	var restoring = false;
 
 	this.stages = {};
+	this.time = 0;
 
 	for (var stage of patternStages) {
 		this.stages[stage] = new LGraph();
@@ -115,12 +116,17 @@ function PatternGraph(id, name) {
 			clearInterval(handle);
 			handle = undefined;
 		}
+		model.displayOnly = false;
+	}
+
+	this.reset = function() {
+		self.time = 0;
+		model.updateColors();
 	}
 
 	this.run = function(mapping) {
 		if (handle)
 			return;
-		self.time = 0;
 		var model = mapping.model;
 		model.displayOnly = true;
 
@@ -213,20 +219,37 @@ function PatternManager() {
 
 		var runningPattern = false;
 
-		self.top_widgets.addButton(null,"Run", {
+		/* these are from Google's material icons; the text matters */
+		var play = 'play_arrow';
+		var pause = 'pause';
+		var stop = 'stop';
+
+		var playButton = self.top_widgets.addButton(null,play, {
 			width: 50,
 			callback: function() {
 			if (!curPattern)
 				return;
 			if (runningPattern) {
 				curPattern.stop();
-				this.setValue('Run');
+				this.setValue(play);
 			} else {
 				curPattern.run(groupManager.currentMapping);
-				this.setValue('Stop');
+				this.setValue(pause);
 			}
 			runningPattern = !runningPattern;
 		}});
+		playButton.classList.add('material-icons');
+
+		var stopButton = self.top_widgets.addButton(null, stop, {
+			width: 50,
+			callback: function() {
+				if (!curPattern)
+					return;
+				curPattern.stop();
+				curPattern.reset();
+			}
+		});
+		stopButton.classList.add('material-icons');
 
 		self.top_widgets.addButton(null,"New", {width: 50, callback: newPattern });
 		self.top_widgets.addButton(null,"Copy", {width: 50, callback: copyPattern });
