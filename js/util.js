@@ -1,4 +1,5 @@
 var Util = {
+
 	distanceToLine: function(point, line, clamp) {
 		if (clamp == undefined) {
 			clamp = true;

@@ -187,6 +187,12 @@ PolarHandle = function(container) {
 Widget2D = function(container, widgetType) {
 	var self = this;
 
+	/*
+	 * Consumers can set this callback, which will be called with the result
+	 * of this.data() as an argument at the end of any widget movement.
+	 */
+	this.onChange = null;
+
 	var widget = new widgetType(container);
 	var width = container.clientWidth, height = container.clientHeight;
 	var x = width / 2;
@@ -200,11 +206,6 @@ Widget2D = function(container, widgetType) {
 	Mousetrap.bind('shift', function() { snap_angles = true; }, 'keydown');
 	Mousetrap.bind('shift', function() { snap_angles = false; }, 'keyup');
 
-	function resetAxes() {
-		angle = 0;
-		widget.setRot(angle);
-	}
-
 	function _drag(event) {
 		event.preventDefault();
 		coords = Util.relativeCoords(event.pageX, event.pageY);
@@ -215,6 +216,8 @@ Widget2D = function(container, widgetType) {
 		event.preventDefault();
 		container.removeEventListener("mousemove", _drag);
 		container.removeEventListener("mouseup", _endDrag);
+		if (self.onChange)
+			self.onChange(self.data());
 	}
 
 	/*
@@ -226,16 +229,21 @@ Widget2D = function(container, widgetType) {
 		d3.event.preventDefault();
 	});
 	for (var i = 0; i < widget.rotHandles.length; i++) {
-		widget.rotHandles[i].on('dblclick', resetAxes);
-		widget.rotHandles[i].call(d3.drag().on('drag', function() {
-			var clk = new THREE.Vector2(d3.event.x, d3.event.y);
-			angle += clk.sub(widget.origin).angle();
-			/* shift-snap to 15 degree angle increments */
-			if (snap_angles) {
-				angle = angle - (angle % (Math.PI / 12));
-			}
-			widget.setRot(angle);
-		}));
+		widget.rotHandles[i].on('dblclick', function() { self.setAngle(0); });
+		widget.rotHandles[i].call(d3.drag()
+			.on('drag', function() {
+				var clk = new THREE.Vector2(d3.event.x, d3.event.y);
+				angle += clk.sub(widget.origin).angle();
+				/* shift-snap to 15 degree angle increments */
+				if (snap_angles) {
+					angle = angle - (angle % (Math.PI / 12));
+				}
+				widget.setRot(angle);
+			})
+			.on('end', function() {
+				if (self.onChange)
+					self.onChange(self.data());
+			}));
 	}
 
 	this.data = function() {
@@ -267,6 +275,11 @@ Widget2D = function(container, widgetType) {
 	this.setPos = function(vx, vy) {
 		x = vx; y = vy;
 		widget.setPos(vx, vy);
+	}
+
+	this.setAngle = function(new_angle) {
+		angle = new_angle;
+		widget.setRot(new_angle);
 	}
 
 	function onWindowResize() {

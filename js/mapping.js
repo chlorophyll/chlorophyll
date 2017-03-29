@@ -30,6 +30,7 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 	this.tree_id = group.group_id + '-map-' + id;
 	var mapping_name = name;
 
+	this.enabled = false;
 	this.mapping_valid = false;
 	this.proj_plane = {};
 	this.widget = null;
@@ -79,7 +80,7 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		});
 	}
 
-	this.saveMapping = function() {
+	this.setFromCamera = function() {
 		var origin = self.widget.data();
 		var cam_quaternion = screenManager.activeScreen.camera.quaternion.clone();
 		var cam_up = screenManager.activeScreen.camera.up.clone();
@@ -88,6 +89,7 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		var plane_normal = new THREE.Vector3(0, 0, -1);
 		plane_normal.applyQuaternion(cam_quaternion).normalize();
 		self.proj_plane.plane = new THREE.Plane(plane_normal);
+		self.proj_plane.euler = screenManager.activeScreen.camera.rotation.clone();
 
 		// Create axes for the projection and rotate them appropriately
 		self.proj_plane.yaxis = cam_up.clone().applyQuaternion(cam_quaternion);
@@ -105,9 +107,12 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		self.proj_plane.origin = raycaster.ray.intersectPlane(self.proj_plane.plane);
 
 		self.mapping_valid = true;
+		// TODO undo snapshot
 	}
 
 	this.enable = function() {
+		if (self.enabled) return;
+
 		self.model.hideUnderlyingModel();
 		screenManager.setActive(self.tree_id);
 
@@ -117,14 +122,18 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		} else {
 			self.widget.show();
 		}
+
+		self.enabled = true;
 	}
 
 	this.disable = function() {
-		//self.cameraState = screenManager.activeScreen.saveCameraState();
+		if (!self.enabled) return;
+
 		self.model.showUnderlyingModel();
 		screenManager.setActive('main');
-		//screenManager.activeScreen.setCameraState(oldCameraState);
 		self.widget.hide();
+
+		self.enabled = false;
 	}
 }
 
