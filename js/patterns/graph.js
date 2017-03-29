@@ -27,8 +27,7 @@ function PatternGraph(id, name) {
 		get: function() { return this.stages[this.curStage] }
 	});
 
-	var handle = undefined;
-	var restoring = false;
+	var running = false;
 
 	this.stages = {};
 	this.time = 0;
@@ -117,10 +116,7 @@ function PatternGraph(id, name) {
 	}
 
 	this.stop = function() {
-		if (handle) {
-			clearInterval(handle);
-			handle = undefined;
-		}
+		running = false;
 		model.displayOnly = false;
 	}
 
@@ -130,18 +126,21 @@ function PatternGraph(id, name) {
 	}
 
 	this.run = function(mapping) {
-		if (handle)
+		if (running)
 			return;
+
+		running = true;
+
 		var model = mapping.model;
 		model.displayOnly = true;
 
-		var incolor = new CRGB(0,0,0);
-
 		var graph = self.stages['pixel'];
 
-		handle = setInterval(function() {
+		var positions = mapping.getPositions();
+
+		var computePatternStep = function() {
 			graph.setGlobalInputData('t', self.time);
-			mapping.getPositions().forEach(function([idx, pos]) {
+			positions.forEach(function([idx, pos]) {
 				var dc = model.getDisplayColor(idx);
 				var incolor = new CRGB(dc[0],dc[1],dc[2]);
 				graph.setGlobalInputData('x', pos.x);
@@ -151,9 +150,15 @@ function PatternGraph(id, name) {
 				var outcolor = graph.getGlobalOutputData('outcolor');
 				model.setDisplayColor(idx, outcolor.r, outcolor.g, outcolor.b);
 			});
+			model.updateColors();
 			self.time += 1;
 			model.updateColors();
-		}, 1000/60);
+
+			if (running)
+				window.requestAnimationFrame(computePatternStep);
+		}
+
+		window.requestAnimationFrame(computePatternStep);
 	}
 	this.cleanup = function() { }
 }
