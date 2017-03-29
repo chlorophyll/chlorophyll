@@ -143,6 +143,7 @@ function GroupManager(model) {
 
 	var currGroupInspector = new LiteGUI.Inspector();
 	var currMappingInspector = new LiteGUI.Inspector();
+	var mappingConfigInspector = new LiteGUI.Inspector();
 
 	function setCurrentGroup(group) {
 		self.currentGroup = group;
@@ -178,19 +179,6 @@ function GroupManager(model) {
 
 	function configureCurrentMapping() {
 		self.currentMapping.enable();
-		var configDialog = new LiteGUI.Dialog({
-			title: "Projection mapping config",
-			width: 300,
-			close: true,
-			draggable: true,
-			detachable: false
-		});
-		// LiteGUI BUG: on_close is supposed to be an option but isn't
-		configDialog.on_close = function() {
-			self.currentMapping.disable();
-			self.currentMapping.widget.onChange = null;
-		}
-		var configPanel = new LiteGUI.Inspector();
 
 		// Default values for position/angle settings
 		var origin_pos = [0,0,0];
@@ -201,8 +189,9 @@ function GroupManager(model) {
 			plane_angle = self.currentMapping.proj_plane.euler;
 		}
 
+		mappingConfigInspector.addSection('Mapping Configuration');
 		// display as degrees for human readability
-		var cam_angle_widget = configPanel.addVector3("plane normal",
+		var cam_angle_widget = mappingConfigInspector.addVector3("plane normal",
 			[plane_angle.x * THREE.Math.RAD2DEG,
 			 plane_angle.y * THREE.Math.RAD2DEG,
 			 plane_angle.z * THREE.Math.RAD2DEG],
@@ -221,7 +210,7 @@ function GroupManager(model) {
 					self.currentMapping.setFromCamera();
 				}
 			});
-		var origin_pos_widget = configPanel.addVector3("origin position",
+		var origin_pos_widget = mappingConfigInspector.addVector3("origin position",
 			origin_pos, {
 				disabled: true,
 				precision: 1,
@@ -237,21 +226,20 @@ function GroupManager(model) {
 										map_origin.y,
 										map_origin.z], true);
 		}
-		configPanel.addButton(null, 'Set projection from camera',
+		mappingConfigInspector.addButton(null, 'Set projection from camera',
 			function() {
 				var angle = screenManager.activeScreen.camera.rotation;
 				cam_angle_widget.setValue(
-					[plane_angle.x * THREE.Math.RAD2DEG,
-					 plane_angle.y * THREE.Math.RAD2DEG,
-					 plane_angle.z * THREE.Math.RAD2DEG], true);
+					[angle.x * THREE.Math.RAD2DEG,
+					 angle.y * THREE.Math.RAD2DEG,
+					 angle.z * THREE.Math.RAD2DEG], true);
 				self.currentMapping.setFromCamera();
 			});
-		configPanel.addButton(null, 'Save and close', function() {
-			configDialog.close();
+		mappingConfigInspector.addButton(null, 'Save and close', function() {
+			self.currentMapping.disable();
+			self.currentMapping.widget.onChange = null;
+			mappingConfigInspector.clear();
 		});
-
-		configDialog.add(configPanel);
-		configDialog.show();
 	}
 
 	function setCurrentMapping(mapping) {
@@ -334,6 +322,7 @@ function GroupManager(model) {
 	panel.add(groupCmds);
 	panel.add(currGroupInspector);
 	panel.add(currMappingInspector);
+	panel.add(mappingConfigInspector);
 
 	UI.sidebar.split('vertical', ['30%', null], true);
 	UI.sidebar.getSection(0).add(treePanel);
