@@ -371,6 +371,10 @@ function PatternManager() {
 		}
 
 		self.graphcanvas.background_image = 'img/litegraph_grid.png'
+		UI.tabs.addTab('Pattern Builder', {
+			content: self.root,
+			width: '100%'
+		});
 	}
 
 	var newPattern = function() {

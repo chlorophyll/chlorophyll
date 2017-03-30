@@ -28,10 +28,6 @@ function initModelFromJson(scene, json) {
 		groupSet: groupManager,
 		graphManager: patternManager,
 	});
-	UI.tabs.addTab('Pattern Builder', {
-		content: patternManager.root,
-		width: '100%'
-	});
 
 }
 
@@ -75,7 +71,7 @@ function init() {
 	LiteGUI.add(mainarea);
 
 
-	mainarea.split("horizontal",[null,300],true);
+	mainarea.split("horizontal",[null,225],true);
 	//UI.sidebar = new LiteGUI.Panel("sidebar");
 	UI.sidebar = mainarea.getSection(1);
 	//mainarea.getSection(1).add(UI.sidebar);
@@ -92,7 +88,7 @@ function init() {
 	mainarea.getSection(0).add(toolbar_panel);
 	mainarea = mainarea.getSection(1);
 
-	mainarea.split('vertical',[null,192], true);
+	mainarea.split('vertical',[null,225], true);
 	var dock = mainarea.getSection(1);
 	UI.tabs = new LiteGUI.Tabs();
 
