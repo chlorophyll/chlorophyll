@@ -9,7 +9,7 @@ var Util = {
 		return ret;
 	},
 
-	relativeCoords: function relativeCoords(pageX, pageY) {
+	relativeCoords: function relativeCoords(container, pageX, pageY) {
 		var offset = $(container).offset();
 		return {
 			x: pageX - offset.left,

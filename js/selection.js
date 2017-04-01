@@ -60,7 +60,7 @@ MarqueeSelection = function(domElement) {
 		if (!isEnabled()) return;
 		isSelecting = !event.altKey;
 		dragging = true;
-		var coords = Util.relativeCoords(event.pageX, event.pageY);
+		var coords = Util.relativeCoords(container, event.pageX, event.pageY);
 		rect.startX = coords.x;
 		rect.startY = coords.y;
 		self.dom.style.display = 'block';
@@ -129,7 +129,7 @@ MarqueeSelection = function(domElement) {
 		if (!dragging) return;
 		event.preventDefault();
 
-		var coords = Util.relativeCoords(event.pageX, event.pageY);
+		var coords = Util.relativeCoords(container, event.pageX, event.pageY);
 		rect.endX = coords.x;
 		rect.endY = coords.y;
 
@@ -177,7 +177,7 @@ LineSelection = function(domElement) {
 
 		selectedPoints = self.model.createOverlay(20);
 
-		var coords = Util.relativeCoords(event.pageX, event.pageY);
+		var coords = Util.relativeCoords(container, event.pageX, event.pageY);
 
 		var chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
 		if (!chosen)
@@ -250,7 +250,7 @@ PlaneSelection = function(domElement) {
 	function onMouseDown(event) {
 		if (!isEnabled())
 			return;
-		var coords = Util.relativeCoords(event.pageX, event.pageY);
+		var coords = Util.relativeCoords(container, event.pageX, event.pageY);
 		var chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
 		if (!chosen)
 			return;
