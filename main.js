@@ -72,9 +72,7 @@ function init() {
 
 
 	mainarea.split("horizontal",[null,225],true);
-	//UI.sidebar = new LiteGUI.Panel("sidebar");
 	UI.sidebar = mainarea.getSection(1);
-	//mainarea.getSection(1).add(UI.sidebar);
 
 	mainarea = mainarea.getSection(0);
 
