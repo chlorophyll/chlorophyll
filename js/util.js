@@ -1,4 +1,7 @@
 var Util = {
+	rotateTransform: function(angleRad, origin) {
+		return 'rotate('+[THREE.Math.radToDeg(angleRad), origin.x, origin.y].join(',')+')';
+	},
 
 	distanceToLine: function(point, line, clamp) {
 		if (clamp == undefined) {

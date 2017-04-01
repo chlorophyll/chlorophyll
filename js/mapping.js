@@ -1,5 +1,5 @@
 function Cartesian2DMapping() {
-	this.widget = new Widget2D(container, CartesianHandle);
+	this.widget = new CartesianAxes(container);
 
 	this.mapPoint = function(idx) {
 		var pos = model.getPosition(idx);
@@ -10,7 +10,7 @@ function Cartesian2DMapping() {
 }
 
 function Polar2DMapping() {
-	this.widget = new Widget2D(container, PolarHandle);
+	this.widget = new PolarAxes(container);
 
 	this.mapPoint = function(idx) {
 		var pos = model.getPosition(idx);
@@ -102,7 +102,7 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		// Project the screen position of the origin widget onto the proejction
 		// plane.  This is the 3d position of the mapping origin.
 		var raycaster = new THREE.Raycaster();
-		var widgetpos = new THREE.Vector2(origin.x_norm, origin.y_norm);
+		var widgetpos = new THREE.Vector2(origin.x, origin.y);
 		raycaster.setFromCamera(widgetpos, screenManager.activeScreen.camera);
 		self.proj_plane.origin = raycaster.ray.intersectPlane(self.proj_plane.plane);
 
