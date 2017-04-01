@@ -180,6 +180,17 @@ function GroupManager(model) {
 	function configureCurrentMapping() {
 		self.currentMapping.enable();
 
+		var setProjection = function() {
+			var angle = screenManager.activeScreen.camera.rotation;
+			cam_angle_widget.setValue(
+				[angle.x * THREE.Math.RAD2DEG,
+				 angle.y * THREE.Math.RAD2DEG,
+				 angle.z * THREE.Math.RAD2DEG], true);
+			self.currentMapping.setFromCamera();
+		};
+
+		screenManager.activeScreen.controls.addEventListener('end', setProjection);
+
 		// Default values for position/angle settings
 		var origin_pos = [0,0,0];
 		var plane_angle = screenManager.activeScreen.camera.rotation;
@@ -226,18 +237,10 @@ function GroupManager(model) {
 										map_origin.y,
 										map_origin.z], true);
 		}
-		mappingConfigInspector.addButton(null, 'Set projection from camera',
-			function() {
-				var angle = screenManager.activeScreen.camera.rotation;
-				cam_angle_widget.setValue(
-					[angle.x * THREE.Math.RAD2DEG,
-					 angle.y * THREE.Math.RAD2DEG,
-					 angle.z * THREE.Math.RAD2DEG], true);
-				self.currentMapping.setFromCamera();
-			});
 		mappingConfigInspector.addButton(null, 'Save and close', function() {
 			self.currentMapping.disable();
 			self.currentMapping.widget.onChange = null;
+			screenManager.activeScreen.controls.removeEventListener('end', setProjection);
 			mappingConfigInspector.clear();
 		});
 	}

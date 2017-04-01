@@ -12,6 +12,8 @@ Screen = function(camera, renderer, scene) {
 	controls.enableKeys = false;
 	controls.enabled = false;
 
+	this.controls = controls;
+
 	var controlsEnabled = true;
 	var isActive = false;
 
