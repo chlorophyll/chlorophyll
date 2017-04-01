@@ -21,6 +21,8 @@ function PatternGraph(id, name) {
 	self.name = name;
 	self.id = id;
 
+	var request_id;
+
 	self.curStage = defaultStage;
 
 	Object.defineProperty(this, 'curStageGraph', {
@@ -117,6 +119,7 @@ function PatternGraph(id, name) {
 
 	this.stop = function() {
 		running = false;
+		window.cancelAnimationFrame(requestid);
 		model.displayOnly = false;
 	}
 
@@ -155,10 +158,10 @@ function PatternGraph(id, name) {
 			model.updateColors();
 
 			if (running)
-				window.requestAnimationFrame(computePatternStep);
+				requestid = window.requestAnimationFrame(computePatternStep);
 		}
 
-		window.requestAnimationFrame(computePatternStep);
+		requestid = window.requestAnimationFrame(computePatternStep);
 	}
 	this.cleanup = function() { }
 }
