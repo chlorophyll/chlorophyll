@@ -130,7 +130,7 @@ function init() {
 	var height = container.clientHeight;
 
 	var scene = new THREE.Scene();
-	scene.fog = new THREE.Fog(0x000000, 750, 2000);
+	scene.fog = new THREE.Fog(0x000000, 5000, 5000);
 
 	var renderer = new THREE.WebGLRenderer({ antialias: false });
 	renderer.setClearColor(scene.fog.color);
@@ -159,7 +159,7 @@ function init() {
 
 	UI.toolbar.addSeparator();
 
-	initModelFromJson(scene, chrysanthemum);
+	initModelFromJson(scene, twister);
 	selectionManager.foreachCommand(function(command) {
 		command.model = model;
 	});
