@@ -4,7 +4,7 @@ WorldState = function(start) {
 	function restore() {
 		var snapshot = history[idx];
 		for (prop in snapshot) {
-			self[prop].setFromSnapshot(snapshot[prop]);
+			self[prop].restore(snapshot[prop]);
 		}
 	}
 

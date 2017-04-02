@@ -101,7 +101,7 @@ function PatternGraph(id, name) {
 		}
 	}
 
-	this.setFromSnapshot = function(snapshot) {
+	this.restore = function(snapshot) {
 		this.name = snapshot.name;
 		this.id = snapshot.id;
 		this.curStage = snapshot.curStage;
@@ -489,7 +489,7 @@ function PatternManager() {
 
 		var pattern = new PatternGraph();
 
-		pattern.setFromSnapshot(snap);
+		pattern.restore(snap);
 		pattern.id = id;
 		pattern.name = name;
 
@@ -508,13 +508,13 @@ function PatternManager() {
 		});
 	}
 
-	this.setFromSnapshot = function(snapshot) {
+	this.restore = function(snapshot) {
 		var newpatterns = snapshot.get('patterns').map(function(psnap, id) {
 			var pattern = patterns.get(id);
 			if (!pattern) {
 				pattern = new PatternGraph();
 			}
-			pattern.setFromSnapshot(psnap);
+			pattern.restore(psnap);
 			return pattern;
 		});
 

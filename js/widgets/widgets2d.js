@@ -35,7 +35,7 @@ function Widget2D(container) {
 
 	var self = this;
 
-	snap_angles = false;
+	var snap_angles = false;
 
 	function setPos(vx, vy) {
 		self.x = vx;

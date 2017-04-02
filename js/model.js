@@ -64,7 +64,7 @@ function Overlay(model) {
 		return this.colors;
 	}
 
-	this.setFromSnapshot = function(snapshot) {
+	this.restore = function(snapshot) {
 		this.colors = snapshot;
 		model.updateColors();
 	}

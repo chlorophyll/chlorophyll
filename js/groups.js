@@ -9,7 +9,8 @@
 
 function PixelGroup(manager, id, pixels, name, color) {
 	var self = this;
-	this.group_id = 'group-'+id;
+	this.id = id;
+	this.tree_id = 'group-'+id;
 	var group_name = name ? name : "unnamed"
 	var group_color = color ? color : new THREE.Color(0xff0000);
 	this.mappings = Immutable.Map();
@@ -22,8 +23,13 @@ function PixelGroup(manager, id, pixels, name, color) {
 		return _nextid++;
 	}
 
+	/*
+	 * If this group is being restored from a snapshot, the name might not
+	 * be valid yet, but it'll get updated when the group info is filled in
+	 * from the snapshot.
+	 */
 	var elem = manager.tree.insertItem({
-		id: this.group_id,
+		id: this.tree_id,
 		content: group_name,
 		dataset: {group: self}},
 		'root'
@@ -45,7 +51,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 		get: function() { return group_name; },
 		set: function(v) {
 			group_name = v;
-			manager.tree.updateItem(this.group_id, {
+			manager.tree.updateItem(this.tree_id, {
 				content: group_name,
 				dataset: {group: this}
 			});
@@ -69,16 +75,17 @@ function PixelGroup(manager, id, pixels, name, color) {
 		this.overlay.setAllFromSet(this.pixels, this.color);
 	}
 
+	this.destroy = function() {
+		this.model.removeOverlay(this.overlay);
+		manager.tree.removeItem(this.tree_id);
+	}
+
 	this.addMapping = function() {
 		var map_id = newgid();
 
 		var name = 'map-'+map_id;
-		var default_type = Cartesian2DMapping;
-		var mapping = new ProjectionMapping(manager, this, map_id, name,
-				Cartesian2DMapping);
-
+		var mapping = new ProjectionMapping(manager, this, map_id, name, 'cartesian2');
 		this.mappings = this.mappings.set(map_id, mapping);
-		worldState.checkpoint();
 
 		return mapping;
 	}
@@ -86,21 +93,51 @@ function PixelGroup(manager, id, pixels, name, color) {
 	this.snapshot = function() {
 		return Immutable.fromJS({
 			name: group_name,
-			id: this.group_id,
-			pixels: this.pixels,
-			mappings: this.mappings,
-			color: group_color,
-			overlay: this.overlay.snapshot(),
+			id: self.id,
+			tree_id: self.tree_id,
+			pixels: self.pixels,
+			color: self.color,
+			overlay: self.overlay.snapshot(),
+			mappings: self.mappings.map(function(map) {
+				return map.snapshot();
+			})
 		});
 	}
 
-	this.setFromSnapshot = function(snapshot) {
-		this.name = snapshot.get("name");
-		this.group_id = snapshot.get('id');
-		this.mappings = snapshot.get("mappings");
-		group_color = snapshot.get("color");
-		this.pixels = snapshot.get("pixels");
-		this.overlay.setFromSnapshot(snapshot.get('overlay'));
+	this.restore = function(snapshot) {
+		self.id = snapshot.get('id');
+		self.tree_id = snapshot.get('tree_id');
+		// Set name after the tree_id, so that the tree gets properly updated.
+		self.name = snapshot.get("name");
+		self.pixels = snapshot.get("pixels");
+		self.overlay.restore(snapshot.get('overlay'));
+		self.color = snapshot.get("color");
+		/*
+		 * If a mapping already exists, just update it.  If it doesn't
+		 * currently exist, we need to create a new one to update, and
+		 * similarly if it stopped existing it should be deleted.
+		 */
+		var newmappings = snapshot.get("mappings").map(function(mapsnap, id) {
+			var existingMapping = self.mappings.get(id);
+			if (existingMapping) {
+				existingMapping.restore(mapsnap);
+				return existingMapping;
+			} else {
+				var newMapping = new ProjectionMapping(manager, self, id);
+				newMapping.restore(mapsnap);
+				return newMapping;
+			}
+		});
+		// Check for destroyed mappings
+		self.mappings.forEach(function(mapping, id) {
+			if (!newmappings.get(id)) {
+				if (manager.currentMapping && id == manager.currentMapping.id)
+					manager.clearCurrentMapping();
+				mapping.destroy();
+			}
+		});
+
+		self.mappings = newmappings;
 	}
 }
 
@@ -136,9 +173,12 @@ function GroupManager(model) {
 	groupCmds.addSeparator();
 	groupCmds.addButton(undefined, 'Make Group', function() {
 		var newgroup = self.createFromActiveSelection();
-		self.tree.setSelectedItem(newgroup.group_id);
-		setCurrentGroup(newgroup);
-		clearCurrentMapping();
+		if (newgroup) {
+			self.tree.setSelectedItem(newgroup.tree_id);
+			self.setCurrentGroup(newgroup);
+			self.clearCurrentMapping();
+		}
+		worldState.checkpoint();
 	});
 	groupCmds.addSeparator();
 
@@ -146,7 +186,7 @@ function GroupManager(model) {
 	var currMappingInspector = new LiteGUI.Inspector();
 	var mappingConfigInspector = new LiteGUI.Inspector();
 
-	function setCurrentGroup(group) {
+	this.setCurrentGroup = function(group) {
 		self.currentGroup = group;
 		currGroupInspector.clear();
 		currGroupInspector.addSection('Current Group');
@@ -161,20 +201,18 @@ function GroupManager(model) {
 			}
 		});
 		currGroupInspector.addSeparator();
+		// TODO make this button do something
 		currGroupInspector.addButton(null, 'Add Active Selection to Group');
-		/*
-		 * XXX This probably isn't super useful?
-		currGroupInspector.addButton(null, 'Deselect', function() {
-			clearCurrentGroup();
-		});
-		*/
 		currGroupInspector.addButton(null, 'Add Mapping', function() {
 			var map = self.currentGroup.addMapping()
 			self.tree.setSelectedItem(map.tree_id);
-			setCurrentMapping(map);
+			self.setCurrentMapping(map);
+			worldState.checkpoint();
 		});
 		currGroupInspector.addButton(null, 'Delete Group', function() {
-			console.log("TODO: delete group");
+			var cur = self.currentGroup;
+			self.clearCurrentGroup();
+			cur.destroy();
 		});
 	}
 
@@ -183,8 +221,8 @@ function GroupManager(model) {
 		self.currentMapping.makeActive(mappingConfigInspector);
 	}
 
-	function setCurrentMapping(mapping) {
-		setCurrentGroup(mapping.group);
+	this.setCurrentMapping = function(mapping) {
+		self.setCurrentGroup(mapping.group);
 		self.currentMapping = mapping;
 
 		currMappingInspector.clear();
@@ -194,35 +232,31 @@ function GroupManager(model) {
 				self.currentMapping.name = v;
 			}
 		});
-		var map_types = {}
-		map_types["2d Cartesian"] = Cartesian2DMapping;
-		map_types["2d Polar"] = Polar2DMapping;
-		currMappingInspector.addCombo("Mapping type", "2d Cartesian", {
-			values: map_types,
+		currMappingInspector.addCombo("Mapping type", mapping.type, {
+			values: MapUtil.type_menu,
 			callback: function(v) {
 				self.currentMapping.setType(v);
+				worldState.checkpoint();
 			}
 		});
 		currMappingInspector.addButton(null, 'Configure Mapping', function() {
-			configureCurrentMapping();
+			if (!self.currentMapping.enabled)
+				configureCurrentMapping();
 		});
 	}
 
-	function clearCurrentMapping() {
+	this.clearCurrentMapping = function() {
+		self.tree.setSelectedItem(self.currentGroup.tree_id, false, false);
 		self.currentMapping = null;
 		currMappingInspector.clear();
 	}
 
-	function clearCurrentGroup() {
-		var sel = self.tree.root.querySelectorAll('.selected, .semiselected');
-		for (var elem of sel) {
-			elem.classList.remove('selected');
-			elem.classList.remove('semiselected');
-		}
+	this.clearCurrentGroup = function() {
+		self.clearCurrentMapping();
+		self.tree.setSelectedItem(null, false, false);
 		self.currentGroup = null;
 		group_namefield = null;
 		currGroupInspector.clear();
-		clearCurrentMapping();
 	}
 
 	this.tree = new LiteGUI.Tree('group-tree',
@@ -230,8 +264,10 @@ function GroupManager(model) {
 		{height: '100%', allow_rename: true}
 	);
 
+	// XXX onBackgroundClicked needs patched since liteGUI uses depricated
+	// event.srcElement instead of event.target.
 	this.tree.onBackgroundClicked = function() {
-		clearCurrentGroup();
+		self.clearCurrentGroup();
 	}
 
 	this.tree.root.addEventListener('item_selected', function(event) {
@@ -246,10 +282,10 @@ function GroupManager(model) {
 		currentSelection = event.detail.item;
 
 		if (dataset.group) {
-			setCurrentGroup(dataset.group);
-			clearCurrentMapping();
+			self.setCurrentGroup(dataset.group);
+			self.clearCurrentMapping();
 		} else if (dataset.mapping) {
-			setCurrentMapping(dataset.mapping);
+			self.setCurrentMapping(dataset.mapping);
 		}
 	});
 
@@ -294,46 +330,64 @@ function GroupManager(model) {
 		var newgroup = new PixelGroup(self, id, groupPixels, defaultName,
 			ColorPool.random());
 
-		this.groups = this.groups.set(id, newgroup);
-
-
+		self.groups = self.groups.set(id, newgroup);
 		newgroup.show();
-		// Mark the group on the model
-		worldState.checkpoint();
 
 		return newgroup;
 	}
 
 	this.snapshot = function () {
-		return this.groups.map(function(groupobj) {
+		var groups_snap = self.groups.map(function(groupobj) {
 			return groupobj.snapshot();
 		});
+		return Immutable.fromJS({
+			groups: groups_snap,
+			current_map_id: self.currentMapping ? self.currentMapping.id : -1,
+			current_group_id: self.currentGroup ? self.currentGroup.id : -1
+		})
 	}
 
-	this.setFromSnapshot = function(snapshot) {
+	this.restore = function(snapshot) {
 		/*
 		 * If a group already exists in the current manager, just update it.
 		 * If it doesn't currently exist, we need to create a new one to
 		 * update, and similarly if it stopped existing it should be deleted.
 		 */
-		var newgroups = snapshot.map(function(groupsnap, id) {
-			var existingGroup = this.groups.get(id);
+		var newgroups = snapshot.get('groups').map(function(groupsnap, id) {
+			var existingGroup = self.groups.get(id);
 			if (existingGroup) {
-				existingGroup.setFromSnapshot(groupsnap);
+				existingGroup.restore(groupsnap);
 				return existingGroup;
 			} else {
-				var newGroup = new PixelGroup(self);
-				newGroup.setFromSnapshot(groupsnap);
+				var newGroup = new PixelGroup(self, id);
+				newGroup.restore(groupsnap);
 				return newGroup;
 			}
 		});
 		// Check for destroyed groups
-		this.groups.forEach(function(group, id) {
+		self.groups.forEach(function(group, id) {
 			if (!newgroups.get(id)) {
-				group.cleanup();
+				if (self.currentGroup && id == self.currentGroup.id)
+					self.clearCurrentGroup();
+				group.destroy();
 			}
 		});
+		self.groups = newgroups;
 
-		this.groups = newgroups;
+		// UI state munging: make sure the currently selected group & mapping
+		// are the same as when the snapshot was taken.
+		var cur_gid = snapshot.get('current_group_id');
+		var cur_mid = snapshot.get('current_map_id');
+		self.clearCurrentGroup();
+		if (cur_gid != -1) {
+			var group = self.groups.get(cur_gid);
+			self.tree.setSelectedItem(group.tree_id);
+			self.setCurrentGroup(group);
+		}
+		if (cur_mid != -1) {
+			var mapping = self.currentGroup.mappings.get(cur_mid);
+			self.tree.setSelectedItem(mapping.tree_id);
+			self.setCurrentMapping(mapping);
+		}
 	}
 }
