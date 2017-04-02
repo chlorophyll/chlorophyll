@@ -106,6 +106,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 
 function GroupManager(model) {
 	var self = this;
+	var currentSelection = null;
 	this.model = model;
 
 	this.currentGroup = null;
@@ -299,6 +300,14 @@ function GroupManager(model) {
 	this.tree.root.addEventListener('item_selected', function(event) {
 		var dataset = event.detail.data.dataset;
 
+		if (self.currentMapping && self.currentMapping.enabled) {
+			if (currentSelection)
+				self.tree.markAsSelected(currentSelection);
+			return;
+		}
+
+		currentSelection = event.detail.item;
+
 		if (dataset.group) {
 			setCurrentGroup(dataset.group);
 			clearCurrentMapping();
@@ -310,14 +319,16 @@ function GroupManager(model) {
 	this.tree.root.addEventListener('item_renamed', function(event) {
 		var dataset = event.detail.data.dataset;
 
-		// Renaming a group from the tree view selects it, so update the
-		// name textbox for the current group/mapping
 		if (dataset.group) {
 			dataset.group.name = event.detail.new_name;
-			group_namefield.setValue(dataset.group.name, true);
+			if (self.currentGroup == dataset.group) {
+				group_namefield.setValue(dataset.group.name, true);
+			}
 		} else if (dataset.mapping) {
 			dataset.mapping.name = event.detail.new_name;
-			mapping_namefield.setValue(dataset.mapping.name, true);
+			if (self.currentMapping == dataset.mapping) {
+				mapping_namefield.setValue(dataset.mapping.name, true);
+			}
 		}
 	});
 
