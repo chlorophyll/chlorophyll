@@ -73,13 +73,6 @@ function Overlay(model) {
 function Model(json) {
 	var self = this;
 	this.overlays = [];
-	var stripColors = [
-		new THREE.Color(0x00ff00),
-		new THREE.Color(0x8000ff),
-		new THREE.Color(0xff0000),
-		new THREE.Color(0xff8000),
-		new THREE.Color(0xffff00)
-	]
 	var stripOffsets;
 	var stripModels = [];
 	var numPixels;
@@ -165,19 +158,13 @@ function Model(json) {
 	}
 
 	var setDefaultColors = function() {
+		var black = new THREE.Color();
+		var white = new THREE.Color(0xaaaaaa);
+
 		self.forEach(function(strip, i) {
-			var color = new THREE.Color(0x000000);
-			if (showWithoutOverlays) {
-				color = stripColors[strip] || new THREE.Color(0xffffff);
-			}
-			self.setColor(i, color);
+			self.setColor(i, showWithoutOverlays ? white : black);
 		});
 	}
-
-	this.defaultColor = function(strip) {
-		return stripColors[strip];
-	}
-
 
 	this.pointsWithinRadius = function(point, radius) {
 		return this.octree.search(point, radius);
