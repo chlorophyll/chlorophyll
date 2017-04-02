@@ -38,6 +38,8 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 	var type = null;
 	var first_enable = true;
 
+	var ui_controls = {};
+
 	var screen = screenManager.addScreen(this.tree_id,
 			{isOrtho: true, inheritOrientation: true});
 
@@ -110,8 +112,34 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		// TODO undo snapshot
 	}
 
-	this.enable = function() {
+	/* Updates the camera projection and shows it in the ui */
+	var setProjection = function() {
+		var angle = screen.camera.rotation;
+		ui_controls.cam_angle_widget.setValue(
+			[angle.x * THREE.Math.RAD2DEG,
+				angle.y * THREE.Math.RAD2DEG,
+				angle.z * THREE.Math.RAD2DEG], true);
+		self.setFromCamera();
+	}
+
+	this.makeInactive = function() {
+		if (!self.enabled) return;
+		self.model.showUnderlyingModel();
+		screenManager.setActive('main');
+		self.widget.hide();
+
+		self.enabled = false;
+		self.widget.onChange = null;
+		screen.controls.removeEventListener('end', setProjection);
+		ui_controls.inspector.clear();
+		ui_controls = {};
+	}
+
+	this.makeActive = function(inspector) {
+
 		if (self.enabled) return;
+
+		ui_controls.inspector = inspector;
 
 		self.model.hideUnderlyingModel();
 		screenManager.setActive(self.tree_id);
@@ -124,17 +152,59 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		}
 
 		self.enabled = true;
+
+
+		screen.controls.addEventListener('end', setProjection);
+
+		// Default values for position/angle settings
+		var origin_pos = [0,0,0];
+		var plane_angle = screen.camera.rotation;
+		if (self.mapping_valid) {
+			var map_origin = self.proj_plane.origin;
+			origin_pos = [map_origin.x, map_origin.y, map_origin.z];
+			plane_angle = self.proj_plane.euler;
+		}
+
+		// display as degrees for human readability
+		ui_controls.cam_angle_widget = inspector.addVector3("plane normal",
+			[plane_angle.x * THREE.Math.RAD2DEG,
+			 plane_angle.y * THREE.Math.RAD2DEG,
+			 plane_angle.z * THREE.Math.RAD2DEG],
+			{
+				min: -180, max: 180,
+				precision: 1,
+				callback: function(v) {
+					// Rotate the camera to the set angle
+					var new_normal = new THREE.Vector3(0, 0, 1);
+					new_normal.applyEuler(new THREE.Euler(
+						v[0] * THREE.Math.DEG2RAD,
+						v[1] * THREE.Math.DEG2RAD,
+						v[2] * THREE.Math.DEG2RAD));
+					Util.alignWithVector(new_normal,
+						screen.camera);
+					self.setFromCamera();
+				}
+			});
+
+		var origin_pos_widget = inspector.addVector3("origin position",
+			origin_pos, {
+				disabled: true,
+				precision: 1,
+			});
+
+		/*
+		 * When the projection origin widget is moved, re-generate the mapping
+		 * and update the panel view to reflect its new location.
+		 */
+		self.widget.onChange = function(data) {
+			self.setFromCamera();
+			var map_origin = self.proj_plane.origin;
+			origin_pos_widget.setValue([map_origin.x,
+			                            map_origin.y,
+			                            map_origin.z], true);
+		}
+
+		inspector.addButton(null, 'Save and close', self.makeInactive);
 	}
 
-	this.disable = function() {
-		if (!self.enabled) return;
-
-		self.model.showUnderlyingModel();
-		screenManager.setActive('main');
-		self.widget.hide();
-
-		self.enabled = false;
-	}
 }
-
-

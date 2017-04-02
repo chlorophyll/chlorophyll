@@ -179,71 +179,8 @@ function GroupManager(model) {
 	}
 
 	function configureCurrentMapping() {
-		self.currentMapping.enable();
-
-		var setProjection = function() {
-			var angle = screenManager.activeScreen.camera.rotation;
-			cam_angle_widget.setValue(
-				[angle.x * THREE.Math.RAD2DEG,
-				 angle.y * THREE.Math.RAD2DEG,
-				 angle.z * THREE.Math.RAD2DEG], true);
-			self.currentMapping.setFromCamera();
-		};
-
-		screenManager.activeScreen.controls.addEventListener('end', setProjection);
-
-		// Default values for position/angle settings
-		var origin_pos = [0,0,0];
-		var plane_angle = screenManager.activeScreen.camera.rotation;
-		if (self.currentMapping.mapping_valid) {
-			var map_origin = self.currentMapping.proj_plane.origin;
-			origin_pos = [map_origin.x, map_origin.y, map_origin.z];
-			plane_angle = self.currentMapping.proj_plane.euler;
-		}
-
 		mappingConfigInspector.addSection('Mapping Configuration');
-		// display as degrees for human readability
-		var cam_angle_widget = mappingConfigInspector.addVector3("plane normal",
-			[plane_angle.x * THREE.Math.RAD2DEG,
-			 plane_angle.y * THREE.Math.RAD2DEG,
-			 plane_angle.z * THREE.Math.RAD2DEG],
-			{
-				min: -180, max: 180,
-				precision: 1,
-				callback: function(v) {
-					// Rotate the camera to the set angle
-					var new_normal = new THREE.Vector3(0, 0, 1);
-					new_normal.applyEuler(new THREE.Euler(
-						v[0] * THREE.Math.DEG2RAD,
-						v[1] * THREE.Math.DEG2RAD,
-						v[2] * THREE.Math.DEG2RAD));
-					Util.alignWithVector(new_normal,
-						screenManager.activeScreen.camera);
-					self.currentMapping.setFromCamera();
-				}
-			});
-		var origin_pos_widget = mappingConfigInspector.addVector3("origin position",
-			origin_pos, {
-				disabled: true,
-				precision: 1,
-			});
-		/*
-		 * When the projection origin widget is moved, re-generate the mapping
-		 * and update the panel view to reflect its new location.
-		 */
-		self.currentMapping.widget.onChange = function(data) {
-			self.currentMapping.setFromCamera();
-			var map_origin = self.currentMapping.proj_plane.origin;
-			origin_pos_widget.setValue([map_origin.x,
-										map_origin.y,
-										map_origin.z], true);
-		}
-		mappingConfigInspector.addButton(null, 'Save and close', function() {
-			self.currentMapping.disable();
-			self.currentMapping.widget.onChange = null;
-			screenManager.activeScreen.controls.removeEventListener('end', setProjection);
-			mappingConfigInspector.clear();
-		});
+		self.currentMapping.makeActive(mappingConfigInspector);
 	}
 
 	function setCurrentMapping(mapping) {
