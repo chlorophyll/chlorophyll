@@ -48,19 +48,15 @@ function PatternGraph(id, name) {
 		graph.fixedtime_lapse = 0;
 	});
 
+	function checkpoint() {
+		worldState.checkpoint();
+	}
+
 	function enableUndo() {
 		forEachStage(function(stage, graph) {
-			graph.onConnectionChange = function() {
-				worldState.checkpoint();
-			}
-
-			graph.onNodeAdded = function() {
-				worldState.checkpoint();
-			}
-
-			graph.onNodeRemoved = function() {
-				worldState.checkpoint();
-			}
+			graph.addEventListener('connection-change', checkpoint);
+			graph.addEventListener('node-added', checkpoint);
+			graph.addEventListener('node-removed', checkpoint);
 		});
 	}
 
@@ -68,9 +64,9 @@ function PatternGraph(id, name) {
 
 	function disableUndo() {
 		forEachStage(function(stage, graph) {
-			graph.onConnectionChange = undefined;
-			graph.onNodeAdded = undefined;
-			graph.onNodeRemoved = undefined;
+			graph.removeEventListener('connection-change', checkpoint);
+			graph.removeEventListener('node-added', checkpoint);
+			graph.removeEventListener('node-removed', checkpoint);
 		});
 	}
 
@@ -85,7 +81,6 @@ function PatternGraph(id, name) {
 	outp.clonable = false;
 	outp.color = '#e5a88a';
 	outp.boxcolor = '#cc8866';
-	console.log(outp.pos);
 	outp.pos = [300,100];
 
 	this.stages['pixel'].add(inp);
@@ -228,6 +223,8 @@ function PatternManager() {
 	var init = function() {
 		self.root = document.createElement('div');
 		self.root.style.width = '100%';
+		self.root.style.position = 'relative';
+		self.root.style.height = '100%';
 		self.top_widgets = new LiteGUI.Inspector( null, { one_line: true});
 
 		var runningPattern = false;
@@ -296,14 +293,91 @@ function PatternManager() {
 		self.root.appendChild( self.top_widgets.root );
 		var area = self.area = new LiteGUI.Area(null,{ className: "grapharea", height: -30});
 		self.root.appendChild( area.root );
+		var canvasContainer = document.createElement('div');
+		UI.tabs.addTab('Pattern Builder', {
+			content: self.root,
+			width: '100%',
+			size: 'full',
+		});
+		area.split('horizontal', [210, null], true);
+		area.getSection(1).add(canvasContainer);
 
-		self.canvas = document.createElement('canvas');
-		area.add(self.canvas);
-		area.content.style.backgroundColor = "#222";
-		self.graphcanvas = new LGraphCanvas( self.canvas, null, { autoresize: true } );
-		self.graphcanvas.render_shadows = false;
-		self.graphcanvas.show_info = false;
-		self.graphcanvas.clear_background = false;
+		self.graphcanvas = new GraphCanvas(canvasContainer);
+
+
+
+		var nodes = {id: "Nodes", children: []};
+
+		var nodeTree = new LiteGUI.Tree('node-list-tree', nodes, {
+			height: '100%',
+		});
+
+		for (var category of LiteGraph.getNodeTypesCategories()) {
+			var nodesInCategory = LiteGraph.getNodeTypesInCategory(category);
+
+			if (nodesInCategory.length == 0)
+				continue;
+			nodeTree.insertItem({id: category, skipdrag: true});
+
+			nodesInCategory.forEach(function(node) {
+				var elem = nodeTree.insertItem({
+					id: node.title,
+					skipdrag: true,
+					content: node.type.split('/')[1],
+					dataset: {nodetype: node.type}
+				}, category);
+
+				elem.draggable = true;
+				elem.addEventListener('dragstart', function(ev) {
+					ev.dataTransfer.setData('text/plain', node.title);
+					ev.dataTransfer.dragEffect = 'link';
+				});
+			});
+		}
+
+		canvasContainer.addEventListener('dragover', function(ev) {
+			if (self.graphcanvas.graph != null)
+				ev.preventDefault();
+		});
+
+		canvasContainer.addEventListener('drop', function(ev) {
+			if (self.graphcanvas.graph == null)
+				return;
+			ev.preventDefault();
+			var nodeId = ev.dataTransfer.getData('text');
+			var item = nodeTree.getItem(nodeId);
+			var nodetype = item.data.dataset.nodetype;
+			self.graphcanvas.addNode(nodetype, ev.clientX, ev.clientY);
+		});
+
+		var curNodeType = null;
+		var curSelection = null;
+
+		nodeTree.root.addEventListener('item_selected', function(ev) {
+			var dataset = ev.detail.data.dataset;
+			if (dataset && dataset.nodetype) {
+				curNodeType = dataset.nodetype;
+				curSelection = ev.detail.item;
+			} else {
+				if (curSelection)
+					nodeTree.markAsSelected(curSelection);
+			}
+		});
+
+		canvasContainer.addEventListener('contextmenu', function(ev) {
+			ev.preventDefault();
+			if (curNodeType) {
+				self.graphcanvas.addNode(curNodeType, ev.clientX, ev.clientY);
+			}
+		});
+
+
+
+		var nodePanel = new LiteGUI.Panel('node-list', {scroll: true});
+		nodePanel.content.style.height = '100%';
+		nodePanel.add(nodeTree);
+		area.getSection(0).add(nodePanel);
+
 
 		self.graphcanvas.onShowNodePanel = function(node) {
 			if (node.onDblClick)
@@ -372,12 +446,6 @@ function PatternManager() {
 
 			dialog.show();
 		}
-
-		self.graphcanvas.background_image = 'img/litegraph_grid.png'
-		UI.tabs.addTab('Pattern Builder', {
-			content: self.root,
-			width: '100%'
-		});
 	}
 
 	var newPattern = function() {

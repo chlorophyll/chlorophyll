@@ -88,7 +88,8 @@ function init() {
 
 	mainarea.split('vertical',[null,225], true);
 	var dock = mainarea.getSection(1);
-	UI.tabs = new LiteGUI.Tabs();
+	UI.tabs = new LiteGUI.Tabs(null, {size: 'full'});
+	console.log(UI.tabs);
 
 	dock.add(UI.tabs);
 	mainarea = mainarea.getSection(0);
@@ -159,7 +160,7 @@ function init() {
 
 	UI.toolbar.addSeparator();
 
-	initModelFromJson(scene, twister);
+	initModelFromJson(scene, chrysanthemum);
 	selectionManager.foreachCommand(function(command) {
 		command.model = model;
 	});
