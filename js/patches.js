@@ -93,8 +93,10 @@ LiteGraph.isValidConnection = function(type_a, type_b) {
 	return (!type_a || !type_b || type_a == type_b)
 }
 
-LGraph.prototype.listeners = [];
 LGraph.prototype.addEventListener = function(type, callback) {
+	if (this.listeners == undefined) {
+		this.listeners = {};
+	}
 	if (!(type in this.listeners)) {
 		this.listeners[type] = [];
 	}
@@ -102,6 +104,9 @@ LGraph.prototype.addEventListener = function(type, callback) {
 };
 
 LGraph.prototype.removeEventListener = function(type, callback) {
+	if (this.listeners == undefined) {
+		this.listeners = {};
+	}
 	if (!(type in this.listeners)) {
 		return;
 	}
@@ -125,95 +130,3 @@ LGraph.prototype.dispatchEvent = function(event) {
 	}
 	return !event.defaultPrevented;
 };
-
-
-LGraph.prototype.onPlayEvent = function() {
-	var evt = new CustomEvent('play');
-	this.dispatchEvent(evt);
-}
-
-
-LGraph.prototype.onStopEvent = function() {
-	var evt = new CustomEvent('stop');
-	this.dispatchEvent(evt);
-}
-
-LGraph.prototype.onExecuteStepEvent = function() {
-	var evt = new CustomEvent('execute-step');
-	this.dispatchEvent(evt);
-}
-
-LGraph.prototype.onAfterExecuteEvent = function() {
-	var evt = new CustomEvent('after-execute');
-	this.dispatchEvent(evt);
-}
-
-LGraph.prototype.onNodeAdded = function(node) {
-	var evt = new CustomEvent('node-added', {
-		detail: {
-			node: node
-		}
-	});
-	this.dispatchEvent(evt);
-}
-
-LGraph.prototype.onNodeRemoved = function(node) {
-	var evt = new CustomEvent('node-removed', {
-		detail: {
-			node: node
-		}
-	});
-	this.dispatchEvent(evt);
-}
-
-LGraph.prototype.onGlobalInputAdded = function(name, type) {
-	var evt = new CustomEvent('global-input-added', {
-		detail: {
-			name: name,
-			type: type
-		}
-	});
-	this.dispatchEvent(evt);
-}
-
-LGraph.prototype.onGlobalInputRemoved = function(name) {
-	var evt = new CustomEvent('global-input-removed', {
-		detail: {
-			name: name,
-		}
-	});
-	this.dispatchEvent(evt);
-}
-
-LGraph.prototype.onGlobalOutputAdded = function(name, type) {
-	var evt = new CustomEvent('global-output-added', {
-		detail: {
-			name: name,
-			type: type
-		}
-	});
-	this.dispatchEvent(evt);
-}
-
-LGraph.prototype.onGlobalOutputRemoved = function(name) {
-	var evt = new CustomEvent('global-output-removed', {
-		detail: {
-			name: name,
-		}
-	});
-	this.dispatchEvent(evt);
-}
-
-LGraph.prototype.onGlobalsChange = function() {
-	var evt = new CustomEvent('globals-change');
-	this.dispatchEvent(evt);
-}
-
-LGraph.prototype.onConnectionChange = function(node) {
-	var evt = new CustomEvent('connection-change', {
-		detail: {
-			node: node
-		}
-	});
-	this.dispatchEvent(evt);
-}

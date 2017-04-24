@@ -127,6 +127,14 @@ function GraphCanvas(divNode) {
 			var link = self.graph.links[link_id];
 			path.attr('id', 'link'+link_id);
 			updatePathForLink(path, link);
+
+			var evt = new CustomEvent('connection-change', {
+				detail: {
+					link: link,
+				}
+			});
+
+			self.graph.dispatchEvent(evt);
 		} else {
 			path.remove();
 		}
@@ -237,6 +245,14 @@ function GraphCanvas(divNode) {
 				.on('click', function() {
 					self.graph.remove(node);
 					nodegroup.remove();
+
+					var evt = new CustomEvent('node-removed', {
+						detail: {
+							node: node
+						}
+					});
+					this.dispatchEvent(evt);
+
 				});
 
 			closebox.append('rect')
@@ -371,7 +387,15 @@ function GraphCanvas(divNode) {
 		coords.y += LiteGraph.NODE_TITLE_HEIGHT / 2;
 
 		node.pos = [coords.x, coords.y];
-		this.graph.add(node);
+
+		self.graph.add(node);
+		var evt = new CustomEvent('node-added', {
+			detail: {
+				node: node
+			}
+		});
+		self.graph.dispatchEvent(evt);
+
 		drawNode(node);
 	}
 
