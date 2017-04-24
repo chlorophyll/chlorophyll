@@ -18,6 +18,11 @@ function GraphCanvas(divNode) {
 		            .attr('height', '100%')
 					.call(d3.zoom()
 					.scaleExtent([0.25, 10])
+					.filter(function() {
+						if (event.type == 'dblclick')
+							return event.target.id == grid;
+						return !event.button;
+					})
 					.on('zoom', function() {
 						if (self.graph == null)
 							return;
@@ -45,6 +50,7 @@ function GraphCanvas(divNode) {
 	var grid = container.append('rect')
              .attr("width", '2000%')
              .attr("height", '2000%')
+	         .attr('id', 'grid')
 	         .style('transform', 'translate(-50%, -50%)')
 	         .style('fill', 'url(#grid)');
 
@@ -165,10 +171,15 @@ function GraphCanvas(divNode) {
 
 	}
 
-
 	var drawNode = function(node) {
 		var nodegroup = nodeContainer.append('g');
 		nodegroup.attr('transform', 'translate('+node.pos[0]+','+node.pos[1]+')')
+		.attr('id', 'node'+node.id)
+		.on('dblclick', function() {
+			d3.event.preventDefault();
+			if (self.onShowNodePanel)
+				self.onShowNodePanel(node);
+		}, true)
 		.call(d3.drag()
 		.on('start', function() { })
 		.on('drag', function() {
@@ -422,6 +433,11 @@ function GraphCanvas(divNode) {
 			drawNode(node);
 		}
 
+	}
+
+	this.redrawNode = function(node) {
+		nodeContainer.select('#node'+node.id).remove();
+		drawNode(node);
 	}
 
 	this.clearGraph();

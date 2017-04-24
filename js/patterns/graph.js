@@ -373,10 +373,10 @@ function PatternManager() {
 
 
 
-		var nodePanel = new LiteGUI.Panel('node-list', {scroll: true});
-		nodePanel.content.style.height = '100%';
-		nodePanel.add(nodeTree);
-		area.getSection(0).add(nodePanel);
+		var nodeTreePanel = new LiteGUI.Panel('node-list', {scroll: true});
+		nodeTreePanel.content.style.height = '100%';
+		nodeTreePanel.add(nodeTree);
+		area.getSection(0).add(nodeTreePanel);
 
 
 		self.graphcanvas.onShowNodePanel = function(node) {
@@ -404,27 +404,34 @@ function PatternManager() {
 
 			var values = [];
 
+			var widgets = 0;
+
 			inputs.forEach(function(input, i) {
 				var val = node.properties.default_inputs[i];
 
-				if (val !== undefined) {
-					values[i] = v;
-				}
+				values[i] = val;
 
 				var callback = function(v) {
+					console.log(v);
 					values[i] = v;
 				}
 
 				if (input.type == 'string') {
 					widgets[i] = inspector.addString(input.name, val, { callback: callback });
+					widgets++;
 				} else if (input.type == 'number') {
 					widgets[i] = inspector.addNumber(input.name, val, {
 						step: 1,
 						precision: 0,
 						callback: callback
 					});
+					widgets++;
 				}
 			});
+
+			if (widgets == 0) {
+				return;
+			}
 
 			function applyProperties() {
 				for (var i = 0; i < inputs.length; i++) {
@@ -435,7 +442,7 @@ function PatternManager() {
 					} else {
 						node.inputs[i].label = null;
 					}
-					self.graphcanvas.setDirty(true,true);
+					self.graphcanvas.redrawNode(node);
 				}
 			}
 
