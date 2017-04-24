@@ -245,6 +245,7 @@ make_node(CRGB.prototype,'invert', [], function() {
 	this.r = 255 - this.r;
 	this.g = 255 - this.g;
 	this.b = 255 - this.b;
+	return this;
 });
 
 make_node(CRGB.prototype,'lerp8', [['other', 'number'], ['frac', 'number']], function(other, frac) {
