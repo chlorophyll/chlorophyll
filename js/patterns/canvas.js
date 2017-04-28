@@ -128,10 +128,19 @@ function GraphCanvas(divNode) {
 	function makeConnection(start, end, path) {
 		var startport = getOutputPort(start.node, start.slotnum);
 		var endport = getInputPort(end.node, end.slotnum);
+
+		var old_link_id = end.node.inputs[end.slotnum].link;
+
 		var valid = start.node.connect(start.slotnum, end.node, end.slotnum);
 		var link_id = end.node.inputs[end.slotnum].link;
 
 		if (valid && link_id !== null) {
+
+			if (old_link_id !== null) {
+				var old_link = self.graph.links[old_link_id];
+				removeLink(old_link, false);
+			}
+
 			startport.attr('fill', '#7f7');
 			endport.attr('fill', '#7f7');
 			var link = self.graph.links[link_id];
@@ -150,7 +159,7 @@ function GraphCanvas(divNode) {
 		}
 	}
 
-	function disconnect(link) {
+	function removeLink(link, disconnect) {
 		var connection = getConnection(link.id);
 
 		var start = self.graph.getNodeById(link.origin_id);
@@ -159,7 +168,9 @@ function GraphCanvas(divNode) {
 		var end = self.graph.getNodeById(link.target_id);
 		var end_slot = link.target_slot;
 
-		start.disconnectOutput(start_slot, end);
+		if (disconnect) {
+			start.disconnectOutput(start_slot, end);
+		}
 
 		connection.remove();
 
@@ -368,7 +379,7 @@ function GraphCanvas(divNode) {
 					.on('click', function(d) {
 						var slot = d.node.inputs[d.slotnum];
 						if (slot.link != null) {
-							disconnect(self.graph.links[slot.link]);
+							removeLink(self.graph.links[slot.link], true);
 						}
 					});
 
