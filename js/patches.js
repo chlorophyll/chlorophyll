@@ -130,3 +130,15 @@ LGraph.prototype.dispatchEvent = function(event) {
 	}
 	return !event.defaultPrevented;
 };
+
+/*
+ * Mousetrap patch: don't block keybinding callbacks when a selection dropdown
+ * is selected.
+ */
+(function() {
+	var oldStopCallback = Mousetrap.prototype.stopCallback;
+
+    Mousetrap.prototype.stopCallback = function(e, element) {
+		return oldStopCallback(e, element) && element.tagName != 'SELECT';
+	}
+})();
