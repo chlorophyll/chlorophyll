@@ -14,7 +14,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 	var group_name = name ? name : "unnamed"
 	var group_color = color ? color : new THREE.Color(0xff0000);
 	this.mappings = Immutable.Map();
-	this.pixels = pixels ? pixels : Immutable.Map();
+	this.pixels = pixels ? pixels : Immutable.Set();
 	this.model = manager.model;
 	this.overlay = model.createOverlay(1);
 
@@ -317,12 +317,10 @@ function GroupManager(model) {
 	UI.sidebar = UI.sidebar.getSection(1); //hm
 	//UI.sidebar.add(groupCmds);
 	//
-	function createGroup(groupPixels) {
+	function createGroup(pixels, name) {
 		var id = newgid();
-		var defaultName = "group-" + id;
 
-		var newgroup = new PixelGroup(self, id, groupPixels, defaultName,
-			ColorPool.random());
+		var newgroup = new PixelGroup(self, id, pixels, name, ColorPool.random());
 
 		self.groups = self.groups.set(id, newgroup);
 		newgroup.show();
@@ -334,10 +332,11 @@ function GroupManager(model) {
 		// Don't create an empty group
 		if (worldState.activeSelection.size() == 0)
 			return;
+		var defaultName = "group-" + id;
 
 		var groupPixels = worldState.activeSelection.getPixels();
 		worldState.activeSelection.clear();
-		return createGroup(groupPixels);
+		return createGroup(groupPixels, defaultName);
 	}
 
 	this.snapshot = function () {
@@ -394,4 +393,24 @@ function GroupManager(model) {
 			self.setCurrentMapping(mapping);
 		}
 	}
+
+	var allPixels = [];
+	model.forEach(function(_, pixel) {
+		allPixels.push(pixel);
+	});
+	createGroup(Immutable.Set(allPixels), "All pixels");
+
+	for (var strip = 0; strip < model.numStrips; strip++) {
+		var name = 'Strip '+(strip+1);
+
+		var list = [];
+
+		model.forEachPixelInStrip(strip, function(pixel) {
+			list.push(pixel);
+		});
+
+		var pixels = Immutable.Set(list);
+		createGroup(pixels, name);
+	}
+
 }

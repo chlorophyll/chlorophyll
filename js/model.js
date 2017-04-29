@@ -73,6 +73,7 @@ function Overlay(model) {
 function Model(json) {
 	var self = this;
 	this.overlays = [];
+	this.numStrips = 0;
 	var stripOffsets;
 	var stripModels = [];
 	var numPixels;
@@ -124,7 +125,7 @@ function Model(json) {
 		var stripStart = stripOffsets[strip];
 		var stripEnd = stripOffsets[strip+1];
 		for (var i = stripStart; i < stripEnd; i++) {
-			func(strip, i);
+			func(i);
 		}
 	}
 
@@ -254,6 +255,7 @@ function Model(json) {
 			stripOffsets.push(i);
 		}
 		numPixels = i;
+		self.numStrips = strips.length;
 
 		geometry = new THREE.Geometry();
 		geometry.vertices = pixelData;
