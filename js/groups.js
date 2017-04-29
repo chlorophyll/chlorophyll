@@ -174,7 +174,6 @@ function GroupManager(model) {
 	groupCmds.addButton(undefined, 'Make Group', function() {
 		var newgroup = self.createFromActiveSelection();
 		if (newgroup) {
-			self.tree.setSelectedItem(newgroup.tree_id);
 			self.setCurrentGroup(newgroup);
 			self.clearCurrentMapping();
 		}
@@ -188,6 +187,7 @@ function GroupManager(model) {
 
 	this.setCurrentGroup = function(group) {
 		self.currentGroup = group;
+		self.tree.setSelectedItem(group.tree_id);
 		currGroupInspector.clear();
 		currGroupInspector.addSection('Current Group');
 		group_namefield = currGroupInspector.addString('name', group.name, {
@@ -205,7 +205,6 @@ function GroupManager(model) {
 		currGroupInspector.addButton(null, 'Add Active Selection to Group');
 		currGroupInspector.addButton(null, 'Add Mapping', function() {
 			var map = self.currentGroup.addMapping()
-			self.tree.setSelectedItem(map.tree_id);
 			self.setCurrentMapping(map);
 			worldState.checkpoint();
 		});
@@ -223,6 +222,7 @@ function GroupManager(model) {
 
 	this.setCurrentMapping = function(mapping) {
 		self.setCurrentGroup(mapping.group);
+		self.tree.setSelectedItem(mapping.tree_id);
 		self.currentMapping = mapping;
 
 		currMappingInspector.clear();
@@ -316,14 +316,8 @@ function GroupManager(model) {
 	UI.sidebar.getSection(1).add(panel);
 	UI.sidebar = UI.sidebar.getSection(1); //hm
 	//UI.sidebar.add(groupCmds);
-
-	this.createFromActiveSelection = function() {
-		// Don't create an empty group
-		if (worldState.activeSelection.size() == 0)
-			return;
-
-		var groupPixels = worldState.activeSelection.getPixels();
-		worldState.activeSelection.clear();
+	//
+	function createGroup(groupPixels) {
 		var id = newgid();
 		var defaultName = "group-" + id;
 
@@ -334,6 +328,16 @@ function GroupManager(model) {
 		newgroup.show();
 
 		return newgroup;
+	}
+
+	this.createFromActiveSelection = function() {
+		// Don't create an empty group
+		if (worldState.activeSelection.size() == 0)
+			return;
+
+		var groupPixels = worldState.activeSelection.getPixels();
+		worldState.activeSelection.clear();
+		return createGroup(groupPixels);
 	}
 
 	this.snapshot = function () {
