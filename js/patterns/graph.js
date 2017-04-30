@@ -243,7 +243,10 @@ function PatternManager() {
 				curPattern.stop();
 				this.setValue(play);
 			} else {
-				curPattern.run(groupManager.currentMapping);
+				var mapping = groupManager.currentMapping;
+				if (!mapping)
+					return;
+				curPattern.run(mapping);
 				this.setValue(pause);
 			}
 			runningPattern = !runningPattern;
