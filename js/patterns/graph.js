@@ -148,7 +148,6 @@ function PatternGraph(id, name) {
 				var outcolor = graph.getGlobalOutputData('outcolor');
 				model.setDisplayColor(idx, outcolor.r, outcolor.g, outcolor.b);
 			});
-			model.updateColors();
 			self.time += 1;
 			model.updateColors();
 
