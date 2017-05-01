@@ -99,6 +99,17 @@ var Util = {
 		s.radius = radius;
 		s.makeSafe();
 		camera.position.setFromSpherical(s);
+	},
+
+	hilightElement: function(elem) {
+		elem.__saved_background = elem.style.background;
+		elem.style.background = "transparent " +
+			"linear-gradient(#ed5f0e, #b7551d) repeat scroll 0px 0px";
+	},
+
+	unhilightElement: function(elem) {
+		elem.style.background = elem.__saved_background;
+		delete elem.saved_background;
 	}
 };
 

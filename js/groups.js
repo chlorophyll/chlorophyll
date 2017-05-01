@@ -16,7 +16,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 	this.mappings = Immutable.Map();
 	this.pixels = pixels ? pixels : Immutable.Set();
 	this.model = manager.model;
-	this.overlay = model.createOverlay(1);
+	this.overlay = this.model.createOverlay(1);
 
 	var _nextid = 0;
 	function newgid() {
@@ -395,17 +395,17 @@ function GroupManager(model) {
 	}
 
 	var allPixels = [];
-	model.forEach(function(_, pixel) {
+	this.model.forEach(function(_, pixel) {
 		allPixels.push(pixel);
 	});
 	createGroup(Immutable.Set(allPixels), "All pixels");
 
-	for (var strip = 0; strip < model.numStrips; strip++) {
+	for (var strip = 0; strip < this.model.numStrips; strip++) {
 		var name = 'Strip '+(strip+1);
 
 		var list = [];
 
-		model.forEachPixelInStrip(strip, function(pixel) {
+		this.model.forEachPixelInStrip(strip, function(pixel) {
 			list.push(pixel);
 		});
 
