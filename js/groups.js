@@ -176,8 +176,8 @@ function GroupManager(model) {
 		if (newgroup) {
 			self.setCurrentGroup(newgroup);
 			self.clearCurrentMapping();
+			worldState.checkpoint();
 		}
-		worldState.checkpoint();
 	});
 	groupCmds.addSeparator();
 
@@ -319,6 +319,7 @@ function GroupManager(model) {
 	//
 	function createGroup(pixels, name) {
 		var id = newgid();
+		var name = (typeof name !== 'undefined') ? name : ("Group " + id);
 
 		var newgroup = new PixelGroup(self, id, pixels, name, ColorPool.random());
 
@@ -331,12 +332,12 @@ function GroupManager(model) {
 	this.createFromActiveSelection = function() {
 		// Don't create an empty group
 		if (worldState.activeSelection.size() == 0)
-			return;
-		var defaultName = "group-" + id;
+			return null;
 
 		var groupPixels = worldState.activeSelection.getPixels();
 		worldState.activeSelection.clear();
-		return createGroup(groupPixels, defaultName);
+
+		return createGroup(groupPixels);
 	}
 
 	this.snapshot = function () {
