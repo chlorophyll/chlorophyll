@@ -2,6 +2,7 @@
 var container;
 
 // Chlorophyll dataset manager objects
+var toolbarManager;
 var screenManager;
 var groupManager;
 var patternManager;
@@ -153,8 +154,8 @@ function init() {
 
 	var model = initModelFromJson(scene, chrysanthemum);
 
-	var toolbarManager = new Toolbox('Edit/Select', UI.toolbar, UI.menu);
-	toolbarManager.addCommand("camera", {
+	toolbarManager = new Toolbox('Edit/Select', UI.toolbar, UI.menu);
+	toolbarManager.addTool("camera", {
 		enable: function() {
 			screenManager.activeScreen.controlsEnabled = true;
 		},
@@ -163,10 +164,11 @@ function init() {
 		}
 	}, 'c');
 	UI.toolbar.addSeparator();
-	toolbarManager.addCommand('marquee', new MarqueeSelection(container, model), 'm');
-	toolbarManager.addCommand('line', new LineSelection(container, model), 'l');
-	toolbarManager.addCommand('plane', new PlaneSelection(container, model), 'p');
+	toolbarManager.addTool('marquee', new MarqueeSelection(container, model), 'm');
+	toolbarManager.addTool('line', new LineSelection(container, model), 'l');
+	toolbarManager.addTool('plane', new PlaneSelection(container, model), 'p');
 	toolbarManager.enableButtons();
+	toolbarManager.setActiveTool('camera');
 
 	mainarea.onresize = screenManager.resize;
 	window.addEventListener('resize', screenManager.resize, false);

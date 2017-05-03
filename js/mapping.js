@@ -2,24 +2,26 @@
  * Definitions for different types of projection mappings
  */
 function Cartesian2DMapping() {
+	var self = this;
 	this.widget = new CartesianAxes(container);
 
 	this.mapPoint = function(idx) {
-		var pos = model.getPosition(idx);
-		var fromOrigin = pos.clone().sub(this.proj_plane.origin);
-		return new THREE.Vector2(this.proj_plane.xaxis.dot(fromOrigin),
-								 this.proj_plane.yaxis.dot(fromOrigin));
+		var pos = self.model.getPosition(idx);
+		var fromOrigin = pos.clone().sub(self.proj_plane.origin);
+		return new THREE.Vector2(self.proj_plane.xaxis.dot(fromOrigin),
+								 self.proj_plane.yaxis.dot(fromOrigin));
 	}
 }
 
 function Polar2DMapping() {
+	var self = this;
 	this.widget = new PolarAxes(container);
 
 	this.mapPoint = function(idx) {
-		var pos = model.getPosition(idx);
-		var fromOrigin = pos.clone().sub(this.proj_plane.origin);
-		var point = new THREE.Vector2(this.proj_plane.xaxis.dot(fromOrigin),
-									  this.proj_plane.yaxis.dot(fromOrigin));
+		var pos = self.model.getPosition(idx);
+		var fromOrigin = pos.clone().sub(self.proj_plane.origin);
+		var point = new THREE.Vector2(self.proj_plane.xaxis.dot(fromOrigin),
+									  self.proj_plane.yaxis.dot(fromOrigin));
 		// map from x,y -> r, theta
 		return new THREE.Vector2(point.length(), point.angle());
 	}
@@ -164,6 +166,7 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 
 		ui_controls.inspector = inspector;
 
+		toolbarManager.exitActiveTool();
 		self.model.hideUnderlyingModel();
 		screenManager.setActive(self.tree_id);
 
