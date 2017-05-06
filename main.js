@@ -71,12 +71,12 @@ function init() {
 	LiteGUI.add(mainarea);
 
 
-	mainarea.split("horizontal",[null,225],true);
+	mainarea.split("horizontal",[null,275],true);
 	UI.sidebar = mainarea.getSection(1);
 
 	mainarea = mainarea.getSection(0);
 
-	mainarea.split('horizontal', [64, null], true);
+	mainarea.split('horizontal', [75, null], true);
 	var toolbar_panel = new LiteGUI.Panel("toolbar");
 
 	UI.toolbar = new LiteGUI.Inspector();
