@@ -39,6 +39,28 @@ function PatternGraph(id, name) {
 		this.stages[stage] = new LGraph();
 	}
 
+	var _mapping_type = MapUtil.default_type;
+	Object.defineProperty(this, 'mapping_type', {
+		get: function() { return _mapping_type; },
+		set: function(v) {
+			if (v == _mapping_type)
+				return;
+
+			_mapping_type = v;
+			var old_inp = this.stages['pixel'].findNodesByTitle('input')[0];
+			var new_inp = LiteGraph.createNode('input/' + v, 'input');
+			new_inp.removable = old_inp.removable;
+			new_inp.clonable = old_inp.clonable;
+			new_inp.color = old_inp.color;
+			new_inp.boxcolor = old_inp.boxcolor;
+			new_inp.pos = old_inp.pos;
+
+			old_inp.removable = true;
+			this.stages['pixel'].remove(old_inp);
+			this.stages['pixel'].add(new_inp);
+		}
+	});
+
 	function forEachStage(f) {
 		for (var stage in self.stages) {
 			f(stage, self.stages[stage]);
@@ -71,7 +93,7 @@ function PatternGraph(id, name) {
 		});
 	}
 
-	var inp = LiteGraph.createNode('input/cartesian2d', 'input');
+	var inp = LiteGraph.createNode('input/' + self.mapping_type, 'input');
 	inp.removable = false;
 	inp.clonable = false;
 	inp.color = '#7496a6';
@@ -125,7 +147,6 @@ function PatternGraph(id, name) {
 	this.reset = function() {
 		self.time = 0;
 		self.model.updateColors();
-		self.model = null;
 	}
 
 	this.run = function(mapping) {
@@ -139,15 +160,16 @@ function PatternGraph(id, name) {
 
 		var graph = self.stages['pixel'];
 
-		var positions = mapping.getPositions();
+		var positions = mapping.getPositions(self.mapping_type);
+		var coord_names = MapUtil.mapping_types[self.mapping_type].coord_names;
 
 		var computePatternStep = function() {
 			graph.setGlobalInputData('t', self.time);
 			positions.forEach(function([idx, pos]) {
 				var dc = self.model.getDisplayColor(idx);
 				var incolor = new CRGB(dc[0],dc[1],dc[2]);
-				graph.setGlobalInputData('x', pos.x);
-				graph.setGlobalInputData('y', pos.y);
+				graph.setGlobalInputData(coord_names[0], pos.x);
+				graph.setGlobalInputData(coord_names[1], pos.y);
 				graph.setGlobalInputData('color', incolor);
 				graph.runStep();
 				var outcolor = graph.getGlobalOutputData('outcolor');
@@ -176,6 +198,8 @@ function PatternManager() {
 	var nameWidget;
 	var stageWidget;
 	var patternList;
+	var mappingTypeList;
+	var selectedMappingType = MapUtil.default_type;
 
 	var patterns = Immutable.Map();
 
@@ -262,6 +286,7 @@ function PatternManager() {
 			callback: function() {
 				if (!curPattern)
 					return;
+
 				curPattern.stop();
 				curPattern.reset();
 			}
@@ -278,6 +303,20 @@ function PatternManager() {
 				setCurrentPattern(pattern);
 			}
 		});
+
+		mappingTypeList = self.top_widgets.addCombo('Mapping type',
+			MapUtil.default_type, {
+				values: MapUtil.type_menu,
+				width: '15em',
+				callback: function(val) {
+					selectedMappingType = val;
+
+					if (curPattern) {
+						curPattern.mapping_type = val;
+						worldState.checkpoint();
+					}
+				}
+			});
 
 		self.top_widgets.addSeparator();
 
@@ -487,6 +526,7 @@ function PatternManager() {
 
 		patterns = patterns.set(id, pattern);
 		setCurrentPattern(pattern);
+		pattern.mapping_type = selectedMappingType;
 
 		worldState.checkpoint();
 

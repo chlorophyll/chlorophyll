@@ -1,45 +1,34 @@
 /*
- * Definitions for different types of projection mappings
- */
-function Cartesian2DMapping() {
-	var self = this;
-	this.widget = new CartesianAxes(container);
-
-	this.mapPoint = function(idx) {
-		var pos = self.model.getPosition(idx);
-		var fromOrigin = pos.clone().sub(self.proj_plane.origin);
-		return new THREE.Vector2(self.proj_plane.xaxis.dot(fromOrigin),
-								 self.proj_plane.yaxis.dot(fromOrigin));
-	}
-}
-
-function Polar2DMapping() {
-	var self = this;
-	this.widget = new PolarAxes(container);
-
-	this.mapPoint = function(idx) {
-		var pos = self.model.getPosition(idx);
-		var fromOrigin = pos.clone().sub(self.proj_plane.origin);
-		var point = new THREE.Vector2(self.proj_plane.xaxis.dot(fromOrigin),
-									  self.proj_plane.yaxis.dot(fromOrigin));
-		// map from x,y -> r, theta
-		return new THREE.Vector2(point.length(), point.angle());
-	}
-}
-
-
-/*
  * Mapping utility values
+ *
+ * For each type of mapping, provide a descriptive name and a point mapping
+ * function which, when called on a mapping object, returns the mapped
+ * coordinates of the point.
  */
 MapUtil = {
+	default_type: "cartesian2d",
 	mapping_types: {
-		cartesian2: {
+		cartesian2d: {
 			name: "2D Cartesian",
-			func: Cartesian2DMapping
+			mapPoint: function(idx) {
+				var pos = this.model.getPosition(idx);
+				var fromOrigin = pos.clone().sub(this.proj_plane.origin);
+				return new THREE.Vector2(this.proj_plane.xaxis.dot(fromOrigin),
+										 this.proj_plane.yaxis.dot(fromOrigin));
+			},
+			coord_names: ['x', 'y']
 		},
-		polar2: {
+		polar2d: {
 			name: "2D Polar",
-			func: Polar2DMapping
+			mapPoint: function(idx) {
+				var pos = this.model.getPosition(idx);
+				var fromOrigin = pos.clone().sub(this.proj_plane.origin);
+				var point = new THREE.Vector2(this.proj_plane.xaxis.dot(fromOrigin),
+											  this.proj_plane.yaxis.dot(fromOrigin));
+				// map from x,y -> r, theta
+				return new THREE.Vector2(point.length(), point.angle());
+			},
+			coord_names: ['r', 'theta']
 		}
 	},
 	// generated from mapping_types
@@ -51,7 +40,7 @@ for (type in MapUtil.mapping_types) {
 }
 
 
-function ProjectionMapping(manager, group, id, name, maptype) {
+function ProjectionMapping(manager, group, id, name) {
 	var self = this;
 
 	this.group = group;
@@ -60,12 +49,10 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 	this.tree_id = group.tree_id + '-map-' + id;
 	var mapping_name = name;
 
-	this.enabled = false;
+	this.configuring = false;
 	this.mapping_valid = false;
 	this.proj_plane = {};
-	this.widget = null;
-
-	this.type = null;
+	this.widget = new CartesianAxes(container);
 
 	var ui_controls = {};
 
@@ -89,23 +76,9 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		}
 	});
 
-	this.setType = function(newtype) {
-		if (newtype != self.type) {
-			if (self.enabled)
-				self.makeInactive();
-			self.mapping_valid = false;
-			self.type = newtype;
-			MapUtil.mapping_types[newtype].func.call(self);
-		}
-	}
-
-	if (typeof maptype !== 'undefined') {
-		this.setType(maptype);
-	}
-
-	this.getPositions = function() {
+	this.getPositions = function(type) {
 		return group.pixels.map(function(idx) {
-			return [idx, self.mapPoint(idx)]
+			return [idx, MapUtil.mapping_types[type].mapPoint.call(self, idx)]
 		});
 	}
 
@@ -148,21 +121,21 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		self.setFromCamera();
 	}
 
-	this.makeInactive = function() {
+	this.endConfig = function() {
 		self.model.showUnderlyingModel();
 		screenManager.setActive('main');
 		self.widget.hide();
 
-		self.enabled = false;
+		self.configuring = false;
 		self.widget.onChange = null;
 		screen.controls.removeEventListener('end', setProjection);
 		ui_controls.inspector.clear();
 		ui_controls = {};
 	}
 
-	this.makeActive = function(inspector) {
+	this.startConfig = function(inspector) {
 
-		if (self.enabled) return;
+		if (self.configuring) return;
 
 		ui_controls.inspector = inspector;
 
@@ -171,7 +144,7 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		screenManager.setActive(self.tree_id);
 
         self.widget.show();
-		self.enabled = true;
+		self.configuring = true;
 
 		screen.controls.addEventListener('end', setProjection);
 
@@ -222,29 +195,28 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 		}
 
 		inspector.addButton(null, 'Save and close', function() {
-			self.makeInactive();
+			self.endConfig();
 			// Only snapshot state on save+close to avoid gross state fiddling
 			worldState.checkpoint();
 		});
 	}
 
 	this.destroy = function() {
-		if (self.enabled)
-			self.makeInactive();
+		if (self.configuring)
+			self.endConfig();
 		manager.tree.removeItem(self.tree_id);
 	}
 
 	this.snapshot = function() {
-		if (self.enabled) {
+		if (self.configuring) {
 			console.error("Attempted to snapshot ", self.tree_id,
-			    " while enabled");
+			    " while configuring");
 		}
 		var widgetdata = self.widget.data();
 		snap = {
 			name: mapping_name,
 			id: self.id,
 			tree_id: self.tree_id,
-			type: self.type,
 			mapping_valid: self.mapping_valid,
 			widget_x: widgetdata.x,
 			widget_y: widgetdata.y,
@@ -258,13 +230,12 @@ function ProjectionMapping(manager, group, id, name, maptype) {
 	}
 
 	this.restore = function(snapshot) {
-		if (self.enabled) {
-			self.makeInactive();
+		if (self.configuring) {
+			self.endConfig();
 		}
 		self.id = snapshot.get('id');
 		self.tree_id = snapshot.get('tree_id');
 		self.name = snapshot.get('name');
-		self.setType(snapshot.get('type'));
 		self.widget.setPos(snapshot.get('widget_x'), snapshot.get('widget_y'));
 		self.widget.setAngle(snapshot.get('widget_angle'));
 		self.mapping_valid = snapshot.get('mapping_valid');

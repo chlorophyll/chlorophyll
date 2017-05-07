@@ -84,7 +84,7 @@ function PixelGroup(manager, id, pixels, name, color) {
 		var map_id = newgid();
 
 		var name = 'map-'+map_id;
-		var mapping = new ProjectionMapping(manager, this, map_id, name, 'cartesian2');
+		var mapping = new ProjectionMapping(manager, this, map_id, name);
 		this.mappings = this.mappings.set(map_id, mapping);
 
 		return mapping;
@@ -217,7 +217,7 @@ function GroupManager(model) {
 
 	function configureCurrentMapping() {
 		mappingConfigInspector.addSection('Mapping Configuration');
-		self.currentMapping.makeActive(mappingConfigInspector);
+		self.currentMapping.startConfig(mappingConfigInspector);
 	}
 
 	this.setCurrentMapping = function(mapping) {
@@ -232,15 +232,8 @@ function GroupManager(model) {
 				self.currentMapping.name = v;
 			}
 		});
-		currMappingInspector.addCombo("Mapping type", mapping.type, {
-			values: MapUtil.type_menu,
-			callback: function(v) {
-				self.currentMapping.setType(v);
-				worldState.checkpoint();
-			}
-		});
 		currMappingInspector.addButton(null, 'Configure Mapping', function() {
-			if (!self.currentMapping.enabled)
+			if (!self.currentMapping.configuring)
 				configureCurrentMapping();
 		});
 	}
@@ -273,7 +266,7 @@ function GroupManager(model) {
 	this.tree.root.addEventListener('item_selected', function(event) {
 		var dataset = event.detail.data.dataset;
 
-		if (self.currentMapping && self.currentMapping.enabled) {
+		if (self.currentMapping && self.currentMapping.configuring) {
 			if (currentSelection)
 				self.tree.markAsSelected(currentSelection);
 			return;

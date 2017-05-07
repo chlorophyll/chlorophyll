@@ -47,6 +47,39 @@ Cartesian2DInput.visible_stages = [];
 
 LiteGraph.registerNodeType('input/cartesian2d', Cartesian2DInput);
 
+// TODO refactor inputs to a common class, they're going to share everything
+// except the number/names of coordinates.
+function Polar2DInput() {
+	this.addOutput('r', 'number');
+	this.addOutput('theta', 'number');
+	this.addOutput('t', 'number');
+	this.addOutput('color', 'CRGB');
+}
+
+Polar2DInput.prototype.onAdded = function() {
+	this.graph.addGlobalInput('r');
+	this.graph.addGlobalInput('theta');
+	this.graph.addGlobalInput('t');
+	this.graph.addGlobalInput('color');
+}
+
+Polar2DInput.prototype.onExecute = function() {
+	var r = this.graph.global_inputs['r'].value;
+	var theta = this.graph.global_inputs['theta'].value;
+	var t = this.graph.global_inputs['t'].value;
+	var color = this.graph.global_inputs['color'].value;
+
+	this.setOutputData(0, r);
+	this.setOutputData(1, theta);
+	this.setOutputData(2, t);
+	this.setOutputData(3, color);
+}
+
+Polar2DInput.title = 'Polar2DInput';
+Polar2DInput.visible_stages = [];
+
+LiteGraph.registerNodeType('input/polar2d', Polar2DInput);
+
 function PrecomputeOutput() {
 	this.addProperty("name", null);
 }
