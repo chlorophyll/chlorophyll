@@ -289,6 +289,8 @@ function PatternManager() {
 
 				curPattern.stop();
 				curPattern.reset();
+				runningPattern = false;
+				playButton.setValue(play);
 			}
 		});
 		stopButton.classList.add('material-icons');
