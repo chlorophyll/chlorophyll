@@ -342,14 +342,32 @@ function PatternManager() {
 				ev.preventDefault();
 		});
 
+		function addNode(nodetype, x, y) {
+			var graph = self.graphcanvas.graph;
+			if (graph == null)
+				return;
+			var node = LiteGraph.createNode(nodetype);
+
+			var coords = self.graphcanvas.coords(x, y);
+
+			coords.x -= node.size[0] / 2;
+			coords.y += LiteGraph.NODE_TITLE_HEIGHT / 2;
+
+			node.pos = [coords.x, coords.y];
+			graph.add(node);
+		}
+
 		canvasContainer.addEventListener('drop', function(ev) {
-			if (self.graphcanvas.graph == null)
+			var graph = self.graphcanvas.graph;
+			if (graph == null)
 				return;
 			ev.preventDefault();
 			var nodeId = ev.dataTransfer.getData('text');
 			var item = nodeTree.getItem(nodeId);
 			var nodetype = item.data.dataset.nodetype;
-			self.graphcanvas.addNode(nodetype, ev.clientX, ev.clientY);
+
+			addNode(nodetype, ev.clientX, ev.clientY);
+
 		});
 
 		var curNodeType = null;
@@ -369,7 +387,7 @@ function PatternManager() {
 		canvasContainer.addEventListener('contextmenu', function(ev) {
 			ev.preventDefault();
 			if (curNodeType) {
-				self.graphcanvas.addNode(curNodeType, ev.clientX, ev.clientY);
+				addNode(curNodeType, ev.clientX, ev.clientY);
 			}
 		});
 

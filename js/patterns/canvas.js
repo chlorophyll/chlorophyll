@@ -181,7 +181,6 @@ function GraphCanvas(divNode) {
 		if (num_links == 0) {
 			getOutputPort(start, start_slot).attr('fill', '#aaa');
 		}
-
 		getInputPort(end, end_slot).attr('fill', '#aaa');
 	}
 
@@ -220,13 +219,6 @@ function GraphCanvas(divNode) {
 		}
 		var nodegroup = getNode(node);
 		nodegroup.remove();
-		self.graph.remove(node);
-		var evt = new CustomEvent('node-removed', {
-			detail: {
-				node: node
-			}
-		});
-		self.graph.dispatchEvent(evt);
 	}
 
 	var drawNode = function(node) {
@@ -312,7 +304,7 @@ function GraphCanvas(divNode) {
 				.attr('transform',
 					'translate('+(node.size[0]-title_height+4)+','+(-title_height+4)+')')
 				.on('click', function() {
-					removeNode(node);
+					self.graph.remove(node);
 				});
 
 			closebox.append('rect')
@@ -436,53 +428,46 @@ function GraphCanvas(divNode) {
 		}
 	}
 
-		this.addNode = function(nodetype, x, y) {
-			var node = LiteGraph.createNode(nodetype);
+	this.coords = function(x, y) {
+		return Util.relativeCoords(divNode, x, y);
+	}
 
-			var center = node.size[0] / 2;
+	var onNodeAdded = function(evt) {
+		drawNode(evt.detail.node);
+	}
+	var onNodeRemoved = function(evt) {
+		removeNode(evt.detail.node);
+	}
 
-			var coords = Util.relativeCoords(divNode, x, y);
+	this.clearGraph = function() {
+		if (this.graph) {
+			this.graph.removeEventListener('node-added', onNodeAdded);
+			this.graph.removeEventListener('node-removed', onNodeRemoved);
+		}
+		this.graph = null;
+		nodeContainer.selectAll('*').remove();
+		connectionContainer.selectAll('*').remove();
+		setTransform(d3.zoomIdentity);
+		grid.style('display', 'none');
+	}
 
-			coords.x -= node.size[0] / 2;
-			coords.y += LiteGraph.NODE_TITLE_HEIGHT / 2;
+	this.setGraph = function(graph) {
+		this.clearGraph();
+		this.graph = graph;
+		this.graph.addEventListener('node-added', onNodeAdded);
+		this.graph.addEventListener('node-removed', onNodeRemoved);
+		grid.style('display', '');
 
-			node.pos = [coords.x, coords.y];
+		for (var id in this.graph.links) {
+			var link = this.graph.links[id];
+			drawLink(link);
+		}
 
-			self.graph.add(node);
-			var evt = new CustomEvent('node-added', {
-				detail: {
-					node: node
-				}
-			});
-			self.graph.dispatchEvent(evt);
-
+		for (var i = 0; i < this.graph._nodes.length; i++) {
+			var node = this.graph._nodes[i];
 			drawNode(node);
 		}
-
-		this.clearGraph = function() {
-			this.graph = null;
-			nodeContainer.selectAll('*').remove();
-			connectionContainer.selectAll('*').remove();
-			setTransform(d3.zoomIdentity);
-			grid.style('display', 'none');
-		}
-
-		this.setGraph = function(graph) {
-			this.clearGraph();
-			this.graph = graph;
-			grid.style('display', '');
-
-			for (var id in this.graph.links) {
-				var link = this.graph.links[id];
-				drawLink(link);
-			}
-
-			for (var i = 0; i < this.graph._nodes.length; i++) {
-				var node = this.graph._nodes[i];
-				drawNode(node);
-			}
-
-		}
+	}
 
 		this.redrawNode = function(node) {
 			nodeContainer.select('#node'+node.id).remove();

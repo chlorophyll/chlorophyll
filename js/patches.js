@@ -131,6 +131,34 @@ LGraph.prototype.dispatchEvent = function(event) {
 	return !event.defaultPrevented;
 };
 
+LGraph.prototype.onNodeAdded = function(node) {
+	var evt = new CustomEvent('node-added', {
+		detail: {
+			node: node
+		}
+	});
+	this.dispatchEvent(evt);
+};
+
+(function() {
+	var oldRemove = LGraph.prototype.remove;
+
+	LGraph.prototype.remove = function(node) {
+
+		if (node.ignore_remove)
+			return;
+
+		var evt = new CustomEvent('node-removed', {
+			detail: {
+				node: node
+			}
+		});
+		this.dispatchEvent(evt);
+
+		oldRemove.call(this, node);
+	}
+})();
+
 /*
  * Mousetrap patch: don't block keybinding callbacks when a selection dropdown
  * is selected.
