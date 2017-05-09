@@ -21,6 +21,7 @@ function PatternGraph(id, name) {
 	self.name = name;
 	self.id = id;
 
+	self.model = null;
 	var request_id;
 
 	self.curStage = defaultStage;
@@ -113,14 +114,18 @@ function PatternGraph(id, name) {
 	}
 
 	this.stop = function() {
+		if (!running)
+			return;
+
 		running = false;
 		window.cancelAnimationFrame(requestid);
-		model.displayOnly = false;
+		self.model.displayOnly = false;
 	}
 
 	this.reset = function() {
 		self.time = 0;
-		model.updateColors();
+		self.model.updateColors();
+		self.model = null;
 	}
 
 	this.run = function(mapping) {
@@ -129,8 +134,8 @@ function PatternGraph(id, name) {
 
 		running = true;
 
-		var model = mapping.model;
-		model.displayOnly = true;
+		self.model = mapping.model;
+		self.model.displayOnly = true;
 
 		var graph = self.stages['pixel'];
 
@@ -139,17 +144,17 @@ function PatternGraph(id, name) {
 		var computePatternStep = function() {
 			graph.setGlobalInputData('t', self.time);
 			positions.forEach(function([idx, pos]) {
-				var dc = model.getDisplayColor(idx);
+				var dc = self.model.getDisplayColor(idx);
 				var incolor = new CRGB(dc[0],dc[1],dc[2]);
 				graph.setGlobalInputData('x', pos.x);
 				graph.setGlobalInputData('y', pos.y);
 				graph.setGlobalInputData('color', incolor);
 				graph.runStep();
 				var outcolor = graph.getGlobalOutputData('outcolor');
-				model.setDisplayColor(idx, outcolor.r, outcolor.g, outcolor.b);
+				self.model.setDisplayColor(idx, outcolor.r, outcolor.g, outcolor.b);
 			});
 			self.time += 1;
-			model.updateColors();
+			self.model.updateColors();
 
 			if (running)
 				requestid = window.requestAnimationFrame(computePatternStep);
