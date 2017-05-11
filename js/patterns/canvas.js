@@ -19,9 +19,9 @@ function GraphCanvas(divNode) {
 					.call(d3.zoom()
 					.scaleExtent([0.25, 10])
 					.filter(function() {
-						if (event.type == 'dblclick')
-							return event.target.id == grid;
-						return !event.button;
+						if (d3.event.type == 'dblclick')
+							return d3.event.target.id == 'grid';
+						return !d3.event.button;
 					})
 					.on('zoom', function() {
 						if (self.graph == null)
