@@ -85,6 +85,10 @@ function PixelGroup(manager, id, pixels, name, color) {
 
 		var name = 'map-'+map_id;
 		var mapping = new ProjectionMapping(manager, this, map_id, name);
+		// Set an initial value for the mapping - it probably won't
+		// be meaningful, but avoids keeping it in a limbo state until it's
+		// configured.
+		mapping.setFromCamera();
 		this.mappings = this.mappings.set(map_id, mapping);
 
 		return mapping;
