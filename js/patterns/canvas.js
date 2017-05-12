@@ -429,7 +429,11 @@ function GraphCanvas(divNode) {
 	}
 
 	this.coords = function(x, y) {
-		return Util.relativeCoords(divNode, x, y);
+		var coords = Util.relativeCoords(divNode, x, y);
+
+		var [x1, y1] = curTransform.invert([coords.x, coords.y]);
+
+		return {x: x1, y: y1};
 	}
 
 	var onNodeAdded = function(evt) {
