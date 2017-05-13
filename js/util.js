@@ -1,4 +1,11 @@
 var Util = {
+	clamp: function(val, min, max) {
+		if (val < min)
+			val = min;
+		if (val > max)
+			val = max;
+		return val;
+	},
 	bezierByH: function(x0, y0, x1, y1) {
 		var mx = x0 + (x1 - x0) / 2;
 
