@@ -104,14 +104,10 @@ function init() {
 	rendering_win.show();
 	rendering_win.setPosition(window.innerWidth - 520, 20);
 	var rendering_widgets = new LiteGUI.Inspector();
-	rendering_widgets.addSlider("Back Clipping", -1000,
+	rendering_widgets.addDualSlider("Clipping", {left: -1000, right: 1000},
 		{ min: -1000, max: 1000, step: 10, callback: function(val) {
-				backPlane.constant = -val;
-			}
-		});
-	rendering_widgets.addSlider("Front Clipping", 1000,
-		{ min: -1000, max: 1000, step: 10, callback: function(val) {
-				frontPlane.constant = val;
+				backPlane.constant = -val.left;
+				frontPlane.constant = val.right;
 			}
 		});
 	rendering_widgets.addSlider("Selection Threshold", selectionThreshold,
