@@ -410,5 +410,4 @@ function GroupManager(model) {
 		var pixels = Immutable.Set(list);
 		createGroup(pixels, name);
 	}
-
 }
