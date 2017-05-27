@@ -1,0 +1,8 @@
+/*
+ * Extensions to litegui default style for Chlorophyll
+ */
+
+/* Fix floating checkbox alignment in firefox */
+li.ltreeitem div.ltreeitemtitle {
+	white-space: normal;
+}

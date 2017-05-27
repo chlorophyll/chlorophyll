@@ -50,6 +50,9 @@ function PixelGroup(manager, id, pixels, name, color) {
 	Object.defineProperty(this, 'name', {
 		get: function() { return group_name; },
 		set: function(v) {
+			if (v.length > Cfg.max_name_len) {
+				v = v.slice(0, Cfg.max_name_len);
+			}
 			group_name = v;
 			manager.tree.updateItem(this.tree_id, {
 				content: group_name,
@@ -317,6 +320,9 @@ function GroupManager(model) {
 	function createGroup(pixels, name) {
 		var id = newgid();
 		var name = (typeof name !== 'undefined') ? name : ("Group " + id);
+		if (name.length > Cfg.max_name_len) {
+			name = name.slice(0, Cfg.max_name_len);
+		}
 
 		var newgroup = new PixelGroup(self, id, pixels, name, ColorPool.random());
 

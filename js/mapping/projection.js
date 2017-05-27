@@ -40,14 +40,14 @@ for (type in MapUtil.mapping_types) {
 }
 
 
-function ProjectionMapping(manager, group, id, name) {
+var ProjectionMapping = function(manager, group, id, initname) {
 	var self = this;
 
 	this.group = group;
 	this.model = group.model;
 	this.id = id;
 	this.tree_id = group.tree_id + '-map-' + id;
-	var mapping_name = name;
+	var _name = initname;
 
 	this.configuring = false;
 	this.mapping_valid = false;
@@ -61,16 +61,19 @@ function ProjectionMapping(manager, group, id, name) {
 
 	var elem = manager.tree.insertItem({
 		id: self.tree_id,
-		content: mapping_name,
+		content: _name,
 		dataset: {mapping: self}
 	}, group.tree_id);
 
 	Object.defineProperty(this, 'name', {
-		get: function() { return mapping_name; },
+		get: function() { return _name; },
 		set: function(v) {
-			mapping_name = v;
+			if (v.length > Cfg.max_name_len) {
+				v = v.slice(0, Cfg.max_name_len);
+			}
+			_name = v;
 			manager.tree.updateItem(self.tree_id, {
-				content: mapping_name,
+				content: _name,
 				dataset: {mapping: self}
 			});
 		}
@@ -214,7 +217,7 @@ function ProjectionMapping(manager, group, id, name) {
 		}
 		var widgetdata = self.widget.data();
 		snap = {
-			name: mapping_name,
+			name: _name,
 			id: self.id,
 			tree_id: self.tree_id,
 			mapping_valid: self.mapping_valid,
