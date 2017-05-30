@@ -89,9 +89,6 @@ LiteGraph.getNodeTypesInCategory = function(category) {
 	return r;
 }
 
-LiteGraph.isValidConnection = function(type_a, type_b) {
-	return (!type_a || !type_b || type_a == type_b)
-}
 
 LGraph.prototype.addEventListener = function(type, callback) {
 	if (this.listeners == undefined) {
@@ -170,3 +167,21 @@ LGraph.prototype.onNodeAdded = function(node) {
 		return oldStopCallback(e, element) && element.tagName != 'SELECT';
 	}
 })();
+
+LiteGUI.Tree.prototype.expandItem = function(id) {
+	var item = this.getItem(id);
+
+	if (!item || !item.listbox)
+		return;
+
+	item.listbox.setValue(true);
+}
+
+LiteGUI.Tree.prototype.collapseItem = function(id) {
+	var item = this.getItem(id);
+
+	if (!item || !item.listbox)
+		return;
+
+	item.listbox.setValue(false);
+}

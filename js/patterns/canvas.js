@@ -226,8 +226,7 @@ function GraphCanvas(divNode) {
 		nodegroup.attr('transform', 'translate('+node.pos[0]+','+node.pos[1]+')')
 			.attr('id', 'node'+node.id)
 			.on('dblclick', function() {
-				d3.event.preventDefault();
-				if (self.onShowNodePanel)
+				if (self.onShowNodePanel != undefined)
 					self.onShowNodePanel(node);
 			}, true)
 			.call(d3.drag()
@@ -377,6 +376,10 @@ function GraphCanvas(divNode) {
 
 
 				var text = slot.label != null ? slot.label : slot.name;
+				var val = node.properties[slot.name];
+				if (val !== undefined) {
+					text += ` (${val})`;
+				}
 
 				nodegroup.append('text')
 					.attr('x', x + 10)

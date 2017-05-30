@@ -2,15 +2,42 @@ var patternStages = ['precompute', 'pixel'];
 var defaultStage = 'pixel';
 
 (function() {
+	LiteGraph.isValidConnection = function(type_a, type_b) {
+		if (!type_a || !type_b)
+			return true;
+
+		if (typeof(type_a) === 'string' || typeof(type_b) === 'string') {
+			return (type_a == type_b);
+		}
+
+		if (type_b == Units.Numeric) {
+			return type_a.isConvertibleUnit !== undefined;
+		}
+
+		if (type_a.isConvertibleUnit) {
+			return type_a.prototype.isConvertibleTo(type_b);
+		}
+	}
+
 	var oldGetInput = LGraphNode.prototype.getInputData;
 
 	LiteGraph.addNodeMethod('getInputData', function(slot, force_update) {
 		var data = oldGetInput.call(this, slot, force_update);
+		var input = this.inputs[slot];
 
-		if (data) return data;
+		if (!data) {
 
-		if (this.properties.default_inputs)
-			return this.properties.default_inputs[slot];
+			if (this.properties[input.name])
+				data = this.properties[input.name];
+		}
+
+		if (data) {
+			if (data.isConvertibleTo !== undefined && input.type && input.type != Units.Numeric) {
+				return data.convertTo(input.type);
+			} else {
+				return data;
+			}
+		}
 
 		return null;
 	});
@@ -48,7 +75,7 @@ function PatternGraph(id, name) {
 
 			_mapping_type = v;
 			var old_inp = this.stages['pixel'].findNodesByTitle('input')[0];
-			var new_inp = LiteGraph.createNode('input/' + v, 'input');
+			var new_inp = LiteGraph.createNode('lowlevel/input/' + v, 'input');
 			new_inp.removable = old_inp.removable;
 			new_inp.clonable = old_inp.clonable;
 			new_inp.color = old_inp.color;
@@ -93,18 +120,23 @@ function PatternGraph(id, name) {
 		});
 	}
 
-	var inp = LiteGraph.createNode('input/' + self.mapping_type, 'input');
+	var inp = LiteGraph.createNode('lowlevel/input/' + self.mapping_type, 'input');
 	inp.removable = false;
 	inp.clonable = false;
 	inp.color = '#7496a6';
 	inp.boxcolor = '#69a4bf';
 
-	var outp = LiteGraph.createNode('output/color', 'output');
+	var outp = LiteGraph.createNode('lowlevel/output/color', 'output');
 	outp.removable = false;
 	outp.clonable = false;
 	outp.color = '#e5a88a';
 	outp.boxcolor = '#cc8866';
 	outp.pos = [300,100];
+
+	this.stages['pixel'].addGlobalInput('c0');
+	this.stages['pixel'].addGlobalInput('c1');
+	this.stages['pixel'].addGlobalInput('t');
+	this.stages['pixel'].addGlobalInput('color');
 
 	this.stages['pixel'].add(inp);
 	this.stages['pixel'].add(outp);
@@ -113,7 +145,20 @@ function PatternGraph(id, name) {
 		var stages = {};
 
 		forEachStage(function(stage, graph) {
-			stages[stage] = JSON.stringify(graph.serialize());
+			var graph_data = graph.serialize();
+			graph_data.global_inputs = {};
+			graph_data.global_outputs = {};
+
+			for (var ginput in graph.global_inputs) {
+				graph_data.global_inputs[ginput] = {name: ginput.name, type: ginput.type};
+			}
+
+			for (var goutput in graph.global_outputs) {
+				graph_data.global_outputs[goutput] = {name: goutput.name, type: goutput.type};
+
+			}
+
+			stages[stage] = JSON.stringify(graph_data);
 		});
 
 		return {
@@ -130,8 +175,25 @@ function PatternGraph(id, name) {
 		this.curStage = snapshot.curStage;
 		disableUndo();
 		forEachStage(function(stage, graph) {
-			graph.configure(JSON.parse(snapshot.stages[stage]));
+			var graph_data = JSON.parse(snapshot.stages[stage], function(key, val) {
+				if (typeof(val) != 'string')
+					return val;
+
+				if (val.startsWith('Units.')) {
+					unit = val.split('.')[1];
+					return new Units[unit];
+				} else if (val.startsWith('Frequency')) {
+					var f = new Frequency();
+					var hz = parseFloat(val.split('.')[1]);
+					f.hz = hz;
+					return f;
+				} else {
+					return val;
+				}
+			});
+			graph.configure(graph_data);
 		});
+
 		enableUndo();
 	}
 
@@ -161,15 +223,14 @@ function PatternGraph(id, name) {
 		var graph = self.stages['pixel'];
 
 		var positions = mapping.getPositions(self.mapping_type);
-		var coord_names = MapUtil.mapping_types[self.mapping_type].coord_names;
 
 		var computePatternStep = function() {
 			graph.setGlobalInputData('t', self.time);
 			positions.forEach(function([idx, pos]) {
 				var dc = self.model.getDisplayColor(idx);
 				var incolor = new CRGB(dc[0],dc[1],dc[2]);
-				graph.setGlobalInputData(coord_names[0], pos.x);
-				graph.setGlobalInputData(coord_names[1], pos.y);
+				graph.setGlobalInputData('c0', pos.x);
+				graph.setGlobalInputData('c1', pos.y);
 				graph.setGlobalInputData('color', incolor);
 				graph.runStep();
 				var outcolor = graph.getGlobalOutputData('outcolor');
@@ -356,6 +417,27 @@ function PatternManager() {
 
 		var nodes = {id: "Nodes", children: []};
 
+
+		// fill category tree
+		for (var category of LiteGraph.getNodeTypesCategories()) {
+			var nodesInCategory = LiteGraph.getNodeTypesInCategory(category);
+			if (nodesInCategory.length == 0)
+				continue;
+			var ptr = nodes;
+			var path = category.split('/');
+			for (var i = 0; i < path.length; i++) {
+				var component = path[i];
+				var idx = ptr.children.findIndex(el => el.id == component);
+				if (idx == -1) {
+					var n = {id: component, skipdrag: true, children: []};
+					ptr.children.push(n);
+					ptr = n;
+				} else {
+					ptr = ptr.children[idx];
+				}
+			}
+		}
+
 		var nodeTree = new LiteGUI.Tree('node-list-tree', nodes, {
 			height: '100%',
 		});
@@ -365,15 +447,15 @@ function PatternManager() {
 
 			if (nodesInCategory.length == 0)
 				continue;
-			nodeTree.insertItem({id: category, skipdrag: true});
 
 			nodesInCategory.forEach(function(node) {
+				var path = node.type.split('/');
 				var elem = nodeTree.insertItem({
 					id: node.title,
 					skipdrag: true,
-					content: node.type.split('/')[1],
+					content: path[path.length-1],
 					dataset: {nodetype: node.type}
-				}, category);
+				}, path[path.length-2]);
 
 				elem.draggable = true;
 				elem.addEventListener('dragstart', function(ev) {
@@ -381,6 +463,9 @@ function PatternManager() {
 					ev.dataTransfer.dragEffect = 'link';
 				});
 			});
+
+			var toplevel = category.split('/')[0];
+			nodeTree.collapseItem(toplevel);
 		}
 
 		canvasContainer.addEventListener('dragover', function(ev) {
@@ -446,76 +531,128 @@ function PatternManager() {
 
 
 		self.graphcanvas.onShowNodePanel = function(node) {
-			if (node.onDblClick)
-				return;
-
 			var dialog = new LiteGUI.Dialog('Node Settings', {
 				title: node.title + ' defaults',
 				close: true,
 				minimize: false,
 				width: 256,
+				height: 300,
 				scroll: true,
 				resizeable: false,
 				draggable: true
 			});
 
-			var inspector = new LiteGUI.Inspector();
 
-			var inputs = node.inputs || [];
-
-			var widgets = [];
-			if (!node.properties.default_inputs) {
-				node.properties.default_inputs = [];
-			}
-
-			var values = [];
-
-			var widgets = 0;
-
-			inputs.forEach(function(input, i) {
-				var val = node.properties.default_inputs[i];
-
-				values[i] = val;
-
-				var callback = function(v) {
-					console.log(v);
-					values[i] = v;
-				}
-
-				if (input.type == 'string') {
-					widgets[i] = inspector.addString(input.name, val, { callback: callback });
-					widgets++;
-				} else if (input.type == 'number') {
-					widgets[i] = inspector.addNumber(input.name, val, {
-						step: 1,
-						precision: 0,
-						callback: callback
-					});
-					widgets++;
+			var inspector = new LiteGUI.Inspector('node-settings-inspector', {
+				widgets_per_row: 2,
+				onchange: function() {
+					if (node.visualization)
+						node.visualization.update();
 				}
 			});
 
-			if (widgets == 0) {
-				return;
+			var inputs = node.inputs || [];
+
+			var old_values = {};
+			var cur_values = node.properties;
+
+			var show = false;
+
+			function add(input, widget) {
+				show = true;
+				var disabled = (node.required_properties || []).indexOf(input.name) != -1;
+				var button = inspector.addButton(null, 'clear', {
+					name_width: '0',
+					disabled: disabled,
+					callback: function() {
+						widget.setValue(0);
+						cur_values[input.name] = undefined;
+					}
+				});
+				var name = widget.querySelector(".wname");
+				name.style.width = '6em';
+				widget.style.width = 'calc(99% - 4em)';
+				button.classList.add('material-icons');
+				button.style.fontSize = '12px';
+				button.style.width = '4em';
 			}
 
-			function applyProperties() {
-				for (var i = 0; i < inputs.length; i++) {
-					var val = values[i];
-					node.properties.default_inputs[i] = val;
-					if (val !== undefined) {
-						node.inputs[i].label = `${node.inputs[i].name} (${val})`;
-					} else {
-						node.inputs[i].label = null;
-					}
-					self.graphcanvas.redrawNode(node);
+			inputs.forEach(function(input, i) {
+				var val = node.properties[input.name];
+
+				if (val !== undefined) {
+					old_values[input.name] = Util.clone(val);
 				}
+
+				if (!input.type)
+					return;
+
+				if (input.type.isConvertibleUnit) {
+					add(input, inspector.addNumber(input.name, (val || 0).valueOf(), {
+						callback: function(v) {
+							cur_values[input.name] = new input.type(v);
+						}
+					}));
+				} else if (input.type == 'frequency') {
+					var f = cur_values[input.name];
+					add(input, inspector.addQuantity(input.name, f.quantity(), {
+						step: 0.5,
+						precision: 1,
+						min: 0,
+						units: val.units,
+						callback: function(v, oldUnits) {
+							var number, units;
+							if (oldUnits !== undefined) {
+								number = f[v.units];
+								units = v.units;
+							} else {
+								number = v.number;
+								units = v.units;
+							}
+							f[units] = number;
+							f.setDisplayUnits(units);
+							return f.quantity();
+						}
+					}));
+				} else if (input.type == 'range') {
+					var range = cur_values[input.name];
+					add(input, inspector.addDualSlider(input.name,
+						{left: range.lower, right: range.upper},
+						{
+							min: range.min,
+							max: range.max,
+							callback: function(v) {
+								range.lower = v.left;
+								range.upper = v.right;
+							}
+						}
+					));
+				}
+			});
+
+			if (!show) {
+				return;
 			}
 
 			dialog.add(inspector);
 
+			if (node.visualization) {
+				node.visualization.update();
+				dialog.add(node.visualization);
+			}
+
+			function resetProperties() {
+				for (var k in old_values) {
+					node.properties[k] = old_values[k];
+				}
+				self.graphcanvas.redrawNode(node);
+			}
+			function applyProperties() {
+				self.graphcanvas.redrawNode(node);
+			}
+
 			dialog.addButton('Ok', { close: true, callback: applyProperties});
-			dialog.addButton('Cancel', { close: true});
+			dialog.addButton('Cancel', { close: true, callback: resetProperties});
 
 			dialog.show();
 		}

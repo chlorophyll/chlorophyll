@@ -45,9 +45,6 @@ function CRGB(r, g, b) {
 	this.b = b;
 }
 
-//hsv2rgb = FastLED.cwrap('hsv2rgb_rainbow', 'number',
-//	['number', 'number', 'number']);
-
 function make_node(target, name, args, code) {
 	var output, hasThis;
 	// expose as normal code
@@ -79,7 +76,7 @@ function make_node(target, name, args, code) {
 		var values = [];
 
 		for (var i = 0; i < arglist.length; i++) {
-			values.push(this.getInputData(i));
+			values.push(this.getInputData(i).valueOf());
 		}
 
 		var that = undefined;
@@ -93,39 +90,31 @@ function make_node(target, name, args, code) {
 	LiteGraph.registerNodeType(output+'/'+name, f);
 }
 
-make_node(CHSV, 'construct', [['h', 'number'], ['s', 'number'], ['v', 'number']], function(h,s,v) {
-	return new CHSV(h,s,v);
-});
-
-make_node(CRGB, 'construct', [['r', 'number'], ['g', 'number'], ['b', 'number']], function(r,g,b) {
-	return new CRGB(r,g,b);
-});
-
-make_node(CRGB, 'fromColorCode', [['colorCode', 'number']], function(colorCode) {
-    var c = new CRGB();
+CRGB.fromColorCode = function(colorCode) {
+	var c = new CRGB();
 	return c.setColorCode(colorCode);
-});
+}
 
-make_node(CRGB, 'fromHSV', [['hue', 'number'], ['sat', 'number'], ['val', 'number']], function(hue, sat, val) {
-	hue = TypeUtil.convert_to_uint8_t(hue);
-	sat = TypeUtil.convert_to_uint8_t(sat);
-	val = TypeUtil.convert_to_uint8_t(val);
-	return CRGB.fromColorCode(hsv2rgb(hue, sat, val));
-});
-
-make_node(CRGB, 'fromHue', [['hue', 'number']], function(hue) {
-	hue = TypeUtil.convert_to_uint8_t(hue);
-	return CRGB.fromColorCode(hsv2rgb(hue, 255, 255));
-});
-
-make_node(CRGB.prototype, 'setColorCode', [['colorCode', 'number']], function(colorCode) {
+CRGB.prototype.setColorCode = function(colorCode) {
 	this.r = (colorCode >> 16) & 0xFF;
 	this.g = (colorCode >>  8) & 0xFF;
 	this.b = (colorCode >>  0) & 0xFF;
 	return this;
+}
+
+make_node(CRGB, 'construct', [['r', Units.UInt8], ['g', Units.UInt8], ['b', Units.UInt8]], function(r,g,b) {
+	return new CRGB(r,g,b);
 });
 
-make_node(CRGB.prototype, 'setHue', [['hue', 'number']],  function(hue) {
+make_node(CRGB, 'fromHSV', [['hue', Units.UInt8], ['sat', Units.UInt8], ['val', Units.UInt8]], function(hue, sat, val) {
+	return CRGB.fromColorCode(hsv2rgb(hue, sat, val));
+});
+
+make_node(CRGB, 'fromHue', [['hue', Units.UInt8]], function(hue) {
+	return CRGB.fromColorCode(hsv2rgb(hue, 255, 255));
+});
+
+make_node(CRGB.prototype, 'setHue', [['hue', Units.UInt8]],  function(hue) {
 	var ccode = hsv2rgb(hue, 255, 255);
 	this.setColorCode(ccode);
 	return this;
@@ -138,7 +127,7 @@ make_node(CRGB.prototype, 'add', [['rhs', 'color']], function(rhs) {
 	return this;
 });
 
-make_node(CRGB.prototype, 'addToRGB', [['d', 'number']], function(d) {
+make_node(CRGB.prototype, 'addToRGB', [['d', Units.UInt8]], function(d) {
 	this.r = Math8.qadd8(this.r, d);
 	this.g = Math8.qadd8(this.g, d);
 	this.b = Math8.qadd8(this.b, d);
@@ -156,7 +145,7 @@ make_node(CRGB.prototype, 'subtract', [['rhs', 'color']], function(rhs) {
 	return this;
 });
 
-make_node(CRGB.prototype, 'subtractFromRGB', [['d', 'number']], function(d) {
+make_node(CRGB.prototype, 'subtractFromRGB', [['d', Units.UInt8]], function(d) {
 	this.r = Math8.qsub8(this.r, d);
 	this.g = Math8.qsub8(this.g, d);
 	this.b = Math8.qsub8(this.b, d);
@@ -167,37 +156,36 @@ make_node(CRGB.prototype, 'dec', [], function() {
 	return this.subtractFromRGB(1);
 });
 
-make_node(CRGB.prototype, 'div', [['d', 'number']], function(d) {
+make_node(CRGB.prototype, 'div', [['d', Units.UInt8]], function(d) {
 	this.r /= d;
 	this.g /= d;
 	this.b /= d;
 	return this;
 });
 
-make_node(CRGB.prototype, 'rsh', [['d', 'number']], function(d) {
+make_node(CRGB.prototype, 'rsh', [['d', Units.UInt8]], function(d) {
 	this.r >>= d;
 	this.g >>= d;
 	this.b >>= d;
 	return this;
 });
 
-make_node(CRGB.prototype, 'mul', [['d', 'number']], function(d) {
+make_node(CRGB.prototype, 'mul', [['d', Units.UInt8]], function(d) {
 	this.r = Math8.qmul8(this.r, d);
 	this.g = Math8.qmul8(this.g, d);
 	this.b = Math8.qmul8(this.b, d);
 	return this;
 });
 
-make_node(CRGB.prototype,'nscale8_video', [['scaledown', 'number']], function(scaledown) {
+make_node(CRGB.prototype,'nscale8_video', [['scaledown', Units.UInt8]], function(scaledown) {
 	return this.setColorCode(Math8.nscale8x3_video(this.r, this.b, this.g, scaledown));
 });
 
-make_node(CRGB.prototype,'fadeLightBy', [['fadefactor', 'number']], function(fadefactor) {
-	fadefactor &= 0xff;
+make_node(CRGB.prototype,'fadeLightBy', [['fadefactor', Units.UInt8]], function(fadefactor) {
 	return this.setColorCode(Math8.nscale8x3_video(this.r, this.g, this.b, 255-fadefactor));
 });
 
-make_node(CRGB.prototype,'nscale8', [['scaledown', 'number']], function(scaledown) {
+make_node(CRGB.prototype,'nscale8', [['scaledown', Units.UInt8]], function(scaledown) {
 	return this.setColorCode(Math8.nscale8x3(this.r, this.b, this.g, scaledown));
 });
 
@@ -208,8 +196,7 @@ make_node(CRGB.prototype,'nscale8_each', [['rgb', 'color']], function(rgb) {
 	return this;
 });
 
-make_node(CRGB.prototype,'fadeToBlackBy', [['fadefactor', 'number']], function(fadefactor) {
-	fadefactor &= 0xff;
+make_node(CRGB.prototype,'fadeToBlackBy', [['fadefactor', Units.UInt8]], function(fadefactor) {
 	return this.setColorCode(Math8.nscale8x3(this.r, this.g, this.b, 255-fadefactor));
 });
 
@@ -220,7 +207,7 @@ make_node(CRGB.prototype,'or_each', [['rhs', 'color']], function(rhs) {
 	return this;
 });
 
-make_node(CRGB.prototype,'or', [['d', 'number']], function(d) {
+make_node(CRGB.prototype,'or', [['d', Units.UInt8]], function(d) {
 	if (d > this.r) this.r = d;
 	if (d > this.g) this.g = d;
 	if (d > this.b) this.b = d;
@@ -234,7 +221,7 @@ make_node(CRGB.prototype,'and_each', [['rhs', 'color']], function(rhs) {
 	return this;
 });
 
-make_node(CRGB.prototype,'and', [['d', 'number']], function(d) {
+make_node(CRGB.prototype,'and', [['d', Units.UInt8]], function(d) {
 	if (d < this.r) this.r = d;
 	if (d < this.g) this.g = d;
 	if (d < this.b) this.b = d;
@@ -248,14 +235,14 @@ make_node(CRGB.prototype,'invert', [], function() {
 	return this;
 });
 
-make_node(CRGB.prototype,'lerp8', [['other', 'number'], ['frac', 'number']], function(other, frac) {
+make_node(CRGB.prototype,'lerp8', [['other', Units.UInt8], ['frac', Units.UInt8]], function(other, frac) {
 	var r = Math8.lerp8by8(this.r, other.r, frac);
 	var g = Math8.lerp8by8(this.g, other.g, frac);
 	var b = Math8.lerp8by8(this.b, other.b, frac);
 	return new CRGB(r,g,b);
 });
 
-make_node(CRGB.prototype,'lerp16', [['other', 'number'], ['frac', 'number']], function(other, frac) {
+make_node(CRGB.prototype,'lerp16', [['other', Units.UInt8], ['frac', Units.UInt16]], function(other, frac) {
 	var r = Math8.lerp16by16(this.r, other.r, frac);
 	var g = Math8.lerp16by16(this.g, other.g, frac);
 	var b = Math8.lerp16by16(this.b, other.b, frac);

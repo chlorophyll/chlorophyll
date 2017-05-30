@@ -1,4 +1,39 @@
 var Util = {
+	clone: function(obj) {
+		// Handle the 3 simple types, and null or undefined
+		if (null == obj || "object" != typeof obj) return obj;
+
+		// Handle Date
+		if (obj instanceof Date) {
+			var copy = new Date();
+			copy.setTime(obj.getTime());
+			return copy;
+		}
+
+		// Handle Array
+		if (obj instanceof Array) {
+			var copy = [];
+			for (var i = 0, len = obj.length; i < len; i++) {
+				copy[i] = Util.clone(obj[i]);
+			}
+			return copy;
+		}
+
+		if (obj.clone) {
+			return obj.clone();
+		}
+
+		// Handle Object
+		if (obj instanceof Object) {
+			var copy = {};
+			for (var attr in obj) {
+				if (obj.hasOwnProperty(attr)) copy[attr] = Util.clone(obj[attr]);
+			}
+			return copy;
+		}
+
+		throw new Error("Unable to copy obj! Its type isn't supported.");
+	},
 	clamp: function(val, min, max) {
 		if (val < min)
 			val = min;
@@ -117,67 +152,29 @@ var Util = {
 	unhilightElement: function(elem) {
 		elem.style.background = elem.__saved_background;
 		delete elem.saved_background;
+	},
+
+	normalizeCoordinates: function(pixels) {
+		var [_, first] = pixels.first();
+		var extent = first.clone();
+
+		pixels.forEach(function([idx, pos]) {
+			extent = extent.max(pos);
+			extent = extent.max(pos.clone().negate());
+		});
+
+		return pixels.map(function([idx, pos]) {
+			return [idx, pos.clone().divide(extent)];
+		});
+	},
+	Range: function(min, max, lower, upper) {
+		this.min = min;
+		this.max = max;
+		this.lower = lower;
+		this.upper = upper;
+
+		this.toString = function() {
+			return `${this.lower.toFixed(2)} - ${this.upper.toFixed(2)}`
+		}
 	}
 };
-
-var _Unused = {
-	roundRect: function(ctx, x, y, w, h, r) {
-		ctx.beginPath();
-		ctx.moveTo(x+r, y);
-		ctx.lineTo(x+w-r, y);
-		ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-		ctx.lineTo(x+w, y+h-r);
-		ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-		ctx.lineTo(x+r, y+h);
-		ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-		ctx.lineTo(x, y+r);
-		ctx.quadraticCurveTo(x, y, x+r, y);
-		ctx.closePath();
-		ctx.fill();
-		ctx.stroke();
-	},
-	// This place is not a place of honor.
-	// No highly esteemed deed is commemorated here.
-	// Nothing valued is here. What is here is repulsive to us.
-	// It came from StackOverflow.
-	textSprite: function(message, parameters) {
-		if ( parameters === undefined ) parameters = {};
-		var fontface = parameters.hasOwnProperty("fontface") ? parameters["fontface"] : "Arial";
-		var fontsize = parameters.hasOwnProperty("fontsize") ? parameters["fontsize"] : 18;
-		//fontsize *= 4;
-		var borderThickness = parameters.hasOwnProperty("borderThickness") ? parameters["borderThickness"] : 4;
-		var borderColor = parameters.hasOwnProperty("borderColor") ?parameters["borderColor"] : { r:0, g:0, b:0, a:1.0 };
-		var backgroundColor = parameters.hasOwnProperty("backgroundColor") ?parameters["backgroundColor"] : { r:255, g:255, b:255, a:1.0 };
-		var textColor = parameters.hasOwnProperty("textColor") ?parameters["textColor"] : { r:0, g:0, b:0, a:1.0 };
-
-		var canvas = document.createElement('canvas');
-		var context = canvas.getContext('2d');
-		context.font = "Bold " + fontsize + "px " + fontface;
-		var metrics = context.measureText( message );
-		var textWidth = metrics.width;
-		var width = (textWidth + borderThickness);
-		var height = fontsize * 1.4 + borderThickness;
-
-		canvas.width = width;
-		canvas.height = height;
-		context.font = "Bold " + fontsize + "px " + fontface;
-
-		context.fillStyle   = "rgba(" + backgroundColor.r + "," + backgroundColor.g + "," + backgroundColor.b + "," + backgroundColor.a + ")";
-		context.strokeStyle = "rgba(" + borderColor.r + "," + borderColor.g + "," + borderColor.b + "," + borderColor.a + ")";
-
-		context.lineWidth = borderThickness;
-		roundRect(context, borderThickness/2, borderThickness/2, width, height, 8);
-
-		context.fillStyle = "rgba("+textColor.r+", "+textColor.g+", "+textColor.b+", 1.0)";
-		context.fillText( message, borderThickness, fontsize + borderThickness);
-
-		var texture = new THREE.Texture(canvas);
-		texture.minFilter = THREE.LinearFilter; // NearestFilter;
-		texture.needsUpdate = true;
-
-		var spriteMaterial = new THREE.SpriteMaterial( { map: texture} );
-		var sprite = new THREE.Sprite( spriteMaterial );
-		sprite.scale.set(fontsize, fontsize / 2, 0.1 * fontsize);
-		return sprite;
-	},
-}

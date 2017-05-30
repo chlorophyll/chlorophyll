@@ -14,25 +14,18 @@ OutputColor.prototype.onExecute = function() {
 OutputColor.title = 'Output Color';
 OutputColor.visible_stages = [];
 
-LiteGraph.registerNodeType("output/color", OutputColor);
+LiteGraph.registerNodeType("lowlevel/output/color", OutputColor);
 
 function Cartesian2DInput() {
-	this.addOutput('x', 'number');
-	this.addOutput('y', 'number');
+	this.addOutput('x', Units.Distance);
+	this.addOutput('y', Units.Distance);
 	this.addOutput('t', 'number');
 	this.addOutput('color', 'CRGB');
 }
 
-Cartesian2DInput.prototype.onAdded = function() {
-	this.graph.addGlobalInput('x');
-	this.graph.addGlobalInput('y');
-	this.graph.addGlobalInput('t');
-	this.graph.addGlobalInput('color');
-}
-
 Cartesian2DInput.prototype.onExecute = function() {
-	var x = this.graph.global_inputs['x'].value;
-	var y = this.graph.global_inputs['y'].value;
+	var x = new Units.Distance(this.graph.global_inputs['c0'].value);
+	var y = new Units.Distance(this.graph.global_inputs['c1'].value);
 	var t = this.graph.global_inputs['t'].value;
 	var color = this.graph.global_inputs['color'].value;
 
@@ -45,27 +38,20 @@ Cartesian2DInput.prototype.onExecute = function() {
 Cartesian2DInput.title = 'Cartesian2DInput';
 Cartesian2DInput.visible_stages = [];
 
-LiteGraph.registerNodeType('input/cartesian2d', Cartesian2DInput);
+LiteGraph.registerNodeType('lowlevel/input/cartesian2d', Cartesian2DInput);
 
 // TODO refactor inputs to a common class, they're going to share everything
 // except the number/names of coordinates.
 function Polar2DInput() {
-	this.addOutput('r', 'number');
-	this.addOutput('theta', 'number');
+	this.addOutput('r', Units.Distance);
+	this.addOutput('theta', Units.Angle);
 	this.addOutput('t', 'number');
 	this.addOutput('color', 'CRGB');
 }
 
-Polar2DInput.prototype.onAdded = function() {
-	this.graph.addGlobalInput('r');
-	this.graph.addGlobalInput('theta');
-	this.graph.addGlobalInput('t');
-	this.graph.addGlobalInput('color');
-}
-
 Polar2DInput.prototype.onExecute = function() {
-	var r = this.graph.global_inputs['r'].value;
-	var theta = this.graph.global_inputs['theta'].value;
+	var r = new Units.Distance(this.graph.global_inputs['c0'].value);
+	var theta = new Units.Angle(this.graph.global_inputs['c1'].value);
 	var t = this.graph.global_inputs['t'].value;
 	var color = this.graph.global_inputs['color'].value;
 
@@ -78,7 +64,7 @@ Polar2DInput.prototype.onExecute = function() {
 Polar2DInput.title = 'Polar2DInput';
 Polar2DInput.visible_stages = [];
 
-LiteGraph.registerNodeType('input/polar2d', Polar2DInput);
+LiteGraph.registerNodeType('lowlevel/input/polar2d', Polar2DInput);
 
 function PrecomputeOutput() {
 	this.addProperty("name", null);
@@ -100,4 +86,4 @@ PrecomputeOutput.prototype.onExecute = function() {
 PrecomputeOutput.visible_stages = ['precompute'];
 PrecomputeOutput.title = 'Precompute Output';
 
-LiteGraph.registerNodeType('output/value', PrecomputeOutput);
+LiteGraph.registerNodeType('lowlevel/output/value', PrecomputeOutput);

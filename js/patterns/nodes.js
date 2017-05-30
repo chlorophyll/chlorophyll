@@ -1,39 +1,3 @@
-function Constant()
-{
-	this.addOutput("value","number");
-	this.addProperty( "value", 1 );
-}
-
-Constant.title = "const";
-Constant.desc = "Constant value";
-
-Constant.prototype.setValue = function(v)
-{
-	if( typeof(v) == "string") v = parseInt(v);
-	this.properties["value"] = v;
-	this.setDirtyCanvas(true);
-};
-
-Constant.prototype.onExecute = function()
-{
-	this.setOutputData(0, this.properties["value"] );
-}
-
-Constant.prototype.onDblClick = function(e) {
-	var self = this;
-	LiteGUI.prompt("value", function(v) {
-		self.setValue(v);
-	});
-}
-
-Constant.prototype.onDrawBackground = function(ctx)
-{
-	//show the current value
-	this.outputs[0].label = ''+this.properties["value"];
-}
-
-LiteGraph.registerNodeType("basic/const", Constant);
-
 function LogNode() {
 	this.addInput('val');
 }
@@ -44,7 +8,7 @@ LogNode.prototype.onExecute = function() {
 
 LogNode.title = 'log'
 
-LiteGraph.registerNodeType("basic/log", LogNode);
+LiteGraph.registerNodeType("lowlevel/debug/log", LogNode);
 
 function IfNode() {
 	this.addInput('clause', 'boolean');
@@ -158,82 +122,82 @@ NotNode.prototype.onExecute = function() {
 LiteGraph.registerNodeType("logic/!", NotNode);
 
 function AddNode() {
-	this.addInput('a', 'number');
-	this.addInput('b', 'number');
-	this.addOutput('a + b', 'number');
+	this.addInput('a', Units.Numeric);
+	this.addInput('b', Units.Numeric);
+	this.addOutput('a + b');
 }
 
 AddNode.title = 'a + b';
 AddNode.prototype.onExecute = function() {
 	var a = this.getInputData(0);
 	var b = this.getInputData(1);
-	this.setOutputData(0, a+b);
+	this.setOutputData(0, Units.Operations.add(a,b));
 }
 LiteGraph.registerNodeType("math/add", AddNode);
 
 function SubNode() {
-	this.addInput('a', 'number');
-	this.addInput('b', 'number');
-	this.addOutput('a - b', 'number');
+	this.addInput('a', Units.Numeric);
+	this.addInput('b', Units.Numeric);
+	this.addOutput('a - b');
 }
 
 SubNode.title = 'a - b';
 SubNode.prototype.onExecute = function() {
 	var a = this.getInputData(0);
 	var b = this.getInputData(1);
-	this.setOutputData(0, a-b);
+	this.setOutputData(0, Units.Operations.sub(a,b));
 }
 LiteGraph.registerNodeType("math/sub", SubNode);
 
 function MulNode() {
-	this.addInput('a', 'number');
-	this.addInput('b', 'number');
-	this.addOutput('a * b', 'number');
+	this.addInput('a', Units.Numeric);
+	this.addInput('b', Units.Numeric);
+	this.addOutput('a * b');
 }
 
 MulNode.title = 'a * b';
 MulNode.prototype.onExecute = function() {
 	var a = this.getInputData(0);
 	var b = this.getInputData(1);
-	this.setOutputData(0, a*b);
+	this.setOutputData(0, Units.Operations.mul(a,b));
 }
 LiteGraph.registerNodeType("math/mul", MulNode);
 
+function AbsNode() {
+	this.addInput('a', Units.Numeric);
+	this.addOutput('|a|');
+}
+
+AbsNode.title = '|a|';
+AbsNode.prototype.onExecute = function() {
+	this.setOutputData(0, Math.abs(this.getInputData(0)));
+}
+
+LiteGraph.registerNodeType("math/abs", AbsNode);
+
+
 function DivNode() {
-	this.addInput('a', 'number');
-	this.addInput('b', 'number');
-	this.addOutput('result', 'number');
+	this.addInput('a', Units.Numeric);
+	this.addInput('b', Units.Numeric);
+	this.addOutput('a / b');
 }
 DivNode.title = 'a / b';
 DivNode.prototype.onExecute = function() {
 	var a = this.getInputData(0);
 	var b = this.getInputData(1);
-	this.setOutputData(0, a/b);
+	this.setOutputData(0, Units.Operations.div(a,b));
 }
 LiteGraph.registerNodeType("math/div", DivNode);
 
-function AngleNode() {
-	this.addInput('theta', 'number');
-	this.addOutput('normalized', 'number');
+function ModNode() {
+	this.addInput('a', Units.Numeric);
+	this.addInput('b', Units.Numeric);
+	this.addOutput('a % b');
 }
-
-AngleNode.title = 'normalizeAngle'
-AngleNode.prototype.onExecute = function() {
-	var theta = this.getInputData(0);
-	this.setOutputData(0, 255 * theta / (2*Math.PI));
+ModNode.title = 'a % b';
+ModNode.prototype.onExecute = function() {
+	var a = this.getInputData(0);
+	var b = this.getInputData(1);
+	this.setOutputData(0, Units.Operations.mod(a,b));
 }
-
-LiteGraph.registerNodeType('polar/normalizeAngle', AngleNode);
-
-function ToUint8() {
-	this.addInput('x', 'number');
-	this.addOutput('result', 'number');
-}
-
-ToUint8.title = 'toUint8';
-
-ToUint8.prototype.onExecute = function() {
-	this.setOutputData(0, this.getInputData(0) & 0xff);
-}
-
-LiteGraph.registerNodeType('math/toUint8', ToUint8);
+LiteGraph.registerNodeType("math/mod", ModNode);

@@ -15,8 +15,7 @@ MapUtil = {
 				var fromOrigin = pos.clone().sub(this.proj_plane.origin);
 				return new THREE.Vector2(this.proj_plane.xaxis.dot(fromOrigin),
 										 this.proj_plane.yaxis.dot(fromOrigin));
-			},
-			coord_names: ['x', 'y']
+			}
 		},
 		polar2d: {
 			name: "2D Polar",
@@ -27,8 +26,7 @@ MapUtil = {
 											  this.proj_plane.yaxis.dot(fromOrigin));
 				// map from x,y -> r, theta
 				return new THREE.Vector2(point.length(), point.angle());
-			},
-			coord_names: ['r', 'theta']
+			}
 		}
 	},
 	// generated from mapping_types
@@ -80,9 +78,10 @@ var ProjectionMapping = function(manager, group, id, initname) {
 	});
 
 	this.getPositions = function(type) {
-		return group.pixels.map(function(idx) {
+		var mapped = group.pixels.map(function(idx) {
 			return [idx, MapUtil.mapping_types[type].mapPoint.call(self, idx)]
 		});
+		return Util.normalizeCoordinates(mapped);
 	}
 
 	this.setFromCamera = function() {
