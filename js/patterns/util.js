@@ -19,20 +19,17 @@ LiteGraph.registerNodeType("lowlevel/output/color", OutputColor);
 function Cartesian2DInput() {
 	this.addOutput('x', Units.Distance);
 	this.addOutput('y', Units.Distance);
-	this.addOutput('t', 'number');
 	this.addOutput('color', 'CRGB');
 }
 
 Cartesian2DInput.prototype.onExecute = function() {
 	var x = new Units.Distance(this.graph.global_inputs['c0'].value);
 	var y = new Units.Distance(this.graph.global_inputs['c1'].value);
-	var t = this.graph.global_inputs['t'].value;
 	var color = this.graph.global_inputs['color'].value;
 
 	this.setOutputData(0, x);
 	this.setOutputData(1, y);
-	this.setOutputData(2, t);
-	this.setOutputData(3, color);
+	this.setOutputData(2, color);
 }
 
 Cartesian2DInput.title = 'Cartesian2DInput';
@@ -45,26 +42,32 @@ LiteGraph.registerNodeType('lowlevel/input/cartesian2d', Cartesian2DInput);
 function Polar2DInput() {
 	this.addOutput('r', Units.Distance);
 	this.addOutput('theta', Units.Angle);
-	this.addOutput('t', 'number');
 	this.addOutput('color', 'CRGB');
 }
 
 Polar2DInput.prototype.onExecute = function() {
 	var r = new Units.Distance(this.graph.global_inputs['c0'].value);
 	var theta = new Units.Angle(this.graph.global_inputs['c1'].value);
-	var t = this.graph.global_inputs['t'].value;
 	var color = this.graph.global_inputs['color'].value;
 
 	this.setOutputData(0, r);
 	this.setOutputData(1, theta);
-	this.setOutputData(2, t);
-	this.setOutputData(3, color);
+	this.setOutputData(2, color);
 }
 
 Polar2DInput.title = 'Polar2DInput';
 Polar2DInput.visible_stages = [];
 
 LiteGraph.registerNodeType('lowlevel/input/polar2d', Polar2DInput);
+
+function TimeInput() {
+	this.addOutput('t', 'number');
+}
+TimeInput.prototype.onExecute = function() {
+	this.setOutputData(0, this.graph.global_inputs['t'].value);
+}
+TimeInput.title = 'TimeInput';
+LiteGraph.registerNodeType('lowlevel/input/time', TimeInput);
 
 function PrecomputeOutput() {
 	this.addProperty("name", null);

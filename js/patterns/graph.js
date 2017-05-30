@@ -593,6 +593,12 @@ function PatternManager() {
 							cur_values[input.name] = new input.type(v);
 						}
 					}));
+				} else if (input.type == 'number') {
+					add(input, inspector.addNumber(input.name, val, {
+						callback: function(v) {
+							cur_values[input.name] = v;
+						}
+					}));
 				} else if (input.type == 'frequency') {
 					var f = cur_values[input.name];
 					add(input, inspector.addQuantity(input.name, f.quantity(), {
