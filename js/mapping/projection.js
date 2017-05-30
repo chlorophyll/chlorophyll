@@ -1,55 +1,12 @@
-/*
- * Mapping utility values
- *
- * For each type of mapping, provide a descriptive name and a point mapping
- * function which, when called on a mapping object, returns the mapped
- * coordinates of the point.
- */
-MapUtil = {
-	default_type: "cartesian2d",
-	mapping_types: {
-		cartesian2d: {
-			name: "2D Cartesian",
-			mapPoint: function(idx) {
-				var pos = this.model.getPosition(idx);
-				var fromOrigin = pos.clone().sub(this.proj_plane.origin);
-				return new THREE.Vector2(this.proj_plane.xaxis.dot(fromOrigin),
-										 this.proj_plane.yaxis.dot(fromOrigin));
-			}
-		},
-		polar2d: {
-			name: "2D Polar",
-			mapPoint: function(idx) {
-				var pos = this.model.getPosition(idx);
-				var fromOrigin = pos.clone().sub(this.proj_plane.origin);
-				var point = new THREE.Vector2(this.proj_plane.xaxis.dot(fromOrigin),
-											  this.proj_plane.yaxis.dot(fromOrigin));
-				// map from x,y -> r, theta
-				return new THREE.Vector2(point.length(), point.angle());
-			}
-		}
-	},
-	// generated from mapping_types
-	type_menu: {}
-}
-// Generate display name -> use name mapping for the settings menu
-for (type in MapUtil.mapping_types) {
-	MapUtil.type_menu[MapUtil.mapping_types[type].name] = type;
-}
-
-
 var ProjectionMapping = function(manager, group, id, initname) {
+	Mapping.call(this, manager, group, id, initname);
 	var self = this;
 
-	this.group = group;
-	this.model = group.model;
-	this.id = id;
-	this.tree_id = group.tree_id + '-map-' + id;
-	var _name = initname;
+	this.isProjection = true;
 
-	this.configuring = false;
 	this.mapping_valid = false;
 	this.proj_plane = {};
+
 	this.widget = new CartesianAxes(container);
 
 	var ui_controls = {};
@@ -57,32 +14,30 @@ var ProjectionMapping = function(manager, group, id, initname) {
 	var screen = screenManager.addScreen(this.tree_id,
 			{isOrtho: true, inheritOrientation: true});
 
-	var elem = manager.tree.insertItem({
-		id: self.tree_id,
-		content: _name,
-		dataset: {mapping: self}
-	}, group.tree_id);
-
-	Object.defineProperty(this, 'name', {
-		get: function() { return _name; },
-		set: function(v) {
-			if (v.length > Cfg.max_name_len) {
-				v = v.slice(0, Cfg.max_name_len);
-			}
-			_name = v;
-			manager.tree.updateItem(self.tree_id, {
-				content: _name,
-				dataset: {mapping: self}
-			});
-		}
-	});
-
-	this.getPositions = function(type) {
-		var mapped = group.pixels.map(function(idx) {
-			return [idx, MapUtil.mapping_types[type].mapPoint.call(self, idx)]
-		});
-		return Util.normalizeCoordinates(mapped);
+	function projectPoint(idx) {
+		var pos = self.model.getPosition(idx);
+		var fromOrigin = pos.clone().sub(self.proj_plane.origin);
+		return new THREE.Vector2(self.proj_plane.xaxis.dot(fromOrigin),
+								 self.proj_plane.yaxis.dot(fromOrigin));
 	}
+
+	this.map_types.cartesian2d = {
+		name: "2D Cartesian",
+		mapPoint: function(idx) {
+			var point = projectPoint(idx);
+			return point.divide(self.proj_plane.norm_factor);
+		}
+	};
+
+	this.map_types.polar2d = {
+		name: "2D Polar",
+		mapPoint: function(idx) {
+			var point = projectPoint(idx);
+			point.divide(self.proj_plane.norm_factor);
+			// map from x,y -> r, theta
+			return new THREE.Vector2(point.length(), point.angle());
+		}
+	};
 
 	this.setFromCamera = function() {
 		var origin = self.widget.data();
@@ -91,7 +46,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		// Create plane from the camera's look vector
 		var plane_normal = new THREE.Vector3(0, 0, -1);
 		plane_normal.applyQuaternion(cam_quaternion).normalize();
-		self.proj_plane.plane = new THREE.Plane(plane_normal);
+		var plane = new THREE.Plane(plane_normal);
 		self.proj_plane.euler = screen.camera.rotation.clone();
 
 		// Create axes for the projection and rotate them appropriately
@@ -108,7 +63,18 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		var raycaster = new THREE.Raycaster();
 		var widgetpos = new THREE.Vector2(origin.x, origin.y);
 		raycaster.setFromCamera(widgetpos, screen.camera);
-		self.proj_plane.origin = raycaster.ray.intersectPlane(self.proj_plane.plane);
+		self.proj_plane.origin = raycaster.ray.intersectPlane(plane);
+
+		// generate normalization factor once
+		var pixels = group.pixels.map(i => [i, projectPoint(i)]);
+
+		var extent = new THREE.Vector2(0, 0);
+		group.pixels.forEach(function(i) {
+			var p = projectPoint(i);
+			extent = extent.max(p);
+			extent = extent.max(p.clone().negate());
+		});
+		self.proj_plane.norm_factor = Math.max(extent.x, extent.y);
 
 		self.mapping_valid = true;
 	}
@@ -118,12 +84,12 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		var angle = screen.camera.rotation;
 		ui_controls.cam_angle_widget.setValue(
 			[angle.x * THREE.Math.RAD2DEG,
-				angle.y * THREE.Math.RAD2DEG,
-				angle.z * THREE.Math.RAD2DEG], true);
+			 angle.y * THREE.Math.RAD2DEG,
+			 angle.z * THREE.Math.RAD2DEG], true);
 		self.setFromCamera();
 	}
 
-	this.endConfig = function() {
+	this.hideConfig = function() {
 		self.model.showUnderlyingModel();
 		screenManager.setActive('main');
 		self.widget.hide();
@@ -135,8 +101,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		ui_controls = {};
 	}
 
-	this.startConfig = function(inspector) {
-
+	this.showConfig = function(inspector) {
 		if (self.configuring) return;
 
 		ui_controls.inspector = inspector;
@@ -158,6 +123,8 @@ var ProjectionMapping = function(manager, group, id, initname) {
 			origin_pos = [map_origin.x, map_origin.y, map_origin.z];
 			plane_angle = self.proj_plane.euler;
 		}
+
+		inspector.addSection('Mapping Configuration');
 
 		// display as degrees for human readability
 		ui_controls.cam_angle_widget = inspector.addVector3("plane normal",
@@ -197,7 +164,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		}
 
 		inspector.addButton(null, 'Save and close', function() {
-			self.endConfig();
+			self.hideConfig();
 			// Only snapshot state on save+close to avoid gross state fiddling
 			worldState.checkpoint();
 		});
@@ -205,7 +172,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 
 	this.destroy = function() {
 		if (self.configuring)
-			self.endConfig();
+			self.hideConfig();
 		manager.tree.removeItem(self.tree_id);
 	}
 
@@ -216,7 +183,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		}
 		var widgetdata = self.widget.data();
 		snap = {
-			name: _name,
+			name: self.name,
 			id: self.id,
 			tree_id: self.tree_id,
 			mapping_valid: self.mapping_valid,
@@ -233,13 +200,13 @@ var ProjectionMapping = function(manager, group, id, initname) {
 
 	this.restore = function(snapshot) {
 		if (self.configuring) {
-			self.endConfig();
+			self.hideConfig();
 		}
 		self.id = snapshot.get('id');
 		self.tree_id = snapshot.get('tree_id');
 		self.name = snapshot.get('name');
 		self.widget.setPos(snapshot.get('widget_x'), snapshot.get('widget_y'));
-		self.widget.setAngle(snapshot.get('widget_angle'));
+		self.widget.setRot(snapshot.get('widget_angle'));
 		self.mapping_valid = snapshot.get('mapping_valid');
 		if (self.mapping_valid) {
 			var norm = snapshot.get('plane_normal');

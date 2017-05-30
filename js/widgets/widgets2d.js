@@ -18,7 +18,7 @@ function Coordinates2D() {
 		this.x = vx; this.y = vy;
 	}
 
-	this.setAngle = function(new_angle) {
+	this.setRot = function(new_angle) {
 		this.angle = new_angle;
 	}
 }

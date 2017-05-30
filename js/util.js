@@ -154,19 +154,6 @@ var Util = {
 		delete elem.saved_background;
 	},
 
-	normalizeCoordinates: function(pixels) {
-		var [_, first] = pixels.first();
-		var extent = first.clone();
-
-		pixels.forEach(function([idx, pos]) {
-			extent = extent.max(pos);
-			extent = extent.max(pos.clone().negate());
-		});
-
-		return pixels.map(function([idx, pos]) {
-			return [idx, pos.clone().divide(extent)];
-		});
-	},
 	Range: function(min, max, lower, upper) {
 		this.min = min;
 		this.max = max;

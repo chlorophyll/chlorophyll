@@ -66,7 +66,7 @@ function PatternGraph(id, name) {
 		this.stages[stage] = new LGraph();
 	}
 
-	var _mapping_type = MapUtil.default_type;
+	var _mapping_type = Const.default_map_type;
 	Object.defineProperty(this, 'mapping_type', {
 		get: function() { return _mapping_type; },
 		set: function(v) {
@@ -135,6 +135,7 @@ function PatternGraph(id, name) {
 
 	this.stages['pixel'].addGlobalInput('c0');
 	this.stages['pixel'].addGlobalInput('c1');
+	this.stages['pixel'].addGlobalInput('c2');
 	this.stages['pixel'].addGlobalInput('t');
 	this.stages['pixel'].addGlobalInput('color');
 
@@ -231,6 +232,7 @@ function PatternGraph(id, name) {
 				var incolor = new CRGB(dc[0],dc[1],dc[2]);
 				graph.setGlobalInputData('c0', pos.x);
 				graph.setGlobalInputData('c1', pos.y);
+				graph.setGlobalInputData('c2', 'z' in pos ? pos.z : 0);
 				graph.setGlobalInputData('color', incolor);
 				graph.runStep();
 				var outcolor = graph.getGlobalOutputData('outcolor');
@@ -260,7 +262,7 @@ function PatternManager() {
 	var stageWidget;
 	var patternList;
 	var mappingTypeList;
-	var selectedMappingType = MapUtil.default_type;
+	var selectedMappingType = Const.default_map_type;
 
 	var patterns = Immutable.Map();
 
@@ -314,9 +316,11 @@ function PatternManager() {
 		self.root.style.width = '100%';
 		self.root.style.position = 'relative';
 		self.root.style.height = '100%';
-		self.top_widgets = new LiteGUI.Inspector( null, { one_line: true});
+		self.top_widgets = new LiteGUI.Inspector( null, { one_line: true });
+		self.top_widgets2 = new LiteGUI.Inspector( null, { one_line: true });
 
 		var runningPattern = false;
+		var previewMapping = null;
 
 		/* these are from Google's material icons; the text matters */
 		var play = 'play_arrow';
@@ -332,10 +336,9 @@ function PatternManager() {
 				curPattern.stop();
 				this.setValue(play);
 			} else {
-				var mapping = groupManager.currentMapping;
-				if (!mapping)
+				if (!previewMapping)
 					return;
-				curPattern.run(mapping);
+				curPattern.run(previewMapping);
 				this.setValue(pause);
 			}
 			runningPattern = !runningPattern;
@@ -359,27 +362,13 @@ function PatternManager() {
 		self.top_widgets.addButton(null,"New", {width: 50, callback: newPattern });
 		self.top_widgets.addButton(null,"Copy", {width: 50, callback: copyPattern });
 
-		patternList = self.top_widgets.addCombo('Choose pattern',"Open", {
+		patternList = self.top_widgets.addCombo('Choose pattern', "Open", {
 			width: '15em',
 			callback: function(val) {
 				var pattern = patterns.get(val.id);
 				setCurrentPattern(pattern);
 			}
 		});
-
-		mappingTypeList = self.top_widgets.addCombo('Mapping type',
-			MapUtil.default_type, {
-				values: MapUtil.type_menu,
-				width: '15em',
-				callback: function(val) {
-					selectedMappingType = val;
-
-					if (curPattern) {
-						curPattern.mapping_type = val;
-						worldState.checkpoint();
-					}
-				}
-			});
 
 		self.top_widgets.addSeparator();
 
@@ -398,10 +387,40 @@ function PatternManager() {
 			callback: setCurrentStage
 		});
 
+		var mapmenu_values = {};
+		for (type in MappingInputs) {
+			mapmenu_values[MappingInputs[type].name] = type;
+		}
+		mappingTypeList = self.top_widgets2.addCombo('Projection type',
+			Const.default_map_type,
+			{
+				values: mapmenu_values,
+				callback: function(val) {
+					selectedMappingType = val;
 
-		self.root.appendChild( self.top_widgets.root );
-		var area = self.area = new LiteGUI.Area(null,{ className: "grapharea", height: -30});
-		self.root.appendChild( area.root );
+					if (curPattern) {
+						curPattern.mapping_type = val;
+						worldState.checkpoint();
+					}
+				}
+			});
+
+		self.top_widgets2.addString('Preview mapping', "", function(val) {
+				var maps = groupManager.listMappings();
+				if (val in maps)
+					previewMapping = maps[val];
+			});
+
+
+		self.root.appendChild(self.top_widgets.root);
+		self.root.appendChild(self.top_widgets2.root);
+
+		var area = self.area = new LiteGUI.Area(null, {
+			className: "grapharea",
+			height: -60
+		});
+		self.root.appendChild(area.root);
+
 		var canvasContainer = document.createElement('div');
 		UI.tabs.addTab('Pattern Builder', {
 			content: self.root,
@@ -413,10 +432,7 @@ function PatternManager() {
 
 		self.graphcanvas = new GraphCanvas(canvasContainer);
 
-
-
 		var nodes = {id: "Nodes", children: []};
-
 
 		// fill category tree
 		for (var category of LiteGraph.getNodeTypesCategories()) {

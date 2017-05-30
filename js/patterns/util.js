@@ -16,49 +16,78 @@ OutputColor.visible_stages = [];
 
 LiteGraph.registerNodeType("lowlevel/output/color", OutputColor);
 
-function Cartesian2DInput() {
-	this.addOutput('x', Units.Distance);
-	this.addOutput('y', Units.Distance);
-	this.addOutput('color', 'CRGB');
+var MappingInputs = {
+	cartesian2d: {
+		name: "Cartesian2D",
+		coords: [
+			{name: 'x', unit: Units.Distance},
+			{name: 'y', unit: Units.Distance}
+		]
+	},
+	polar2d: {
+		name: "Polar2D",
+		coords: [
+			{name: 'r', unit: Units.Distance},
+			{name: 'theta', unit: Units.Angle}
+		]
+	},
+	cartesian3d: {
+		name: "Cartesian3D",
+		coords: [
+			{name: 'x', unit: Units.Distance},
+			{name: 'y', unit: Units.Distance},
+			{name: 'z', unit: Units.Distance}
+		]
+	},
+	cylinder3d: {
+		name: "Cylindrical3D",
+		coords: [
+			{name: 'r', unit: Units.Distance},
+			{name: 'theta', unit: Units.Angle},
+			{name: 'z', unit: Units.Distance}
+		]
+	},
+	sphere3d: {
+		name: "Spherical3D",
+		coords: [
+			{name: 'r', unit: Units.Distance},
+			{name: 'theta', unit: Units.Angle},
+			{name: 'phi', unit: Units.Angle}
+		]
+	}
 }
 
-Cartesian2DInput.prototype.onExecute = function() {
-	var x = new Units.Distance(this.graph.global_inputs['c0'].value);
-	var y = new Units.Distance(this.graph.global_inputs['c1'].value);
-	var color = this.graph.global_inputs['color'].value;
+/*
+ * Generate input nodes for each mapping type
+ */
+for (type in MappingInputs) {
+	let info = MappingInputs[type];
 
-	this.setOutputData(0, x);
-	this.setOutputData(1, y);
-	this.setOutputData(2, color);
+	let map_input_node = function() {
+		for (var i = 0; i < info.coords.length; i++) {
+			this.addOutput(info.coords[i].name, info.coords[i].unit);
+		}
+		this.addOutput('color', 'CRGB');
+	}
+
+	map_input_node.prototype.onExecute = function() {
+		var coord_ginputs = ['c0', 'c1', 'c2'];
+
+		for (var i = 0; i < info.coords.length; i++) {
+			var in_val = this.graph.global_inputs[coord_ginputs[i]].value;
+			var unitConstructor = info.coords[i].unit;
+
+			this.setOutputData(i, new unitConstructor(in_val));
+		}
+		var color = this.graph.global_inputs['color'].value;
+		this.setOutputData(info.coords.length, color);
+	}
+
+	map_input_node.title = info.name + "Input";
+	map_input_node.visible_stages = [];
+	LiteGraph.registerNodeType('lowlevel/input/' + type, map_input_node);
 }
 
-Cartesian2DInput.title = 'Cartesian2DInput';
-Cartesian2DInput.visible_stages = [];
-
-LiteGraph.registerNodeType('lowlevel/input/cartesian2d', Cartesian2DInput);
-
-// TODO refactor inputs to a common class, they're going to share everything
-// except the number/names of coordinates.
-function Polar2DInput() {
-	this.addOutput('r', Units.Distance);
-	this.addOutput('theta', Units.Angle);
-	this.addOutput('color', 'CRGB');
-}
-
-Polar2DInput.prototype.onExecute = function() {
-	var r = new Units.Distance(this.graph.global_inputs['c0'].value);
-	var theta = new Units.Angle(this.graph.global_inputs['c1'].value);
-	var color = this.graph.global_inputs['color'].value;
-
-	this.setOutputData(0, r);
-	this.setOutputData(1, theta);
-	this.setOutputData(2, color);
-}
-
-Polar2DInput.title = 'Polar2DInput';
-Polar2DInput.visible_stages = [];
-
-LiteGraph.registerNodeType('lowlevel/input/polar2d', Polar2DInput);
 
 function TimeInput() {
 	this.addOutput('t', 'number');

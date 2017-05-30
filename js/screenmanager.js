@@ -1,7 +1,10 @@
 //TODO(rpearl) potentially support multiple views
 Screen = function(camera, renderer, scene) {
+	var self = this;
 
 	this.camera = camera;
+	this.renderer = renderer;
+	this.scene = scene;
 
 	this.isActive = false;
 
@@ -15,14 +18,13 @@ Screen = function(camera, renderer, scene) {
 	this.controls = controls;
 
 	var controlsEnabled = true;
-	var isActive = false;
 
 	Object.defineProperties(this, {
 		controlsEnabled: {
 			get: function() { return controlsEnabled; },
 			set: function(v) {
 				controlsEnabled = v;
-				if (isActive)
+				if (self.isActive)
 					controls.enabled = v;
 			}
 
@@ -32,11 +34,11 @@ Screen = function(camera, renderer, scene) {
 
 	this.activate = function() {
 		controls.enabled = controlsEnabled;
-		isActive = true;
+		self.isActive = true;
 	}
 
 	this.deactivate = function() {
-		isActive = false;
+		self.isActive = false;
 		controls.enabled = false;
 	}
 
