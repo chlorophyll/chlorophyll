@@ -465,14 +465,14 @@ function GraphCanvas(divNode) {
 		this.graph.addEventListener('node-removed', onNodeRemoved);
 		grid.style('display', '');
 
-		for (var id in this.graph.links) {
-			var link = this.graph.links[id];
-			drawLink(link);
-		}
-
 		for (var i = 0; i < this.graph._nodes.length; i++) {
 			var node = this.graph._nodes[i];
 			drawNode(node);
+		}
+
+		for (var id in this.graph.links) {
+			var link = this.graph.links[id];
+			drawLink(link);
 		}
 	}
 
