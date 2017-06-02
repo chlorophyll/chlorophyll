@@ -37,9 +37,14 @@ Units = new Proxy(_Units, {
 
 		value._unit_name = prop;
 
-		value.toJSON = function() {
-			return 'Units.'+prop;
+		value.prototype.serialize = function() {
+			return this.val;
 		}
+
+		value.deserialize = function(prop) {
+			return new value(prop);
+		}
+		Util.JSON.addType(prop, value);
 
 		value.isConvertibleUnit = true;
 

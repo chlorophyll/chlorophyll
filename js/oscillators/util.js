@@ -42,7 +42,15 @@ function Frequency() {
 		return f;
 	}
 
-	this.toJSON = function() {
-		return 'Frequency.'+frequency;
+	this.serialize = function() {
+		return frequency;
+	}
+
+	this.constructor.deserialize = function(freq) {
+		var f = new Frequency();
+		f.hz = freq;
+		return f;
 	}
 }
+
+Util.JSON.addType('Frequency', Frequency);

@@ -176,5 +176,49 @@ var Util = {
 		this.toString = function() {
 			return `${this.lower.toFixed(2)} - ${this.upper.toFixed(2)}`
 		}
+
+		this.serialize = function() {
+			return {min: this.min, max: this.max, lower: this.lower, upper: this.upper};
+		}
+
+		this.constructor.deserialize = function(obj) {
+			return new Util.Range(obj.min, obj.max, obj.lower, obj.upper);
+		}
+	},
+};
+
+Util.JSON = {
+	tags: {},
+	addType: function(tag, constructor) {
+		this.tags[tag] = constructor;
+
+		constructor.toJSON = function() {
+			return {'_tag': tag};
+		}
+
+		constructor.prototype.toJSON = function() {
+			return {'_tag': tag, value: this.serialize()};
+		}
+	},
+
+	dump: function(obj) {
+		return JSON.stringify(obj)
+	},
+
+	load: function(s) {
+		var out = JSON.parse(s, function(key, val) {
+			if (val instanceof Object && val._tag) {
+				if (val.value !== undefined) {
+					return Util.JSON.tags[val._tag].deserialize(val.value);
+				} else {
+					return Util.JSON.tags[val._tag];
+				}
+			} else {
+				return val;
+			}
+		});
+		return out;
 	}
 };
+
+Util.JSON.addType('Range', Util.Range);
