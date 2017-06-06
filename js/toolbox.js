@@ -25,6 +25,9 @@ function Toolbox(managername, toolbar, menu) {
 	}
 
 	this.exitActiveTool = function() {
+		if (activeTool === null)
+			return;
+
 		activeTool.disable();
 		Util.unhilightElement(activeTool.ui_button);
 		activeTool = null;
