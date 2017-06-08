@@ -25,7 +25,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		name: "2D Cartesian",
 		mapPoint: function(idx) {
 			var point = projectPoint(idx);
-			return point.divide(self.proj_plane.norm_factor);
+			return point.divideScalar(self.proj_plane.norm_factor);
 		}
 	};
 
@@ -33,7 +33,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		name: "2D Polar",
 		mapPoint: function(idx) {
 			var point = projectPoint(idx);
-			point.divide(self.proj_plane.norm_factor);
+			point.divideScalar(self.proj_plane.norm_factor);
 			// map from x,y -> r, theta
 			return new THREE.Vector2(point.length(), point.angle());
 		}

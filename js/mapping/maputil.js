@@ -29,8 +29,8 @@ var Mapping = function(manager, group, id, initname) {
 	Object.defineProperty(this, 'name', {
 		get: function() { return _name; },
 		set: function(v) {
-			if (v.length > Cfg.max_name_len) {
-				v = v.slice(0, Cfg.max_name_len);
+			if (v.length > Const.max_name_len) {
+				v = v.slice(0, Const.max_name_len);
 			}
 			_name = v;
 			manager.tree.updateItem(self.tree_id, {
