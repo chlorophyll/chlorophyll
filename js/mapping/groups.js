@@ -34,17 +34,27 @@ function PixelGroup(manager, id, pixels, initname, color) {
 		'root'
 	);
 
-	var checkbox = new LiteGUI.Checkbox(true, function(v) {
-		if (v) {
+	var visible = true;
+
+	var visibilityToggle = document.createElement('a');
+	visibilityToggle.innerText = 'visibility';
+	visibilityToggle.classList.add('material-icons');
+	visibilityToggle.classList.add('visibility-toggle');
+
+	visibilityToggle.addEventListener('click', function(e) {
+		e.stopPropagation();
+		visible = !visible;
+
+		if (visible) {
 			self.show();
+			visibilityToggle.innerText = 'visibility';
 		} else {
 			self.hide();
+			visibilityToggle.innerText = 'visibility_off';
 		}
 	});
 
-	checkbox.root.style.float = 'right';
-
-	elem.querySelector('.postcontent').appendChild(checkbox.root);
+	elem.querySelector('.postcontent').appendChild(visibilityToggle);
 
 	Object.defineProperty(this, 'name', {
 		get: function() { return _name; },
@@ -202,20 +212,26 @@ function GroupManager(model) {
 		currGroupInspector.clear();
 		currGroupInspector.addSection('Current Group');
 		currGroupInspector.widgets_per_row = 2;
+
+		var buttonWidth = 40;
+
 		group_namefield = currGroupInspector.addString('name', group.name, {
-			width: '70%',
+			width: -buttonWidth,
 			callback: function(v) {
 				self.currentGroup.name = v;
 			}
 		});
-		currGroupInspector.addButton(null, 'Delete', {
-			width: '30%',
+		var deleteButton = currGroupInspector.addButton(null, 'delete', {
+			width: buttonWidth,
 			callback: function() {
 				var cur = self.currentGroup;
 				self.clearCurrentGroup();
 				cur.destroy();
 			}
 		});
+
+		deleteButton.classList.add('material-icons');
+
 		currGroupInspector.widgets_per_row = 1;
 		currGroupInspector.addColor('color', group.color.toArray(), {
 			callback: function(v) {
@@ -224,24 +240,27 @@ function GroupManager(model) {
 		});
 		currGroupInspector.addSeparator();
 		currGroupInspector.widgets_per_row = 2;
-		currGroupInspector.addButton(null, 'Add Mapping', {
-			width: '40%',
-			callback: function() {
-				var map = self.currentGroup.addMapping()
-				self.setCurrentMapping(map);
-				worldState.checkpoint();
-			}
-		});
+
 		currGroupInspector.name_width = '3em';
 		currGroupInspector.addCombo('type',
 			self.next_maptype, {
-				width: '60%',
+				width: -buttonWidth,
 				values: {
 					"3D Transform": TransformMapping,
 					"2D Projection": ProjectionMapping
 				},
 				callback: function(val) { self.next_maptype = val; }
 			});
+
+		var addMappingButton = currGroupInspector.addButton(null, 'add', {
+			width: buttonWidth,
+			callback: function() {
+				var map = self.currentGroup.addMapping()
+				self.setCurrentMapping(map);
+				worldState.checkpoint();
+			}
+		});
+		addMappingButton.classList.add('material-icons');
 		currGroupInspector.widgets_per_row = 1;
 	}
 

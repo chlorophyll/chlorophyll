@@ -2,7 +2,20 @@
  * Extensions to litegui default style for Chlorophyll
  */
 
-/* Fix floating checkbox alignment in firefox */
+/* Fix floating checkbox alignment...*/
 li.ltreeitem div.ltreeitemtitle {
+	padding: 1px;
 	white-space: normal;
+}
+
+.visibility-toggle {
+	color: #aaa;
+	text-decoration: none;
+	float: right;
+	padding-right: 1em;
+}
+
+.visibility-toggle:hover {
+	color: #fff;
+	text-decoration: none;
 }
