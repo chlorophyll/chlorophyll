@@ -87,11 +87,12 @@ ScreenManager = function(renderer, scene) {
 			camera = new THREE.OrthographicCamera(
 				width / -2,  width / 2,
 				height / 2, height / -2,
-				2, 2000);
+				1, Const.max_draw_dist);
 			camera.zoom /= 2;
 			camera.updateProjectionMatrix();
 		} else {
-			camera = new THREE.PerspectiveCamera(45, width/height, 2, 2000);
+			camera = new THREE.PerspectiveCamera(45, width/height, 1,
+				Const.max_draw_dist);
 		}
 		if (options.inheritOrientation && _activeScreen) {
 			camera.position.x = _activeScreen.camera.position.x;

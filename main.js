@@ -99,45 +99,17 @@ function init() {
 	container.style.top = 0;
 	container.style.left = 0;
 
-	//TODO: unsure exactly where these settings should live
-	var rendering_win = new LiteGUI.Dialog('render_settings', {title:'Rendering Settings', minimize: true, width: 256, scroll: true, resizable:true, draggable: true});
-	rendering_win.show();
-	rendering_win.setPosition(window.innerWidth - 520, 20);
-	var rendering_widgets = new LiteGUI.Inspector();
-	rendering_widgets.addDualSlider("Clipping", {left: -1000, right: 1000},
-		{ min: -1000, max: 1000, step: 10, callback: function(val) {
-				backPlane.constant = -val.left;
-				frontPlane.constant = val.right;
-			}
-		});
-	rendering_widgets.addSlider("Selection Threshold", selectionThreshold,
-		{ min: 0, max: 15, step: 0.1, callback: function(val) {
-				selectionThreshold = val;
-			}
-		});
-	rendering_widgets.addCheckbox("Show Strips", false,
-		{ callback: function(val) {
-				model.setStripVisibility(val);;
-			}
-		});
-	// TODO: figure out file loader
-	rendering_win.add(rendering_widgets);
-
 	var width = container.clientWidth;
 	var height = container.clientHeight;
 
 	var scene = new THREE.Scene();
-	scene.fog = new THREE.Fog(0x000000, 5000, 5000);
+	scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
 
-	var renderer = new THREE.WebGLRenderer({ antialias: false });
+	var renderer = new THREE.WebGLRenderer({ antialias: true });
 	renderer.setClearColor(scene.fog.color);
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(width, height);
 	container.appendChild(renderer.domElement);
-	var cameraP = new THREE.PerspectiveCamera(45, width/height, 2, 2000 );
-	var cameraO = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, 2, 2000);
-	cameraP.position.z = 1000;
-	cameraO.position.z = 1000;
 
 	screenManager = new ScreenManager(renderer, scene);
 	screenManager.addScreen('main', {isOrtho: false, active: true});
@@ -146,7 +118,7 @@ function init() {
 	var nv = v.clone().negate();
 	frontPlane = new THREE.Plane(v, 1000);
 	backPlane =  new THREE.Plane(nv, 1000);
-	renderer.clippingPlanes = [frontPlane, backPlane];
+	renderer.clippingPlanes = [];
 
 	var model = initModelFromJson(scene, chrysanthemum);
 
@@ -165,6 +137,41 @@ function init() {
 	toolbarManager.addTool('plane', new PlaneSelection(container, model), 'p');
 	toolbarManager.enableButtons();
 	toolbarManager.setActiveTool('camera');
+
+	//TODO: unsure exactly where these settings should live
+	var rendering_win = new LiteGUI.Dialog('render_settings', {title:'Rendering Settings', minimize: true, width: 256, scroll: true, resizable:true, draggable: true});
+	rendering_win.show();
+	rendering_win.setPosition(window.innerWidth - 520, 20);
+	var rendering_widgets = new LiteGUI.Inspector();
+	rendering_widgets.addCheckbox("Clip view", false, function(val) {
+		if (val)
+			renderer.clippingPlanes = [frontPlane, backPlane];
+		else
+			renderer.clippingPlanes = [];
+	});
+	rendering_widgets.addDualSlider("Clipping", {left: -1000, right: 1000},
+		{
+			min: -Const.max_clip_plane,
+			max: Const.max_clip_plane,
+			step: 10,
+			callback: function(val) {
+				backPlane.constant = -val.left;
+				frontPlane.constant = val.right;
+			}
+		});
+	rendering_widgets.addSlider("Selection Threshold", selectionThreshold,
+		{ min: 0, max: 15, step: 0.1, callback: function(val) {
+				selectionThreshold = val;
+			}
+		});
+	rendering_widgets.addCheckbox("Show Strips", false,
+		{ callback: function(val) {
+				model.setStripVisibility(val);
+			}
+		});
+	// TODO: figure out file loader
+	rendering_win.add(rendering_widgets);
+
 
 	mainarea.onresize = screenManager.resize;
 	window.addEventListener('resize', screenManager.resize, false);
