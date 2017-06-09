@@ -338,3 +338,56 @@ Inspector.prototype.addDualSlider = function(name, value, options) {
 	return element;
 }
 })();
+
+Inspector.prototype.addColor = function(name, value, options) {
+	optins = this.processOptions(options);
+
+	value = value || [0, 0, 0];
+
+	var self = this;
+
+	this.values[name] = value;
+
+	var input = document.createElement('input');
+
+	input.tabIndex = this.tab_index++;
+	input.id = 'colorpicker-'+name;
+	input.className = 'color';
+
+	console.log(input.value);
+
+	input.disabled = options.disabled || false;
+
+	var element = this.createWidget(name, input, options);
+
+	this.append(element, options);
+
+	var picker = new jscolor.color(input);
+	picker.pickerFaceColor = "#333";
+	picker.pickerBorderColor = "black";
+	picker.pickerInsetColor = "#222";
+
+	console.log('whee');
+
+	picker.fromRGB(value[0], value[1], value[2]);
+
+	picker.onImmediateChange = function() {
+		var v = picker.rgb;
+		var event_data = [v.concat(), picker.toString()];
+		LiteGUI.trigger(element, 'wbeforechange', event_data);
+		self.values[name] = v;
+
+		if (options.callback)
+			options.callback.call(element, v.concat(), '#'+picker.toString(), picker);
+
+		LiteGUI.trigger( element, "wchange", event_data );
+		if(self.onchange) self.onchange(name, v.concat(), element);
+	}
+	element.setValue = function(value,skip_event) {
+		myColor.fromRGB(value[0],value[1],value[2]);
+		if(!skip_event)
+			LiteGUI.trigger( dragger.input, "change" );
+	}
+	this.processElement(element, options);
+	return element;
+}

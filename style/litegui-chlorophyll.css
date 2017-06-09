@@ -19,3 +19,17 @@ li.ltreeitem div.ltreeitemtitle {
 	color: #fff;
 	text-decoration: none;
 }
+
+.inspector input.color {
+	text-align: center;
+	margin-top: 1px;
+	border-radius: 2px !important;
+	border-bottom: 1px solid #666;
+    border-top: 1px solid #111;
+
+	width: 100%;
+
+	user-select: text;
+	-moz-user-select: text;
+	-webkit-user-select: text;
+}
