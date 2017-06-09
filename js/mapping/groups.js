@@ -201,24 +201,28 @@ function GroupManager(model) {
 		self.tree.setSelectedItem(group.tree_id);
 		currGroupInspector.clear();
 		currGroupInspector.addSection('Current Group');
+		currGroupInspector.widgets_per_row = 2;
 		group_namefield = currGroupInspector.addString('name', group.name, {
+			width: '70%',
 			callback: function(v) {
 				self.currentGroup.name = v;
 			}
 		});
+		currGroupInspector.addButton(null, 'Delete', {
+			width: '30%',
+			callback: function() {
+				var cur = self.currentGroup;
+				self.clearCurrentGroup();
+				cur.destroy();
+			}
+		});
+		currGroupInspector.widgets_per_row = 1;
 		currGroupInspector.addColor('color', group.color.toArray(), {
 			callback: function(v) {
 				self.currentGroup.color = new THREE.Color(v[0], v[1], v[2]);
 			}
 		});
 		currGroupInspector.addSeparator();
-		// TODO make this button do something
-		currGroupInspector.addButton(null, 'Add Active Selection to Group');
-		currGroupInspector.addButton(null, 'Delete Group', function() {
-			var cur = self.currentGroup;
-			self.clearCurrentGroup();
-			cur.destroy();
-		});
 		currGroupInspector.widgets_per_row = 2;
 		currGroupInspector.addButton(null, 'Add Mapping', {
 			width: '40%',
