@@ -33,3 +33,7 @@ li.ltreeitem div.ltreeitemtitle {
 	-moz-user-select: text;
 	-webkit-user-select: text;
 }
+
+.inspector .wtitle {
+	font-size: 12px;
+}

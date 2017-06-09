@@ -202,7 +202,7 @@ function GroupManager(model) {
 	});
 	groupCmds.addSeparator();
 
-	var currGroupInspector = new LiteGUI.Inspector(null, {name_width: '4em'});
+	var currGroupInspector = new LiteGUI.Inspector(null, {name_width: '3.5em'});
 	var currMappingInspector = new LiteGUI.Inspector();
 	var mappingConfigInspector = new LiteGUI.Inspector();
 
@@ -238,10 +238,9 @@ function GroupManager(model) {
 				self.currentGroup.color = new THREE.Color(v[0], v[1], v[2]);
 			}
 		});
-		currGroupInspector.addSeparator();
+		currGroupInspector.addTitle('Add Mapping');
 		currGroupInspector.widgets_per_row = 2;
 
-		currGroupInspector.name_width = '3em';
 		currGroupInspector.addCombo('type',
 			self.next_maptype, {
 				width: -buttonWidth,
