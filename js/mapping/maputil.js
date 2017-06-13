@@ -5,6 +5,7 @@
  * generate sets of points from them.
  */
 var Mapping = function(manager, group, id, initname) {
+	Util.EventDispatcher.call(this);
 	var self = this;
 
 	this.group = group;

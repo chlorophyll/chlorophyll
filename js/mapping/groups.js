@@ -8,6 +8,7 @@
 
 function PixelGroup(manager, id, pixels, initname, color) {
 	var self = this;
+
 	this.id = id;
 	this.tree_id = 'group-'+id;
 	var _name = initname ? initname : "unnamed"
@@ -166,6 +167,7 @@ function PixelGroup(manager, id, pixels, initname, color) {
 }
 
 function GroupManager(model) {
+	Util.EventDispatcher.call(this);
 	var self = this;
 	var currentSelection = null;
 	this.model = model;
@@ -266,6 +268,12 @@ function GroupManager(model) {
 		});
 		addMappingButton.classList.add('material-icons');
 		currGroupInspector.widgets_per_row = 1;
+
+		self.dispatchEvent(new CustomEvent('change', {
+			detail: {
+				group: self.currentGroup
+			}
+		}));
 	}
 
 	this.setCurrentMapping = function(mapping) {
@@ -293,6 +301,12 @@ function GroupManager(model) {
 		if (mapping.isTransform) {
 			self.currentMapping.showConfig(currMappingInspector);
 		}
+
+		self.dispatchEvent(new CustomEvent('change', {
+			detail: {
+				mapping: self.currentMapping
+			}
+		}));
 	}
 
 	this.clearCurrentMapping = function() {
@@ -305,6 +319,12 @@ function GroupManager(model) {
 		self.tree.setSelectedItem(self.currentGroup.tree_id, false, false);
 		self.currentMapping = null;
 		currMappingInspector.clear();
+
+		self.dispatchEvent(new CustomEvent('change', {
+			detail: {
+				mapping: null
+			}
+		}));
 	}
 
 	this.clearCurrentGroup = function() {
@@ -313,6 +333,12 @@ function GroupManager(model) {
 		self.currentGroup = null;
 		group_namefield = null;
 		currGroupInspector.clear();
+
+		self.dispatchEvent(new CustomEvent('change', {
+			detail: {
+				group: null
+			}
+		}));
 	}
 
 	this.tree = new LiteGUI.Tree('group-tree',

@@ -43,6 +43,25 @@ var TransformMapping = function(manager, group, id, initname) {
 		ui_controls.scale_widget.setValue(self.scale.toArray(), true);
 	}
 
+	function update(update_ui) {
+		scaleToFitPoints();
+
+		self.widget.setPos(self.position);
+		self.widget.setRot(self.rotation);
+		self.widget.setScale(self.scale);
+		self.widget.setBoundsPreview(self.shape);
+
+		if (update_ui) {
+			ui_controls.pos_widget.setValue(self.position.toArray(), true);
+			// Euler angles return the order as well.
+			ui_controls.rot_widget.setValue(self.rotation.toArray()
+				.slice(0, 3).map(x => x * THREE.Math.RAD2DEG), true);
+			ui_controls.scale_widget.setValue(self.scale.toArray(), true);
+		}
+
+		self.dispatchEvent(new CustomEvent('change'));
+	}
+
 	/*
 	 * Manipulate a point to be positioned correctly for the mapping.
 	 * Returns new coordinates for the point in local cartesian space.
@@ -114,8 +133,7 @@ var TransformMapping = function(manager, group, id, initname) {
 				values: ["cube", "cylinder", "sphere"],
 				callback: function(v) {
 					self.shape = v;
-					self.widget.setBoundsPreview(v);
-					scaleToFitPoints();
+					update(true);
 				}
 			});
 
@@ -132,8 +150,7 @@ var TransformMapping = function(manager, group, id, initname) {
 				precision: 1,
 				callback: function(v) {
 					self.position.fromArray(v);
-					self.widget.setPos(self.position);
-					scaleToFitPoints()
+					update(false);
 				}
 			});
 
@@ -144,8 +161,7 @@ var TransformMapping = function(manager, group, id, initname) {
 				precision: 1,
 				callback: function(v) {
 					self.rotation.fromArray(v.map(x => x * THREE.Math.DEG2RAD));
-					self.widget.setRot(self.rotation);
-					scaleToFitPoints()
+					update(false);
 				}
 			});
 
@@ -156,7 +172,7 @@ var TransformMapping = function(manager, group, id, initname) {
 				disabled: true,
 				callback: function(v) {
 					self.scale.fromArray(v);
-					self.widget.setScale(self.scale);
+					update(false);
 				}
 			});
 
@@ -164,21 +180,16 @@ var TransformMapping = function(manager, group, id, initname) {
 		inspector.widgets_per_row = 3;
 		inspector.addButton(null, 'Position', function() {
 			self.position.fromArray([0, 0, 0]);
-			self.widget.setPos(self.position);
-			ui_controls.pos_widget.setValue([0, 0, 0], true);
-			scaleToFitPoints()
+			update(true);
 		});
 		inspector.addButton(null, 'Rotation', function() {
 			self.rotation.fromArray([0, 0, 0]);
-			self.widget.setRot(self.rotation);
-			ui_controls.rot_widget.setValue([0, 0, 0], true);
-			scaleToFitPoints()
+			update(true);
 		});
 		ui_controls.reset_scale = inspector.addButton(null, 'Scale', function() {
 			if (!self.autoscale) {
 				self.scale.fromArray([1, 1, 1]);
-				self.widget.setScale(self.scale);
-				ui_controls.scale_widget.setValue([1, 1, 1], true);
+				update(true);
 			}
 		});
 		inspector.widgets_per_row = 1;
@@ -186,19 +197,14 @@ var TransformMapping = function(manager, group, id, initname) {
 		inspector.addCheckbox("Auto Scale", self.autoscale, function(val) {
 			self.autoscale = val;
 			if (val)
-				scaleToFitPoints();
+				update(true);
 		});
 
 		self.widget.control.addEventListener("objectChange", function() {
 			var transform = self.widget.data();
 			self.position = transform.pos;
 			self.rotation.setFromQuaternion(transform.quaternion);
-			scaleToFitPoints()
-			ui_controls.pos_widget.setValue(self.position.toArray(), true);
-			// Euler angles return the order as well.
-			ui_controls.rot_widget.setValue(self.rotation.toArray()
-				.slice(0, 3).map(x => x * THREE.Math.RAD2DEG), true);
-			ui_controls.scale_widget.setValue(self.scale.toArray(), true);
+			update(true);
 		});
 
 		scaleToFitPoints();

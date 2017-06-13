@@ -77,6 +77,8 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		self.proj_plane.norm_factor = Math.max(extent.x, extent.y);
 
 		self.mapping_valid = true;
+
+		self.dispatchEvent(new CustomEvent('change'));
 	}
 
 	/* Updates the camera projection and shows it in the ui */
@@ -95,10 +97,21 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		self.widget.hide();
 
 		self.configuring = false;
-		self.widget.onChange = null;
+		self.widget.removeEventListener('change', onWidgetChange);
 		screen.controls.removeEventListener('end', setProjection);
 		ui_controls.inspector.clear();
 		ui_controls = {};
+	}
+
+	/*
+	 * When the projection origin widget is moved, re-generate the mapping
+	 * and update the panel view to reflect its new location.
+	 */
+	function onWidgetChange(evt) {
+		self.setFromCamera();
+		var map_origin = self.proj_plane.origin;
+		ui_controls.origin_pos_widget.setValue(
+			[map_origin.x, map_origin.y, map_origin.z], true);
 	}
 
 	this.showConfig = function(inspector) {
@@ -147,21 +160,13 @@ var ProjectionMapping = function(manager, group, id, initname) {
 				}
 			});
 
-		var origin_pos_widget = inspector.addVector3("origin position",
+		ui_controls.origin_pos_widget = inspector.addVector3("origin position",
 			origin_pos, {
 				disabled: true,
 				precision: 1,
 			});
 
-		/*
-		 * When the projection origin widget is moved, re-generate the mapping
-		 * and update the panel view to reflect its new location.
-		 */
-		self.widget.onChange = function(data) {
-			self.setFromCamera();
-			var map_origin = self.proj_plane.origin;
-			origin_pos_widget.setValue([map_origin.x, map_origin.y, map_origin.z], true);
-		}
+		self.widget.addEventListener('change', onWidgetChange);
 
 		inspector.addButton(null, 'Save and close', function() {
 			self.hideConfig();

@@ -32,6 +32,7 @@ function Coordinates2D() {
 function Widget2D(container) {
 
 	Coordinates2D.call(this);
+	Util.EventDispatcher.call(this);
 
 	var self = this;
 
@@ -56,8 +57,7 @@ function Widget2D(container) {
 	Mousetrap.bind('shift', function() { snap_angles = false; }, 'keyup');
 
 	function notifyChange() {
-		if (self.onChange)
-			self.onChange(self.data());
+		self.dispatchEvent(new CustomEvent('change', { detail: self.data() }));
 	}
 
 	function _drag(event) {

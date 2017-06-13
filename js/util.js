@@ -209,3 +209,43 @@ Util.JSON = {
 };
 
 Util.JSON.addType('Range', Util.Range);
+
+Util.EventDispatcher = function() {
+	this.addEventListener = function(type, callback) {
+		if (this._listeners === undefined) {
+			this._listeners = {};
+		}
+		if (!(type in this._listeners)) {
+			this._listeners[type] = [];
+		}
+		this._listeners[type].push(callback);
+	};
+
+	this.removeEventListener = function(type, callback) {
+		if (this._listeners === undefined) {
+			this._listeners = {};
+		}
+		if (!(type in this._listeners)) {
+			return;
+		}
+		var stack = this._listeners[type];
+		for (var i = 0, l = stack.length; i < l; i++) {
+			if (stack[i] === callback){
+				stack.splice(i, 1);
+				return;
+			}
+		}
+	};
+
+	this.dispatchEvent = function(event) {
+		if (this._listeners === undefined || !(event.type in this._listeners)) {
+			return true;
+		}
+		var stack = this._listeners[event.type];
+		event.target = this;
+		for (var i = 0, l = stack.length; i < l; i++) {
+			stack[i].call(this, event);
+		}
+		return !event.defaultPrevented;
+	};
+}
