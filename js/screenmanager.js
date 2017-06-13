@@ -149,4 +149,11 @@ ScreenManager = function(renderer, scene) {
 		_activeScreen.updateControls();
 		_activeScreen.render();
 	}
+
+	Mousetrap.bind('space', function() {
+		if (_activeScreen !== undefined) {
+			Util.alignWithVector(new THREE.Vector3(0, 0, 1),
+			                     _activeScreen.camera);
+		}
+	});
 }
