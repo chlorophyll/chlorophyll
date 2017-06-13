@@ -11,7 +11,7 @@ function PixelGroup(manager, id, pixels, initname, color) {
 	this.id = id;
 	this.tree_id = 'group-'+id;
 	var _name = initname ? initname : "unnamed"
-	var group_color = color ? color : new THREE.Color(0xff0000);
+	var _color = color ? color : new THREE.Color(0xff0000);
 	this.mappings = Immutable.Map();
 	this.pixels = pixels ? pixels : Immutable.Set();
 	this.model = manager.model;
@@ -40,6 +40,7 @@ function PixelGroup(manager, id, pixels, initname, color) {
 	visibilityToggle.innerText = 'visibility';
 	visibilityToggle.classList.add('material-icons');
 	visibilityToggle.classList.add('visibility-toggle');
+	visibilityToggle.style.color = '#' + _color.getHexString();
 
 	visibilityToggle.addEventListener('click', function(e) {
 		e.stopPropagation();
@@ -48,9 +49,11 @@ function PixelGroup(manager, id, pixels, initname, color) {
 		if (visible) {
 			self.show();
 			visibilityToggle.innerText = 'visibility';
+			visibilityToggle.style.color = '#' + _color.getHexString();
 		} else {
 			self.hide();
 			visibilityToggle.innerText = 'visibility_off';
+			visibilityToggle.style.color = "";
 		}
 	});
 
@@ -71,11 +74,13 @@ function PixelGroup(manager, id, pixels, initname, color) {
 	});
 
 	Object.defineProperty(this, 'color', {
-		get: function() { return group_color; },
+		get: function() { return _color; },
 		set: function(v) {
-			group_color = v;
+			_color = v;
 			if (this.overlay.size() > 0)
 				this.show();
+			if (visible)
+				visibilityToggle.style.color = '#' + _color.getHexString();
 		}
 	});
 
