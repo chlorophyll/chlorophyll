@@ -220,16 +220,14 @@ function GroupManager(model) {
 		currGroupInspector.addSection('Current Group');
 		currGroupInspector.widgets_per_row = 2;
 
-		var buttonWidth = 40;
-
 		group_namefield = currGroupInspector.addString('name', group.name, {
-			width: -buttonWidth,
+			width: -Const.group_smallbutton_width,
 			callback: function(v) {
 				self.currentGroup.name = v;
 			}
 		});
 		var deleteButton = currGroupInspector.addButton(null, 'delete', {
-			width: buttonWidth,
+			width: Const.group_smallbutton_width,
 			callback: function() {
 				var cur = self.currentGroup;
 				self.clearCurrentGroup();
@@ -250,7 +248,7 @@ function GroupManager(model) {
 
 		currGroupInspector.addCombo('type',
 			self.next_maptype, {
-				width: -buttonWidth,
+				width: -Const.group_smallbutton_width,
 				values: {
 					"3D Transform": TransformMapping,
 					"2D Projection": ProjectionMapping
@@ -259,7 +257,7 @@ function GroupManager(model) {
 			});
 
 		var addMappingButton = currGroupInspector.addButton(null, 'add', {
-			width: buttonWidth,
+			width: Const.group_smallbutton_width,
 			callback: function() {
 				var map = self.currentGroup.addMapping()
 				self.setCurrentMapping(map);
