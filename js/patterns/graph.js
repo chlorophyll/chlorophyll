@@ -447,7 +447,7 @@ function PatternManager() {
 
 		var area = self.area = new LiteGUI.Area(null, {
 			className: "grapharea",
-			height: -60
+			height: -38
 		});
 		self.root.appendChild(area.root);
 
