@@ -124,8 +124,10 @@ MarqueeSelection = function(viewport, model) {
 	this.box.style.borderStyle = 'dotted';
 	this.box.style.borderWidth = '1px';
 	this.box.style.borderColor = 'white';
+	this.box.style.display = 'none';
 
 	this.viewport.appendChild(this.box);
+	console.log(this.viewport);
 
 	this.viewport.addEventListener('mousedown', onMouseDown, false);
 	this.viewport.addEventListener('mouseup', onMouseUp, false);
