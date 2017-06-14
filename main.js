@@ -75,8 +75,11 @@ function init() {
 	LiteGUI.add(mainarea);
 
 	// Group, mapping & pattern browser sidebar
-	mainarea.split("horizontal",[null,220],true);
+	mainarea.split("horizontal", [null, 220], true);
 	UI.sidebar = mainarea.getSection(1);
+	UI.sidebar.split('vertical', ['50%', null], true);
+	UI.sidebar_top = UI.sidebar.getSection(0);
+	UI.sidebar_bottom = UI.sidebar.getSection(1);
 
 	mainarea = mainarea.getSection(0);
 

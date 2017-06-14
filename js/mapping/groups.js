@@ -190,15 +190,16 @@ function GroupManager(model) {
 		return _nextid++;
 	}
 
-	var treePanel = new LiteGUI.Panel('group-tree', {
-		title: 'Group Management',
+	var treePanel = new LiteGUI.Panel('group-tree-panel', {
+		title: 'Pixel Group Browser',
 		scroll: true
 	});
 
-	var panel = new LiteGUI.Panel('group-panel');
+	var panel = new LiteGUI.Panel('group-panel', {
+		scroll: true
+	});
 
 	var groupCmds = new LiteGUI.Inspector();
-	groupCmds.addSeparator();
 	groupCmds.addButton(undefined, 'Make Group', function() {
 		var newgroup = self.createFromActiveSelection();
 		if (newgroup) {
@@ -207,7 +208,6 @@ function GroupManager(model) {
 			worldState.checkpoint();
 		}
 	});
-	groupCmds.addSeparator();
 
 	var currGroupInspector = new LiteGUI.Inspector(null, {name_width: '3.5em'});
 	var currMappingInspector = new LiteGUI.Inspector();
@@ -391,12 +391,10 @@ function GroupManager(model) {
 	panel.add(currMappingInspector);
 	panel.add(mappingConfigInspector);
 
-	UI.sidebar.split('vertical', ['30%', null], true);
-	UI.sidebar.getSection(0).add(treePanel);
-	UI.sidebar.getSection(1).add(panel);
-	UI.sidebar = UI.sidebar.getSection(1); //hm
-	//UI.sidebar.add(groupCmds);
-	//
+	UI.sidebar_top.split('vertical', ['50%', null], true);
+	UI.sidebar_top.getSection(0).add(treePanel);
+	UI.sidebar_top.getSection(1).add(panel);
+
 	function createGroup(pixels, name) {
 		var id = newgid();
 		var name = (typeof name !== 'undefined') ? name : ("Group " + id);

@@ -316,8 +316,30 @@ function PatternManager() {
 		self.root.style.width = '100%';
 		self.root.style.position = 'relative';
 		self.root.style.height = '100%';
-		self.top_widgets = new LiteGUI.Inspector( null, { one_line: true });
-		self.top_widgets2 = new LiteGUI.Inspector( null, { one_line: true });
+		self.top_widgets = new LiteGUI.Inspector(null, {
+			one_line: true
+		});
+
+		self.sidebar_widgets = new LiteGUI.Inspector(null, {
+			name_width: '4em'
+		});
+		self.pattern_browser = new LiteGUI.Tree('pattern-tree',
+			{id: 'root', children: [], visible: false},
+			{height: '100%', allow_rename: true}
+		);
+		var side_tree_panel = new LiteGUI.Panel('pattern-tree-panel', {
+			title: 'Pattern Browser (TODO)',
+			scroll: true
+		});
+		var side_settings_panel = new LiteGUI.Panel('pattern-settings', {
+			scroll: true
+		});
+
+		side_tree_panel.add(self.pattern_browser);
+		side_settings_panel.add(self.sidebar_widgets);
+		UI.sidebar_bottom.split('vertical', ['30%', null], true);
+		UI.sidebar_bottom.getSection(0).add(side_tree_panel);
+		UI.sidebar_bottom.getSection(1).add(side_settings_panel);
 
 		var runningPattern = false;
 		var previewMapping = null;
@@ -327,7 +349,10 @@ function PatternManager() {
 		var pause = 'pause';
 		var stop = 'stop';
 
-		var playButton = self.top_widgets.addButton(null,play, {
+		/*
+		 * Pattern editor top toolbar: Preview & editing options
+		 */
+		var playButton = self.top_widgets.addButton(null, play, {
 			width: 50,
 			callback: function() {
 			if (!curPattern)
@@ -359,39 +384,11 @@ function PatternManager() {
 		});
 		stopButton.classList.add('material-icons');
 
-		self.top_widgets.addButton(null,"New", {width: 50, callback: newPattern });
-		self.top_widgets.addButton(null,"Copy", {width: 50, callback: copyPattern });
-
-		patternList = self.top_widgets.addCombo('Choose pattern', "Open", {
-			width: '15em',
-			callback: function(val) {
-				var pattern = patterns.get(val.id);
-				setCurrentPattern(pattern);
-			}
-		});
-
-		self.top_widgets.addSeparator();
-
-		nameWidget = self.top_widgets.addStringButton('name', '', {
-			button: 'rename',
-			button_width: '5em',
-			callback_button: function(v) {
-				if (curPattern)
-					curPattern.name = v;
-				updatePatternList();
-			}
-		});
-
-		stageWidget = self.top_widgets.addComboButtons('stage: ', defaultStage, {
-			values: patternStages,
-			callback: setCurrentStage
-		});
-
 		var mapmenu_values = {};
 		for (type in MappingInputs) {
 			mapmenu_values[MappingInputs[type].name] = type;
 		}
-		mappingTypeList = self.top_widgets2.addCombo('Projection type',
+		mappingTypeList = self.top_widgets.addCombo('Projection type',
 			Const.default_map_type,
 			{
 				values: mapmenu_values,
@@ -405,15 +402,48 @@ function PatternManager() {
 				}
 			});
 
-		self.top_widgets2.addString('Preview mapping', "", function(val) {
+		self.top_widgets.addString('Preview map', "", {
+			callback: function(val) {
 				var maps = groupManager.listMappings();
 				if (val in maps)
 					previewMapping = maps[val];
-			});
+			}
+		});
 
+		stageWidget = self.top_widgets.addComboButtons('stage: ', defaultStage, {
+			values: patternStages,
+			callback: setCurrentStage
+		});
 
 		self.root.appendChild(self.top_widgets.root);
-		self.root.appendChild(self.top_widgets2.root);
+		self.top_widgets.root.style.paddingTop = '4px';
+		self.top_widgets.root.style.paddingBottom = '4px';
+
+		/*
+		 * Sidebar: browsing, creation, copying, and 'meta' settings
+		 */
+		patternList = self.sidebar_widgets.addCombo('Pattern', "Open", {
+			callback: function(val) {
+				var pattern = patterns.get(val.id);
+				setCurrentPattern(pattern);
+			}
+		});
+		self.sidebar_widgets.widgets_per_row = 2;
+		self.sidebar_widgets.addButton(null, "New", { callback: newPattern });
+		self.sidebar_widgets.addButton(null, "Copy", { callback: copyPattern });
+		self.sidebar_widgets.widgets_per_row = 1;
+
+		self.sidebar_widgets.addSeparator();
+
+		nameWidget = self.sidebar_widgets.addStringButton('name', '', {
+			button: 'rename',
+			button_width: '5em',
+			callback_button: function(v) {
+				if (curPattern)
+					curPattern.name = v;
+				updatePatternList();
+			}
+		});
 
 		var area = self.area = new LiteGUI.Area(null, {
 			className: "grapharea",
