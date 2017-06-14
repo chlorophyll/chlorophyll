@@ -44,6 +44,9 @@ function chooseModelFile(scene, file) {
 }
 
 function init() {
+	/**************
+	 * GUI layout *
+	 **************/
 	LiteGUI.init();
 
 	UI.menu = new LiteGUI.Menubar();
@@ -62,6 +65,7 @@ function init() {
 
 	LiteGUI.add(UI.menu);
 
+	// Center viewport container
 	var mainarea = new LiteGUI.Area("mainarea", {
 		content_id: "container",
 		height: "calc( 100% - 20px )",
@@ -70,12 +74,22 @@ function init() {
 	});
 	LiteGUI.add(mainarea);
 
-
+	// Group, mapping & pattern browser sidebar
 	mainarea.split("horizontal",[null,220],true);
 	UI.sidebar = mainarea.getSection(1);
 
 	mainarea = mainarea.getSection(0);
 
+	// Bottom tabbed pattern / sequencer editor area
+	mainarea.split('vertical',[null,225], true);
+	var dock = mainarea.getSection(1);
+	UI.tabs = new LiteGUI.Tabs(null, {size: 'full'});
+	console.log(UI.tabs);
+
+	dock.add(UI.tabs);
+	mainarea = mainarea.getSection(0);
+
+	// Viewport side toolbar
 	mainarea.split('horizontal', [75, null], true);
 	var toolbar_panel = new LiteGUI.Panel("toolbar");
 
@@ -86,29 +100,22 @@ function init() {
 	mainarea.getSection(0).add(toolbar_panel);
 	mainarea = mainarea.getSection(1);
 
-	mainarea.split('vertical',[null,225], true);
-	var dock = mainarea.getSection(1);
-	UI.tabs = new LiteGUI.Tabs(null, {size: 'full'});
-	console.log(UI.tabs);
-
-	dock.add(UI.tabs);
-	mainarea = mainarea.getSection(0);
-
 	container = mainarea.content;
 	container.style.position = 'relative';
 	container.style.top = 0;
 	container.style.left = 0;
 
-	var width = container.clientWidth;
-	var height = container.clientHeight;
 
+	/****************************
+	 * Three.js rendering setup *
+	 ****************************/
 	var scene = new THREE.Scene();
 	scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
 
 	var renderer = new THREE.WebGLRenderer({ antialias: true });
 	renderer.setClearColor(scene.fog.color);
 	renderer.setPixelRatio(window.devicePixelRatio);
-	renderer.setSize(width, height);
+	renderer.setSize(container.clientWidth, container.clientHeight);
 	container.appendChild(renderer.domElement);
 
 	screenManager = new ScreenManager(renderer, scene);
@@ -116,12 +123,16 @@ function init() {
 	var v = new THREE.Vector3();
 	screenManager.activeScreen.camera.getWorldDirection(v);
 	var nv = v.clone().negate();
-	frontPlane = new THREE.Plane(v, 1000);
-	backPlane =  new THREE.Plane(nv, 1000);
+	frontPlane = new THREE.Plane(v, Const.max_clip_plane);
+	backPlane =  new THREE.Plane(nv, Const.max_clip_plane);
 	renderer.clippingPlanes = [];
 
 	var model = initModelFromJson(scene, chrysanthemum);
 
+
+	/**************************
+	 * Viewport toolbar setup *
+	 **************************/
 	toolbarManager = new Toolbox('Edit/Select', UI.toolbar, UI.menu);
 	toolbarManager.addTool("camera", {
 		enable: function() {
@@ -138,8 +149,20 @@ function init() {
 	toolbarManager.enableButtons();
 	toolbarManager.setActiveTool('camera');
 
+
+	/******************************
+	 * Render settings dialog box *
+	 ******************************/
 	//TODO: unsure exactly where these settings should live
-	var rendering_win = new LiteGUI.Dialog('render_settings', {title:'Rendering Settings', minimize: true, width: 256, scroll: true, resizable:true, draggable: true});
+	var rendering_win = new LiteGUI.Dialog('render_settings',
+		{
+			title:'Rendering Settings',
+			minimize: true,
+			width: 256,
+			scroll: true,
+			resizable:true,
+			draggable: true
+		});
 	rendering_win.show();
 	rendering_win.setPosition(window.innerWidth - 520, 20);
 	var rendering_widgets = new LiteGUI.Inspector();
