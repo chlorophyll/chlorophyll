@@ -38,6 +38,10 @@ li.ltreeitem div.ltreeitemtitle {
 	font-size: 12px;
 }
 
+.inspector .wcontent button.single {
+	line-height: 1;
+}
+
 .map-type {
 	float: right;
 	width: 6em;
