@@ -9,5 +9,9 @@ Const = {
 	// camera / visibility settings
 	max_draw_dist: 1000000,
 	fog_start: 1000,
-	max_clip_plane: 1000
+	max_clip_plane: 1000,
+
+	dock_size: 225,
+	sidebar_size: 235,
+	toolbar_size: 75,
 }

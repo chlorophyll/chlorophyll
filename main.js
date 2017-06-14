@@ -75,7 +75,7 @@ function init() {
 	LiteGUI.add(mainarea);
 
 	// Group, mapping & pattern browser sidebar
-	mainarea.split("horizontal", [null, 220], true);
+	mainarea.split("horizontal",[null,Const.sidebar_size],true);
 	UI.sidebar = mainarea.getSection(1);
 	UI.sidebar.split('vertical', ['50%', null], true);
 	UI.sidebar_top = UI.sidebar.getSection(0);
@@ -84,7 +84,7 @@ function init() {
 	mainarea = mainarea.getSection(0);
 
 	// Bottom tabbed pattern / sequencer editor area
-	mainarea.split('vertical',[null,225], true);
+	mainarea.split('vertical',[null,Const.dock_size], true);
 	var dock = mainarea.getSection(1);
 	UI.tabs = new LiteGUI.Tabs(null, {size: 'full'});
 	console.log(UI.tabs);
@@ -93,7 +93,7 @@ function init() {
 	mainarea = mainarea.getSection(0);
 
 	// Viewport side toolbar
-	mainarea.split('horizontal', [75, null], true);
+	mainarea.split('horizontal', [Const.toolbar_size, null], true);
 	var toolbar_panel = new LiteGUI.Panel("toolbar");
 
 	UI.toolbar = new LiteGUI.Inspector();

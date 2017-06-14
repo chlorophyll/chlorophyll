@@ -37,3 +37,9 @@ li.ltreeitem div.ltreeitemtitle {
 .inspector .wtitle {
 	font-size: 12px;
 }
+
+.map-type {
+	float: right;
+	width: 6em;
+	margin-left: 1em;
+}

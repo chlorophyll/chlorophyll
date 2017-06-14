@@ -43,10 +43,12 @@ var defaultStage = 'pixel';
 	});
 })();
 
-function PatternGraph(id, name) {
+function PatternGraph(id, name, manager) {
 	var self = this;
 	self.name = name;
 	self.id = id;
+	self.tree_id = 'pattern-'+id;
+
 
 	self.model = null;
 	var request_id;
@@ -81,12 +83,25 @@ function PatternGraph(id, name) {
 			new_inp.color = old_inp.color;
 			new_inp.boxcolor = old_inp.boxcolor;
 			new_inp.pos = old_inp.pos;
+			mapTypeDisplay.innerText = MappingInputs[_mapping_type].name;
 
 			old_inp.removable = true;
 			this.stages['pixel'].remove(old_inp);
 			this.stages['pixel'].add(new_inp);
 		}
 	});
+
+	var elem = manager.pattern_browser.insertItem({
+		id: self.tree_id,
+		content: name,
+		dataset: {pattern: self}},
+		'root'
+	);
+	var mapTypeDisplay = document.createElement('span');
+	mapTypeDisplay.classList.add('map-type');
+	mapTypeDisplay.innerText = MappingInputs[_mapping_type].name;
+
+	elem.querySelector('.postcontent').appendChild(mapTypeDisplay);
 
 	function forEachStage(f) {
 		for (var stage in self.stages) {
@@ -260,7 +275,6 @@ function PatternManager() {
 
 	var nameWidget;
 	var stageWidget;
-	var patternList;
 	var mappingTypeList;
 	var selectedMappingType = Const.default_map_type;
 
@@ -275,9 +289,8 @@ function PatternManager() {
 			return;
 
 		self.graphcanvas.setGraph(curPattern.curStageGraph);
-		nameWidget.setValue(curPattern.name);
+		self.pattern_browser.setSelectedItem(curPattern.tree_id);
 		setCurrentStage(curPattern.curStage);
-		updatePatternList();
 	}
 
 	function setCurrentStage(stage) {
@@ -294,23 +307,6 @@ function PatternManager() {
 		stageWidget.setValue(stage);
 	}
 
-	function updatePatternList() {
-		names = [];
-		var selected;
-		patterns.forEach(function(pattern,id) {
-			var ob = {title:pattern.name, id:id};
-			if (pattern == curPattern)
-				selected = ob;
-			names.push(ob);
-		});
-
-		names.sort(function(a,b) {
-			return a.title.localeCompare(b.title);
-		});
-
-		patternList.setOptionValues(names, selected);
-	}
-
 	var init = function() {
 		self.root = document.createElement('div');
 		self.root.style.width = '100%';
@@ -324,11 +320,20 @@ function PatternManager() {
 			name_width: '4em'
 		});
 		self.pattern_browser = new LiteGUI.Tree('pattern-tree',
-			{id: 'root', children: [], visible: false},
+			{id: 'pattern-root', children: [], visible: false},
 			{height: '100%', allow_rename: true}
 		);
+
+		self.pattern_browser.root.addEventListener('item_selected', function(e) {
+			var dataset = e.detail.data.dataset;
+			setCurrentPattern(dataset.pattern);
+		});
+
+		self.pattern_browser.onBackgroundClicked = function() {
+			setCurrentPattern(null);
+		}
 		var side_tree_panel = new LiteGUI.Panel('pattern-tree-panel', {
-			title: 'Pattern Browser (TODO)',
+			title: 'Pattern Browser',
 			scroll: true
 		});
 		var side_settings_panel = new LiteGUI.Panel('pattern-settings', {
@@ -422,12 +427,6 @@ function PatternManager() {
 		/*
 		 * Sidebar: browsing, creation, copying, and 'meta' settings
 		 */
-		patternList = self.sidebar_widgets.addCombo('Pattern', "Open", {
-			callback: function(val) {
-				var pattern = patterns.get(val.id);
-				setCurrentPattern(pattern);
-			}
-		});
 		self.sidebar_widgets.widgets_per_row = 2;
 		self.sidebar_widgets.addButton(null, "New", { callback: newPattern });
 		self.sidebar_widgets.addButton(null, "Copy", { callback: copyPattern });
@@ -713,7 +712,8 @@ function PatternManager() {
 	var newPattern = function() {
 		var id = newgid();
 		var name = 'pattern-'+id;
-		var pattern = new PatternGraph(id, name);
+		var pattern = new PatternGraph(id, name, self);
+
 
 		patterns = patterns.set(id, pattern);
 		setCurrentPattern(pattern);
@@ -781,7 +781,6 @@ function PatternManager() {
 		});
 		patterns = newpatterns;
 		setCurrentPattern(patterns.get(snapshot.get('curPattern')));
-		updatePatternList();
 	}
 
 	init();
