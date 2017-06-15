@@ -39,7 +39,7 @@ li.ltreeitem div.ltreeitemtitle {
 }
 
 .inspector .wcontent button.single {
-	line-height: 1;
+	line-height: inherit;
 }
 
 .map-type {
