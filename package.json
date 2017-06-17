@@ -1,0 +1,44 @@
+{
+  "name": "chlorophyll",
+  "version": "0.0.0",
+  "description": "Tools for photon synthesis",
+  "main": "main.js",
+  "scripts": {
+    "install": "napa"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rpearl/chlorophyll.git"
+  },
+  "keywords": [
+    "leds",
+    "art",
+    "rainbows",
+    "visual",
+    "vj",
+    "modular_synthesis"
+  ],
+  "author": "Ryan Pearl",
+  "contributors": [
+    "Ryan Pearl <rpearl@endofunctor.org>",
+    "Chris Williamson <c.williamso@gmail.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/rpearl/chlorophyll/issues"
+  },
+  "dependencies": {
+    "d3": "^4.9.1",
+    "immutable": "^3.8.1",
+    "mousetrap": "^1.6.1",
+    "three": "^0.85.2"
+  },
+  "napa": {
+    "litegui": "jagenjo/litegui.js",
+    "litegraph": "jagenjo/litegraph.js"
+  },
+  "devDependencies": {
+    "napa": "^3.0.0"
+  }
+}
