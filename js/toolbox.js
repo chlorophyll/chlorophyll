@@ -66,7 +66,7 @@ function Toolbox(managername, toolbar, menu) {
 		elem = elem.querySelector('button');
 		elem.disabled = true;
 
-		Mousetrap.bind(hotkey, f);
+		keyboardJS.bind(hotkey, f);
 		if (menu)
 			menu.add(managername+'/'+name, f);
 

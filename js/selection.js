@@ -45,7 +45,7 @@ SelectionTool = function(viewport, model) {
 	// Called when the tool is activated
 	this.enable = function() {
 		self.enabled = true;
-		Mousetrap.bind('esc', self.deselectAll);
+		keyboardJS.bind('esc', self.deselectAll);
 	};
 
 	// Called when the user switches away from this tool
@@ -58,7 +58,7 @@ SelectionTool = function(viewport, model) {
 		self.adding = false;
 		self.subtracting = false;
 
-		Mousetrap.unbind('esc');
+		keyboardJS.unbind('esc', self.deselectAll);
 
 		self.current_selection.clear();
 	};
@@ -85,8 +85,8 @@ SelectionTool = function(viewport, model) {
 		self.initial_selection = self.current_selection.getPixels();
 		worldState.activeSelection.clear();
 
-		Mousetrap.unbind('esc');
-		Mousetrap.bind('esc', self.cancelSelection);
+		keyboardJS.unbind('esc', self.deselectAll);
+		keyboardJS.bind('esc', self.cancelSelection);
 	}
 
 	function endSelection() {
@@ -94,8 +94,8 @@ SelectionTool = function(viewport, model) {
 		self.current_selection.clear();
 		self.initial_selection = null;
 
-		Mousetrap.unbind('esc');
-		Mousetrap.bind('esc', self.deselectAll);
+		keyboardJS.unbind('esc', self.cancelSelection);
+		keyboardJS.bind('esc', self.deselectAll);
 	}
 
 	// Stop selecting and save the current selection as final.

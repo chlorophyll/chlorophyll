@@ -53,8 +53,9 @@ function Widget2D(container) {
 	/*
 	 * Control bindings: modifier keys and draggable areas
 	 */
-	Mousetrap.bind('shift', function() { snap_angles = true; }, 'keydown');
-	Mousetrap.bind('shift', function() { snap_angles = false; }, 'keyup');
+	keyboardJS.bind('shift',
+		function() { snap_angles = true; },
+		function() { snap_angles = false; });
 
 	function notifyChange() {
 		self.dispatchEvent(new CustomEvent('change', { detail: self.data() }));

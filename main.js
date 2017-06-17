@@ -53,11 +53,11 @@ function init() {
 	UI.menu.add("File/New");
 	UI.menu.add("Edit/Undo", function() { worldState.undo() });
 	UI.menu.add("Edit/Redo", function() { worldState.redo() });
-		Mousetrap.bind('mod+z', function() {
+		keyboardJS.bind('mod + z', function() {
 		worldState.undo();
 	});
 
-	Mousetrap.bind('mod+shift+z', function() {
+	keyboardJS.bind('mod + shift + z', function() {
 		worldState.redo();
 	});
 
