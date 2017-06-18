@@ -1,5 +1,5 @@
 /*
- * Toolbox manager
+ * Toolbar manager
  *
  * Tracks state for active tools on a toolbar, creates buttons and hotkeys for
  * them.
@@ -8,7 +8,7 @@
  * Tool objects should not respond to any input after disable() has been called,
  * and should avoid carrying state from one invocation to the next.
  */
-function Toolbox(managername, toolbar, menu) {
+function Toolbar(managername, toolbar, menu) {
 	var self = this;
 	var tools = {};
 	var activeTool = null;
@@ -54,7 +54,7 @@ function Toolbox(managername, toolbar, menu) {
 		});
 	}
 
-	this.addTool = function(name, tool, hotkey) {
+	this.addTool = function(name, tool, hotkey, momentary) {
 		tool.manager = self;
 
 		var f = function() {

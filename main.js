@@ -136,7 +136,7 @@ function init() {
 	/**************************
 	 * Viewport toolbar setup *
 	 **************************/
-	toolbarManager = new Toolbox('Edit/Select', UI.toolbar, UI.menu);
+	toolbarManager = new Toolbar('Edit/Select', UI.toolbar, UI.menu);
 	toolbarManager.addTool("camera", {
 		enable: function() {
 			screenManager.activeScreen.controlsEnabled = true;

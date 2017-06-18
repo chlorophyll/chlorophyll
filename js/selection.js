@@ -7,12 +7,18 @@ function isClipped(v) {
 	return false;
 }
 
-SelectionTool = function(viewport, model) {
+/*
+ * Generic selection tool class. Handles enabling, disabling, maintaining
+ * the active selection, and default keybindings.
+ *
+ * name argument is any arbitrary unique string to refer to the tool.
+ */
+SelectionTool = function(viewport, model, name) {
 	var self = this;
 
 	this.viewport = viewport !== undefined ? viewport : document;
 	this.model = model;
-	// Used by Toolbox
+	// Used by Toolbar
 	this.elem = null;
 
 	this.highlight = new THREE.Color(0xffffff);
@@ -27,6 +33,10 @@ SelectionTool = function(viewport, model) {
 	// with the new one.
 	this.adding = false;
 	this.subtracting = false;
+	// Is it possible to cancel the selection while it's happening?
+	this.cancellable = true;
+	// Called when the selection is cancelled  to clean up state
+	this.reset = function() {};
 
 	// Selection tools will add and remove points using this overlay, then call
 	// finishSelection() to make it the active selection.
@@ -42,10 +52,13 @@ SelectionTool = function(viewport, model) {
 		}
 	}
 
+	var enabled_kb_ctx = name + '-seltool-enabled';
+	var selecting_kb_ctx = name + '-seltool-selecting';
+
 	// Called when the tool is activated
 	this.enable = function() {
 		self.enabled = true;
-		keyboardJS.bind('esc', self.deselectAll);
+		keyboardJS.setContext(enabled_kb_ctx);
 	};
 
 	// Called when the user switches away from this tool
@@ -58,7 +71,7 @@ SelectionTool = function(viewport, model) {
 		self.adding = false;
 		self.subtracting = false;
 
-		keyboardJS.unbind('esc', self.deselectAll);
+		keyboardJS.setContext('global');
 
 		self.current_selection.clear();
 	};
@@ -85,8 +98,8 @@ SelectionTool = function(viewport, model) {
 		self.initial_selection = self.current_selection.getPixels();
 		worldState.activeSelection.clear();
 
-		keyboardJS.unbind('esc', self.deselectAll);
-		keyboardJS.bind('esc', self.cancelSelection);
+		if (self.cancellable)
+			keyboardJS.setContext(selecting_kb_ctx);
 	}
 
 	function endSelection() {
@@ -94,8 +107,7 @@ SelectionTool = function(viewport, model) {
 		self.current_selection.clear();
 		self.initial_selection = null;
 
-		keyboardJS.unbind('esc', self.cancelSelection);
-		keyboardJS.bind('esc', self.deselectAll);
+		keyboardJS.setContext(enabled_kb_ctx);
 	}
 
 	// Stop selecting and save the current selection as final.
@@ -109,12 +121,22 @@ SelectionTool = function(viewport, model) {
 	// to before the selection
 	this.cancelSelection = function() {
 		worldState.activeSelection.setAllFromSet(self.initial_selection);
+		self.reset();
 		endSelection();
 	}
+
+	keyboardJS.withContext(enabled_kb_ctx, function() {
+		keyboardJS.bind('esc', self.deselectAll);
+	});
+
+	keyboardJS.withContext(selecting_kb_ctx, function() {
+		keyboardJS.bind('esc', self.cancelSelection);
+	});
+
 }
 
 MarqueeSelection = function(viewport, model) {
-	SelectionTool.call(this, viewport, model);
+	SelectionTool.call(this, viewport, model, "marquee");
 	var self = this;
 
 	var rect = {};
@@ -132,6 +154,8 @@ MarqueeSelection = function(viewport, model) {
 	this.viewport.addEventListener('mousedown', onMouseDown, false);
 	this.viewport.addEventListener('mouseup', onMouseUp, false);
 	this.viewport.addEventListener('mousemove', onMouseMove, false);
+
+	this.cancellable = false;
 
 	function onMouseDown(event) {
 		if (!self.enabled)
@@ -211,10 +235,13 @@ MarqueeSelection = function(viewport, model) {
 		drawRect();
 		selectPoints();
 	}
+
+	this.reset = function() {
+	}
 }
 
 LineSelection = function(viewport, model) {
-	SelectionTool.call(this, viewport, model);
+	SelectionTool.call(this, viewport, model, "line");
 	var self = this;
 
 	var p1 = undefined;
@@ -260,12 +287,16 @@ LineSelection = function(viewport, model) {
 }
 
 PlaneSelection = function(viewport, model) {
-	SelectionTool.call(this, viewport, model);
+	SelectionTool.call(this, viewport, model, "plane");
 	var self = this;
 
 	var points = [];
 
 	this.viewport.addEventListener('mousedown', onMouseDown, false);
+
+	this.reset = function() {
+		points = [];
+	}
 
 	function onMouseDown(event) {
 		if (!self.enabled)
@@ -283,7 +314,7 @@ PlaneSelection = function(viewport, model) {
 			points.push(self.model.getPosition(chosen.index));
 			// TODO needs actively selecting points to be distinct from
 			// already selected points or unselected points
-			if (self.subtrating) {
+			if (self.subtracting) {
 				self.current_selection.unset(chosen.index, self.highlight);
 			} else {
 				self.current_selection.set(chosen.index, self.highlight);
