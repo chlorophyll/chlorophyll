@@ -399,6 +399,7 @@ LiteGUI.MiniColor = function(value, options) {
 	var self = this;
 
 	var input = this.root = document.createElement('input');
+	input.readOnly = true;
 
 	input.id = 'colorpicker-'+name;
 	input.className = 'minicolor';
