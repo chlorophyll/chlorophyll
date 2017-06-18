@@ -362,32 +362,69 @@ Inspector.prototype.addColor = function(name, value, options) {
 
 	this.append(element, options);
 
-	var picker = new jscolor.color(input);
-	picker.pickerFaceColor = "#333";
-	picker.pickerBorderColor = "black";
-	picker.pickerInsetColor = "#222";
+	var picker = new jscolor(input, {
+		backgroundColor: '#333',
+		borderColor: 'black',
+		insetColor: '#222',
+	});
 
-	console.log('whee');
 
-	picker.fromRGB(value[0], value[1], value[2]);
+	picker.fromRGB(value[0]*255, value[1]*255, value[2]*255);
 
-	picker.onImmediateChange = function() {
-		var v = picker.rgb;
-		var event_data = [v.concat(), picker.toString()];
-		LiteGUI.trigger(element, 'wbeforechange', event_data);
+	picker.onFineChange = function() {
+		var v = picker.rgb.map(v => v / 255);
+		LiteGUI.trigger(element, 'wbeforechange', v);
 		self.values[name] = v;
 
 		if (options.callback)
-			options.callback.call(element, v.concat(), '#'+picker.toString(), picker);
+			options.callback.call(element, v);
 
-		LiteGUI.trigger( element, "wchange", event_data );
-		if(self.onchange) self.onchange(name, v.concat(), element);
+		LiteGUI.trigger( element, "wchange", v);
+		if(self.onchange) self.onchange(name, v);
 	}
 	element.setValue = function(value,skip_event) {
-		myColor.fromRGB(value[0],value[1],value[2]);
+		picker.fromRGB(value[0]*255,value[1]*255,value[2]*255);
 		if(!skip_event)
-			LiteGUI.trigger( dragger.input, "change" );
+			LiteGUI.trigger( input, "change" );
 	}
 	this.processElement(element, options);
 	return element;
+}
+
+LiteGUI.MiniColor = function(value, options) {
+	options = options || {};
+
+	value = value || [0, 0, 0];
+
+	var self = this;
+
+	var input = this.root = document.createElement('input');
+
+	input.id = 'colorpicker-'+name;
+	input.className = 'minicolor';
+
+	var picker = new jscolor(input, {
+		valueElement: null,
+		backgroundColor: '#333',
+		borderColor: 'black',
+		insetColor: '#222',
+		showOnClick: false,
+	});
+
+	input.addEventListener('click', function(ev) {
+		ev.stopPropagation();
+		picker.show();
+	});
+
+	picker.onFineChange = function() {
+		var v = picker.rgb.map(v => v / 255);
+		if (options.callback)
+			options.callback.call(self, v);
+	}
+	self.setValue = function(value,skip_event) {
+		picker.fromRGB(value[0]*255,value[1]*255,value[2]*255);
+		if(!skip_event)
+			LiteGUI.trigger(self.root, "change", picker.rgb.concat());
+	}
+	self.setValue(value);
 }

@@ -37,11 +37,16 @@ function PixelGroup(manager, id, pixels, initname, color) {
 
 	var visible = true;
 
+	var inlinePicker = new LiteGUI.MiniColor(_color.toArray(), {
+		callback: function(v) {
+			self.color = new THREE.Color(v[0], v[1], v[2]);
+		}
+	});
+
 	var visibilityToggle = document.createElement('a');
 	visibilityToggle.innerText = 'visibility';
 	visibilityToggle.classList.add('material-icons');
 	visibilityToggle.classList.add('visibility-toggle');
-	visibilityToggle.style.color = '#' + _color.getHexString();
 
 	visibilityToggle.addEventListener('click', function(e) {
 		e.stopPropagation();
@@ -50,15 +55,14 @@ function PixelGroup(manager, id, pixels, initname, color) {
 		if (visible) {
 			self.show();
 			visibilityToggle.innerText = 'visibility';
-			visibilityToggle.style.color = '#' + _color.getHexString();
 		} else {
 			self.hide();
 			visibilityToggle.innerText = 'visibility_off';
-			visibilityToggle.style.color = "";
 		}
 	});
 
 	elem.querySelector('.postcontent').appendChild(visibilityToggle);
+	elem.querySelector('.postcontent').appendChild(inlinePicker.root);
 
 	Object.defineProperty(this, 'name', {
 		get: function() { return _name; },
@@ -80,8 +84,10 @@ function PixelGroup(manager, id, pixels, initname, color) {
 			_color = v;
 			if (this.overlay.size() > 0)
 				this.show();
-			if (visible)
-				visibilityToggle.style.color = '#' + _color.getHexString();
+			inlinePicker.setValue(_color.toArray());
+			if (manager.currentGroup == self) {
+				manager.currGroupColor.setValue(_color.toArray());
+			}
 		}
 	});
 
@@ -238,7 +244,7 @@ function GroupManager(model) {
 		deleteButton.classList.add('material-icons');
 
 		currGroupInspector.widgets_per_row = 1;
-		currGroupInspector.addColor('color', group.color.toArray(), {
+		self.currGroupColor = currGroupInspector.addColor('color', group.color.toArray(), {
 			callback: function(v) {
 				self.currentGroup.color = new THREE.Color(v[0], v[1], v[2]);
 			}
