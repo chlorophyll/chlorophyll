@@ -144,7 +144,7 @@ function init() {
 		disable: function() {
 			screenManager.activeScreen.controlsEnabled = false;
 		}
-	}, 'c');
+	}, 'c', 'shift');
 	UI.toolbar.addSeparator();
 	toolbarManager.addTool('marquee', new MarqueeSelection(container, model), 'm');
 	toolbarManager.addTool('line', new LineSelection(container, model), 'l');

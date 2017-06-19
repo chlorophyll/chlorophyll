@@ -17,7 +17,11 @@ function Toolbar(managername, toolbar, menu) {
 		if (activeTool != null)
 			self.exitActiveTool();
 
-		tool = tools[name];
+		if (typeof name === 'string')
+			tool = tools[name];
+		else
+			tool = name;
+
 		tool.enable();
 		tool.ui_button.disabled = false;
 		Util.hilightElement(tool.ui_button);
@@ -54,7 +58,7 @@ function Toolbar(managername, toolbar, menu) {
 		});
 	}
 
-	this.addTool = function(name, tool, hotkey, momentary) {
+	this.addTool = function(name, tool, hotkey, momentary_hotkey) {
 		tool.manager = self;
 
 		var f = function() {
@@ -66,7 +70,19 @@ function Toolbar(managername, toolbar, menu) {
 		elem = elem.querySelector('button');
 		elem.disabled = true;
 
-		keyboardJS.bind(hotkey, f);
+		keyboardJS.withContext('global', function() {
+			keyboardJS.bind(hotkey, f);
+			var prev_tool = null;
+			if (typeof momentary_hotkey !== 'undefined') {
+				keyboardJS.bind(momentary_hotkey, function() {
+					prev_tool = activeTool;
+					self.setActiveTool(name);
+				}, function() {
+					self.setActiveTool(prev_tool);
+				});
+			}
+		});
+
 		if (menu)
 			menu.add(managername+'/'+name, f);
 

@@ -136,3 +136,27 @@ LiteGUI.Tree.prototype.collapseItem = function(id) {
 
 	item.listbox.setValue(false);
 }
+
+/*
+ * Prevent infinite recursion in keyboardJS
+ */
+keyboardJS.Keyboard.prototype._callerHandler = null;
+keyboardJS.Keyboard.prototype._clearBindings = function(event) {
+	event || (event = {});
+
+	for (var i = 0; i < this._appliedListeners.length; i += 1) {
+		var listener = this._appliedListeners[i];
+		var keyCombo = listener.keyCombo;
+		if (keyCombo === null || !keyCombo.check(this._locale.pressedKeys)) {
+			if (this._callerHandler !== listener.releaseHandler) {
+				listener.preventRepeat = listener.preventRepeatByDefault;
+				// Record caller handler
+				this._callerHandler = listener.releaseHandler;
+				listener.releaseHandler.call(this, event);
+				this._callerHandler = null;
+			}
+			this._appliedListeners.splice(i, 1);
+			i -= 1;
+		}
+	}
+};

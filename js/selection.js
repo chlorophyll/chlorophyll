@@ -19,7 +19,7 @@ SelectionTool = function(viewport, model, name) {
 	this.viewport = viewport !== undefined ? viewport : document;
 	this.model = model;
 	// Used by Toolbar
-	this.elem = null;
+	this.ui_button = null;
 
 	this.highlight = new THREE.Color(0xffffff);
 
