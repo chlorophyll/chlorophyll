@@ -117,6 +117,7 @@ function PixelGroup(manager, id, pixels, initname, color) {
 			newmap.setFromCamera();
 
 		this.mappings = this.mappings.set(map_id, newmap);
+		manager.dispatchEvent(new CustomEvent('maplist_changed'));
 
 		return newmap;
 	}
@@ -169,6 +170,7 @@ function PixelGroup(manager, id, pixels, initname, color) {
 		});
 
 		self.mappings = newmappings;
+		manager.dispatchEvent(new CustomEvent('maplist_changed'));
 	}
 }
 
@@ -498,6 +500,12 @@ function GroupManager(model) {
 			self.tree.setSelectedItem(mapping.tree_id);
 			self.setCurrentMapping(mapping);
 		}
+		manager.dispatchEvent(new CustomEvent('change', {
+			detail: {
+				group: self.currentGroup,
+				mapping: self.currentMapping
+			}
+		}));
 	}
 
 	var allPixels = [];

@@ -277,6 +277,7 @@ function PatternManager() {
 	var stageWidget;
 	var mappingTypeList;
 	var selectedMappingType = Const.default_map_type;
+	var previewMappingList;
 
 	var patterns = Immutable.Map();
 
@@ -407,12 +408,22 @@ function PatternManager() {
 				}
 			});
 
-		self.top_widgets.addString('Preview map', "", {
-			callback: function(val) {
-				var maps = groupManager.listMappings();
-				if (val in maps)
-					previewMapping = maps[val];
-			}
+		function updatePreviewMapping(val) {
+			previewMapping = val;
+		}
+		previewMappingList = self.top_widgets.addCombo('Preview map', null, {
+			values: groupManager.listMappings(),
+			callback: updatePreviewMapping,
+			width: '20em'
+		});
+		groupManager.addEventListener('maplist_changed', function() {
+			previewMappingList = self.top_widgets.addCombo('Preview map', null,
+				{
+					replace: previewMappingList,
+					values: groupManager.listMappings(),
+					callback: updatePreviewMapping,
+					width: '20em'
+				});
 		});
 
 		stageWidget = self.top_widgets.addComboButtons('stage: ', defaultStage, {
