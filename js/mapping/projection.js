@@ -41,6 +41,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 
 	this.setFromCamera = function() {
 		var origin = self.widget.data();
+		screen.camera.updateMatrixWorld();
 		var cam_quaternion = screen.camera.quaternion.clone();
 
 		// Create plane from the camera's look vector
