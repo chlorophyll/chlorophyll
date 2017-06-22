@@ -30,7 +30,7 @@ Math8 = {};
 			this.setOutputData(0, Math8[name].apply(undefined, vals));
 		}
 
-		LiteGraph.registerNodeType('lowlevel/math8/'+name, f);
+		GraphLib.registerNodeType('lowlevel/math8/'+name, f);
 	}
 
 	make_node('qadd8', 'number', [["i", "number"], ["j", "number"]]);

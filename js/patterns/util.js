@@ -13,8 +13,10 @@ OutputColor.prototype.onExecute = function() {
 
 OutputColor.title = 'Output Color';
 OutputColor.visible_stages = [];
+OutputColor.prototype.color = '#e5a88a';
+OutputColor.prototype.boxcolor = '#cc8866';
 
-LiteGraph.registerNodeType("lowlevel/output/color", OutputColor);
+GraphLib.registerNodeType("lowlevel/output/color", OutputColor);
 
 var MappingInputs = {
 	cartesian2d: {
@@ -71,21 +73,26 @@ for (type in MappingInputs) {
 	}
 
 	map_input_node.prototype.onExecute = function() {
-		var coord_ginputs = ['c0', 'c1', 'c2'];
+		var coords = this.graph.getGlobalInputData('coords');
 
 		for (var i = 0; i < info.coords.length; i++) {
-			var in_val = this.graph.global_inputs[coord_ginputs[i]].value;
+			var in_val = coords[i];
 			var unitConstructor = info.coords[i].unit;
 
 			this.setOutputData(i, new unitConstructor(in_val));
 		}
-		var color = this.graph.global_inputs['color'].value;
+		var color = this.graph.getGlobalInputData('color');
 		this.setOutputData(info.coords.length, color);
 	}
 
 	map_input_node.title = info.name + "Input";
 	map_input_node.visible_stages = [];
-	LiteGraph.registerNodeType('lowlevel/input/' + type, map_input_node);
+
+	map_input_node.prototype.color = '#7496a6';
+	map_input_node.prototype.boxcolor = '#69a4bf';
+	map_input_node.prototype.removable = false;
+
+	GraphLib.registerNodeType('lowlevel/input/' + type, map_input_node);
 }
 
 
@@ -93,10 +100,10 @@ function TimeInput() {
 	this.addOutput('t', 'number');
 }
 TimeInput.prototype.onExecute = function() {
-	this.setOutputData(0, this.graph.global_inputs['t'].value);
+	this.setOutputData(0, this.graph.getGlobalInputData('t'));
 }
 TimeInput.title = 'TimeInput';
-LiteGraph.registerNodeType('lowlevel/input/time', TimeInput);
+GraphLib.registerNodeType('lowlevel/input/time', TimeInput);
 
 function PrecomputeOutput() {
 	this.addProperty("name", null);
@@ -118,4 +125,4 @@ PrecomputeOutput.prototype.onExecute = function() {
 PrecomputeOutput.visible_stages = ['precompute'];
 PrecomputeOutput.title = 'Precompute Output';
 
-LiteGraph.registerNodeType('lowlevel/output/value', PrecomputeOutput);
+GraphLib.registerNodeType('lowlevel/output/value', PrecomputeOutput);

@@ -50,7 +50,7 @@ function make_node(target, name, args, code) {
 	// expose as normal code
 	target[name] = code;
 
-	// now expose to LiteGraph
+	// now expose to GraphLib
 	var arglist = args.slice();
 
 	if (target.prototype == undefined) { // this is on the prototype
@@ -87,7 +87,7 @@ function make_node(target, name, args, code) {
 		this.setOutputData(0, code.apply(that, values));
 	}
 
-	LiteGraph.registerNodeType(output+'/'+name, f);
+	GraphLib.registerNodeType(output+'/'+name, f);
 }
 
 CRGB.fromColorCode = function(colorCode) {

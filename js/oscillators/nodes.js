@@ -5,7 +5,6 @@ function Oscillator() {
 	this.addInput('amplitude', 'range');
 	this.addInput('phase', 'number');
 
-	this.properties = {};
 	this.required_properties = ['frequency', 'amplitude', 'phase'];
 
 	this.properties.frequency = new Frequency();
@@ -35,7 +34,7 @@ function Oscillator() {
 }
 
 Oscillator.prototype.onExecute = function() {
-	var t = this.graph.global_inputs['t'].value / 60;
+	var t = this.graph.getGlobalInputData('t') / 60;
 	var out = this.value(t);
 	this.setOutputData(0, new Units.Percentage(out / 100));
 }
@@ -60,7 +59,7 @@ TriangleWaveOscillator.prototype.value = function(t) {
 	return lower + (a/p) * (p - Math.abs(t % (2*p) - p) );
 }
 
-LiteGraph.registerNodeType('oscillators/triangle', TriangleWaveOscillator);
+GraphLib.registerNodeType('oscillators/triangle', TriangleWaveOscillator);
 
 ///
 
@@ -91,7 +90,7 @@ SquareWaveOscillator.prototype.value = function(t) {
 	}
 }
 
-LiteGraph.registerNodeType('oscillators/square', SquareWaveOscillator);
+GraphLib.registerNodeType('oscillators/square', SquareWaveOscillator);
 
 function SawWaveOscillator() {
 	Oscillator.call(this);
@@ -111,7 +110,7 @@ SawWaveOscillator.prototype.value = function(t) {
 
 	return lower + (upper - lower)*(cyc / p);
 }
-LiteGraph.registerNodeType('oscillators/saw', SawWaveOscillator);
+GraphLib.registerNodeType('oscillators/saw', SawWaveOscillator);
 
 function SineWaveOscillator() {
 	Oscillator.call(this);
@@ -130,4 +129,4 @@ SineWaveOscillator.prototype.value = function(t) {
 
 	return lower + a * (Math.sin(t*2*Math.PI/p)+1);
 }
-LiteGraph.registerNodeType('oscillators/sine', SineWaveOscillator);
+GraphLib.registerNodeType('oscillators/sine', SineWaveOscillator);

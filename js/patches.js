@@ -1,31 +1,5 @@
 // This contains patches, etc
 
-// The built-in context menu is not really sensible for what we want here.
-(function() {
-	var oldMenuOptions = LGraphCanvas.prototype.getNodeMenuOptions;
-
-	LGraphCanvas.prototype.getNodeMenuOptions = function(node) {
-		var options = oldMenuOptions(node);
-
-		whitelist = [
-			"Collapse",
-			"Shapes",
-			"Clone",
-			"Remove"
-		]
-
-		out = [];
-
-		for (option of options) {
-			if (!option || whitelist.indexOf(option.content) != -1) {
-				out.push(option);
-			}
-		}
-
-		return out;
-	}
-})();
-
 Inspector.prototype.addComboButtons = function(name, value, options)
 {
 	options = this.processOptions(options);
@@ -72,52 +46,6 @@ Inspector.prototype.addComboButtons = function(name, value, options)
 	this.processElement(element, options);
 	return element;
 }
-
-
-LiteGraph.getNodeTypesInCategory = function(category) {
-	var r = [];
-	for(var i in this.registered_node_types) {
-		if (this.registered_node_types[i].skip_list)
-			continue;
-		if(category == "") {
-			if (this.registered_node_types[i].category == null)
-				r.push(this.registered_node_types[i]);
-		} else if (this.registered_node_types[i].category == category) {
-			r.push(this.registered_node_types[i]);
-		}
-	}
-	return r;
-}
-
-Util.EventDispatcher.call(LGraph.prototype);
-
-LGraph.prototype.onNodeAdded = function(node) {
-	var evt = new CustomEvent('node-added', {
-		detail: {
-			node: node
-		}
-	});
-	this.dispatchEvent(evt);
-};
-
-(function() {
-	var oldRemove = LGraph.prototype.remove;
-
-	LGraph.prototype.remove = function(node) {
-
-		if (node.ignore_remove)
-			return;
-
-		var evt = new CustomEvent('node-removed', {
-			detail: {
-				node: node
-			}
-		});
-		this.dispatchEvent(evt);
-
-		oldRemove.call(this, node);
-	}
-})();
 
 LiteGUI.Tree.prototype.expandItem = function(id) {
 	var item = this.getItem(id);

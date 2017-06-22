@@ -36,8 +36,7 @@
     "three": "^0.85.2"
   },
   "napa": {
-    "litegui": "jagenjo/litegui.js",
-    "litegraph": "jagenjo/litegraph.js"
+    "litegui": "jagenjo/litegui.js"
   },
   "devDependencies": {
     "napa": "^3.0.0"

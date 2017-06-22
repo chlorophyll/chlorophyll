@@ -500,7 +500,7 @@ function GroupManager(model) {
 			self.tree.setSelectedItem(mapping.tree_id);
 			self.setCurrentMapping(mapping);
 		}
-		manager.dispatchEvent(new CustomEvent('change', {
+		self.dispatchEvent(new CustomEvent('change', {
 			detail: {
 				group: self.currentGroup,
 				mapping: self.currentMapping

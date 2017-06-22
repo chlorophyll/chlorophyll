@@ -8,7 +8,7 @@ LogNode.prototype.onExecute = function() {
 
 LogNode.title = 'log'
 
-LiteGraph.registerNodeType("lowlevel/debug/log", LogNode);
+GraphLib.registerNodeType("lowlevel/debug/log", LogNode);
 
 function IfNode() {
 	this.addInput('clause', 'boolean');
@@ -25,7 +25,7 @@ IfNode.prototype.onExecute = function() {
 	var falseBranch = this.getInputData(2);
 	this.setOutputData(0, clause ? trueBranch : falseBranch);
 }
-LiteGraph.registerNodeType("logic/if", IfNode);
+GraphLib.registerNodeType("logic/if", IfNode);
 
 function EqualsNode() {
 	this.addInput('a');
@@ -40,7 +40,7 @@ EqualsNode.prototype.onExecute = function() {
 	var b = this.getInputData(1);
 	this.setOutputData(0, a == b);
 }
-LiteGraph.registerNodeType("logic/==", EqualsNode);
+GraphLib.registerNodeType("logic/==", EqualsNode);
 
 function LessNode() {
 	this.addInput('a', 'number');
@@ -51,7 +51,7 @@ LessNode.title = 'a < b'
 LessNode.prototype.onExecute = function() {
 	this.setOutputData(0, this.getInputData(0) < this.getInputData(1));
 }
-LiteGraph.registerNodeType("logic/<", LessNode);
+GraphLib.registerNodeType("logic/<", LessNode);
 
 function LessEqualNode() {
 	this.addInput('a', 'number');
@@ -62,7 +62,7 @@ LessEqualNode.title = 'a <= b'
 LessEqualNode.prototype.onExecute = function() {
 	this.setOutputData(0, this.getInputData(0) <= this.getInputData(1));
 }
-LiteGraph.registerNodeType("logic/<=", LessEqualNode);
+GraphLib.registerNodeType("logic/<=", LessEqualNode);
 
 function GreaterNode() {
 	this.addInput('a', 'number');
@@ -73,7 +73,7 @@ GreaterNode.title = 'a > b'
 GreaterNode.prototype.onExecute = function() {
 	this.setOutputData(0, this.getInputData(0) > this.getInputData(1));
 }
-LiteGraph.registerNodeType("logic/>", GreaterNode);
+GraphLib.registerNodeType("logic/>", GreaterNode);
 
 function GreaterEqualNode() {
 	this.addInput('a', 'number');
@@ -84,7 +84,7 @@ GreaterEqualNode.title = 'a >= b'
 GreaterEqualNode.prototype.onExecute = function() {
 	this.setOutputData(0, this.getInputData(0) >= this.getInputData(1));
 }
-LiteGraph.registerNodeType("logic/>=", GreaterEqualNode);
+GraphLib.registerNodeType("logic/>=", GreaterEqualNode);
 
 function AndNode() {
 	this.addInput('a');
@@ -95,7 +95,7 @@ AndNode.title = 'a && b'
 AndNode.prototype.onExecute = function() {
 	this.setOutputData(0, this.getInputData(0) && this.getInputData(1));
 }
-LiteGraph.registerNodeType("logic/&&", AndNode);
+GraphLib.registerNodeType("logic/&&", AndNode);
 
 function OrNode() {
 	this.addInput('a');
@@ -106,7 +106,7 @@ OrNode.title = 'a || b'
 OrNode.prototype.onExecute = function() {
 	this.setOutputData(0, this.getInputData(0) || this.getInputData(1));
 }
-LiteGraph.registerNodeType("logic/||", OrNode);
+GraphLib.registerNodeType("logic/||", OrNode);
 
 function NotNode() {
 	this.addInput('a');
@@ -119,7 +119,7 @@ NotNode.prototype.onExecute = function() {
 	this.setOutputData(0, !this.getInputData(0));
 }
 
-LiteGraph.registerNodeType("logic/!", NotNode);
+GraphLib.registerNodeType("logic/!", NotNode);
 
 function AddNode() {
 	this.addInput('a', Units.Numeric);
@@ -133,7 +133,7 @@ AddNode.prototype.onExecute = function() {
 	var b = this.getInputData(1);
 	this.setOutputData(0, Units.Operations.add(a,b));
 }
-LiteGraph.registerNodeType("math/add", AddNode);
+GraphLib.registerNodeType("math/add", AddNode);
 
 function SubNode() {
 	this.addInput('a', Units.Numeric);
@@ -147,7 +147,7 @@ SubNode.prototype.onExecute = function() {
 	var b = this.getInputData(1);
 	this.setOutputData(0, Units.Operations.sub(a,b));
 }
-LiteGraph.registerNodeType("math/sub", SubNode);
+GraphLib.registerNodeType("math/sub", SubNode);
 
 function MulNode() {
 	this.addInput('a', Units.Numeric);
@@ -161,7 +161,7 @@ MulNode.prototype.onExecute = function() {
 	var b = this.getInputData(1);
 	this.setOutputData(0, Units.Operations.mul(a,b));
 }
-LiteGraph.registerNodeType("math/mul", MulNode);
+GraphLib.registerNodeType("math/mul", MulNode);
 
 function AbsNode() {
 	this.addInput('a', Units.Numeric);
@@ -173,7 +173,7 @@ AbsNode.prototype.onExecute = function() {
 	this.setOutputData(0, Math.abs(this.getInputData(0)));
 }
 
-LiteGraph.registerNodeType("math/abs", AbsNode);
+GraphLib.registerNodeType("math/abs", AbsNode);
 
 
 function DivNode() {
@@ -187,7 +187,7 @@ DivNode.prototype.onExecute = function() {
 	var b = this.getInputData(1);
 	this.setOutputData(0, Units.Operations.div(a,b));
 }
-LiteGraph.registerNodeType("math/div", DivNode);
+GraphLib.registerNodeType("math/div", DivNode);
 
 function ModNode() {
 	this.addInput('a', Units.Numeric);
@@ -200,4 +200,4 @@ ModNode.prototype.onExecute = function() {
 	var b = this.getInputData(1);
 	this.setOutputData(0, Units.Operations.mod(a,b));
 }
-LiteGraph.registerNodeType("math/mod", ModNode);
+GraphLib.registerNodeType("math/mod", ModNode);
