@@ -150,7 +150,7 @@ ScreenManager = function(renderer, scene) {
 		_activeScreen.render();
 	}
 
-	keyboardJS.bind('space', function() {
+	keyboardJS.bind(Hotkey.reset_camera, function() {
 		if (_activeScreen !== undefined) {
 			Util.alignWithVector(new THREE.Vector3(0, 0, 1),
 			                     _activeScreen.camera);

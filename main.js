@@ -53,11 +53,11 @@ function init() {
 	UI.menu.add("File/New");
 	UI.menu.add("Edit/Undo", function() { worldState.undo() });
 	UI.menu.add("Edit/Redo", function() { worldState.redo() });
-		keyboardJS.bind('mod + z', function() {
+		keyboardJS.bind(Hotkey.undo, function() {
 		worldState.undo();
 	});
 
-	keyboardJS.bind('mod + shift + z', function() {
+	keyboardJS.bind(Hotkey.redo, function() {
 		worldState.redo();
 	});
 
@@ -144,11 +144,14 @@ function init() {
 		disable: function() {
 			screenManager.activeScreen.controlsEnabled = false;
 		}
-	}, 'c', 'shift');
+	}, Hotkey.tool_camera, Hotkey.tool_camera_momentary);
 	UI.toolbar.addSeparator();
-	toolbarManager.addTool('marquee', new MarqueeSelection(container, model), 'm');
-	toolbarManager.addTool('line', new LineSelection(container, model), 'l');
-	toolbarManager.addTool('plane', new PlaneSelection(container, model), 'p');
+	toolbarManager.addTool('marquee', new MarqueeSelection(container, model),
+		Hotkey.tool_select_marquee);
+	toolbarManager.addTool('line', new LineSelection(container, model),
+		Hotkey.tool_select_line);
+	toolbarManager.addTool('plane', new PlaneSelection(container, model),
+		Hotkey.tool_select_plane);
 	toolbarManager.enableButtons();
 	toolbarManager.setActiveTool('camera');
 

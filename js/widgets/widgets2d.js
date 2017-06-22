@@ -53,7 +53,7 @@ function Widget2D(container) {
 	/*
 	 * Control bindings: modifier keys and draggable areas
 	 */
-	keyboardJS.bind('shift',
+	keyboardJS.bind(Hotkey.widget_snap_angles,
 		function() { snap_angles = true; },
 		function() { snap_angles = false; });
 

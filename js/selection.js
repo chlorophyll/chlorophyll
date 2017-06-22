@@ -126,11 +126,11 @@ SelectionTool = function(viewport, model, name) {
 	}
 
 	keyboardJS.withContext(enabled_kb_ctx, function() {
-		keyboardJS.bind('esc', self.deselectAll);
+		keyboardJS.bind(Hotkey.cancel_selection, self.deselectAll);
 	});
 
 	keyboardJS.withContext(selecting_kb_ctx, function() {
-		keyboardJS.bind('esc', self.cancelSelection);
+		keyboardJS.bind(Hotkey.cancel_selection, self.cancelSelection);
 	});
 
 }
