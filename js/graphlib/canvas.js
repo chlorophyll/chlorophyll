@@ -85,6 +85,7 @@ function NodeElement(canvas, node) {
 	         })
 	         .on('end', function() {
 				 edges = [];
+				 node.setPosition(node.pos[0], node.pos[1]); // trigger node-moved
 			 }));
 	self.move();
 	var fgcolor = node.color || Const.Graph.NODE_DEFAULT_COLOR;

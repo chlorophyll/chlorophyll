@@ -218,7 +218,6 @@ function PatternGraph(id, name, manager) {
 
 	forEachStage(function(stage, graph) {
 		graph.addEventListener('graph-changed', function() {
-			console.log('checkpoint');
 			worldState.checkpoint();
 		});
 	});
