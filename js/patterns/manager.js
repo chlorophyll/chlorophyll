@@ -435,16 +435,20 @@ function PatternManager() {
 		function updatePreviewMapping(val) {
 			previewMapping = val;
 		}
+		var preview_list_values = groupManager.listMappings();
+		preview_list_values[""] = null;
 		previewMappingList = self.top_widgets.addCombo('Preview map', null, {
-			values: groupManager.listMappings(),
+			values: preview_list_values,
 			callback: updatePreviewMapping,
 			width: '20em'
 		});
 		groupManager.addEventListener('maplist_changed', function() {
+			var vals = groupManager.listMappings();
+			vals[""] = null;
 			previewMappingList = self.top_widgets.addCombo('Preview map', null,
 				{
 					replace: previewMappingList,
-					values: groupManager.listMappings(),
+					values: vals,
 					callback: updatePreviewMapping,
 					width: '20em'
 				});
