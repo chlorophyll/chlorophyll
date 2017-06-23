@@ -354,8 +354,6 @@ Inspector.prototype.addColor = function(name, value, options) {
 	input.id = 'colorpicker-'+name;
 	input.className = 'color';
 
-	console.log(input.value);
-
 	input.disabled = options.disabled || false;
 
 	var element = this.createWidget(name, input, options);

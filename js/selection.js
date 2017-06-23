@@ -149,7 +149,6 @@ MarqueeSelection = function(viewport, model) {
 	this.box.style.display = 'none';
 
 	this.viewport.appendChild(this.box);
-	console.log(this.viewport);
 
 	this.viewport.addEventListener('mousedown', onMouseDown, false);
 	this.viewport.addEventListener('mouseup', onMouseUp, false);
