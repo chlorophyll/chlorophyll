@@ -13,13 +13,31 @@ function showNodeInspector(node) {
 		draggable: true
 	});
 
+	var visualization_root = undefined;
+
+
+	function updateVisualization() {
+		if (!node.visualization)
+			return;
+
+		if (node.visualization.enabled()) {
+			if (!visualization_root) {
+				dialog.add(node.visualization);
+				visualization_root = node.visualization.root;
+			}
+			node.visualization.update();
+		} else {
+			if (visualization_root) {
+				dialog.content.removeChild(visualization_root);
+				visualization_root = undefined;
+			}
+		}
+	}
+	node.graph.addEventListener('graph-changed', updateVisualization);
 
 	var inspector = new LiteGUI.Inspector('node-settings-inspector', {
 		widgets_per_row: 2,
-		onchange: function() {
-			if (node.visualization)
-				node.visualization.update();
-		}
+		onchange: updateVisualization,
 	});
 
 	var inputs = node.inputs || [];
@@ -112,21 +130,19 @@ function showNodeInspector(node) {
 	}
 
 	dialog.add(inspector);
-
-	if (node.visualization) {
-		node.visualization.update();
-		dialog.add(node.visualization);
-	}
+	updateVisualization();
 
 	function resetProperties() {
 		for (var k in old_values) {
 			node.properties[k] = old_values[k];
 		}
 		node.modified();
+		node.graph.removeEventListener('graph-changed', updateVisualization);
 	}
 
 	function applyProperties() {
 		node.modified();
+		node.graph.removeEventListener('graph-changed', updateVisualization);
 	}
 
 	dialog.addButton('Ok', { close: true, callback: applyProperties});

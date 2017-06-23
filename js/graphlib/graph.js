@@ -286,6 +286,15 @@ Graph = function() {
 			edges_by_slot.forEach(f);
 	}
 
+	this.numEdgesToNode = function(node) {
+		var edges_by_slot = edges_by_dst.get(node.id);
+		if (edges_by_slot !== undefined) {
+			return edges_by_slot.count();
+		} else {
+			return 0;
+		}
+	}
+
 	this.forEachEdgeFromNode = function(node, f) {
 		var edges_by_slot = edges_by_src.get(node.id);
 
