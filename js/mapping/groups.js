@@ -435,13 +435,16 @@ function GroupManager(model) {
 	 * if has_type is provided, only mappings which support the provided type
 	 * of point mapping will be returned.
 	 */
-	this.listMappings = function(has_type) {
+	this.listMappings = function(with_type) {
 		var type = (typeof with_type !== 'undefined') ? with_type : null;
-		var maps = {};
+		var maps = [];
 		self.groups.forEach(function(group, id) {
 			group.mappings.forEach(function(mapping, id) {
 				if (!type || type in mapping.map_types)
-					maps[mapping.name] = mapping;
+					maps.push({
+						title: mapping.name,
+						mapping: mapping
+					});
 			});
 		});
 		return maps;

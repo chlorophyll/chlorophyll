@@ -445,30 +445,29 @@ function PatternManager() {
 						curPattern.mapping_type = val;
 						worldState.checkpoint();
 					}
+
+					updateMappingList();
 				}
 			});
 
-		function updatePreviewMapping(val) {
-			previewMapping = val;
+		function updatePreviewMapping(item) {
+			previewMapping = item.mapping;
 		}
-		var preview_list_values = groupManager.listMappings();
-		preview_list_values[""] = null;
+
+		function updateMappingList() {
+			var vals = [{title: ' ', mapping: undefined}];
+			vals = vals.concat(groupManager.listMappings(selectedMappingType));
+			previewMappingList.setOptionValues(vals);
+		}
+
 		previewMappingList = self.top_widgets.addCombo('Preview map', null, {
-			values: preview_list_values,
+			values: [],
 			callback: updatePreviewMapping,
 			width: '20em'
 		});
-		groupManager.addEventListener('maplist_changed', function() {
-			var vals = groupManager.listMappings();
-			vals[""] = null;
-			previewMappingList = self.top_widgets.addCombo('Preview map', null,
-				{
-					replace: previewMappingList,
-					values: vals,
-					callback: updatePreviewMapping,
-					width: '20em'
-				});
-		});
+		updateMappingList();
+
+		groupManager.addEventListener('maplist_changed', updateMappingList);
 
 		stageWidget = self.top_widgets.addComboButtons('stage: ', defaultStage, {
 			values: patternStages,
