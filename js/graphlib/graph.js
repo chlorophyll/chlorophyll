@@ -299,7 +299,7 @@ Graph = function() {
 
 	this.numEdgesAtSlot = function(node, slot, is_input) {
 		if (is_input)
-			return self.hasIncomingEdge(node, slot);
+			return self.hasIncomingEdge(node, slot) ? 1 : 0;
 
 		edgelist = edges_by_src.getIn([node.id, slot]);
 		return edgelist ? edgelist.count() : 0;
@@ -426,11 +426,11 @@ GraphNode.prototype.getInputData = function(slot) {
 		data = src.node.getOutgoingData(src.slot);
 	}
 
-	if (!data) {
+	if (data == undefined) {
 		data = this.properties[input.name];
 	}
 
-	if (data
+	if (data !== undefined
 		&& data.isConvertibleTo !== undefined
 		&& input.type
 		&& input.type != Units.Numeric) {
