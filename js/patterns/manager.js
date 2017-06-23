@@ -620,8 +620,7 @@ function PatternManager() {
 		var name = copyName(curPattern.name);
 		var snap = curPattern.snapshot();
 
-		var pattern = new PatternGraph();
-
+		var pattern = new PatternGraph(id, name, self);
 		pattern.restore(snap);
 		pattern.id = id;
 		pattern.name = name;
