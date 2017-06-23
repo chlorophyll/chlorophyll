@@ -29,7 +29,7 @@ var MappingInputs = {
 	polar2d: {
 		name: "Polar2D",
 		coords: [
-			{name: 'r', unit: Units.Distance},
+			{name: 'r', unit: Units.Percentage},
 			{name: 'theta', unit: Units.Angle}
 		]
 	},
@@ -44,7 +44,7 @@ var MappingInputs = {
 	cylinder3d: {
 		name: "Cylindrical3D",
 		coords: [
-			{name: 'r', unit: Units.Distance},
+			{name: 'r', unit: Units.Percentage},
 			{name: 'theta', unit: Units.Angle},
 			{name: 'z', unit: Units.Distance}
 		]
@@ -52,7 +52,7 @@ var MappingInputs = {
 	sphere3d: {
 		name: "Spherical3D",
 		coords: [
-			{name: 'r', unit: Units.Distance},
+			{name: 'r', unit: Units.Percentage},
 			{name: 'theta', unit: Units.Angle},
 			{name: 'phi', unit: Units.Angle}
 		]
