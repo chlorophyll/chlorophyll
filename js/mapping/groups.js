@@ -399,7 +399,7 @@ function GroupManager(model) {
 	panel.add(currMappingInspector);
 	panel.add(mappingConfigInspector);
 
-	UI.sidebar_top.split('vertical', ['50%', null], true);
+	UI.sidebar_top.split('vertical', ['30%', null], true);
 	UI.sidebar_top.getSection(0).add(treePanel);
 	UI.sidebar_top.getSection(1).add(panel);
 

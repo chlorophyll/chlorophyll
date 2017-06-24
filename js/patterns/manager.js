@@ -308,7 +308,9 @@ function PatternGraph(id, name, manager) {
 
 			requestid = window.requestAnimationFrame(computePatternStep);
 		}
-		this.cleanup = function() { }
+		this.destroy = function() {
+			manager.pattern_browser.removeItem(self.tree_id);
+		}
 	}
 
 function PatternManager() {
@@ -329,14 +331,24 @@ function PatternManager() {
 
 	var curPattern = undefined;
 
+	var clearCurrentPattern = function() {
+		curPattern = null;
+		self.graphcanvas.clearGraph();
+		self.pattern_browser.setSelectedItem(null);
+		nameWidget.setValue('', true);
+	}
+
 	var setCurrentPattern = function(pattern) {
 		curPattern = pattern;
 
-		if (!curPattern)
+		if (!curPattern) {
+			clearCurrentPattern();
 			return;
+		}
 
 		self.graphcanvas.setGraph(curPattern.curStageGraph);
 		self.pattern_browser.setSelectedItem(curPattern.tree_id);
+		nameWidget.setValue(curPattern.name, true);
 		setCurrentStage(curPattern.curStage);
 	}
 
@@ -358,7 +370,7 @@ function PatternManager() {
 		});
 
 		self.sidebar_widgets = new LiteGUI.Inspector(null, {
-			name_width: '4em'
+			name_width: '4.5em'
 		});
 		self.pattern_browser = new LiteGUI.Tree('pattern-tree',
 			{id: 'pattern-root', children: [], visible: false},
@@ -368,6 +380,14 @@ function PatternManager() {
 		self.pattern_browser.root.addEventListener('item_selected', function(e) {
 			var dataset = e.detail.data.dataset;
 			setCurrentPattern(dataset.pattern);
+		});
+
+		self.pattern_browser.root.addEventListener('item_renamed', function(e) {
+			var dataset = e.detail.data.dataset;
+			dataset.pattern.name = event.detail.new_name;
+			if (curPattern == dataset.pattern) {
+				nameWidget.setValue(curPattern.name, true);
+			}
 		});
 
 		self.pattern_browser.onBackgroundClicked = function() {
@@ -383,7 +403,7 @@ function PatternManager() {
 
 		side_tree_panel.add(self.pattern_browser);
 		side_settings_panel.add(self.sidebar_widgets);
-		UI.sidebar_bottom.split('vertical', ['30%', null], true);
+		UI.sidebar_bottom.split('vertical', ['50%', null], true);
 		UI.sidebar_bottom.getSection(0).add(side_tree_panel);
 		UI.sidebar_bottom.getSection(1).add(side_settings_panel);
 
@@ -430,25 +450,6 @@ function PatternManager() {
 		});
 		stopButton.classList.add('material-icons');
 
-		var mapmenu_values = {};
-		for (type in MappingInputs) {
-			mapmenu_values[MappingInputs[type].name] = type;
-		}
-		mappingTypeList = self.top_widgets.addCombo('Projection type',
-			Const.default_map_type,
-			{
-				values: mapmenu_values,
-				callback: function(val) {
-					selectedMappingType = val;
-
-					if (curPattern) {
-						curPattern.mapping_type = val;
-						worldState.checkpoint();
-					}
-
-					updateMappingList();
-				}
-			});
 
 		function updatePreviewMapping(item) {
 			previewMapping = item.mapping;
@@ -487,16 +488,48 @@ function PatternManager() {
 		self.sidebar_widgets.widgets_per_row = 1;
 
 		self.sidebar_widgets.addSeparator();
+		var mapmenu_values = {};
+		for (type in MappingInputs) {
+			mapmenu_values[MappingInputs[type].name] = type;
+		}
+		mappingTypeList = self.sidebar_widgets.addCombo('map type',
+			Const.default_map_type,
+			{
+				values: mapmenu_values,
+				callback: function(val) {
+					selectedMappingType = val;
 
-		nameWidget = self.sidebar_widgets.addStringButton('name', '', {
-			button: 'rename',
-			button_width: '5em',
-			callback_button: function(v) {
-				if (curPattern)
+					if (curPattern) {
+						curPattern.mapping_type = val;
+						worldState.checkpoint();
+					}
+
+					updateMappingList();
+				}
+			});
+
+		self.sidebar_widgets.widgets_per_row = 2;
+		nameWidget = self.sidebar_widgets.addString('name', '', {
+			width: -Const.group_smallbutton_width,
+			callback: function(v) {
+				if (curPattern) {
 					curPattern.name = v;
-				updatePatternList();
+					manager.tree.updateItem(curPattern.tree_id, {
+						content: curPattern.name,
+						dataset: { pattern: curPattern }
+					});
+				}
 			}
 		});
+		var deleteButton = self.sidebar_widgets.addButton(null, 'delete', {
+			width: Const.group_smallbutton_width,
+			callback: function(v) {
+				curPattern.destroy();
+				setCurrentPattern(null);
+				worldState.checkpoint();
+			}
+		});
+		deleteButton.classList.add('material-icons');
 
 		var area = self.area = new LiteGUI.Area(null, {
 			className: "grapharea",
@@ -659,7 +692,7 @@ function PatternManager() {
 		var newpatterns = snapshot.get('patterns').map(function(psnap, id) {
 			var pattern = patterns.get(id);
 			if (!pattern) {
-				pattern = new PatternGraph();
+				pattern = new PatternGraph(id, '', self);
 			}
 			pattern.restore(psnap);
 			return pattern;
@@ -667,7 +700,7 @@ function PatternManager() {
 
 		patterns.forEach(function(pattern, id) {
 			if (!newpatterns.get(id)) {
-				pattern.cleanup();
+				pattern.destroy();
 			}
 		});
 		patterns = newpatterns;
