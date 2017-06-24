@@ -15,6 +15,7 @@ OutputColor.title = 'Output Color';
 OutputColor.visible_stages = [];
 OutputColor.prototype.color = '#e5a88a';
 OutputColor.prototype.boxcolor = '#cc8866';
+OutputColor.prototype.removable = false;
 
 GraphLib.registerNodeType("lowlevel/output/color", OutputColor);
 
