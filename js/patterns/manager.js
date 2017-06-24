@@ -458,7 +458,16 @@ function PatternManager() {
 		function updateMappingList() {
 			var vals = [{title: ' ', mapping: undefined}];
 			vals = vals.concat(groupManager.listMappings(selectedMappingType));
+			var selected = undefined;
+
+			vals.forEach(function(val) {
+				if (val.mapping == previewMapping) {
+					selected = val;
+				}
+			});
 			previewMappingList.setOptionValues(vals);
+
+			previewMappingList.setValue(selected, true);
 		}
 
 		previewMappingList = self.top_widgets.addCombo('Preview map', null, {
