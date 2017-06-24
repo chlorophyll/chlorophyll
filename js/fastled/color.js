@@ -3,6 +3,10 @@ FastLED = Module;
 var hsv2rgb = function(hue, sat, val) {
 	var h = 360*(hue/255), s = sat/255, v = val/255;
 	var rgb, i, data = [];
+	h = h % 360;
+	if (h == 0) h = 1;
+
+
 	if (s === 0) {
 		rgb = [v,v,v];
 	} else {
@@ -64,9 +68,10 @@ function make_node(target, name, args, code) {
 
 
 	var f = function() {
-		for (var arg of arglist) {
-			this.addInput(arg[0], arg[1]);
-		}
+		var self = this;
+		arglist.forEach(function([arg, type]) {
+			self.addInput(arg, type);
+		});
 		this.addOutput(output, output);
 	}
 
@@ -76,7 +81,7 @@ function make_node(target, name, args, code) {
 		var values = [];
 
 		for (var i = 0; i < arglist.length; i++) {
-			values.push(this.getInputData(i).valueOf());
+			values.push(this.getInputData(i));
 		}
 
 		var that = undefined;

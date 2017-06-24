@@ -91,6 +91,8 @@ Graph = function() {
 		if (src_type.isConvertibleUnit) {
 			return src_type.prototype.isConvertibleTo(dst_type);
 		}
+
+		return false;
 	}
 
 	this.addNode = function(path, options) {
@@ -150,14 +152,10 @@ Graph = function() {
 		}));
 	}
 
-	this.validConnection = function(src_type, dst_type) {
-		return true;
-	}
-
 	this.connect = function(src, src_slot, dst, dst_slot) {
 
-		var src_type = src.outputs[src_slot];
-		var dst_type = dst.inputs[dst_slot];
+		var src_type = src.outputs[src_slot].type;
+		var dst_type = dst.inputs[dst_slot].type;
 
 		if (!this.validConnection(src_type, dst_type))
 			return false;
@@ -415,12 +413,12 @@ GraphNode.prototype.addOutput = function(name, type) {
 }
 
 GraphNode.prototype.getOutgoingData = function(slot) {
-	return this.outgoing_data[slot];
+	var output = this.outputs[slot];
 
-	if (outgoing === null) {
-		var output = this.outputs[slot];
-		outgoing = this.properties[output.name];
-	}
+	var outgoing = this.outgoing_data[slot];
+
+	if (outgoing && output.type && output.type.isConvertibleUnit)
+		outgoing = new output.type(outgoing.valueOf());
 
 	return outgoing;
 }

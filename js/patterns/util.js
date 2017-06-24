@@ -97,7 +97,7 @@ for (type in MappingInputs) {
 
 
 function TimeInput() {
-	this.addOutput('t', 'number');
+	this.addOutput('t', Units.Numeric);
 }
 TimeInput.prototype.onExecute = function() {
 	this.setOutputData(0, this.graph.getGlobalInputData('t'));

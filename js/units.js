@@ -127,5 +127,8 @@ Units.Angle = function(val) {
 Units.Angle.prototype.conversions = {
 	Percentage: function() {
 		return this.val / (2*Math.PI);
+	},
+	UInt8: function() {
+		return this.val / (2*Math.PI) * 0xff;
 	}
 }
