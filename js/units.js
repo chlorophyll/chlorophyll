@@ -101,6 +101,9 @@ Units.Percentage.prototype.conversions = {
 	},
 	UInt16: function() {
 		return this.val * 0xffff;
+	},
+	Angle: function() {
+		return this.val * Math.PI * 2;
 	}
 }
 

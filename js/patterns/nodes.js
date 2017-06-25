@@ -201,3 +201,59 @@ ModNode.prototype.onExecute = function() {
 	this.setOutputData(0, Units.Operations.mod(a,b));
 }
 GraphLib.registerNodeType("math/mod", ModNode);
+
+function MapNode() {
+	this.addInput('value', Units.Numeric);
+	this.addInput('fromLow', Units.Numeric);
+	this.addInput('fromHigh', Units.Numeric);
+	this.addInput('toLow', Units.Numeric);
+	this.addInput('toHigh', Units.Numeric);
+
+	this.addOutput('result', Units.Numeric);
+}
+
+MapNode.title = 'map';
+MapNode.prototype.onExecute = function() {
+	var value = this.getInputData(0);
+	var fromLow = this.getInputData(1);
+	var fromHigh = this.getInputData(2);
+	var toLow = this.getInputData(3);
+	var toHigh = this.getInputData(4);
+
+	var fromVal = Units.Operations.sub(value, fromLow);
+	var toRange = Units.Operations.sub(toHigh, toLow);
+	var fromRange = Units.Operations.sub(fromHigh, fromLow);
+
+	var toVal = Units.Operations.mul(fromVal, Units.Operations.div(toRange, fromRange));
+	var output = Units.Operations.add(toVal, toLow);
+	this.setOutputData(0, output);
+}
+GraphLib.registerNodeType('math/map', MapNode);
+
+////// organize this better...
+//
+function Rotate2D() {
+	this.addInput("x", Units.Distance);
+	this.addInput("y", Units.Distance);
+	this.addInput("theta", Units.Angle);
+	this.addOutput("x'", Units.Distance);
+	this.addOutput("y'", Units.Distance);
+}
+
+Rotate2D.title = '2D roration';
+Rotate2D.prototype.onExecute = function() {
+	var x = this.getInputData(0).valueOf();
+	var y = this.getInputData(1).valueOf();
+	var theta = this.getInputData(2).valueOf();
+
+	var c = Math.cos(theta);
+	var s = Math.sin(theta);
+
+	var xo = x * c - y * s;
+	var yo = x * s + y * c;
+
+	this.setOutputData(0, xo);
+	this.setOutputData(1, yo);
+}
+
+GraphLib.registerNodeType('2d/rotate', Rotate2D);

@@ -140,3 +140,26 @@ SineWaveOscillator.prototype.value = function(t) {
 	return lower + a * (Math.sin(t*2*Math.PI/p)+1);
 }
 GraphLib.registerNodeType('oscillators/sine', SineWaveOscillator);
+
+function CosWaveOscillator() {
+	Oscillator.call(this);
+}
+
+CosWaveOscillator.title = 'Cos wave';
+CosWaveOscillator.prototype = Object.create(Oscillator.prototype);
+CosWaveOscillator.prototype.value = function(t) {
+	var frequency = this.getInputData(0);
+	var amplitude = this.getInputData(1);
+	var phase = this.getInputData(2);
+
+	t = t + phase;
+	var lower = amplitude.lower;
+	var upper = amplitude.upper;
+
+	var a = (upper - lower) / 2;
+
+	var p = frequency.sec;
+
+	return lower + a * (Math.cos(t*2*Math.PI/p)+1);
+}
+GraphLib.registerNodeType('oscillators/cos', CosWaveOscillator);
