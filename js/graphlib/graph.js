@@ -228,6 +228,7 @@ Graph = function() {
 
 	this.runStep = function() {
 		nodes.forEach(function(node, id) {
+			node.clearOutgoingData();
 			node.onExecute();
 		});
 	}
@@ -331,6 +332,18 @@ Graph = function() {
 		return Immutable.fromJS({
 			nodes: nodes.map(node => node.snapshot()),
 			edges: edges,
+			global_inputs: global_inputs.map(function(input) {
+				return {
+					name: input.name,
+					type: input.type
+				}
+			}),
+			global_outputs: global_outputs.map(function(output) {
+				return {
+					name: output.name,
+					type: output.type
+				}
+			}),
 			last_id: last_id,
 		});
 	}
@@ -348,8 +361,9 @@ Graph = function() {
 				var node = Object.create(constructor.prototype);
 				GraphNode.call(node);
 				constructor.call(node);
-
 				node.restore(nodesnap);
+
+				node.graph = self;
 				return node;
 			}
 		});
@@ -373,6 +387,22 @@ Graph = function() {
 		});
 
 		last_id = snapshot.get('last_id');
+
+		global_inputs = snapshot.get('global_inputs').map(function(input) {
+			return {
+				name: input.name,
+				type: input.type,
+				data: null,
+			}
+		});
+
+		global_outputs = snapshot.get('global_outputs').map(function(output) {
+			return {
+				name: output.name,
+				type: output.type,
+				data: null,
+			}
+		});
 
 		self.dispatchEvent(new CustomEvent('graph-restored'));
 	}
@@ -461,6 +491,11 @@ GraphNode.prototype.setPosition = function(x,y) {
 	}));
 }
 
+GraphNode.prototype.clearOutgoingData = function() {
+	for (var i = 0; i < this.outgoing_data.length; i++)
+		this.outgoing_data[i] = null;
+}
+
 GraphNode.prototype.modified = function() {
 	this.graph.dispatchChange(new CustomEvent('node-modified', {
 		detail: {
@@ -475,6 +510,7 @@ GraphNode.prototype.snapshot = function() {
 		properties: Util.JSON.dump(this.properties),
 		type: this.type,
 		id: this.id,
+		title: this.title,
 	});
 }
 
@@ -483,4 +519,5 @@ GraphNode.prototype.restore = function(snapshot) {
 	this.properties = Util.JSON.load(snapshot.get('properties'));
 	this.type = snapshot.get('type');
 	this.id = snapshot.get('id');
+	this.title = snapshot.get('title');
 }
