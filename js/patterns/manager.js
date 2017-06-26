@@ -484,6 +484,17 @@ function PatternManager() {
 			callback: setCurrentStage
 		});
 
+		var layoutButton = self.top_widgets.addButton(null, 'clear_all playlist_add_check', {
+			width: 50,
+			callback: function() {
+				self.graphcanvas.autolayout();
+			}
+		});
+
+		layoutButton.title = 'Automatically arrange graph';
+
+		layoutButton.classList.add('material-icons');
+
 		self.root.appendChild(self.top_widgets.root);
 		self.top_widgets.root.style.paddingTop = '4px';
 		self.top_widgets.root.style.paddingBottom = '4px';

@@ -31,8 +31,9 @@
   "dependencies": {
     "d3": "^4.9.1",
     "immutable": "^3.8.1",
-    "keyboardjs": "^2.3.3",
     "jscolor-picker": "^2.0.4",
+    "keyboardjs": "^2.3.3",
+    "klayjs": "^0.4.1",
     "three": "^0.85.2"
   },
   "napa": {

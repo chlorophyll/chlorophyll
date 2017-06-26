@@ -397,6 +397,10 @@ function GraphCanvas(divNode) {
 	self.node_elements = new Map();
 	self.edge_elements = new Map();
 
+	this.getNodeElement = function(node) {
+		return self.node_elements.get(node.id);
+	}
+
 	function addNodeToCanvas(node) {
 		self.node_elements.set(node.id, new NodeElement(self, node));
 	}
@@ -504,4 +508,17 @@ function GraphCanvas(divNode) {
 
 	}
 	this.clearGraph();
+
+	var layoutEngine = new GraphLib.AutoLayout();
+
+	this.autolayout = function() {
+		layoutEngine.layout(self, function(kgraph) {
+			kgraph.children.forEach(function(knode) {
+				var node_id = parseInt(knode.id.slice(4));
+				self.graph.getNodeById(node_id).pos[0] = knode.x;
+				self.graph.getNodeById(node_id).pos[1] = knode.y;
+			});
+		});
+		self.setGraph(self.graph); //xxx
+	}
 }
