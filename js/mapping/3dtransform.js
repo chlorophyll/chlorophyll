@@ -116,6 +116,7 @@ var TransformMapping = function(manager, group, id, initname) {
 	 */
 	this.showConfig = function(inspector) {
 		if (enabled) return;
+		enabled = true;
 
 		ui_controls.inspector = inspector;
 
@@ -212,11 +213,11 @@ var TransformMapping = function(manager, group, id, initname) {
 		self.widget.control.addEventListener("mouseUp", function() {
 			// worldState.checkpoint();
 		});
-
 	}
 
 	this.hideConfig = function() {
 		if (!enabled) return;
+		enabled = false;
 
 		self.model.showUnderlyingModel();
 		self.widget.hide();
