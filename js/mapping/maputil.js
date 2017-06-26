@@ -16,6 +16,7 @@ var Mapping = function(manager, group, id, initname) {
 
 	this.widget = null;
 	this.configuring = false;
+	this.normalize = false;
 
 	/*
 	 * To be provided by mapping subclasses:
@@ -63,8 +64,26 @@ var Mapping = function(manager, group, id, initname) {
 			return;
 		}
 		var mapFn = self.map_types[type].mapPoint;
+		var norm_factor = 1;
+		// Normalize points to within [-1, 1], if enabled.
+		if (self.normalize) {
+			var max = 0;
+			group.pixels.forEach(function(idx) {
+				for (var coord of mapFn(idx).toArray()) {
+					if (coord > max)
+						max = coord;
+					else if (-coord > max)
+						max = -coord;
+				}
+			});
+			if (max != 0)
+				norm_factor = 1 / max;
+		}
 		return group.pixels.map(function(idx) {
-			return [idx, mapFn(idx)];
+			if (self.normalize)
+				return [idx, mapFn(idx).multiplyScalar(norm_factor)];
+			else
+				return [idx, mapFn(idx)];
 		});
 	}
 

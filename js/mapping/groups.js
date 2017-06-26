@@ -298,6 +298,10 @@ function GroupManager(model) {
 				self.currentMapping.name = v;
 			}
 		});
+		currMappingInspector.addCheckbox('Normalize', mapping.normalize,
+			function(val) {
+				self.currentMapping.normalize = val;
+			});
 		if (mapping.isProjection) {
 			currMappingInspector.addButton(null, 'Configure Mapping', function() {
 				if (!self.currentMapping.configuring)

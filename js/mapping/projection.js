@@ -23,17 +23,13 @@ var ProjectionMapping = function(manager, group, id, initname) {
 
 	this.map_types.cartesian2d = {
 		name: "2D Cartesian",
-		mapPoint: function(idx) {
-			var point = projectPoint(idx);
-			return point.divideScalar(self.proj_plane.norm_factor);
-		}
+		mapPoint: projectPoint
 	};
 
 	this.map_types.polar2d = {
 		name: "2D Polar",
 		mapPoint: function(idx) {
 			var point = projectPoint(idx);
-			point.divideScalar(self.proj_plane.norm_factor);
 			// map from x,y -> r, theta
 			return new THREE.Vector2(point.length(), point.angle());
 		}
@@ -68,14 +64,6 @@ var ProjectionMapping = function(manager, group, id, initname) {
 
 		// generate normalization factor once
 		var pixels = group.pixels.map(i => [i, projectPoint(i)]);
-
-		var extent = new THREE.Vector2(0, 0);
-		group.pixels.forEach(function(i) {
-			var p = projectPoint(i);
-			extent = extent.max(p);
-			extent = extent.max(p.clone().negate());
-		});
-		self.proj_plane.norm_factor = Math.max(extent.x, extent.y);
 
 		self.mapping_valid = true;
 
@@ -193,6 +181,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 			id: self.id,
 			tree_id: self.tree_id,
 			mapping_valid: self.mapping_valid,
+			normalize: self.normalize,
 			widget_x: widgetdata.x,
 			widget_y: widgetdata.y,
 			widget_angle: widgetdata.angle
@@ -214,6 +203,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		self.widget.setPos(snapshot.get('widget_x'), snapshot.get('widget_y'));
 		self.widget.setRot(snapshot.get('widget_angle'));
 		self.mapping_valid = snapshot.get('mapping_valid');
+		self.normalize = snapshot.get('normalize');
 		if (self.mapping_valid) {
 			var norm = snapshot.get('plane_normal');
 			var euler = new THREE.Euler(norm.get(0), norm.get(1), norm.get(2));
