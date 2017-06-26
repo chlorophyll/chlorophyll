@@ -176,7 +176,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 			    " while configuring");
 		}
 		var widgetdata = self.widget.data();
-		snap = {
+		var snap = {
 			name: self.name,
 			id: self.id,
 			tree_id: self.tree_id,
@@ -188,7 +188,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		}
 		if (self.mapping_valid) {
 			var normal = self.proj_plane.euler;
-			snap.plane_normal = [normal.x, normal.y, normal.z];
+			snap.plane_normal = normal.toArray();
         }
 		return Immutable.fromJS(snap);
 	}
@@ -206,7 +206,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		self.normalize = snapshot.get('normalize');
 		if (self.mapping_valid) {
 			var norm = snapshot.get('plane_normal');
-			var euler = new THREE.Euler(norm.get(0), norm.get(1), norm.get(2));
+			var euler = new THREE.Euler().fromArray(norm.toArray());
 			var cam_up = new THREE.Vector3(0, 0, 1);
 			Util.alignWithVector(cam_up.applyEuler(euler), screen.camera);
 			self.setFromCamera();

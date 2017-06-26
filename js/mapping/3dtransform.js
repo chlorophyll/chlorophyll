@@ -23,6 +23,10 @@ var TransformMapping = function(manager, group, id, initname) {
 
 	var ui_controls = {};
 	var enabled = false;
+	// TODO: This feels like something the world state manager should keep
+	// track of (not registering checkpoints unless something has actually
+	// changed) but requires refactoring to do in a generalized way.
+	var changed_since_checkpoint = false;
 
 	function scaleToFitPoints() {
 		if (!self.autoscale || self.position === null)
@@ -44,14 +48,15 @@ var TransformMapping = function(manager, group, id, initname) {
 	}
 
 	function update(update_ui) {
-		scaleToFitPoints();
+		if (enabled)
+			scaleToFitPoints();
 
 		self.widget.setPos(self.position);
 		self.widget.setRot(self.rotation);
 		self.widget.setScale(self.scale);
 		self.widget.setBoundsPreview(self.shape);
 
-		if (update_ui) {
+		if (enabled && update_ui) {
 			ui_controls.pos_widget.setValue(self.position.toArray(), true);
 			// Euler angles return the order as well.
 			ui_controls.rot_widget.setValue(self.rotation.toArray()
@@ -60,6 +65,7 @@ var TransformMapping = function(manager, group, id, initname) {
 		}
 
 		self.dispatchEvent(new CustomEvent('change'));
+		changed_since_checkpoint = true;
 	}
 
 	/*
@@ -104,15 +110,8 @@ var TransformMapping = function(manager, group, id, initname) {
 	};
 
 	/*
-	 * When selected, show the handle and cube outline.
-	 * TODO UI elements:
-	 * When scale locked, switch out box to manually change.
-	 *
-	 * undo ckpt on change, when mouse released.
-	 * timeout registering a checkpoint to avoid spamming for rapid changes,
-	 * like happens with the slider fields - e.g. wait for 1sec idle, maybe.
-	 * Alternatively: check for events on the gui control, maybe there's an
-	 * end-interact event.
+	 * When selected, show the 3d manipulation widget & UI controls.
+	 * TODO When not autoscaling, enable the manual scaling control.
 	 */
 	this.showConfig = function(inspector) {
 		if (enabled) return;
@@ -211,13 +210,17 @@ var TransformMapping = function(manager, group, id, initname) {
 		scaleToFitPoints();
 
 		self.widget.control.addEventListener("mouseUp", function() {
-			// worldState.checkpoint();
+			worldState.checkpoint();
+			changed_since_checkpoint = false;
 		});
 	}
 
 	this.hideConfig = function() {
 		if (!enabled) return;
 		enabled = false;
+
+		if (changed_since_checkpoint)
+			worldState.checkpoint();
 
 		self.model.showUnderlyingModel();
 		self.widget.hide();
@@ -234,10 +237,30 @@ var TransformMapping = function(manager, group, id, initname) {
 	}
 
 	this.snapshot = function() {
-		console.error("No snapshot() for TransformMapping");
+		return Immutable.fromJS({
+			name: self.name,
+			id: self.id,
+			tree_id: self.tree_id,
+			normalize: self.normalize,
+			position: self.position.toArray(),
+			rotation: self.rotation.toArray(),
+			scale: self.scale.toArray(),
+			autoscale: self.autoscale
+		});
+		changed_since_checkpoint = false;
 	}
 
-	this.restore = function() {
-		console.error("No restore() for TransformMapping");
+	this.restore = function(snapshot) {
+		self.id = snapshot.get('id');
+		self.tree_id = snapshot.get('tree_id');
+		self.name = snapshot.get('name');
+		self.normalize = snapshot.get('normalize');
+		self.position.fromArray(snapshot.get('position').toArray());
+		self.rotation.fromArray(snapshot.get('rotation').toArray());
+		self.scale.fromArray(snapshot.get('scale').toArray());
+		self.autoscale = snapshot.get('autoscale');
+		// Only update the UI if it's open
+		update(enabled);
+		changed_since_checkpoint = false;
 	}
 }
