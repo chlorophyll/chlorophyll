@@ -523,8 +523,6 @@ function GroupManager(model) {
 						title: mapping.name,
 						mapping: mapping
 					});
-				} else {
-					console.log("excluded", mapping.name);
 				}
 			});
 		});
