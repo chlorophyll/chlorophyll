@@ -56,6 +56,7 @@ function init() {
 		keyboardJS.bind(Hotkey.undo, function() {
 		worldState.undo();
 	});
+	UI.menu.add('View');
 
 	keyboardJS.bind(Hotkey.redo, function() {
 		worldState.redo();
@@ -163,15 +164,13 @@ function init() {
 	//TODO: unsure exactly where these settings should live
 	var rendering_win = new LiteGUI.Dialog('render_settings',
 		{
-			title:'Rendering Settings',
-			minimize: true,
+			title:'Viewport Settings',
+			close: true,
 			width: 256,
 			scroll: true,
-			resizable:true,
+			resizable: true,
 			draggable: true
 		});
-	rendering_win.show();
-	rendering_win.setPosition(window.innerWidth - 520, 20);
 	var rendering_widgets = new LiteGUI.Inspector();
 	rendering_widgets.addCheckbox("Clip view", false, function(val) {
 		if (val)
@@ -199,8 +198,11 @@ function init() {
 				model.setStripVisibility(val);
 			}
 		});
-	// TODO: figure out file loader
 	rendering_win.add(rendering_widgets);
+	UI.menu.add('View/Viewport Settings', function() {
+		rendering_win.show();
+		rendering_win.setPosition(window.innerWidth - 520, 20);
+	});
 
 
 	mainarea.onresize = screenManager.resize;
