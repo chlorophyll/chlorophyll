@@ -16,7 +16,7 @@ var Mapping = function(manager, group, id, initname) {
 
 	this.widget = null;
 	this.configuring = false;
-	this.normalize = false;
+	this.normalize = true;
 
 	/*
 	 * To be provided by mapping subclasses:
