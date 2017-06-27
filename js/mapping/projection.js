@@ -170,6 +170,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 		}
 		var widgetdata = self.widget.data();
 		var snap = {
+			map_class: 'projection',
 			name: self.name,
 			id: self.id,
 			tree_id: self.tree_id,

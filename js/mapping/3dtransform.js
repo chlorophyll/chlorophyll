@@ -230,6 +230,7 @@ var TransformMapping = function(manager, group, id, initname) {
 
 	this.snapshot = function() {
 		return Immutable.fromJS({
+			map_class: 'transform',
 			name: self.name,
 			id: self.id,
 			tree_id: self.tree_id,

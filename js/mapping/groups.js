@@ -100,11 +100,15 @@ function PixelGroup(manager, id, pixels, initname, color) {
 	}
 
 	this.destroy = function() {
+		self.mappings.forEach(function(mapping, id) {
+			mapping.destroy();
+		});
+		self.mappings = self.mappings.clear();
 		this.model.removeOverlay(this.overlay);
 		manager.tree.removeItem(this.tree_id);
 	}
 
-	this.addMapping = function() {
+	this.createMapping = function(type) {
 		var map_id = newgid();
 
 		var name = self.name + '-map-' + map_id;
@@ -116,7 +120,7 @@ function PixelGroup(manager, id, pixels, initname, color) {
 		if (newmap.isProjection)
 			newmap.setFromCamera();
 
-		this.mappings = this.mappings.set(map_id, newmap);
+		self.mappings = self.mappings.set(map_id, newmap);
 		manager.dispatchEvent(new CustomEvent('maplist_changed'));
 
 		return newmap;
@@ -155,7 +159,15 @@ function PixelGroup(manager, id, pixels, initname, color) {
 				existingMapping.restore(mapsnap);
 				return existingMapping;
 			} else {
-				var newMapping = new ProjectionMapping(manager, self, id);
+				var map_class = mapsnap.get('map_class');
+				var newMapping = null;
+				if (map_class === 'projection')
+					newMapping = new ProjectionMapping(manager, self, id);
+				else if (map_class === 'transform')
+					newMapping = new TransformMapping(manager, self, id);
+				else
+					console.error("Tried to restore invalid mapping");
+
 				newMapping.restore(mapsnap);
 				return newMapping;
 			}
@@ -218,7 +230,7 @@ function GroupManager(model) {
 	});
 
 	var currGroupInspector = new LiteGUI.Inspector(null, {name_width: '3.5em'});
-	var currMappingInspector = new LiteGUI.Inspector();
+	var currMappingInspector = new LiteGUI.Inspector(null, {name_width: '3.5em'});
 	var mappingConfigInspector = new LiteGUI.Inspector();
 	var mappingConfigDialog = new LiteGUI.Dialog('Configure Mapping', {
 		title: "Configure Mapping",
@@ -270,16 +282,14 @@ function GroupManager(model) {
 				self.currentGroup.name = v;
 			}
 		});
-		var deleteButton = currGroupInspector.addButton(null, 'delete', {
+		var delete_group_button = currGroupInspector.addButton(null, 'delete', {
 			width: Const.group_smallbutton_width,
 			callback: function() {
-				var cur = self.currentGroup;
-				self.clearCurrentGroup();
-				cur.destroy();
+				deleteGroup(self.currentGroup);
 			}
 		});
 
-		deleteButton.classList.add('material-icons');
+		delete_group_button.classList.add('material-icons');
 
 		currGroupInspector.widgets_per_row = 1;
 		self.currGroupColor = currGroupInspector.addColor('color', group.color.toArray(), {
@@ -300,15 +310,15 @@ function GroupManager(model) {
 				callback: function(val) { self.next_maptype = val; }
 			});
 
-		var addMappingButton = currGroupInspector.addButton(null, 'add', {
+		var createMappingButton = currGroupInspector.addButton(null, 'add', {
 			width: Const.group_smallbutton_width,
 			callback: function() {
-				var map = self.currentGroup.addMapping()
+				var map = self.currentGroup.createMapping()
 				self.setCurrentMapping(map);
 				worldState.checkpoint();
 			}
 		});
-		addMappingButton.classList.add('material-icons');
+		createMappingButton.classList.add('material-icons');
 		currGroupInspector.widgets_per_row = 1;
 
 		self.dispatchEvent(new CustomEvent('change', {
@@ -331,11 +341,23 @@ function GroupManager(model) {
 
 		currMappingInspector.clear();
 		currMappingInspector.addSection(mapping.display_name + ' Mapping');
-		mapping_namefield = currMappingInspector.addString('Name', mapping.name, {
+		currMappingInspector.widgets_per_row = 2;
+		mapping_namefield = currMappingInspector.addString('name', mapping.name, {
+			width: -Const.group_smallbutton_width,
 			callback: function(v) {
 				self.currentMapping.name = v;
 			}
 		});
+		var delete_mapping_button = currMappingInspector.addButton(null,
+			'delete', {
+				width: Const.group_smallbutton_width,
+				callback: function() {
+					deleteMapping(self.currentMapping);
+				}
+			});
+		delete_mapping_button.classList.add('material-icons');
+		currMappingInspector.widgets_per_row = 1;
+
 		currMappingInspector.addButton(null, 'Configure Mapping', function() {
 			if (!self.currentMapping.configuring) {
 				self.currentMapping.showConfig(mappingConfigInspector);
@@ -458,6 +480,22 @@ function GroupManager(model) {
 		return newgroup;
 	}
 
+	function deleteGroup(group) {
+		if (group === self.currentGroup)
+			self.clearCurrentGroup();
+		self.groups = self.groups.delete(group.id);
+		group.destroy();
+		worldState.checkpoint();
+	}
+
+	function deleteMapping(map) {
+		if (map === self.currentMapping)
+			self.clearCurrentMapping();
+		map.group.mappings = map.group.mappings.delete(map.id);
+		map.destroy();
+		worldState.checkpoint();
+	}
+
 	this.createFromActiveSelection = function() {
 		// Don't create an empty group
 		if (worldState.activeSelection.size() == 0)
@@ -480,11 +518,14 @@ function GroupManager(model) {
 		var maps = [];
 		self.groups.forEach(function(group, id) {
 			group.mappings.forEach(function(mapping, id) {
-				if (!type || type in mapping.map_types)
+				if (!type || type in mapping.map_types) {
 					maps.push({
 						title: mapping.name,
 						mapping: mapping
 					});
+				} else {
+					console.log("excluded", mapping.name);
+				}
 			});
 		});
 		return maps;
