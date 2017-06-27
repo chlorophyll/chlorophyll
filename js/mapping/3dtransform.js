@@ -11,6 +11,7 @@ var TransformMapping = function(manager, group, id, initname) {
 	Mapping.call(this, manager, group, id, initname)
 	var self = this;
 
+	this.display_name = "3D Transform";
 	this.isTransform = true;
 	this.shape = "cube";
 	this.position = new THREE.Vector3(0, 0, 0);
@@ -20,13 +21,9 @@ var TransformMapping = function(manager, group, id, initname) {
 
 	this.widget = new ViewportHandle(screenManager.activeScreen);
 	this.widget.setBoundsPreview(this.shape);
+	this.widget.hide();
 
 	var ui_controls = {};
-	var enabled = false;
-	// TODO: This feels like something the world state manager should keep
-	// track of (not registering checkpoints unless something has actually
-	// changed) but requires refactoring to do in a generalized way.
-	var changed_since_checkpoint = false;
 
 	function scaleToFitPoints() {
 		if (!self.autoscale || self.position === null)
@@ -48,7 +45,7 @@ var TransformMapping = function(manager, group, id, initname) {
 	}
 
 	function update(update_ui) {
-		if (enabled)
+		if (self.configuring)
 			scaleToFitPoints();
 
 		self.widget.setPos(self.position);
@@ -56,7 +53,7 @@ var TransformMapping = function(manager, group, id, initname) {
 		self.widget.setScale(self.scale);
 		self.widget.setBoundsPreview(self.shape);
 
-		if (enabled && update_ui) {
+		if (self.configuring && update_ui) {
 			ui_controls.pos_widget.setValue(self.position.toArray(), true);
 			// Euler angles return the order as well.
 			ui_controls.rot_widget.setValue(self.rotation.toArray()
@@ -65,7 +62,6 @@ var TransformMapping = function(manager, group, id, initname) {
 		}
 
 		self.dispatchEvent(new CustomEvent('change'));
-		changed_since_checkpoint = true;
 	}
 
 	/*
@@ -114,8 +110,8 @@ var TransformMapping = function(manager, group, id, initname) {
 	 * TODO When not autoscaling, enable the manual scaling control.
 	 */
 	this.showConfig = function(inspector) {
-		if (enabled) return;
-		enabled = true;
+		if (self.configuring) return;
+		self.configuring = true;
 
 		ui_controls.inspector = inspector;
 
@@ -211,16 +207,12 @@ var TransformMapping = function(manager, group, id, initname) {
 
 		self.widget.control.addEventListener("mouseUp", function() {
 			worldState.checkpoint();
-			changed_since_checkpoint = false;
 		});
 	}
 
 	this.hideConfig = function() {
-		if (!enabled) return;
-		enabled = false;
-
-		if (changed_since_checkpoint)
-			worldState.checkpoint();
+		if (!self.configuring) return;
+		self.configuring = false;
 
 		self.model.showUnderlyingModel();
 		self.widget.hide();
@@ -247,7 +239,6 @@ var TransformMapping = function(manager, group, id, initname) {
 			scale: self.scale.toArray(),
 			autoscale: self.autoscale
 		});
-		changed_since_checkpoint = false;
 	}
 
 	this.restore = function(snapshot) {
@@ -260,7 +251,6 @@ var TransformMapping = function(manager, group, id, initname) {
 		self.scale.fromArray(snapshot.get('scale').toArray());
 		self.autoscale = snapshot.get('autoscale');
 		// Only update the UI if it's open
-		update(enabled);
-		changed_since_checkpoint = false;
+		update(self.configuring);
 	}
 }

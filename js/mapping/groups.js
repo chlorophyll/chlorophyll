@@ -220,6 +220,42 @@ function GroupManager(model) {
 	var currGroupInspector = new LiteGUI.Inspector(null, {name_width: '3.5em'});
 	var currMappingInspector = new LiteGUI.Inspector();
 	var mappingConfigInspector = new LiteGUI.Inspector();
+	var mappingConfigDialog = new LiteGUI.Dialog('Configure Mapping', {
+		title: "Configure Mapping",
+		close: false,
+		minimize: false,
+		width: Const.sidebar_size,
+		height: 300,
+		scroll: true,
+		resizeable: false,
+		draggable: true
+	});
+	mappingConfigDialog.add(mappingConfigInspector);
+	mappingConfigDialog.addButton('Save', function() {
+		if (self.currentMapping) {
+			self.currentMapping.hideConfig();
+			mappingConfigDialog.hide();
+			worldState.checkpoint();
+		}
+	});
+	mappingConfigDialog.addButton('Cancel', function() {
+		if (self.currentMapping) {
+			self.currentMapping.hideConfig();
+			mappingConfigDialog.hide();
+			// TODO: Reset mapping state to what it was when the config modal
+			// was opened.
+		}
+	});
+	function showMappingConfig() {
+		mappingConfigDialog.show();
+		mappingConfigDialog.adjustSize();
+		var dialog = mappingConfigDialog.root;
+		var viewport = UI.viewport.root;
+		mappingConfigDialog.setPosition(
+			viewport.offsetLeft + viewport.offsetWidth - dialog.offsetWidth,
+			viewport.offsetTop + viewport.offsetHeight - dialog.offsetHeight);
+	}
+
 
 	this.setCurrentGroup = function(group) {
 		self.currentGroup = group;
@@ -286,31 +322,30 @@ function GroupManager(model) {
 		self.setCurrentGroup(mapping.group);
 		self.tree.setSelectedItem(mapping.tree_id);
 
-		if (self.currentMapping && self.currentMapping.isTransform)
+		if (self.currentMapping && self.currentMapping.configuring) {
 			self.currentMapping.hideConfig();
+			mappingConfigDialog.hide();
+		}
 
 		self.currentMapping = mapping;
 
 		currMappingInspector.clear();
-		currMappingInspector.addSection('Current Mapping');
+		currMappingInspector.addSection(mapping.display_name + ' Mapping');
 		mapping_namefield = currMappingInspector.addString('Name', mapping.name, {
 			callback: function(v) {
 				self.currentMapping.name = v;
 			}
 		});
-		currMappingInspector.addCheckbox('Normalize', mapping.normalize,
-			function(val) {
-				self.currentMapping.normalize = val;
-			});
-		if (mapping.isProjection) {
-			currMappingInspector.addButton(null, 'Configure Mapping', function() {
-				if (!self.currentMapping.configuring)
-					self.currentMapping.showConfig(mappingConfigInspector);
-			});
-		}
-		if (mapping.isTransform) {
-			self.currentMapping.showConfig(currMappingInspector);
-		}
+		currMappingInspector.addButton(null, 'Configure Mapping', function() {
+			if (!self.currentMapping.configuring) {
+				self.currentMapping.showConfig(mappingConfigInspector);
+				mappingConfigInspector.addCheckbox('Normalize',
+					mapping.normalize, function(val) {
+						self.currentMapping.normalize = val;
+					});
+			}
+			showMappingConfig();
+		});
 
 		self.dispatchEvent(new CustomEvent('change', {
 			detail: {
@@ -323,8 +358,10 @@ function GroupManager(model) {
 		if (!self.currentMapping)
 			return;
 
-		if (self.currentMapping.isTransform)
+		if (self.currentMapping.configuring) {
 			self.currentMapping.hideConfig();
+			mappingConfigDialog.hide();
+		}
 
 		self.tree.setSelectedItem(self.currentGroup.tree_id, false, false);
 		self.currentMapping = null;
@@ -401,7 +438,6 @@ function GroupManager(model) {
 	panel.add(groupCmds);
 	panel.add(currGroupInspector);
 	panel.add(currMappingInspector);
-	panel.add(mappingConfigInspector);
 
 	UI.sidebar_top.split('vertical', ['30%', null], true);
 	UI.sidebar_top.getSection(0).add(treePanel);

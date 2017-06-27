@@ -24,6 +24,7 @@ var Mapping = function(manager, group, id, initname) {
 	this.mapPoint = null;
 	this.showConfig = null;
 	this.hideConfig = null;
+	this.display_name = "Unknown Type";
 	// map_types describes each type of transformation the mapping supports,
 	// in the form: { uniqueidentifier: { name: ..., mapPoint: ...}, ... }
 	this.map_types = {};

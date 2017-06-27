@@ -75,8 +75,8 @@ Screen = function(camera, renderer, scene) {
 }
 
 ScreenManager = function(renderer, scene) {
-	screens = {};
-	_activeScreen = undefined;
+	var screens = {};
+	var _activeScreen = undefined;
 
 	this.addScreen = function(name, options) {
 		var active = options.active || false;
@@ -150,10 +150,12 @@ ScreenManager = function(renderer, scene) {
 		_activeScreen.render();
 	}
 
-	keyboardJS.bind(Hotkey.reset_camera, function() {
-		if (_activeScreen !== undefined) {
-			Util.alignWithVector(new THREE.Vector3(0, 0, 1),
-			                     _activeScreen.camera);
-		}
+	keyboardJS.withContext('global', function() {
+		keyboardJS.bind(Hotkey.reset_camera, function() {
+			if (_activeScreen !== undefined) {
+				Util.alignWithVector(new THREE.Vector3(0, 0, 1),
+									 _activeScreen.camera);
+			}
+		});
 	});
 }

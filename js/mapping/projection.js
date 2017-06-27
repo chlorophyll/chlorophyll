@@ -2,6 +2,7 @@ var ProjectionMapping = function(manager, group, id, initname) {
 	Mapping.call(this, manager, group, id, initname);
 	var self = this;
 
+	this.display_name = "2D Projection";
 	this.isProjection = true;
 
 	this.mapping_valid = false;
@@ -126,8 +127,6 @@ var ProjectionMapping = function(manager, group, id, initname) {
 			plane_angle = self.proj_plane.euler;
 		}
 
-		inspector.addSection('Mapping Configuration');
-
 		// display as degrees for human readability
 		ui_controls.cam_angle_widget = inspector.addVector3("plane normal",
 			[plane_angle.x * THREE.Math.RAD2DEG,
@@ -156,12 +155,6 @@ var ProjectionMapping = function(manager, group, id, initname) {
 			});
 
 		self.widget.addEventListener('change', onWidgetChange);
-
-		inspector.addButton(null, 'Save and close', function() {
-			self.hideConfig();
-			// Only snapshot state on save+close to avoid gross state fiddling
-			worldState.checkpoint();
-		});
 	}
 
 	this.destroy = function() {

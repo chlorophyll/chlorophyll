@@ -102,6 +102,7 @@ function init() {
 
 	mainarea.getSection(0).add(toolbar_panel);
 	mainarea = mainarea.getSection(1);
+	UI.viewport = mainarea;
 
 	container = mainarea.content;
 	container.style.position = 'relative';
