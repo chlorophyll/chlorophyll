@@ -1,16 +1,18 @@
 var patternStages = ['precompute', 'pixel'];
 var defaultStage = 'pixel';
 
+
+
 function showNodeInspector(node) {
 	var dialog = new LiteGUI.Dialog('Node Settings', {
 		title: node.title + ' Settings',
-		close: true,
 		minimize: false,
 		width: 256,
 		height: 300,
 		scroll: true,
 		resizeable: false,
-		draggable: true
+		draggable: true,
+		closable: false,
 	});
 
 	var visualization_root = undefined;
@@ -54,7 +56,7 @@ function showNodeInspector(node) {
 			name_width: '0',
 			disabled: disabled,
 			callback: function() {
-				widget.setValue(0);
+				widget.setValue(undefined);
 				cur_values[input.name] = undefined;
 			}
 		});
@@ -77,13 +79,17 @@ function showNodeInspector(node) {
 			return;
 
 		if (input.type.isConvertibleUnit) {
-			add(input, inspector.addNumber(input.name, (val || 0).valueOf(), {
+			var display = val !== undefined ? val.valueOf() : undefined;
+			var precision = input.type.isIntegral ? 0 : 2;
+			add(input, inspector.addNumber(input.name, display, {
+				precision: precision,
 				callback: function(v) {
-					cur_values[input.name] = new input.type(v);
+					cur_values[input.name] = v !== undefined ? new input.type(v) : undefined;
 				}
 			}));
 		} else if (input.type == 'number') {
-			add(input, inspector.addNumber(input.name, val, {
+			var display = val !== undefined ? val.valueOf() : undefined;
+			add(input, inspector.addNumber(input.name, display, {
 				callback: function(v) {
 					cur_values[input.name] = v;
 				}
@@ -145,8 +151,30 @@ function showNodeInspector(node) {
 		node.graph.removeEventListener('graph-changed', updateVisualization);
 	}
 
+	function autoclose(ev) {
+		var removed = ev.detail.node;
+		if (removed == node)
+			dialog.close();
+	}
+	node.graph.addEventListener('node-removed', autoclose);
+
+	dialog.on_close = function() {
+		keyboardJS.setContext('global');
+		node.graph.removeEventListener('node-removed', autoclose);
+	}
+
 	dialog.addButton('Ok', { close: true, callback: applyProperties});
 	dialog.addButton('Cancel', { close: true, callback: resetProperties});
+
+	keyboardJS.setContext('node-inspector');
+	keyboardJS.bind('esc', function() {
+		resetProperties();
+		dialog.close();
+	});
+	keyboardJS.bind('enter', function() {
+		applyProperties();
+		dialog.close();
+	});
 
 	dialog.show();
 }

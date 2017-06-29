@@ -427,3 +427,81 @@ LiteGUI.MiniColor = function(value, options) {
 	}
 	self.setValue(value);
 }
+
+LiteGUI.Inspector.prototype.addNumber = function(name, value, options) {
+	options = this.processOptions(options);
+
+	var self = this;
+
+	var element = this.createWidget(name, '', options);
+	this.append(element,options);
+
+	options.extraclass = 'full';
+	options.tab_index = this.tab_index;
+	options.full = true;
+	options.precision = options.precision !== undefined ? options.precision : 2;
+	options.step = options.step === undefined ? (options.precision == 0 ? 1 : 0.1) : options.step;
+
+	this.tab_index++;
+
+	var dragger = new LiteGUI.Dragger(value, options);
+	dragger.root.style.width = "calc( 100% - 1px )";
+	element.querySelector(".wcontent").appendChild( dragger.root );
+
+	dragger.root.addEventListener('start_dragging', function(ev) {
+		if (element.getValue() === undefined)
+			element.setValue(0);
+	});
+
+	element.setValue = function(v, skip_event) {
+		var changed = self.values[name] !== v;
+		self.values[name] = v;
+
+		dragger.value = v || 0;
+
+		var display = v;
+		if (display === undefined) {
+			display = '';
+		} else {
+			if (options.precision)
+				display = display.toFixed(options.precision);
+		}
+
+		input.value = display;
+
+		if (!changed)
+			return;
+
+		if (!skip_event)
+			LiteGUI.trigger(input, 'change');
+	}
+
+	element.getValue = function() {
+		return self.values[name];
+	}
+
+	var input = element.querySelector('input');
+
+	input.addEventListener('change', function(ev) {
+		var v;
+		if (ev.target.value == '') {
+			v = undefined;
+		} else {
+			v = parseFloat(ev.target.value);
+		}
+		self.values[name] = v;
+
+		if (options.callback)
+			options.callback.call(element, v);
+
+		if (self.onchange)
+			self.onchange(name,v,element);
+	});
+
+	element.focus = function() { LiteGUI.focus(input) };
+
+	element.setValue(value);
+
+	this.processElement(element, options);
+	return element;
+}

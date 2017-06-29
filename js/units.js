@@ -99,9 +99,6 @@ Units.Percentage.prototype.conversions = {
 	UInt8: function() {
 		return this.val * 0xff;
 	},
-	UInt16: function() {
-		return this.val * 0xffff;
-	},
 	Angle: function() {
 		return this.val * Math.PI * 2;
 	}
@@ -110,6 +107,8 @@ Units.Percentage.prototype.conversions = {
 Units.UInt8 = function(val) {
 	this.val = val & 0xff;
 }
+
+Units.UInt8.isIntegral = true;
 
 Units.Distance = function(val) {
 	this.val = val;
