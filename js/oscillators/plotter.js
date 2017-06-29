@@ -27,7 +27,7 @@ function OscillatorPlotter(container, options) {
 		});
 
 		x.domain([0, sample]);
-		y.domain([0, 100]);
+		y.domain([0, 1]);
 
 		g.append("g")
 			.attr("transform", "translate(0," + height + ")")

@@ -3,11 +3,11 @@ function Oscillator() {
 	this.addOutput('result', Units.Percentage);
 	this.addInput('frequency', 'frequency');
 	this.addInput('amplitude', 'range');
-	this.addInput('phase', Units.Numeric);
+	this.addInput('phase', Units.Percentage);
 
 	this.properties.frequency = new Frequency();
 	this.properties.frequency.hz = 1;
-	this.properties.amplitude = new Util.Range(0, 100, 0, 100);
+	this.properties.amplitude = new Util.Range(0, 1, 0, 1);
 	this.properties.phase = 0;
 
 	var width = 250;
@@ -33,7 +33,13 @@ function Oscillator() {
 Oscillator.prototype.onExecute = function() {
 	var t = this.graph.getGlobalInputData('t') / 60;
 	var out = this.value(t);
-	this.setOutputData(0, new Units.Percentage(out / 100));
+	this.setOutputData(0, new Units.Percentage(out));
+}
+
+Oscillator.prototype.phasedTime = function(t) {
+	var frequency = this.getInputData(0);
+	var cycles = this.getInputData(2);
+	return t + Units.Operations.mul(cycles, frequency.sec);
 }
 
 function TriangleWaveOscillator() {
@@ -47,7 +53,7 @@ TriangleWaveOscillator.prototype.value = function(t) {
 	var frequency = this.getInputData(0);
 	var amplitude = this.getInputData(1);
 	var phase = this.getInputData(2);
-	t = t + phase;
+	t = this.phasedTime(t);
 	var lower = amplitude.lower;
 	var upper = amplitude.upper;
 
@@ -73,8 +79,7 @@ SquareWaveOscillator.prototype = Object.create(Oscillator.prototype);
 SquareWaveOscillator.prototype.value = function(t) {
 	var frequency = this.getInputData(0);
 	var amplitude = this.getInputData(1);
-	var phase = this.getInputData(2);
-	t = t + phase;
+	t = this.phasedTime(t);
 	var lower = amplitude.lower;
 	var upper = amplitude.upper;
 
@@ -103,8 +108,7 @@ SawWaveOscillator.prototype = Object.create(Oscillator.prototype);
 SawWaveOscillator.prototype.value = function(t) {
 	var frequency = this.getInputData(0);
 	var amplitude = this.getInputData(1);
-	var phase = this.getInputData(2);
-	t = t + phase;
+	t = this.phasedTime(t);
 	var lower = amplitude.lower;
 	var upper = amplitude.upper;
 
@@ -127,9 +131,7 @@ SineWaveOscillator.prototype = Object.create(Oscillator.prototype);
 SineWaveOscillator.prototype.value = function(t) {
 	var frequency = this.getInputData(0);
 	var amplitude = this.getInputData(1);
-	var phase = this.getInputData(2);
-
-	t = t + phase;
+	t = this.phasedTime(t);
 	var lower = amplitude.lower;
 	var upper = amplitude.upper;
 
@@ -150,9 +152,7 @@ CosWaveOscillator.prototype = Object.create(Oscillator.prototype);
 CosWaveOscillator.prototype.value = function(t) {
 	var frequency = this.getInputData(0);
 	var amplitude = this.getInputData(1);
-	var phase = this.getInputData(2);
-
-	t = t + phase;
+	t = this.phasedTime(t);
 	var lower = amplitude.lower;
 	var upper = amplitude.upper;
 

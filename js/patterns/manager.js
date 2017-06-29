@@ -42,6 +42,8 @@ function showNodeInspector(node) {
 		onchange: updateVisualization,
 	});
 
+	dialog.add(inspector);
+
 	var inputs = node.inputs || [];
 
 	var old_values = {};
@@ -135,7 +137,6 @@ function showNodeInspector(node) {
 		return;
 	}
 
-	dialog.add(inspector);
 	updateVisualization();
 
 	function resetProperties() {
