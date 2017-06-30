@@ -82,9 +82,41 @@ keyboardJS.Keyboard.prototype._clearBindings = function(event) {
 				this._callerHandler = listener.releaseHandler;
 				listener.releaseHandler.call(this, event);
 				this._callerHandler = null;
+				this._appliedListeners.splice(i, 1);
 			}
-			this._appliedListeners.splice(i, 1);
 			i -= 1;
 		}
 	}
 };
+
+(function() {
+	function stopCallback(element) {
+		// Don't trigger keyboard events inside a text field
+		return element.tagName == 'INPUT'
+			|| element.tagName == 'TEXTAREA'
+			|| element.isContentEditable;
+	};
+
+	function wrapHandler(handler) {
+		if (handler) {
+			return function(event) {
+				if (!stopCallback(event.target))
+					handler(event);
+			}
+		} else {
+			return null;
+		}
+	}
+
+	var oldBind = keyboardJS.Keyboard.prototype.bind;
+	keyboardJS.Keyboard.prototype.bind = function(keyComboStr, pressHandler,
+			releaseHandler, preventRepeatByDefault) {
+		// Wrap press/release functions to prevent them from executing if a
+		// text input is selected.
+		oldBind.call(this, keyComboStr,
+				wrapHandler(pressHandler),
+				wrapHandler(releaseHandler),
+				preventRepeatByDefault);
+	}
+
+})();
