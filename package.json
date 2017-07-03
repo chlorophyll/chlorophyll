@@ -1,15 +1,13 @@
 {
   "name": "chlorophyll",
+  "productName": "chlorophyll",
   "version": "0.0.0",
+  "author": "Ryan Pearl",
+  "contributors": [
+    "Ryan Pearl <rpearl@endofunctor.org>",
+    "Chris Williamson <c.williamso@gmail.com>"
+  ],
   "description": "Tools for photon synthesis",
-  "main": "main.js",
-  "scripts": {
-    "install": "napa"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/rpearl/chlorophyll.git"
-  },
   "keywords": [
     "leds",
     "art",
@@ -18,15 +16,32 @@
     "vj",
     "modular_synthesis"
   ],
-  "author": "Ryan Pearl",
-  "contributors": [
-    "Ryan Pearl <rpearl@endofunctor.org>",
-    "Chris Williamson <c.williamso@gmail.com>"
-  ],
   "license": "MIT",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rpearl/chlorophyll.git"
+  },
   "bugs": {
     "url": "https://github.com/rpearl/chlorophyll/issues"
+  },
+  "main": "./dist/electron/main.js",
+  "scripts": {
+    "build": "node build/build.js",
+    "build:darwin": "cross-env BUILD_TARGET=darwin node build/build.js",
+    "build:linux": "cross-env BUILD_TARGET=linux node build/build.js",
+    "build:mas": "cross-env BUILD_TARGET=mas node build/build.js",
+    "build:win32": "cross-env BUILD_TARGET=win32 node build/build.js",
+    "build:clean": "cross-env BUILD_TARGET=clean node build/build.js",
+    "build:web": "cross-env BUILD_TARGET=web node build/build.js",
+    "dev": "node build/dev-runner.js",
+    "lint": "eslint --ext .js,.vue -f ./node_modules/eslint-friendly-formatter src",
+    "lint:fix": "eslint --ext .js,.vue -f ./node_modules/eslint-friendly-formatter --fix src",
+    "pack": "npm run pack:main && npm run pack:renderer",
+    "pack:main": "cross-env NODE_ENV=production webpack --progress --colors --config build/webpack.main.config.js",
+    "pack:renderer": "cross-env NODE_ENV=production webpack --progress --colors --config build/webpack.renderer.config.js",
+    "postinstall": "",
+    "install": "napa"
   },
   "dependencies": {
     "d3": "^4.9.1",
@@ -34,12 +49,55 @@
     "jscolor-picker": "^2.0.4",
     "keyboardjs": "^2.3.3",
     "klayjs": "^0.4.1",
-    "three": "^0.85.2"
+    "three": "^0.85.2",
+    "vue": "^2.3.3",
+    "vue-electron": "^1.0.6"
   },
   "napa": {
     "litegui": "jagenjo/litegui.js"
   },
   "devDependencies": {
-    "napa": "^3.0.0"
+    "babel-core": "^6.22.1",
+    "babel-eslint": "^7.2.3",
+    "babel-loader": "^7.0.0",
+    "babel-plugin-transform-runtime": "^6.22.0",
+    "babel-preset-env": "^1.3.3",
+    "babel-preset-stage-0": "^6.5.0",
+    "babel-register": "^6.2.0",
+    "babili-webpack-plugin": "^0.1.1",
+    "cfonts": "^1.1.3",
+    "chalk": "^1.1.3",
+    "copy-webpack-plugin": "^4.0.1",
+    "cross-env": "^5.0.0",
+    "css-loader": "^0.28.4",
+    "del": "^2.2.1",
+    "devtron": "^1.1.0",
+    "electron": "^1.7.2",
+    "electron-debug": "^1.1.0",
+    "electron-devtools-installer": "^2.0.1",
+    "electron-packager": "^8.5.0",
+    "electron-rebuild": "^1.1.3",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint-friendly-formatter": "^3.0.0",
+    "eslint-import-resolver-webpack": "^0.8.1",
+    "eslint-loader": "^1.3.0",
+    "eslint-plugin-html": "^3.0.0",
+    "eslint-plugin-import": "^2.6.1",
+    "extract-text-webpack-plugin": "^2.0.0-beta.4",
+    "file-loader": "^0.11.1",
+    "html-webpack-plugin": "^2.16.1",
+    "json-loader": "^0.5.4",
+    "multispinner": "^0.2.1",
+    "napa": "^3.0.0",
+    "style-loader": "^0.18.1",
+    "url-loader": "^0.5.7",
+    "vue-html-loader": "^1.2.2",
+    "vue-loader": "^12.2.1",
+    "vue-style-loader": "^3.0.1",
+    "vue-template-compiler": "^2.3.3",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.3.0",
+    "webpack-hot-middleware": "^2.18.0"
   }
 }

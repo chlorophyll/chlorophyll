@@ -219,3 +219,4 @@ function animate() {
 
 	screenManager.render();
 }
+
