@@ -1,3 +1,5 @@
+import keyboardJS from 'keyboardjs';
+
 /*
  * Toolbar manager
  *
@@ -8,7 +10,8 @@
  * Tool objects should not respond to any input after disable() has been called,
  * and should avoid carrying state from one invocation to the next.
  */
-function Toolbar(managername, toolbar, menu) {
+export default function Toolbar(managername, toolbar, menu) {
+
 	var self = this;
 	var tools = {};
 	var activeTool = null;

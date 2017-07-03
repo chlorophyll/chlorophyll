@@ -1,3 +1,5 @@
+import keyboardJS from 'keyboardjs';
+
 function isClipped(v) {
 	if (frontPlane.distanceToPoint(v) < 0)
 		return true;
@@ -13,7 +15,7 @@ function isClipped(v) {
  *
  * name argument is any arbitrary unique string to refer to the tool.
  */
-SelectionTool = function(viewport, model, name) {
+function SelectionTool(viewport, model, name) {
 	var self = this;
 
 	this.viewport = viewport !== undefined ? viewport : document;
@@ -135,7 +137,7 @@ SelectionTool = function(viewport, model, name) {
 
 }
 
-MarqueeSelection = function(viewport, model) {
+export function MarqueeSelection(viewport, model) {
 	SelectionTool.call(this, viewport, model, "marquee");
 	var self = this;
 
@@ -239,7 +241,7 @@ MarqueeSelection = function(viewport, model) {
 	}
 }
 
-LineSelection = function(viewport, model) {
+export function LineSelection(viewport, model) {
 	SelectionTool.call(this, viewport, model, "line");
 	var self = this;
 
@@ -285,7 +287,7 @@ LineSelection = function(viewport, model) {
 	}
 }
 
-PlaneSelection = function(viewport, model) {
+export function PlaneSelection(viewport, model) {
 	SelectionTool.call(this, viewport, model, "plane");
 	var self = this;
 
