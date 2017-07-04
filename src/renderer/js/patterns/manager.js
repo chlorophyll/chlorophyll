@@ -6,12 +6,12 @@ import Graph from 'chl/graphlib/graph';
 import { MappingInputs } from './util';
 
 
-var patternStages = ['precompute', 'pixel'];
-var defaultStage = 'pixel';
+let patternStages = ['precompute', 'pixel'];
+let defaultStage = 'pixel';
 
 
 function showNodeInspector(node) {
-    var dialog = new LiteGUI.Dialog('Node Settings', {
+    let dialog = new LiteGUI.Dialog('Node Settings', {
         title: node.title + ' Settings',
         minimize: false,
         width: 256,
@@ -22,7 +22,7 @@ function showNodeInspector(node) {
         closable: false,
     });
 
-    var visualization_root = undefined;
+    let visualization_root = undefined;
 
 
     function updateVisualization() {
@@ -44,24 +44,24 @@ function showNodeInspector(node) {
     }
     node.graph.addEventListener('graph-changed', updateVisualization);
 
-    var inspector = new LiteGUI.Inspector('node-settings-inspector', {
+    let inspector = new LiteGUI.Inspector('node-settings-inspector', {
         widgets_per_row: 2,
         onchange: updateVisualization,
     });
 
     dialog.add(inspector);
 
-    var inputs = node.inputs || [];
+    let inputs = node.inputs || [];
 
-    var old_values = {};
-    var cur_values = node.properties;
+    let old_values = {};
+    let cur_values = node.properties;
 
-    var show = false;
+    let show = false;
 
     function add(input, widget) {
         show = true;
-        var disabled = (node.required_properties || []).indexOf(input.name) != -1;
-        var button = inspector.addButton(null, 'clear', {
+        let disabled = (node.required_properties || []).indexOf(input.name) != -1;
+        let button = inspector.addButton(null, 'clear', {
             name_width: '0',
             disabled: disabled,
             callback: function() {
@@ -69,7 +69,7 @@ function showNodeInspector(node) {
                 cur_values[input.name] = undefined;
             }
         });
-        var name = widget.querySelector(".wname");
+        let name = widget.querySelector('.wname');
         name.style.width = '6em';
         widget.style.width = 'calc(99% - 4em)';
         button.classList.add('material-icons');
@@ -78,7 +78,7 @@ function showNodeInspector(node) {
     }
 
     inputs.forEach(function(input, i) {
-        var val = node.properties[input.name];
+        let val = node.properties[input.name];
 
         if (val !== undefined) {
             old_values[input.name] = Util.clone(val);
@@ -88,8 +88,8 @@ function showNodeInspector(node) {
             return;
 
         if (input.type.isConvertibleUnit) {
-            var display = val !== undefined ? val.valueOf() : undefined;
-            var precision = input.type.isIntegral ? 0 : 2;
+            let display = val !== undefined ? val.valueOf() : undefined;
+            let precision = input.type.isIntegral ? 0 : 2;
             add(input, inspector.addNumber(input.name, display, {
                 precision: precision,
                 callback: function(v) {
@@ -97,21 +97,21 @@ function showNodeInspector(node) {
                 }
             }));
         } else if (input.type == 'number') {
-            var display = val !== undefined ? val.valueOf() : undefined;
+            let display = val !== undefined ? val.valueOf() : undefined;
             add(input, inspector.addNumber(input.name, display, {
                 callback: function(v) {
                     cur_values[input.name] = v;
                 }
             }));
         } else if (input.type == 'frequency') {
-            var f = cur_values[input.name];
+            let f = cur_values[input.name];
             add(input, inspector.addQuantity(input.name, f.quantity(), {
                 step: 0.5,
                 precision: 1,
                 min: 0,
                 units: val.units,
                 callback: function(v, oldUnits) {
-                    var number, units;
+                    let number, units;
                     if (oldUnits !== undefined) {
                         number = f[v.units];
                         units = v.units;
@@ -125,7 +125,7 @@ function showNodeInspector(node) {
                 }
             }));
         } else if (input.type == 'range') {
-            var range = cur_values[input.name];
+            let range = cur_values[input.name];
             add(input, inspector.addDualSlider(input.name,
                 {left: range.lower, right: range.upper},
                 {
@@ -147,7 +147,7 @@ function showNodeInspector(node) {
     updateVisualization();
 
     function resetProperties() {
-        for (var k in old_values) {
+        for (let k in old_values) {
             node.properties[k] = old_values[k];
         }
         node.modified();
@@ -160,7 +160,7 @@ function showNodeInspector(node) {
     }
 
     function autoclose(ev) {
-        var removed = ev.detail.node;
+        let removed = ev.detail.node;
         if (removed == node)
             dialog.close();
     }
@@ -169,7 +169,7 @@ function showNodeInspector(node) {
     dialog.on_close = function() {
         keyboardJS.setContext('global');
         node.graph.removeEventListener('node-removed', autoclose);
-    }
+    };
 
     dialog.addButton('Ok', { close: true, callback: applyProperties});
     dialog.addButton('Cancel', { close: true, callback: resetProperties});
@@ -188,27 +188,29 @@ function showNodeInspector(node) {
 }
 
 export function PatternGraph(id, name, manager) {
-    var self = this;
+    let self = this;
     self.name = name;
     self.id = id;
     self.tree_id = 'pattern-'+id;
 
 
     self.model = null;
-    var request_id;
+    let request_id;
 
     self.curStage = defaultStage;
 
     Object.defineProperty(this, 'curStageGraph', {
-        get: function() { return this.stages[this.curStage] }
+        get: function() {
+ return this.stages[this.curStage];
+}
     });
 
-    var running = false;
+    let running = false;
 
     this.stages = {};
     this.time = 0;
 
-    for (var stage of patternStages) {
+    for (let stage of patternStages) {
         let graph = new Graph();
         this.stages[stage] = graph;
         graph.addEventListener('node-opened', function(ev) {
@@ -216,8 +218,8 @@ export function PatternGraph(id, name, manager) {
         });
     }
 
-    var _mapping_type = Const.default_map_type;
-    var map_input;
+    let _mapping_type = Const.default_map_type;
+    let map_input;
 
     function createMapInput() {
         if (map_input)
@@ -226,7 +228,9 @@ export function PatternGraph(id, name, manager) {
     }
 
     Object.defineProperty(this, 'mapping_type', {
-        get: function() { return _mapping_type; },
+        get: function() {
+            return _mapping_type;
+        },
         set: function(v) {
             if (v == _mapping_type)
                 return;
@@ -236,20 +240,20 @@ export function PatternGraph(id, name, manager) {
         }
     });
 
-    var elem = manager.pattern_browser.insertItem({
+    let elem = manager.pattern_browser.insertItem({
         id: self.tree_id,
         content: name,
         dataset: {pattern: self}},
         'root'
     );
-    var mapTypeDisplay = document.createElement('span');
+    let mapTypeDisplay = document.createElement('span');
     mapTypeDisplay.classList.add('map-type');
     mapTypeDisplay.innerText = MappingInputs[_mapping_type].name;
 
     elem.querySelector('.postcontent').appendChild(mapTypeDisplay);
 
     function forEachStage(f) {
-        for (var stage in self.stages) {
+        for (let stage in self.stages) {
             f(stage, self.stages[stage]);
         }
     }
@@ -265,8 +269,8 @@ export function PatternGraph(id, name, manager) {
 
     createMapInput();
 
-    var outp = self.stages.pixel.addNode('lowlevel/output/color', {title: 'output'});
-    outp.pos = [300,100];
+    let outp = self.stages.pixel.addNode('lowlevel/output/color', {title: 'output'});
+    outp.pos = [300, 100];
 
     forEachStage(function(stage, graph) {
         graph.addEventListener('graph-changed', function() {
@@ -275,7 +279,7 @@ export function PatternGraph(id, name, manager) {
     });
 
     this.snapshot = function() {
-        var stages = {};
+        let stages = {};
 
         forEachStage(function(stage, graph) {
             stages[stage] = graph.snapshot();
@@ -287,7 +291,7 @@ export function PatternGraph(id, name, manager) {
             curStage: self.curStage,
             stages: stages
         });
-    }
+    };
 
     this.restore = function(snapshot) {
         self.name = snapshot.get('name');
@@ -295,7 +299,7 @@ export function PatternGraph(id, name, manager) {
         forEachStage(function(stage, graph) {
             self.stages[stage].restore(snapshot.getIn(['stages', stage]));
         });
-    }
+    };
 
         this.stop = function() {
             if (!running)
@@ -304,12 +308,12 @@ export function PatternGraph(id, name, manager) {
             running = false;
             window.cancelAnimationFrame(requestid);
             self.model.displayOnly = false;
-        }
+        };
 
         this.reset = function() {
             self.time = 0;
             self.model.updateColors();
-        }
+        };
 
         this.run = function(mapping) {
             if (running)
@@ -320,19 +324,19 @@ export function PatternGraph(id, name, manager) {
             self.model = mapping.model;
             self.model.displayOnly = true;
 
-            var graph = self.stages['pixel'];
+            let graph = self.stages['pixel'];
 
-            var positions = mapping.getPositions(self.mapping_type);
+            let positions = mapping.getPositions(self.mapping_type);
 
-            var computePatternStep = function() {
+            function computePatternStep() {
                 graph.setGlobalInputData('t', self.time);
                 positions.forEach(function([idx, pos]) {
-                    var dc = self.model.getDisplayColor(idx);
-                    var incolor = new CRGB(dc[0],dc[1],dc[2]);
+                    let dc = self.model.getDisplayColor(idx);
+                    let incolor = new CRGB(dc[0], dc[1], dc[2]);
                     graph.setGlobalInputData('coords', pos.toArray());
                     graph.setGlobalInputData('color', incolor);
                     graph.runStep();
-                    var outcolor = graph.getGlobalOutputData('outcolor');
+                    let outcolor = graph.getGlobalOutputData('outcolor');
                     self.model.setDisplayColor(idx, outcolor.r, outcolor.g, outcolor.b);
                 });
                 self.time += 1;
@@ -340,41 +344,41 @@ export function PatternGraph(id, name, manager) {
 
                 if (running)
                     requestid = window.requestAnimationFrame(computePatternStep);
-            }
+            };
 
             requestid = window.requestAnimationFrame(computePatternStep);
-        }
+        };
         this.destroy = function() {
             manager.pattern_browser.removeItem(self.tree_id);
-        }
+        };
     }
 
 export default function PatternManager() {
-    var self = this;
+    let self = this;
 
-    var _nextid = 0;
+    let _nextid = 0;
     function newgid() {
         return _nextid++;
     }
 
-    var nameWidget;
-    var stageWidget;
-    var mappingTypeList;
-    var selectedMappingType = Const.default_map_type;
-    var previewMappingList;
+    let nameWidget;
+    let stageWidget;
+    let mappingTypeList;
+    let selectedMappingType = Const.default_map_type;
+    let previewMappingList;
 
-    var patterns = Immutable.Map();
+    let patterns = Immutable.Map();
 
-    var curPattern = undefined;
+    let curPattern = undefined;
 
-    var clearCurrentPattern = function() {
+    let clearCurrentPattern = function() {
         curPattern = null;
         self.graphcanvas.clearGraph();
         self.pattern_browser.setSelectedItem(null);
         nameWidget.setValue('', true);
-    }
+    };
 
-    var setCurrentPattern = function(pattern) {
+    let setCurrentPattern = function(pattern) {
         curPattern = pattern;
 
         if (!curPattern) {
@@ -386,7 +390,7 @@ export default function PatternManager() {
         self.pattern_browser.setSelectedItem(curPattern.tree_id);
         nameWidget.setValue(curPattern.name, true);
         setCurrentStage(curPattern.curStage);
-    }
+    };
 
     function setCurrentStage(stage) {
         if (!curPattern)
@@ -396,7 +400,7 @@ export default function PatternManager() {
         stageWidget.setValue(stage);
     }
 
-    var init = function() {
+    let init = function() {
         self.root = document.createElement('div');
         self.root.style.width = '100%';
         self.root.style.position = 'relative';
@@ -414,12 +418,12 @@ export default function PatternManager() {
         );
 
         self.pattern_browser.root.addEventListener('item_selected', function(e) {
-            var dataset = e.detail.data.dataset;
+            let dataset = e.detail.data.dataset;
             setCurrentPattern(dataset.pattern);
         });
 
         self.pattern_browser.root.addEventListener('item_renamed', function(e) {
-            var dataset = e.detail.data.dataset;
+            let dataset = e.detail.data.dataset;
             dataset.pattern.name = event.detail.new_name;
             if (curPattern == dataset.pattern) {
                 nameWidget.setValue(curPattern.name, true);
@@ -428,12 +432,12 @@ export default function PatternManager() {
 
         self.pattern_browser.onBackgroundClicked = function() {
             setCurrentPattern(null);
-        }
-        var side_tree_panel = new LiteGUI.Panel('pattern-tree-panel', {
+        };
+        let side_tree_panel = new LiteGUI.Panel('pattern-tree-panel', {
             title: 'Pattern Browser',
             scroll: true
         });
-        var side_settings_panel = new LiteGUI.Panel('pattern-settings', {
+        let side_settings_panel = new LiteGUI.Panel('pattern-settings', {
             scroll: true
         });
 
@@ -443,18 +447,18 @@ export default function PatternManager() {
         UI.sidebar_bottom.getSection(0).add(side_tree_panel);
         UI.sidebar_bottom.getSection(1).add(side_settings_panel);
 
-        var runningPattern = false;
-        var previewMapping = null;
+        let runningPattern = false;
+        let previewMapping = null;
 
         /* these are from Google's material icons; the text matters */
-        var play = 'play_arrow';
-        var pause = 'pause';
-        var stop = 'stop';
+        let play = 'play_arrow';
+        let pause = 'pause';
+        let stop = 'stop';
 
         /*
          * Pattern editor top toolbar: Preview & editing options
          */
-        var playButton = self.top_widgets.addButton(null, play, {
+        let playButton = self.top_widgets.addButton(null, play, {
             width: 50,
             callback: function() {
             if (!curPattern)
@@ -472,7 +476,7 @@ export default function PatternManager() {
         }});
         playButton.classList.add('material-icons');
 
-        var stopButton = self.top_widgets.addButton(null, stop, {
+        let stopButton = self.top_widgets.addButton(null, stop, {
             width: 50,
             callback: function() {
                 if (!curPattern)
@@ -492,9 +496,9 @@ export default function PatternManager() {
         }
 
         function updateMappingList() {
-            var vals = [{title: ' ', mapping: undefined}];
+            let vals = [{title: ' ', mapping: undefined}];
             vals = vals.concat(groupManager.listMappings(selectedMappingType));
-            var selected = undefined;
+            let selected = undefined;
 
             vals.forEach(function(val) {
                 if (val.mapping == previewMapping) {
@@ -520,7 +524,7 @@ export default function PatternManager() {
             callback: setCurrentStage
         });
 
-        var layoutButton = self.top_widgets.addButton(null, 'clear_all playlist_add_check', {
+        let layoutButton = self.top_widgets.addButton(null, 'clear_all playlist_add_check', {
             width: 50,
             callback: function() {
                 self.graphcanvas.autolayout();
@@ -539,12 +543,12 @@ export default function PatternManager() {
          * Sidebar: browsing, creation, copying, and 'meta' settings
          */
         self.sidebar_widgets.widgets_per_row = 2;
-        self.sidebar_widgets.addButton(null, "New", { callback: newPattern });
-        self.sidebar_widgets.addButton(null, "Copy", { callback: copyPattern });
+        self.sidebar_widgets.addButton(null, 'New', { callback: newPattern });
+        self.sidebar_widgets.addButton(null, 'Copy', { callback: copyPattern });
         self.sidebar_widgets.widgets_per_row = 1;
 
         self.sidebar_widgets.addSeparator();
-        var mapmenu_values = {};
+        let mapmenu_values = {};
         for (type in MappingInputs) {
             mapmenu_values[MappingInputs[type].name] = type;
         }
@@ -577,7 +581,7 @@ export default function PatternManager() {
                 }
             }
         });
-        var deleteButton = self.sidebar_widgets.addButton(null, 'delete', {
+        let deleteButton = self.sidebar_widgets.addButton(null, 'delete', {
             width: Const.group_smallbutton_width,
             callback: function(v) {
                 curPattern.destroy();
@@ -587,13 +591,13 @@ export default function PatternManager() {
         });
         deleteButton.classList.add('material-icons');
 
-        var area = self.area = new LiteGUI.Area(null, {
-            className: "grapharea",
+        let area = self.area = new LiteGUI.Area(null, {
+            className: 'grapharea',
             height: -38
         });
         self.root.appendChild(area.root);
 
-        var canvasContainer = document.createElement('div');
+        let canvasContainer = document.createElement('div');
         UI.tabs.addTab('Pattern Builder', {
             content: self.root,
             width: '100%',
@@ -604,15 +608,15 @@ export default function PatternManager() {
 
         self.graphcanvas = new GraphCanvas(canvasContainer);
 
-        var node_types = GraphLib.getNodeTypes();
-        var nodes = {id: "Nodes", children: []};
+        let node_types = GraphLib.getNodeTypes();
+        let nodes = {id: 'Nodes', children: []};
 
         node_types.forEach(function(node_type, path) {
-            var ptr = nodes;
+            let ptr = nodes;
             let components = path.split('/');
             components.pop();
             components.forEach(function(component) {
-                let idx = ptr.children.findIndex(el => el.id == component);
+                let idx = ptr.children.findIndex((el) => el.id == component);
                 if (idx == -1) {
                     let n = {id: component, skipdrag: true, children: []};
                     ptr.children.push(n);
@@ -622,7 +626,7 @@ export default function PatternManager() {
                 }
             });
         });
-        var nodeTree = new LiteGUI.Tree('node-list-tree', nodes, {
+        let nodeTree = new LiteGUI.Tree('node-list-tree', nodes, {
             height: '100%',
         });
 
@@ -650,20 +654,20 @@ export default function PatternManager() {
         });
 
         canvasContainer.addEventListener('drop', function(ev) {
-            var graph = self.graphcanvas.graph;
+            let graph = self.graphcanvas.graph;
             if (graph == null)
                 return;
             ev.preventDefault();
-            var nodetype = ev.dataTransfer.getData('text');
+            let nodetype = ev.dataTransfer.getData('text');
             self.graphcanvas.dropNodeAt(nodetype, ev.clientX, ev.clientY);
 
         });
 
-        var curNodeType = null;
-        var curSelection = null;
+        let curNodeType = null;
+        let curSelection = null;
 
         nodeTree.root.addEventListener('item_selected', function(ev) {
-            var dataset = ev.detail.data.dataset;
+            let dataset = ev.detail.data.dataset;
             if (dataset && dataset.nodetype) {
                 curNodeType = dataset.nodetype;
                 curSelection = ev.detail.item;
@@ -681,19 +685,18 @@ export default function PatternManager() {
         });
 
 
-
-        var nodeTreePanel = new LiteGUI.Panel('node-list', {scroll: true});
+        let nodeTreePanel = new LiteGUI.Panel('node-list', {scroll: true});
         nodeTreePanel.content.style.height = '100%';
         nodeTreePanel.add(nodeTree);
         area.getSection(0).add(nodeTreePanel);
 
 
-    }
+    };
 
-    var newPattern = function() {
-        var id = newgid();
-        var name = 'pattern-'+id;
-        var pattern = new PatternGraph(id, name, self);
+    function newPattern() {
+        let id = newgid();
+        let name = 'pattern-'+id;
+        let pattern = new PatternGraph(id, name, self);
 
 
         patterns = patterns.set(id, pattern);
@@ -703,28 +706,28 @@ export default function PatternManager() {
         worldState.checkpoint();
 
         console.log(pattern);
-    }
+    };
 
     function copyName(name) {
-        var re = / \(copy (\d+)\)$/;
-        var result = re.exec(name);
+        let re = / \(copy (\d+)\)$/;
+        let result = re.exec(name);
         if (!result) {
             return name + ' (copy 1)';
         }
-        var copydigits = parseInt(result[1]);
-        var prefix = name.substring(0, result.index);
+        let copydigits = parseInt(result[1]);
+        let prefix = name.substring(0, result.index);
         return prefix + ' (copy '+(copydigits+1)+')';
     }
 
-    var copyPattern = function() {
+    function copyPattern() {
         if (!curPattern)
             return;
 
-        var id = newgid();
-        var name = copyName(curPattern.name);
-        var snap = curPattern.snapshot();
+        let id = newgid();
+        let name = copyName(curPattern.name);
+        let snap = curPattern.snapshot();
 
-        var pattern = new PatternGraph(id, name, self);
+        let pattern = new PatternGraph(id, name, self);
         pattern.restore(snap);
         pattern.id = id;
         pattern.name = name;
@@ -732,21 +735,21 @@ export default function PatternManager() {
         patterns = patterns.set(id, pattern);
         setCurrentPattern(pattern);
         worldState.checkpoint();
-    }
+    };
 
     this.snapshot = function() {
-        var curPatternId = curPattern ? curPattern.id : null;
+        let curPatternId = curPattern ? curPattern.id : null;
         return Immutable.Map({
             patterns: patterns.map(function(pattern, id) {
                 return pattern.snapshot();
             }),
             curPattern: curPatternId
         });
-    }
+    };
 
     this.restore = function(snapshot) {
-        var newpatterns = snapshot.get('patterns').map(function(psnap, id) {
-            var pattern = patterns.get(id);
+        let newpatterns = snapshot.get('patterns').map(function(psnap, id) {
+            let pattern = patterns.get(id);
             if (!pattern) {
                 pattern = new PatternGraph(id, '', self);
             }
@@ -761,7 +764,7 @@ export default function PatternManager() {
         });
         patterns = newpatterns;
         setCurrentPattern(patterns.get(snapshot.get('curPattern')));
-    }
+    };
 
     init();
 }

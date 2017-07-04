@@ -11,7 +11,7 @@ export const Hotkey = {
     tool_select_line: 'l',
     tool_select_plane: 'p',
     cancel_selection: 'esc',
-}
+};
 
 /*
  * Slightly modified version of the default keyboard.js locale to handle
@@ -126,20 +126,20 @@ keyboardJS.setLocale('us-chlorophyll', function(locale, platform, userAgent) {
   locale.bindMacro('shift + .', ['closeanglebracket', '>']);
   locale.bindMacro('shift + /', ['questionmark', '?']);
 
-  //a-z and A-Z
-  for (var keyCode = 65; keyCode <= 90; keyCode += 1) {
-    var keyName = String.fromCharCode(keyCode + 32);
-    var capitalKeyName = String.fromCharCode(keyCode);
+  // a-z and A-Z
+  for (let keyCode = 65; keyCode <= 90; keyCode += 1) {
+    let keyName = String.fromCharCode(keyCode + 32);
+    let capitalKeyName = String.fromCharCode(keyCode);
     locale.bindKeyCode(keyCode, keyName);
     locale.bindMacro('shift + ' + keyName, capitalKeyName);
     locale.bindMacro('capslock + ' + keyName, capitalKeyName);
   }
 
   // browser caveats
-  var semicolonKeyCode = userAgent.match('Firefox') ? 59  : 186;
-  var dashKeyCode      = userAgent.match('Firefox') ? 173 : 189;
-  var leftCommandKeyCode;
-  var rightCommandKeyCode;
+  let semicolonKeyCode = userAgent.match('Firefox') ? 59  : 186;
+  let dashKeyCode      = userAgent.match('Firefox') ? 173 : 189;
+  let leftCommandKeyCode;
+  let rightCommandKeyCode;
   if (platform.match('Mac') && (userAgent.match('Safari') || userAgent.match('Chrome'))) {
     leftCommandKeyCode  = 91;
     rightCommandKeyCode = 93;

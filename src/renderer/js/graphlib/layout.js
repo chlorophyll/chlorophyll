@@ -1,69 +1,69 @@
 import GraphLib from './graph';
 
 GraphLib.AutoLayout = function() {
-    var defaultOptions = {
-        "intCoordinates": true,
-        "algorithm": "de.cau.cs.kieler.klay.layered",
-        "layoutHierarchy": true,
-        "spacing": 20,
-        "borderSpacing": 20,
-        "edgeSpacingFactor": 0.2,
-        "inLayerSpacingFactor": 2.0,
-        "nodePlace": "BRANDES_KOEPF",
-        "nodeLayering": "NETWORK_SIMPLEX",
-        "edgeRouting": "POLYLINE",
-        "crossMin": "LAYER_SWEEP",
-        "direction": "RIGHT"
+    let defaultOptions = {
+        'intCoordinates': true,
+        'algorithm': 'de.cau.cs.kieler.klay.layered',
+        'layoutHierarchy': true,
+        'spacing': 20,
+        'borderSpacing': 20,
+        'edgeSpacingFactor': 0.2,
+        'inLayerSpacingFactor': 2.0,
+        'nodePlace': 'BRANDES_KOEPF',
+        'nodeLayering': 'NETWORK_SIMPLEX',
+        'edgeRouting': 'POLYLINE',
+        'crossMin': 'LAYER_SWEEP',
+        'direction': 'RIGHT'
     };
 
     this.layout = function(canvas, callback) {
         callback = callback || console.log;
 
-        var graph = canvas.graph;
-        var kgraph = encodeAsKGraph(canvas);
+        let graph = canvas.graph;
+        let kgraph = encodeAsKGraph(canvas);
 
         $klay.layout({
             graph: kgraph,
             options: defaultOptions,
             success: callback
         });
-    }
+    };
 
     function encodeAsKGraph(canvas) {
-        var graph = canvas.graph;
+        let graph = canvas.graph;
 
-        var direction = 'RIGHT';
-        var portConstraints = 'FIXED_POS';
+        let direction = 'RIGHT';
+        let portConstraints = 'FIXED_POS';
 
-        var portProperties = {
+        let portProperties = {
             inportSide: 'WEST',
             outportSide: 'EAST',
             width: 8,
             height: 8
         };
 
-        var knodes = [];
+        let knodes = [];
 
         graph.forEachNode(function(node, id) {
-            var elem = canvas.getNodeElement(node);
+            let elem = canvas.getNodeElement(node);
             function make_port(is_input) {
                 return function(port, slot) {
-                    var [x,y] = elem.connectionPos(slot, true);
-                    var porttype = is_input ? 'input' : 'output';
-                    var label = `node${id}-${porttype}${slot}`
+                    let [x, y] = elem.connectionPos(slot, true);
+                    let porttype = is_input ? 'input' : 'output';
+                    let label = `node${id}-${porttype}${slot}`;
                     return {
                         id: label,
                         width: portProperties.width,
                         height: portProperties.height,
                         x: x,
                         y: y
-                    }
-                }
+                    };
+                };
             }
-            var inports = node.inputs.map(make_port(true));
-            var outports = node.outputs.map(make_port(false));
+            let inports = node.inputs.map(make_port(true));
+            let outports = node.outputs.map(make_port(false));
 
-            var knode = {
+            let knode = {
                 id: `node${id}`,
                 width: elem.width,
                 height: elem.height,
@@ -71,11 +71,11 @@ GraphLib.AutoLayout = function() {
                 properties: {
                     'portConstraints': portConstraints
                 }
-            }
+            };
             knodes.push(knode);
         });
 
-        var kedges = [];
+        let kedges = [];
 
         graph.forEachEdge(function(edge, id) {
             kedges.push({
@@ -91,7 +91,7 @@ GraphLib.AutoLayout = function() {
             id: 'graph',
             children: knodes,
             edges: kedges
-        }
+        };
 
     }
-}
+};

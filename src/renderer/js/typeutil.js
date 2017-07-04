@@ -17,4 +17,4 @@ export default TypeUtil = {
     convert_to_int32_t: function(val) {
         return val & 0xffffffff;
     }
-}
+};

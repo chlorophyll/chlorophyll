@@ -9,13 +9,13 @@ export ProjectionMapping from './projection';
  */
 export default function Mapping(manager, group, id, initname) {
     Util.EventDispatcher.call(this);
-    var self = this;
+    let self = this;
 
     this.group = group;
     this.model = group.model;
     this.id = id;
     this.tree_id = group.tree_id + '-map-' + id;
-    var _name = initname;
+    let _name = initname;
 
     this.widget = null;
     this.configuring = false;
@@ -29,13 +29,15 @@ export default function Mapping(manager, group, id, initname) {
     this.hideConfig = null;
     this.isProjection = false;
     this.isTransform = false;
-    this.display_name = "Unknown Type";
+    this.display_name = 'Unknown Type';
     // map_types describes each type of transformation the mapping supports,
     // in the form: { uniqueidentifier: { name: ..., mapPoint: ...}, ... }
     this.map_types = {};
 
     Object.defineProperty(this, 'name', {
-        get: function() { return _name; },
+        get: function() {
+            return _name;
+        },
         set: function(v) {
             if (v.length > Const.max_name_len) {
                 v = v.slice(0, Const.max_name_len);
@@ -50,7 +52,7 @@ export default function Mapping(manager, group, id, initname) {
 
     Object.defineProperty(this, 'type_menu', {
         get: function() {
-            var menu = {};
+            let menu = {};
             for (type in self.map_types) {
                 menu[self.map_types[type].name] = type;
             }
@@ -58,7 +60,7 @@ export default function Mapping(manager, group, id, initname) {
         }
     });
 
-    var elem = manager.tree.insertItem({
+    let elem = manager.tree.insertItem({
         id: self.tree_id,
         content: _name,
         dataset: {mapping: self}
@@ -66,16 +68,16 @@ export default function Mapping(manager, group, id, initname) {
 
     this.getPositions = function(type) {
         if (!(type in self.map_types)) {
-            console.error("No such mapping type: " + type);
+            console.error('No such mapping type: ' + type);
             return;
         }
-        var mapFn = self.map_types[type].mapPoint;
-        var norm_factor = 1;
+        let mapFn = self.map_types[type].mapPoint;
+        let norm_factor = 1;
         // Normalize points to within [-1, 1], if enabled.
         if (self.normalize) {
-            var max = 0;
+            let max = 0;
             group.pixels.forEach(function(idx) {
-                for (var coord of mapFn(idx).toArray()) {
+                for (let coord of mapFn(idx).toArray()) {
                     if (coord > max)
                         max = coord;
                     else if (-coord > max)
@@ -91,11 +93,11 @@ export default function Mapping(manager, group, id, initname) {
             else
                 return [idx, mapFn(idx)];
         });
-    }
+    };
 
     this.destroy = function() {
         if (self.configuring)
             self.hideConfig();
         manager.tree.removeItem(self.tree_id);
-    }
+    };
 }

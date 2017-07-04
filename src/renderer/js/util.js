@@ -3,19 +3,19 @@ import * as THREE from 'three';
 export default Util = {
     clone: function(obj) {
         // Handle the 3 simple types, and null or undefined
-        if (null == obj || "object" != typeof obj) return obj;
+        if (null == obj || 'object' != typeof obj) return obj;
 
         // Handle Date
         if (obj instanceof Date) {
-            var copy = new Date();
+            let copy = new Date();
             copy.setTime(obj.getTime());
             return copy;
         }
 
         // Handle Array
         if (obj instanceof Array) {
-            var copy = [];
-            for (var i = 0, len = obj.length; i < len; i++) {
+            let copy = [];
+            for (let i = 0, len = obj.length; i < len; i++) {
                 copy[i] = Util.clone(obj[i]);
             }
             return copy;
@@ -27,14 +27,14 @@ export default Util = {
 
         // Handle Object
         if (obj instanceof Object) {
-            var copy = {};
-            for (var attr in obj) {
+            let copy = {};
+            for (let attr in obj) {
                 if (obj.hasOwnProperty(attr)) copy[attr] = Util.clone(obj[attr]);
             }
             return copy;
         }
 
-        throw new Error("Unable to copy obj! Its type isn't supported.");
+        throw new Error('Unable to copy obj! Its type isn\'t supported.');
     },
     clamp: function(val, min, max) {
         if (val < min)
@@ -44,7 +44,7 @@ export default Util = {
         return val;
     },
     bezierByH: function(x0, y0, x1, y1) {
-        var mx = x0 + (x1 - x0) / 2;
+        let mx = x0 + (x1 - x0) / 2;
 
         return 'M' + x0 + ' ' + y0 + ' '
              + 'C' + mx + ' ' + y0 + ' '
@@ -59,23 +59,23 @@ export default Util = {
         if (clamp == undefined) {
             clamp = true;
         }
-        var closest = line.closestPointToPoint(point, clamp);
-        var ret = closest.sub(point).length();
+        let closest = line.closestPointToPoint(point, clamp);
+        let ret = closest.sub(point).length();
         return ret;
     },
 
     relativeCoords: function relativeCoords(container, pageX, pageY) {
-        var offset = $(container).offset();
+        let offset = $(container).offset();
         return {
             x: pageX - offset.left,
             y: pageY - offset.top
-        }
+        };
     },
 
     cameraPlaneCoords: function(camera, renderer, position) {
-        var vector = position.clone();
-        var width = container.clientWidth;
-        var height = container.clientHeight;
+        let vector = position.clone();
+        let width = container.clientWidth;
+        let height = container.clientHeight;
 
         // map to normalized device coordinate (NDC) space
         vector.project( camera );
@@ -88,9 +88,9 @@ export default Util = {
     },
 
     centroid: function(points) {
-        var sum = new THREE.Vector3();
+        let sum = new THREE.Vector3();
 
-        for (var i = 0; i < points.length; i++) {
+        for (let i = 0; i < points.length; i++) {
             sum.add(points[i]);
         }
         return sum.divideScalar(points.length);
@@ -98,14 +98,14 @@ export default Util = {
 
     // Code based on http://www.ilikebigbits.com/blog/2015/3/2/plane-from-points
     bestFitPlane: function(points) {
-        var centroid = Util.centroid(points);
+        let centroid = Util.centroid(points);
 
         // Calc full 3x3 covariance matrix, excluding symmetries:
-        var xx = 0.0, xy = 0.0, xz = 0.0;
-        var yy = 0.0, yz = 0.0, zz = 0.0;
+        let xx = 0.0, xy = 0.0, xz = 0.0;
+        let yy = 0.0, yz = 0.0, zz = 0.0;
 
-        for (var i = 0; i < points.length; i++) {
-            var r = points[i].clone().sub(centroid);
+        for (let i = 0; i < points.length; i++) {
+            let r = points[i].clone().sub(centroid);
             xx += r.x * r.x;
             xy += r.x * r.y;
             xz += r.x * r.z;
@@ -113,24 +113,24 @@ export default Util = {
             yz += r.y * r.z;
             zz += r.z * r.z;
         }
-        var det_x = yy*zz - yz*yz;
-        var det_y = xx*zz - xz*xz;
-        var det_z = xx*yy - xy*xy;
+        let det_x = yy*zz - yz*yz;
+        let det_y = xx*zz - xz*xz;
+        let det_z = xx*yy - xy*xy;
 
-        var det_max = Math.max(det_x, det_y, det_z);
+        let det_max = Math.max(det_x, det_y, det_z);
 
-        var dir = new THREE.Vector3();
+        let dir = new THREE.Vector3();
         if (det_max == det_x) {
-            var a = (xz*yz - xy*zz) / det_x;
-            var b = (xy*yz - xz*yy) / det_x;
+            let a = (xz*yz - xy*zz) / det_x;
+            let b = (xy*yz - xz*yy) / det_x;
             dir.set(1.0, a, b);
         } else if (det_max == det_y) {
-            var a = (yz*xz - xy*zz) / det_y;
-            var b = (xy*xz - yz*xx) / det_y;
+            let a = (yz*xz - xy*zz) / det_y;
+            let b = (xy*xz - yz*xx) / det_y;
             dir.set(a, 1.0, b);
         } else {
-            var a = (yz*xy - xz*yy) / det_z;
-            var b = (xz*xy - yz*xx) / det_z;
+            let a = (yz*xy - xz*yy) / det_z;
+            let b = (xz*xy - yz*xx) / det_z;
             dir.set(a, b, 1.0);
         }
         dir.normalize();
@@ -138,8 +138,8 @@ export default Util = {
     },
 
     alignWithVector: function(vec, camera) {
-        var radius = camera.position.length();
-        var s = new THREE.Spherical().setFromVector3(vec);
+        let radius = camera.position.length();
+        let s = new THREE.Spherical().setFromVector3(vec);
         s.radius = radius;
         s.makeSafe();
         camera.position.setFromSpherical(s);
@@ -147,8 +147,8 @@ export default Util = {
 
     hilightElement: function(elem) {
         elem.__saved_background = elem.style.background;
-        elem.style.background = "transparent " +
-            "linear-gradient(#ed5f0e, #b7551d) repeat scroll 0px 0px";
+        elem.style.background = 'transparent ' +
+            'linear-gradient(#ed5f0e, #b7551d) repeat scroll 0px 0px';
     },
 
     unhilightElement: function(elem) {
@@ -163,16 +163,16 @@ export default Util = {
         this.upper = upper;
 
         this.toString = function() {
-            return `${this.lower.toFixed(2)} - ${this.upper.toFixed(2)}`
-        }
+            return `${this.lower.toFixed(2)} - ${this.upper.toFixed(2)}`;
+        };
 
         this.serialize = function() {
             return {min: this.min, max: this.max, lower: this.lower, upper: this.upper};
-        }
+        };
 
         this.constructor.deserialize = function(obj) {
             return new Util.Range(obj.min, obj.max, obj.lower, obj.upper);
-        }
+        };
     },
 };
 
@@ -183,19 +183,19 @@ Util.JSON = {
 
         constructor.toJSON = function() {
             return {'_tag': tag};
-        }
+        };
 
         constructor.prototype.toJSON = function() {
             return {'_tag': tag, value: this.serialize()};
-        }
+        };
     },
 
     dump: function(obj) {
-        return JSON.stringify(obj)
+        return JSON.stringify(obj);
     },
 
     load: function(s) {
-        var out = JSON.parse(s, function(key, val) {
+        let out = JSON.parse(s, function(key, val) {
             if (val instanceof Object && val._tag) {
                 if (val.value !== undefined) {
                     return Util.JSON.tags[val._tag].deserialize(val.value);
@@ -230,9 +230,9 @@ Util.EventDispatcher = function() {
         if (!(type in this._listeners)) {
             return;
         }
-        var stack = this._listeners[type];
-        for (var i = 0, l = stack.length; i < l; i++) {
-            if (stack[i] === callback){
+        let stack = this._listeners[type];
+        for (let i = 0, l = stack.length; i < l; i++) {
+            if (stack[i] === callback) {
                 stack.splice(i, 1);
                 return;
             }
@@ -243,11 +243,11 @@ Util.EventDispatcher = function() {
         if (this._listeners === undefined || !(event.type in this._listeners)) {
             return true;
         }
-        var stack = this._listeners[event.type];
+        let stack = this._listeners[event.type];
         event.target = this;
-        for (var i = 0, l = stack.length; i < l; i++) {
+        for (let i = 0, l = stack.length; i < l; i++) {
             stack[i].call(this, event);
         }
         return !event.defaultPrevented;
     };
-}
+};

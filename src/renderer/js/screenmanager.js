@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import keyboardJS from 'keyboardjs';
 import Util from 'chl/util';
 
-//TODO(rpearl) potentially support multiple views
+// TODO(rpearl) potentially support multiple views
 export function Screen(camera, renderer, scene) {
-    var self = this;
+    let self = this;
 
     this.camera = camera;
     this.renderer = renderer;
@@ -12,7 +12,7 @@ export function Screen(camera, renderer, scene) {
 
     this.isActive = false;
 
-    var controls = new THREE.OrbitControls(camera, renderer.domElement);
+    let controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.75;
     controls.enableZoom = true;
@@ -21,11 +21,13 @@ export function Screen(camera, renderer, scene) {
 
     this.controls = controls;
 
-    var controlsEnabled = true;
+    let controlsEnabled = true;
 
     Object.defineProperties(this, {
         controlsEnabled: {
-            get: function() { return controlsEnabled; },
+            get: function() {
+                return controlsEnabled;
+            },
             set: function(v) {
                 controlsEnabled = v;
                 if (self.isActive)
@@ -39,57 +41,57 @@ export function Screen(camera, renderer, scene) {
     this.activate = function() {
         controls.enabled = controlsEnabled;
         self.isActive = true;
-    }
+    };
 
     this.deactivate = function() {
         self.isActive = false;
         controls.enabled = false;
-    }
+    };
 
     this.render = function() {
         renderer.render(scene, camera);
-    }
+    };
 
     this.updateControls = function() {
         controls.update();
-    }
+    };
 
     this.screenCoords = function(position) {
         return Util.cameraPlaneCoords(camera, renderer, position);
-    }
+    };
 
     this.getPointAt = function(model, x, y) {
-        var mouse3D = new THREE.Vector3(
+        let mouse3D = new THREE.Vector3(
              (x / container.clientWidth ) * 2 - 1,
             -(y / container.clientHeight) * 2 + 1,
             0.5);
-        var raycaster = new THREE.Raycaster();
+        let raycaster = new THREE.Raycaster();
         raycaster.params.Points.threshold = 10;
         raycaster.setFromCamera(mouse3D, camera);
-        var intersects = raycaster.intersectObject(model.particles);
-        var chosen = undefined;
-        for (var i = 0; i < intersects.length; i++) {
+        let intersects = raycaster.intersectObject(model.particles);
+        let chosen = undefined;
+        for (let i = 0; i < intersects.length; i++) {
             if (!isClipped(intersects[i].point)) {
                 chosen = intersects[i];
                 break;
             }
         }
         return chosen;
-    }
+    };
 }
 
 export default function ScreenManager(renderer, scene) {
-    var screens = {};
-    var _activeScreen = undefined;
+    let screens = {};
+    let _activeScreen = undefined;
 
     this.addScreen = function(name, options) {
-        var active = options.active || false;
-        var camera;
-        var width = container.clientWidth;
-        var height = container.clientHeight;
+        let active = options.active || false;
+        let camera;
+        let width = container.clientWidth;
+        let height = container.clientHeight;
         if (options.isOrtho) {
             camera = new THREE.OrthographicCamera(
-                width / -2,  width / 2,
+                width / -2, width / 2,
                 height / 2, height / -2,
                 1, Const.max_draw_dist);
             camera.zoom /= 2;
@@ -105,22 +107,22 @@ export default function ScreenManager(renderer, scene) {
         } else {
             camera.position.z = 1000;
         }
-        var screen = new Screen(camera, renderer, scene);
+        let screen = new Screen(camera, renderer, scene);
         screens[name] = screen;
 
         if (options.active) {
             this.setActive(name);
         }
         return screen;
-    }
+    };
 
     this.resize = function() {
-        var width = container.clientWidth;
-        var height = container.clientHeight;
+        let width = container.clientWidth;
+        let height = container.clientHeight;
         renderer.setSize(width, height);
 
-        for (var name in screens) {
-            var camera = screens[name].camera;
+        for (let name in screens) {
+            let camera = screens[name].camera;
 
             if (camera.isOrthographicCamera) {
                 camera.left = -width/2;
@@ -132,27 +134,29 @@ export default function ScreenManager(renderer, scene) {
             }
             camera.updateProjectionMatrix();
         }
-    }
+    };
 
     this.setActive = function(name) {
-        var newScreen = screens[name];
+        let newScreen = screens[name];
         if (_activeScreen)
             _activeScreen.deactivate();
 
         newScreen.activate();
         _activeScreen = newScreen;
-    }
+    };
 
     Object.defineProperties(this, {
         activeScreen: {
-            get: function() { return _activeScreen; }
+            get: function() {
+                return _activeScreen;
+            }
         },
     });
 
     this.render = function() {
         _activeScreen.updateControls();
         _activeScreen.render();
-    }
+    };
 
     keyboardJS.withContext('global', function() {
         keyboardJS.bind(Hotkey.reset_camera, function() {

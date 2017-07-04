@@ -7,11 +7,11 @@ function LogNode() {
 
 LogNode.prototype.onExecute = function() {
     console.log(this.getInputData(0));
-}
+};
 
-LogNode.title = 'log'
+LogNode.title = 'log';
 
-GraphLib.registerNodeType("lowlevel/debug/log", LogNode);
+GraphLib.registerNodeType('lowlevel/debug/log', LogNode);
 
 function IfNode() {
     this.addInput('clause', 'boolean');
@@ -20,15 +20,15 @@ function IfNode() {
     this.addOutput('result');
 }
 
-IfNode.title = 'if'
+IfNode.title = 'if';
 
 IfNode.prototype.onExecute = function() {
-    var clause = this.getInputData(0);
-    var trueBranch = this.getInputData(1);
-    var falseBranch = this.getInputData(2);
+    let clause = this.getInputData(0);
+    let trueBranch = this.getInputData(1);
+    let falseBranch = this.getInputData(2);
     this.setOutputData(0, clause ? trueBranch : falseBranch);
-}
-GraphLib.registerNodeType("logic/if", IfNode);
+};
+GraphLib.registerNodeType('logic/if', IfNode);
 
 function EqualsNode() {
     this.addInput('a');
@@ -36,80 +36,80 @@ function EqualsNode() {
     this.addOutput('a == b', 'boolean');
 }
 
-EqualsNode.title = 'a == b'
+EqualsNode.title = 'a == b';
 
 EqualsNode.prototype.onExecute = function() {
-    var a = this.getInputData(0);
-    var b = this.getInputData(1);
+    let a = this.getInputData(0);
+    let b = this.getInputData(1);
     this.setOutputData(0, a == b);
-}
-GraphLib.registerNodeType("logic/==", EqualsNode);
+};
+GraphLib.registerNodeType('logic/==', EqualsNode);
 
 function LessNode() {
     this.addInput('a', 'number');
     this.addInput('b', 'number');
     this.addOutput('a < b', 'boolean');
 }
-LessNode.title = 'a < b'
+LessNode.title = 'a < b';
 LessNode.prototype.onExecute = function() {
     this.setOutputData(0, this.getInputData(0) < this.getInputData(1));
-}
-GraphLib.registerNodeType("logic/<", LessNode);
+};
+GraphLib.registerNodeType('logic/<', LessNode);
 
 function LessEqualNode() {
     this.addInput('a', 'number');
     this.addInput('b', 'number');
     this.addOutput('a <= b', 'boolean');
 }
-LessEqualNode.title = 'a <= b'
+LessEqualNode.title = 'a <= b';
 LessEqualNode.prototype.onExecute = function() {
     this.setOutputData(0, this.getInputData(0) <= this.getInputData(1));
-}
-GraphLib.registerNodeType("logic/<=", LessEqualNode);
+};
+GraphLib.registerNodeType('logic/<=', LessEqualNode);
 
 function GreaterNode() {
     this.addInput('a', 'number');
     this.addInput('b', 'number');
     this.addOutput('a > b', 'boolean');
 }
-GreaterNode.title = 'a > b'
+GreaterNode.title = 'a > b';
 GreaterNode.prototype.onExecute = function() {
     this.setOutputData(0, this.getInputData(0) > this.getInputData(1));
-}
-GraphLib.registerNodeType("logic/>", GreaterNode);
+};
+GraphLib.registerNodeType('logic/>', GreaterNode);
 
 function GreaterEqualNode() {
     this.addInput('a', 'number');
     this.addInput('b', 'number');
     this.addOutput('a >= b', 'boolean');
 }
-GreaterEqualNode.title = 'a >= b'
+GreaterEqualNode.title = 'a >= b';
 GreaterEqualNode.prototype.onExecute = function() {
     this.setOutputData(0, this.getInputData(0) >= this.getInputData(1));
-}
-GraphLib.registerNodeType("logic/>=", GreaterEqualNode);
+};
+GraphLib.registerNodeType('logic/>=', GreaterEqualNode);
 
 function AndNode() {
     this.addInput('a');
     this.addInput('b');
     this.addOutput('a && b', 'boolean');
 }
-AndNode.title = 'a && b'
+AndNode.title = 'a && b';
 AndNode.prototype.onExecute = function() {
     this.setOutputData(0, this.getInputData(0) && this.getInputData(1));
-}
-GraphLib.registerNodeType("logic/&&", AndNode);
+};
+GraphLib.registerNodeType('logic/&&', AndNode);
 
 function OrNode() {
     this.addInput('a');
     this.addInput('b');
     this.addOutput('a || b', 'boolean');
 }
-OrNode.title = 'a || b'
+OrNode.title = 'a || b';
 OrNode.prototype.onExecute = function() {
     this.setOutputData(0, this.getInputData(0) || this.getInputData(1));
-}
-GraphLib.registerNodeType("logic/||", OrNode);
+};
+GraphLib.registerNodeType('logic/||', OrNode);
 
 function NotNode() {
     this.addInput('a');
@@ -120,9 +120,9 @@ NotNode.title = '!a';
 
 NotNode.prototype.onExecute = function() {
     this.setOutputData(0, !this.getInputData(0));
-}
+};
 
-GraphLib.registerNodeType("logic/!", NotNode);
+GraphLib.registerNodeType('logic/!', NotNode);
 
 function AddNode() {
     this.addInput('a', Units.Numeric);
@@ -132,11 +132,11 @@ function AddNode() {
 
 AddNode.title = 'a + b';
 AddNode.prototype.onExecute = function() {
-    var a = this.getInputData(0);
-    var b = this.getInputData(1);
-    this.setOutputData(0, Units.Operations.add(a,b));
-}
-GraphLib.registerNodeType("math/add", AddNode);
+    let a = this.getInputData(0);
+    let b = this.getInputData(1);
+    this.setOutputData(0, Units.Operations.add(a, b));
+};
+GraphLib.registerNodeType('math/add', AddNode);
 
 function SubNode() {
     this.addInput('a', Units.Numeric);
@@ -146,11 +146,11 @@ function SubNode() {
 
 SubNode.title = 'a - b';
 SubNode.prototype.onExecute = function() {
-    var a = this.getInputData(0);
-    var b = this.getInputData(1);
-    this.setOutputData(0, Units.Operations.sub(a,b));
-}
-GraphLib.registerNodeType("math/sub", SubNode);
+    let a = this.getInputData(0);
+    let b = this.getInputData(1);
+    this.setOutputData(0, Units.Operations.sub(a, b));
+};
+GraphLib.registerNodeType('math/sub', SubNode);
 
 function MulNode() {
     this.addInput('a', Units.Numeric);
@@ -160,11 +160,11 @@ function MulNode() {
 
 MulNode.title = 'a * b';
 MulNode.prototype.onExecute = function() {
-    var a = this.getInputData(0);
-    var b = this.getInputData(1);
-    this.setOutputData(0, Units.Operations.mul(a,b));
-}
-GraphLib.registerNodeType("math/mul", MulNode);
+    let a = this.getInputData(0);
+    let b = this.getInputData(1);
+    this.setOutputData(0, Units.Operations.mul(a, b));
+};
+GraphLib.registerNodeType('math/mul', MulNode);
 
 function AbsNode() {
     this.addInput('a', Units.Numeric);
@@ -174,9 +174,9 @@ function AbsNode() {
 AbsNode.title = '|a|';
 AbsNode.prototype.onExecute = function() {
     this.setOutputData(0, Math.abs(this.getInputData(0)));
-}
+};
 
-GraphLib.registerNodeType("math/abs", AbsNode);
+GraphLib.registerNodeType('math/abs', AbsNode);
 
 
 function DivNode() {
@@ -186,11 +186,11 @@ function DivNode() {
 }
 DivNode.title = 'a / b';
 DivNode.prototype.onExecute = function() {
-    var a = this.getInputData(0);
-    var b = this.getInputData(1);
-    this.setOutputData(0, Units.Operations.div(a,b));
-}
-GraphLib.registerNodeType("math/div", DivNode);
+    let a = this.getInputData(0);
+    let b = this.getInputData(1);
+    this.setOutputData(0, Units.Operations.div(a, b));
+};
+GraphLib.registerNodeType('math/div', DivNode);
 
 function ModNode() {
     this.addInput('a', Units.Numeric);
@@ -199,11 +199,11 @@ function ModNode() {
 }
 ModNode.title = 'a % b';
 ModNode.prototype.onExecute = function() {
-    var a = this.getInputData(0);
-    var b = this.getInputData(1);
-    this.setOutputData(0, Units.Operations.mod(a,b));
-}
-GraphLib.registerNodeType("math/mod", ModNode);
+    let a = this.getInputData(0);
+    let b = this.getInputData(1);
+    this.setOutputData(0, Units.Operations.mod(a, b));
+};
+GraphLib.registerNodeType('math/mod', ModNode);
 
 function MapNode() {
     this.addInput('value', Units.Numeric);
@@ -217,46 +217,46 @@ function MapNode() {
 
 MapNode.title = 'map';
 MapNode.prototype.onExecute = function() {
-    var value = this.getInputData(0);
-    var fromLow = this.getInputData(1);
-    var fromHigh = this.getInputData(2);
-    var toLow = this.getInputData(3);
-    var toHigh = this.getInputData(4);
+    let value = this.getInputData(0);
+    let fromLow = this.getInputData(1);
+    let fromHigh = this.getInputData(2);
+    let toLow = this.getInputData(3);
+    let toHigh = this.getInputData(4);
 
-    var fromVal = Units.Operations.sub(value, fromLow);
-    var toRange = Units.Operations.sub(toHigh, toLow);
-    var fromRange = Units.Operations.sub(fromHigh, fromLow);
+    let fromVal = Units.Operations.sub(value, fromLow);
+    let toRange = Units.Operations.sub(toHigh, toLow);
+    let fromRange = Units.Operations.sub(fromHigh, fromLow);
 
-    var toVal = Units.Operations.mul(fromVal, Units.Operations.div(toRange, fromRange));
-    var output = Units.Operations.add(toVal, toLow);
+    let toVal = Units.Operations.mul(fromVal, Units.Operations.div(toRange, fromRange));
+    let output = Units.Operations.add(toVal, toLow);
     this.setOutputData(0, output);
-}
+};
 GraphLib.registerNodeType('math/map', MapNode);
 
-////// organize this better...
+// //// organize this better...
 //
 function Rotate2D() {
-    this.addInput("x", Units.Distance);
-    this.addInput("y", Units.Distance);
-    this.addInput("theta", Units.Angle);
-    this.addOutput("x'", Units.Distance);
-    this.addOutput("y'", Units.Distance);
+    this.addInput('x', Units.Distance);
+    this.addInput('y', Units.Distance);
+    this.addInput('theta', Units.Angle);
+    this.addOutput('x\'', Units.Distance);
+    this.addOutput('y\'', Units.Distance);
 }
 
 Rotate2D.title = '2D roration';
 Rotate2D.prototype.onExecute = function() {
-    var x = this.getInputData(0).valueOf();
-    var y = this.getInputData(1).valueOf();
-    var theta = this.getInputData(2).valueOf();
+    let x = this.getInputData(0).valueOf();
+    let y = this.getInputData(1).valueOf();
+    let theta = this.getInputData(2).valueOf();
 
-    var c = Math.cos(theta);
-    var s = Math.sin(theta);
+    let c = Math.cos(theta);
+    let s = Math.sin(theta);
 
-    var xo = x * c - y * s;
-    var yo = x * s + y * c;
+    let xo = x * c - y * s;
+    let yo = x * s + y * c;
 
     this.setOutputData(0, xo);
     this.setOutputData(1, yo);
-}
+};
 
 GraphLib.registerNodeType('2d/rotate', Rotate2D);

@@ -5,16 +5,16 @@ import PatternManager from 'chl/patterns/manager';
 import WorldState from 'chl/worldstate';
 
 // dom
-var container;
+let container;
 
 // Chlorophyll dataset manager objects
-var toolbarManager;
-var screenManager;
-var groupManager;
-var patternManager;
+let toolbarManager;
+let screenManager;
+let groupManager;
+let patternManager;
 
 // chlorophyll objects
-var worldState;
+let worldState;
 
 const UI = {};
 
@@ -28,11 +28,11 @@ export {
 };
 
 export default function Chlorophyll() {
-    var frontPlane, backPlane;
-    var selectionThreshold = 5; // TODO track in selection tools
+    let frontPlane, backPlane;
+    let selectionThreshold = 5; // TODO track in selection tools
 
     function initModelFromJson(scene, json) {
-        var model = new Model(json);
+        let model = new Model(json);
         model.addToScene(scene);
         groupManager = new GroupManager(model);
         patternManager = new PatternManager();
@@ -45,14 +45,14 @@ export default function Chlorophyll() {
     }
 
     function chooseModelFile(scene, file) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
             try {
                 initModelFromJson(scene, e.target.result);
             } catch (ex) {
                 console.log('ex when trying to parse json = ' + ex);
             }
-        }
+        };
         reader.readAsText(file);
     }
 
@@ -63,9 +63,13 @@ export default function Chlorophyll() {
         LiteGUI.init();
 
         UI.menu = new LiteGUI.Menubar();
-        UI.menu.add("File/New");
-        UI.menu.add("Edit/Undo", function() { worldState.undo() });
-        UI.menu.add("Edit/Redo", function() { worldState.redo() });
+        UI.menu.add('File/New');
+        UI.menu.add('Edit/Undo', function() {
+            worldState.undo();
+        });
+        UI.menu.add('Edit/Redo', function() {
+            worldState.redo();
+        });
             keyboardJS.bind(Hotkey.undo, function() {
             worldState.undo();
         });
@@ -80,17 +84,17 @@ export default function Chlorophyll() {
         LiteGUI.add(UI.menu);
 
         // Center viewport container
-        var mainarea = new LiteGUI.Area("mainarea", {
-            content_id: "container",
-            height: "calc( 100% - 20px )",
-            main:true,
+        let mainarea = new LiteGUI.Area('mainarea', {
+            content_id: 'container',
+            height: 'calc( 100% - 20px )',
+            main: true,
             inmediateResize: true
         });
         LiteGUI.add(mainarea);
         // Bottom tabbed pattern / sequencer editor area
-        mainarea.split('vertical',[null,Const.dock_size], true);
-        var dock = mainarea.getSection(1);
-        dock.split('horizontal', [null,Const.sidebar_size], true);
+        mainarea.split('vertical', [null, Const.dock_size], true);
+        let dock = mainarea.getSection(1);
+        dock.split('horizontal', [null, Const.sidebar_size], true);
         UI.sidebar_bottom = dock.getSection(1);
         dock = dock.getSection(0);
 
@@ -99,16 +103,16 @@ export default function Chlorophyll() {
         mainarea = mainarea.getSection(0);
 
         // Group, mapping & pattern browser sidebar
-        mainarea.split("horizontal",[null,Const.sidebar_size],true);
+        mainarea.split('horizontal', [null, Const.sidebar_size], true);
         UI.sidebar_top = mainarea.getSection(1);
-        //UI.sidebar_bottom = UI.sidebar.getSection(1);
+        // UI.sidebar_bottom = UI.sidebar.getSection(1);
 
         mainarea = mainarea.getSection(0);
 
 
         // Viewport side toolbar
         mainarea.split('horizontal', [Const.toolbar_size, null], true);
-        var toolbar_panel = new LiteGUI.Panel("toolbar");
+        let toolbar_panel = new LiteGUI.Panel('toolbar');
 
         UI.toolbar = new LiteGUI.Inspector();
 
@@ -127,10 +131,10 @@ export default function Chlorophyll() {
         /****************************
          * Three.js rendering setup *
          ****************************/
-        var scene = new THREE.Scene();
+        let scene = new THREE.Scene();
         scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
 
-        var renderer = new THREE.WebGLRenderer({ antialias: true });
+        let renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setClearColor(scene.fog.color);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(container.clientWidth, container.clientHeight);
@@ -138,21 +142,21 @@ export default function Chlorophyll() {
 
         screenManager = new ScreenManager(renderer, scene);
         screenManager.addScreen('main', {isOrtho: false, active: true});
-        var v = new THREE.Vector3();
+        let v = new THREE.Vector3();
         screenManager.activeScreen.camera.getWorldDirection(v);
-        var nv = v.clone().negate();
+        let nv = v.clone().negate();
         frontPlane = new THREE.Plane(v, Const.max_clip_plane);
-        backPlane =  new THREE.Plane(nv, Const.max_clip_plane);
+        backPlane = new THREE.Plane(nv, Const.max_clip_plane);
         renderer.clippingPlanes = [];
 
-        var model = initModelFromJson(scene, chrysanthemum);
+        let model = initModelFromJson(scene, chrysanthemum);
 
 
         /**************************
          * Viewport toolbar setup *
          **************************/
         toolbarManager = new Toolbar('Edit/Select', UI.toolbar, UI.menu);
-        toolbarManager.addTool("camera", {
+        toolbarManager.addTool('camera', {
             enable: function() {
                 screenManager.activeScreen.controlsEnabled = true;
             },
@@ -174,24 +178,24 @@ export default function Chlorophyll() {
         /******************************
          * Render settings dialog box *
          ******************************/
-        //TODO: unsure exactly where these settings should live
-        var rendering_win = new LiteGUI.Dialog('render_settings',
+        // TODO: unsure exactly where these settings should live
+        let rendering_win = new LiteGUI.Dialog('render_settings',
             {
-                title:'Viewport Settings',
+                title: 'Viewport Settings',
                 close: true,
                 width: 256,
                 scroll: true,
                 resizable: true,
                 draggable: true
             });
-        var rendering_widgets = new LiteGUI.Inspector();
-        rendering_widgets.addCheckbox("Clip view", false, function(val) {
+        let rendering_widgets = new LiteGUI.Inspector();
+        rendering_widgets.addCheckbox('Clip view', false, function(val) {
             if (val)
                 renderer.clippingPlanes = [frontPlane, backPlane];
             else
                 renderer.clippingPlanes = [];
         });
-        rendering_widgets.addDualSlider("Clipping", {left: -1000, right: 1000},
+        rendering_widgets.addDualSlider('Clipping', {left: -1000, right: 1000},
             {
                 min: -Const.max_clip_plane,
                 max: Const.max_clip_plane,
@@ -201,12 +205,12 @@ export default function Chlorophyll() {
                     frontPlane.constant = val.right;
                 }
             });
-        rendering_widgets.addSlider("Selection Threshold", selectionThreshold,
+        rendering_widgets.addSlider('Selection Threshold', selectionThreshold,
             { min: 0, max: 15, step: 0.1, callback: function(val) {
                     selectionThreshold = val;
                 }
             });
-        rendering_widgets.addCheckbox("Show Strips", false,
+        rendering_widgets.addCheckbox('Show Strips', false,
             { callback: function(val) {
                     model.setStripVisibility(val);
                 }
@@ -225,7 +229,7 @@ export default function Chlorophyll() {
     function animate() {
         requestAnimationFrame(animate);
 
-        var v = new THREE.Vector3();
+        let v = new THREE.Vector3();
         screenManager.activeScreen.camera.getWorldDirection(v);
         frontPlane.normal = v;
         backPlane.normal = v.clone().negate();

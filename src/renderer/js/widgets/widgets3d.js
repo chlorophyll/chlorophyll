@@ -4,7 +4,7 @@ import * as THREE from 'three';
  * 3d viewport UI components
  */
 export default function ViewportHandle(screen) {
-    var self = this;
+    let self = this;
 
     this.control = new THREE.TransformControls(screen.camera,
                                               screen.renderer.domElement);
@@ -13,23 +13,23 @@ export default function ViewportHandle(screen) {
         if (screen.isActive) self.control.update();
     });
 
-    var centerpoint_geom = new THREE.Geometry();
+    let centerpoint_geom = new THREE.Geometry();
     centerpoint_geom.vertices.push(new THREE.Vector3(0, 0, 0));
-    var centerpoint_mat = new THREE.PointsMaterial({size: 30, sizeAttenuation: true});
-    var centerpoint = new THREE.Points(centerpoint_geom, centerpoint_mat);
+    let centerpoint_mat = new THREE.PointsMaterial({size: 30, sizeAttenuation: true});
+    let centerpoint = new THREE.Points(centerpoint_geom, centerpoint_mat);
 
     /*
      * Aim to have the bounds of the bounding box be clear, but not obscure
      * the enclosed points too much.
      * TODO: highlight points contained (or not contained?) in box?
      */
-    var bounds_mat = new THREE.MeshBasicMaterial({
+    let bounds_mat = new THREE.MeshBasicMaterial({
         wireframe: true,
         wireframeLinewidth: 1,
         color: 0x808080
     });
 
-    var bounding_mesh = null;
+    let bounding_mesh = null;
 
     screen.scene.add(centerpoint);
     this.control.attach(centerpoint);
@@ -37,34 +37,34 @@ export default function ViewportHandle(screen) {
 
     this.setMode = function(mode) {
         // Disable scaling mode
-        if (mode === "translate" || mode === "rotate") {
+        if (mode === 'translate' || mode === 'rotate') {
             self.control.setMode(mode);
         }
-    }
+    };
 
     this.setBoundsPreview = function(shape) {
         if (bounding_mesh !== null)
             centerpoint.remove(bounding_mesh);
 
-        var geom;
-        if (shape === "cube") {
+        let geom;
+        if (shape === 'cube') {
             geom = new THREE.BoxGeometry(1, 1, 1);
-        } else if (shape === "cylinder") {
+        } else if (shape === 'cylinder') {
             // TODO cylinder needs rotated to match the right axis
             geom = new THREE.CylinderGeometry(0.5, 0.5, 1, 8);
-        } else if (shape === "sphere") {
+        } else if (shape === 'sphere') {
             geom = new THREE.SphereGeometry(0.5, 8, 6);
         }
         bounding_mesh = new THREE.Mesh(geom, bounds_mat);
         centerpoint.add(bounding_mesh);
-    }
+    };
 
     this.data = function() {
         return {
             pos: centerpoint.position,
             quaternion: centerpoint.quaternion
         };
-    }
+    };
 
     this.hide = function() {
         self.control.detach();
@@ -74,7 +74,7 @@ export default function ViewportHandle(screen) {
     this.show = function() {
         centerpoint.traverse(function (object) { object.visible = true; });
         self.control.attach(centerpoint);
-    }
+    };
 
     this.setPos = function(pos) {
         if (pos.isVector3) {
@@ -83,7 +83,7 @@ export default function ViewportHandle(screen) {
             centerpoint.position.fromArray(pos);
         }
         self.control.update();
-    }
+    };
 
     this.setRot = function(rot) {
         if (rot.isEuler) {
@@ -92,7 +92,7 @@ export default function ViewportHandle(screen) {
             centerpoint.setRotationFromQuaternion(rot);
         }
         self.control.update();
-    }
+    };
 
     this.setScale = function(scale) {
         if (scale.isVector3) {
@@ -101,5 +101,5 @@ export default function ViewportHandle(screen) {
             centerpoint.scale.set(scale[0], scale[1], scale[2]);
         }
         self.control.update();
-    }
+    };
 }

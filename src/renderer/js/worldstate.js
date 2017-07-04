@@ -2,20 +2,20 @@ import Immutable from 'immutable';
 
 export default function WorldState(start) {
 
-    var self = this;
+    let self = this;
 
     function restore() {
-        var snapshot = history[idx];
+        let snapshot = history[idx];
         for (prop in snapshot) {
             self[prop].restore(snapshot[prop]);
         }
     }
 
-    var history = [];
-    var idx = -1;
+    let history = [];
+    let idx = -1;
 
     this.checkpoint = function() {
-        var snapshot = {};
+        let snapshot = {};
         // future optimization: only snapshot properties that have changed
         // would be nice for not making empty snapshots as well.
         for (prop in self) {
@@ -26,7 +26,7 @@ export default function WorldState(start) {
         history = history.slice(0, idx + 1);
         history.push(snapshot);
         idx++;
-    }
+    };
 
     this.undo = function() {
         if (idx == 0)
@@ -34,14 +34,14 @@ export default function WorldState(start) {
 
         idx--;
         restore();
-    }
+    };
 
     this.redo = function() {
         if (idx == history.length-1)
             return;
         idx++;
         restore();
-    }
+    };
 
     // fill in initial properties
     for (prop in start) {

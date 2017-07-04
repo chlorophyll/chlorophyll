@@ -12,9 +12,9 @@ import keyboardJS from 'keyboardjs';
  */
 export default function Toolbar(managername, toolbar, menu) {
 
-    var self = this;
-    var tools = {};
-    var activeTool = null;
+    let self = this;
+    let tools = {};
+    let activeTool = null;
 
     this.setActiveTool = function(name) {
         if (activeTool != null)
@@ -29,7 +29,7 @@ export default function Toolbar(managername, toolbar, menu) {
         tool.ui_button.disabled = false;
         Util.hilightElement(tool.ui_button);
         activeTool = tool;
-    }
+    };
 
     this.exitActiveTool = function() {
         if (activeTool === null)
@@ -38,44 +38,44 @@ export default function Toolbar(managername, toolbar, menu) {
         activeTool.disable();
         Util.unhilightElement(activeTool.ui_button);
         activeTool = null;
-    }
+    };
 
     this.forEachTool = function(f) {
         for (name in tools) {
             if (tools.hasOwnProperty(name))
                 f(tools[name]);
         }
-    }
+    };
 
     this.enableButtons = function() {
         self.forEachTool(function(tool) {
             tool.ui_button.disabled = false;
             Util.unhilightElement(tool.ui_button);
         });
-    }
+    };
 
     this.disableButtons = function() {
         self.forEachTool(function(tool) {
             tool.ui_button.disabled = true;
             Util.unhilightElement(tool.ui_button);
         });
-    }
+    };
 
     this.addTool = function(name, tool, hotkey, momentary_hotkey) {
         tool.manager = self;
 
-        var f = function() {
+        let f = function() {
             self.setActiveTool(name);
-        }
+        };
 
-        var elem = toolbar.addButton(null, name, f);
+        let elem = toolbar.addButton(null, name, f);
         elem.classList.remove('even');
         elem = elem.querySelector('button');
         elem.disabled = true;
 
         keyboardJS.withContext('global', function() {
             keyboardJS.bind(hotkey, f);
-            var prev_tool = null;
+            let prev_tool = null;
             if (typeof momentary_hotkey !== 'undefined') {
                 keyboardJS.bind(momentary_hotkey, function() {
                     prev_tool = activeTool;
@@ -92,5 +92,5 @@ export default function Toolbar(managername, toolbar, menu) {
         tool.ui_button = elem;
 
         tools[name] = tool;
-    }
+    };
 }

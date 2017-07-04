@@ -8,40 +8,40 @@ export default GraphLib = (function() {
 
         constructor.type = path;
 
-        for (var key in GraphNode.prototype) {
+        for (let key in GraphNode.prototype) {
             if (!constructor.prototype[key])
                 constructor.prototype[key] = GraphNode.prototype[key];
         }
-    }
+    };
 
     this.getNodeTypes = function() {
         return this.node_types;
-    }
+    };
 
     return this;
 })();
 
 export function Graph() {
     Util.EventDispatcher.call(this);
-    var self = this;
+    let self = this;
 
-    var global_inputs = Immutable.Map();
-    var global_outputs = Immutable.Map();
+    let global_inputs = Immutable.Map();
+    let global_outputs = Immutable.Map();
 
-    var nodes = Immutable.OrderedMap(); // key: id, val: node
-    var edges_by_src = Immutable.Map(); // key: id, val: edge list
-    var edges_by_dst = Immutable.Map(); // key: id, slot; val: edge
+    let nodes = Immutable.OrderedMap(); // key: id, val: node
+    let edges_by_src = Immutable.Map(); // key: id, val: edge list
+    let edges_by_dst = Immutable.Map(); // key: id, slot; val: edge
 
-    var last_id = 0;
+    let last_id = 0;
 
     let GREY = 1;
     let BLACK = 2;
 
     function toposort() {
-        var ordered = [];
-        var stack = [];
+        let ordered = [];
+        let stack = [];
 
-        var visited = new Map();
+        let visited = new Map();
 
         nodes.forEach(function(source, source_id) {
             if (visited.has(source_id))
@@ -50,10 +50,10 @@ export function Graph() {
             stack.push([source_id, false]);
 
             while (stack.length > 0) {
-                var [id, processed] = stack.pop();
-                var node = nodes.get(id);
+                let [id, processed] = stack.pop();
+                let node = nodes.get(id);
                 if (!processed) {
-                    var marked = visited.get(id);
+                    let marked = visited.get(id);
 
                     if (marked == GREY)
                         throw 'cycle detected';
@@ -76,7 +76,7 @@ export function Graph() {
     this.dispatchChange = function(ev) {
         self.dispatchEvent(ev);
         self.dispatchEvent(new CustomEvent('graph-changed'));
-    }
+    };
 
     this.validConnection = function(src_type, dst_type) {
         if (!src_type || !dst_type)
@@ -95,27 +95,27 @@ export function Graph() {
         }
 
         return false;
-    }
+    };
 
     this.addNode = function(path, options) {
-        var constructor = GraphLib.node_types.get(path);
+        let constructor = GraphLib.node_types.get(path);
 
         if (!constructor) {
-            throw "unknown node type"+path;
+            throw 'unknown node type'+path;
         }
 
-        var options = options || {};
+        const options = options || {};
 
         if (!options.title)
             options.title = constructor.title || path;
 
         if (!options.id)
             options.id = last_id++;
-        var node = Object.create(constructor.prototype);
+        let node = Object.create(constructor.prototype);
         GraphNode.call(node);
         constructor.call(node);
 
-        for (var o in options) {
+        for (let o in options) {
             node[o] = options[o];
         }
 
@@ -134,7 +134,7 @@ export function Graph() {
         }));
 
         return node;
-    }
+    };
 
     this.removeNode = function(node) {
         self.forEachEdgeToNode(node, function(edge) {
@@ -152,17 +152,17 @@ export function Graph() {
                 node: node
             }
         }));
-    }
+    };
 
     this.connect = function(src, src_slot, dst, dst_slot) {
 
-        var src_type = src.outputs[src_slot].type;
-        var dst_type = dst.inputs[dst_slot].type;
+        let src_type = src.outputs[src_slot].type;
+        let dst_type = dst.inputs[dst_slot].type;
 
         if (!this.validConnection(src_type, dst_type))
             return false;
 
-        var edge = {
+        let edge = {
             id: last_id++,
             src_id: src.id,
             src_slot, src_slot,
@@ -170,11 +170,11 @@ export function Graph() {
             dst_slot: dst_slot,
         };
 
-        var old_src = edges_by_src;
-        var old_dst = edges_by_dst;
+        let old_src = edges_by_src;
+        let old_dst = edges_by_dst;
 
         edges_by_src = edges_by_src.updateIn([src.id, src_slot],
-            Immutable.Set(), edgelist => edgelist.add(edge));
+            Immutable.Set(), (edgelist) => edgelist.add(edge));
 
         prev_edge = edges_by_dst.getIn([dst.id, dst_slot]);
 
@@ -196,11 +196,11 @@ export function Graph() {
             edges_by_dst = old_dst;
             return false;
         }
-    }
+    };
 
     this.disconnect = function(edge) {
         edges_by_src = edges_by_src.updateIn([edge.src_id, edge.src_slot],
-            Immutable.Set(), edgelist => edgelist.delete(edge));
+            Immutable.Set(), (edgelist) => edgelist.delete(edge));
 
         edges_by_dst = edges_by_dst.deleteIn([edge.dst_id, edge.dst_slot]);
         self.dispatchChange(new CustomEvent('edge-removed', {
@@ -208,32 +208,32 @@ export function Graph() {
                 edge: edge
             }
         }));
-    }
+    };
 
     this.getNodeByInput = function(dst, dst_slot) {
-        var edge = edges_by_dst.getIn([dst.id, dst_slot]);
+        let edge = edges_by_dst.getIn([dst.id, dst_slot]);
 
         if (!edge)
             return null;
 
-        var node = nodes.get(edge.src_id);
+        let node = nodes.get(edge.src_id);
 
         return {
             node: node,
             slot: edge.src_slot
-        }
-    }
+        };
+    };
 
     this.getNodeById = function(node_id) {
         return nodes.get(node_id);
-    }
+    };
 
     this.runStep = function() {
         nodes.forEach(function(node, id) {
             node.clearOutgoingData();
             node.onExecute();
         });
-    }
+    };
 
     this.addGlobalInput = function(name, type) {
         global_inputs = global_inputs.set(name, {
@@ -241,19 +241,19 @@ export function Graph() {
             type: type,
             data: null,
         });
-    }
+    };
     this.removeGlobalInput = function(name) {
         global_inputs = global_inputs.delete(name);
-    }
+    };
 
     this.getGlobalInputData = function(name) {
         return global_inputs.get(name).data;
-    }
+    };
 
     this.setGlobalInputData = function(name, data) {
-        var input = global_inputs.get(name);
+        let input = global_inputs.get(name);
         input.data = data;
-    }
+    };
 
     this.addGlobalOutput = function(name, type) {
         global_outputs = global_outputs.set(name, {
@@ -261,51 +261,51 @@ export function Graph() {
             type: type,
             data: null,
         });
-    }
+    };
     this.removeGlobalOutput = function(name) {
         global_outputs = global_inputs.delete(name);
-    }
+    };
 
 
     this.setGlobalOutputData = function(name, data) {
-        var output = global_outputs.get(name);
+        let output = global_outputs.get(name);
         output.data = data;
-    }
+    };
 
     this.getGlobalOutputData = function(name, data) {
         return global_outputs.get(name).data;
-    }
+    };
 
     this.forEachNode = function(f) {
         return nodes.forEach(f);
-    }
+    };
 
     this.forEachEdgeToNode = function(node, f) {
-        var edges_by_slot = edges_by_dst.get(node.id);
+        let edges_by_slot = edges_by_dst.get(node.id);
 
         if (edges_by_slot !== undefined)
             edges_by_slot.forEach(f);
-    }
+    };
 
     this.numEdgesToNode = function(node) {
-        var edges_by_slot = edges_by_dst.get(node.id);
+        let edges_by_slot = edges_by_dst.get(node.id);
         if (edges_by_slot !== undefined) {
             return edges_by_slot.count();
         } else {
             return 0;
         }
-    }
+    };
 
     this.forEachEdgeFromNode = function(node, f) {
-        var edges_by_slot = edges_by_src.get(node.id);
+        let edges_by_slot = edges_by_src.get(node.id);
 
         if (edges_by_slot)
-            edges_by_slot.forEach(slot => slot.forEach(f));
-    }
+            edges_by_slot.forEach((slot) => slot.forEach(f));
+    };
 
     this.forEachEdgeFromSlot = function(node, slot, f) {
         edges_by_src.getIn([node.id, slot], Immutable.List()).forEach(f);
-    }
+    };
 
     this.numEdgesAtSlot = function(node, slot, is_input) {
         if (is_input)
@@ -313,54 +313,54 @@ export function Graph() {
 
         edgelist = edges_by_src.getIn([node.id, slot]);
         return edgelist ? edgelist.count() : 0;
-    }
+    };
 
     this.hasIncomingEdge = function(node, slot) {
         return self.getIncomingEdge(node, slot) !== undefined;
-    }
+    };
 
     this.getIncomingEdge = function(node, slot) {
         return edges_by_dst.getIn([node.id, slot]);
-    }
+    };
 
     this.forEachEdge = function(f) {
-        return self.forEachNode(node => self.forEachEdgeFromNode(node, f));
-    }
+        return self.forEachNode((node) => self.forEachEdgeFromNode(node, f));
+    };
 
     this.snapshot = function() {
-        var edges = [];
-        self.forEachEdge(edge => edges.push(Util.clone(edge)));
+        let edges = [];
+        self.forEachEdge((edge) => edges.push(Util.clone(edge)));
 
         return Immutable.fromJS({
-            nodes: nodes.map(node => node.snapshot()),
+            nodes: nodes.map((node) => node.snapshot()),
             edges: edges,
             global_inputs: global_inputs.map(function(input) {
                 return {
                     name: input.name,
                     type: input.type
-                }
+                };
             }),
             global_outputs: global_outputs.map(function(output) {
                 return {
                     name: output.name,
                     type: output.type
-                }
+                };
             }),
             last_id: last_id,
         });
-    }
+    };
 
     this.restore = function(snapshot) {
         nodes = snapshot.get('nodes').map(function(nodesnap, id) {
-            var existingNode = nodes.get(id);
+            let existingNode = nodes.get(id);
             if (existingNode) {
                 existingNode.restore(nodesnap);
                 return existingNode;
             } else {
-                var type = nodesnap.get('type');
-                var constructor = GraphLib.node_types.get(type);
+                let type = nodesnap.get('type');
+                let constructor = GraphLib.node_types.get(type);
 
-                var node = Object.create(constructor.prototype);
+                let node = Object.create(constructor.prototype);
                 GraphNode.call(node);
                 constructor.call(node);
                 node.restore(nodesnap);
@@ -373,12 +373,12 @@ export function Graph() {
         edges_by_src = edges_by_src.clear();
         edges_by_dst = edges_by_dst.clear();
 
-        var edges = snapshot.get('edges').toJS();
+        let edges = snapshot.get('edges').toJS();
 
         edges_by_src = edges_by_src.withMutations(function(mutable) {
             edges.forEach(function(edge) {
                 mutable.updateIn([edge.src_id, edge.src_slot],
-                    Immutable.Set(), edgelist => edgelist.add(edge));
+                    Immutable.Set(), (edgelist) => edgelist.add(edge));
             });
         });
 
@@ -395,7 +395,7 @@ export function Graph() {
                 name: input.name,
                 type: input.type,
                 data: null,
-            }
+            };
         });
 
         global_outputs = snapshot.get('global_outputs').map(function(output) {
@@ -403,21 +403,21 @@ export function Graph() {
                 name: output.name,
                 type: output.type,
                 data: null,
-            }
+            };
         });
 
         self.dispatchEvent(new CustomEvent('graph-restored'));
-    }
+    };
 
-    //hax below
+    // hax below
 
     this.serialize = function() {
         return {};
-    }
+    };
 
     this.configure = function() {
         return {};
-    }
+    };
 }
 
 
@@ -434,7 +434,7 @@ GraphNode.prototype.addInput = function(name, type) {
         name: name,
         type: type,
     });
-}
+};
 
 GraphNode.prototype.addOutput = function(name, type) {
     this.outputs.push({
@@ -442,25 +442,25 @@ GraphNode.prototype.addOutput = function(name, type) {
         type: type
     });
     this.outgoing_data.push(null);
-}
+};
 
 GraphNode.prototype.getOutgoingData = function(slot) {
-    var output = this.outputs[slot];
+    let output = this.outputs[slot];
 
-    var outgoing = this.outgoing_data[slot];
+    let outgoing = this.outgoing_data[slot];
 
     if (outgoing && output.type && output.type.isConvertibleUnit)
         outgoing = new output.type(outgoing.valueOf());
 
     return outgoing;
-}
+};
 
 GraphNode.prototype.getInputData = function(slot) {
-    var src = this.graph.getNodeByInput(this, slot);
+    let src = this.graph.getNodeByInput(this, slot);
 
-    var input = this.inputs[slot];
+    let input = this.inputs[slot];
 
-    var data = undefined;
+    let data = undefined;
     if (src) {
         data = src.node.getOutgoingData(src.slot);
     }
@@ -477,26 +477,26 @@ GraphNode.prototype.getInputData = function(slot) {
     }
 
     return data;
-}
+};
 
 GraphNode.prototype.setOutputData = function(slot, data) {
     this.outgoing_data[slot] = data;
-}
+};
 
-GraphNode.prototype.setPosition = function(x,y) {
-    this.pos = [x,y];
+GraphNode.prototype.setPosition = function(x, y) {
+    this.pos = [x, y];
     this.graph.dispatchChange(new CustomEvent('node-moved', {
         detail: {
             node: this,
             position: this.pos
         }
     }));
-}
+};
 
 GraphNode.prototype.clearOutgoingData = function() {
-    for (var i = 0; i < this.outgoing_data.length; i++)
+    for (let i = 0; i < this.outgoing_data.length; i++)
         this.outgoing_data[i] = null;
-}
+};
 
 GraphNode.prototype.modified = function() {
     this.graph.dispatchChange(new CustomEvent('node-modified', {
@@ -504,7 +504,7 @@ GraphNode.prototype.modified = function() {
             node: this
         }
     }));
-}
+};
 
 GraphNode.prototype.snapshot = function() {
     return Immutable.fromJS({
@@ -514,7 +514,7 @@ GraphNode.prototype.snapshot = function() {
         id: this.id,
         title: this.title,
     });
-}
+};
 
 GraphNode.prototype.restore = function(snapshot) {
     this.pos = snapshot.get('pos').toJS();
@@ -522,4 +522,4 @@ GraphNode.prototype.restore = function(snapshot) {
     this.type = snapshot.get('type');
     this.id = snapshot.get('id');
     this.title = snapshot.get('title');
-}
+};

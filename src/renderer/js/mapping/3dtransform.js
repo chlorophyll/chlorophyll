@@ -13,12 +13,12 @@ import { worldState } from 'chl/init';
  * cartesian, cylindrical (along any axis), or spherical coordinates.
  */
 export default function TransformMapping(manager, group, id, initname) {
-    Mapping.call(this, manager, group, id, initname)
-    var self = this;
+    Mapping.call(this, manager, group, id, initname);
+    let self = this;
 
-    this.display_name = "3D Transform";
+    this.display_name = '3D Transform';
     this.isTransform = true;
-    this.shape = "cube";
+    this.shape = 'cube';
     this.position = new THREE.Vector3(0, 0, 0);
     this.rotation = new THREE.Euler(0, 0, 0);
     this.scale = new THREE.Vector3(1, 1, 1);
@@ -28,7 +28,7 @@ export default function TransformMapping(manager, group, id, initname) {
     this.widget.setBoundsPreview(this.shape);
     this.widget.hide();
 
-    var ui_controls = {};
+    let ui_controls = {};
 
     function scaleToFitPoints() {
         if (!self.autoscale || self.position === null)
@@ -36,13 +36,13 @@ export default function TransformMapping(manager, group, id, initname) {
 
         // TODO scale based on preview shape - a sphere is strictly smaller than
         // the others, though, so it's a workable approximation.
-        var furthest = 0;
+        let furthest = 0;
         self.group.pixels.forEach(function(i) {
-            var dist = self.position.distanceToSquared(self.model.getPosition(i));
+            let dist = self.position.distanceToSquared(self.model.getPosition(i));
             if (dist > furthest)
                 furthest = dist;
         });
-        var scale_factor = 2 * Math.sqrt(furthest);
+        let scale_factor = 2 * Math.sqrt(furthest);
 
         self.scale.fromArray([scale_factor, scale_factor, scale_factor]);
         self.widget.setScale(self.scale);
@@ -62,7 +62,7 @@ export default function TransformMapping(manager, group, id, initname) {
             ui_controls.pos_widget.setValue(self.position.toArray(), true);
             // Euler angles return the order as well.
             ui_controls.rot_widget.setValue(self.rotation.toArray()
-                .slice(0, 3).map(x => x * THREE.Math.RAD2DEG), true);
+                .slice(0, 3).map((x) => x * THREE.Math.RAD2DEG), true);
             ui_controls.scale_widget.setValue(self.scale.toArray(), true);
         }
 
@@ -74,9 +74,9 @@ export default function TransformMapping(manager, group, id, initname) {
      * Returns new coordinates for the point in local cartesian space.
      */
     function transformPoint(idx) {
-        var pos = self.model.getPosition(idx);
-        var fromOrigin = pos.clone().sub(self.position);
-        var rot_inv = new THREE.Quaternion();
+        let pos = self.model.getPosition(idx);
+        let fromOrigin = pos.clone().sub(self.position);
+        let rot_inv = new THREE.Quaternion();
         rot_inv.setFromEuler(self.rotation).inverse();
         fromOrigin.applyQuaternion(rot_inv);
         fromOrigin.divide(self.scale);
@@ -85,27 +85,27 @@ export default function TransformMapping(manager, group, id, initname) {
     }
 
     this.map_types.cartesian3d = {
-        name: "3D Cartesian",
+        name: '3D Cartesian',
         mapPoint: transformPoint
     };
 
     this.map_types.cylinder3d = {
-        name: "3D Cylindrical",
+        name: '3D Cylindrical',
         mapPoint: function(idx) {
-            var cart = transformPoint(idx);
+            let cart = transformPoint(idx);
             // x, y, z -> r, theta, z
-            var polar = new THREE.Vector2(cart.x, cart.y);
+            let polar = new THREE.Vector2(cart.x, cart.y);
             return new THREE.Vector3(polar.length(), polar.angle(), cart.z);
         }
     };
 
     this.map_types.sphere3d = {
-        name: "3D Spherical",
+        name: '3D Spherical',
         mapPoint: function(idx) {
-            var cart = transformPoint(idx);
-            var r = cart.length();
-            var theta = (r == 0) ? 0 : Math.acos(cart.z / r);
-            var phi = (r == 0) ? 0 : Math.atan2(cart.y, cart.x);
+            let cart = transformPoint(idx);
+            let r = cart.length();
+            let theta = (r == 0) ? 0 : Math.acos(cart.z / r);
+            let phi = (r == 0) ? 0 : Math.atan2(cart.y, cart.x);
             return new THREE.Vector3(r, theta, phi);
         }
     };
@@ -129,9 +129,9 @@ export default function TransformMapping(manager, group, id, initname) {
         self.widget.setScale(self.scale);
 
         ui_controls.previewshape_widget = inspector.addComboButtons(
-            'Preview', "cube",
+            'Preview', 'cube',
             {
-                values: ["cube", "cylinder", "sphere"],
+                values: ['cube', 'cylinder', 'sphere'],
                 callback: function(v) {
                     self.shape = v;
                     update(true);
@@ -139,13 +139,13 @@ export default function TransformMapping(manager, group, id, initname) {
             });
 
         ui_controls.controlmode_widget = inspector.addComboButtons(
-            'Control mode', "translate",
+            'Control mode', 'translate',
             {
-                values: ["translate", "rotate"],
+                values: ['translate', 'rotate'],
                 callback: self.widget.setMode
             });
 
-        ui_controls.pos_widget = inspector.addVector3("Position",
+        ui_controls.pos_widget = inspector.addVector3('Position',
             self.position.toArray(),
             {
                 precision: 1,
@@ -155,18 +155,18 @@ export default function TransformMapping(manager, group, id, initname) {
                 }
             });
 
-        ui_controls.rot_widget = inspector.addVector3("Rotation",
-            self.rotation.toArray().slice(0, 3).map(x => x * THREE.Math.RAD2DEG),
+        ui_controls.rot_widget = inspector.addVector3('Rotation',
+            self.rotation.toArray().slice(0, 3).map((x) => x * THREE.Math.RAD2DEG),
             {
                 min: -180, max: 180,
                 precision: 1,
                 callback: function(v) {
-                    self.rotation.fromArray(v.map(x => x * THREE.Math.DEG2RAD));
+                    self.rotation.fromArray(v.map((x) => x * THREE.Math.DEG2RAD));
                     update(false);
                 }
             });
 
-        ui_controls.scale_widget = inspector.addVector3("Scale",
+        ui_controls.scale_widget = inspector.addVector3('Scale',
             self.scale.toArray(),
             {
                 precision: 1,
@@ -177,7 +177,7 @@ export default function TransformMapping(manager, group, id, initname) {
                 }
             });
 
-        inspector.addTitle("Reset:");
+        inspector.addTitle('Reset:');
         inspector.widgets_per_row = 3;
         inspector.addButton(null, 'Position', function() {
             self.position.fromArray([0, 0, 0]);
@@ -195,14 +195,14 @@ export default function TransformMapping(manager, group, id, initname) {
         });
         inspector.widgets_per_row = 1;
 
-        inspector.addCheckbox("Auto Scale", self.autoscale, function(val) {
+        inspector.addCheckbox('Auto Scale', self.autoscale, function(val) {
             self.autoscale = val;
             if (val)
                 update(true);
         });
 
-        self.widget.control.addEventListener("objectChange", function() {
-            var transform = self.widget.data();
+        self.widget.control.addEventListener('objectChange', function() {
+            let transform = self.widget.data();
             self.position = transform.pos;
             self.rotation.setFromQuaternion(transform.quaternion);
             update(true);
@@ -210,10 +210,10 @@ export default function TransformMapping(manager, group, id, initname) {
 
         scaleToFitPoints();
 
-        self.widget.control.addEventListener("mouseUp", function() {
+        self.widget.control.addEventListener('mouseUp', function() {
             worldState.checkpoint();
         });
-    }
+    };
 
     this.hideConfig = function() {
         if (!self.configuring) return;
@@ -222,16 +222,16 @@ export default function TransformMapping(manager, group, id, initname) {
         self.model.showUnderlyingModel();
         self.widget.hide();
 
-        self.widget.control.removeEventListener("objectChange");
-        self.widget.control.removeEventListener("mouseUp");
+        self.widget.control.removeEventListener('objectChange');
+        self.widget.control.removeEventListener('mouseUp');
         ui_controls.inspector.clear();
         ui_controls = {};
-    }
+    };
 
     this.destroy = function() {
         self.hideConfig();
         manager.tree.removeItem(self.tree_id);
-    }
+    };
 
     this.snapshot = function() {
         return Immutable.fromJS({
@@ -245,7 +245,7 @@ export default function TransformMapping(manager, group, id, initname) {
             scale: self.scale.toArray(),
             autoscale: self.autoscale
         });
-    }
+    };
 
     this.restore = function(snapshot) {
         self.id = snapshot.get('id');
@@ -258,5 +258,5 @@ export default function TransformMapping(manager, group, id, initname) {
         self.autoscale = snapshot.get('autoscale');
         // Only update the UI if it's open
         update(self.configuring);
-    }
+    };
 }

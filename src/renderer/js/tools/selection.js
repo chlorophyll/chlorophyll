@@ -18,7 +18,7 @@ function isClipped(v) {
  * name argument is any arbitrary unique string to refer to the tool.
  */
 function SelectionTool(viewport, model, name) {
-    var self = this;
+    let self = this;
 
     this.viewport = viewport !== undefined ? viewport : document;
     this.model = model;
@@ -54,10 +54,10 @@ function SelectionTool(viewport, model, name) {
             worldState.activeSelection.clear();
             worldState.checkpoint();
         }
-    }
+    };
 
-    var enabled_kb_ctx = name + '-seltool-enabled';
-    var selecting_kb_ctx = name + '-seltool-selecting';
+    let enabled_kb_ctx = name + '-seltool-enabled';
+    let selecting_kb_ctx = name + '-seltool-selecting';
 
     // Called when the tool is activated
     this.enable = function() {
@@ -104,7 +104,7 @@ function SelectionTool(viewport, model, name) {
 
         if (self.cancellable)
             keyboardJS.setContext(selecting_kb_ctx);
-    }
+    };
 
     function endSelection() {
         self.in_progress = false;
@@ -119,7 +119,7 @@ function SelectionTool(viewport, model, name) {
         worldState.activeSelection.setAll(self.current_selection);
         endSelection();
         worldState.checkpoint();
-    }
+    };
 
     // Don't exit the tool, but stop selecting and throw out state, returning
     // to before the selection
@@ -127,7 +127,7 @@ function SelectionTool(viewport, model, name) {
         worldState.activeSelection.setAllFromSet(self.initial_selection);
         self.reset();
         endSelection();
-    }
+    };
 
     keyboardJS.withContext(enabled_kb_ctx, function() {
         keyboardJS.bind(Hotkey.cancel_selection, self.deselectAll);
@@ -140,10 +140,10 @@ function SelectionTool(viewport, model, name) {
 }
 
 export function MarqueeSelection(viewport, model) {
-    SelectionTool.call(this, viewport, model, "marquee");
-    var self = this;
+    SelectionTool.call(this, viewport, model, 'marquee');
+    let self = this;
 
-    var rect = {};
+    let rect = {};
 
     this.box = document.createElement('div');
     this.box.style.position = 'absolute';
@@ -166,7 +166,7 @@ export function MarqueeSelection(viewport, model) {
 
         self.startSelection(event);
 
-        var coords = Util.relativeCoords(container, event.pageX, event.pageY);
+        let coords = Util.relativeCoords(container, event.pageX, event.pageY);
         rect.startX = coords.x;
         rect.startY = coords.y;
         self.box.style.display = 'block';
@@ -199,21 +199,21 @@ export function MarqueeSelection(viewport, model) {
     }
 
     function selectPoints() {
-        var l = Math.min(rect.startX, rect.endX);
-        var r = Math.max(rect.startX, rect.endX);
-        var t = Math.min(rect.startY, rect.endY);
-        var b = Math.max(rect.startY, rect.endY);
+        let l = Math.min(rect.startX, rect.endX);
+        let r = Math.max(rect.startX, rect.endX);
+        let t = Math.min(rect.startY, rect.endY);
+        let b = Math.max(rect.startY, rect.endY);
 
         self.current_selection.clear();
         self.current_selection.setAllFromSet(self.initial_selection,
                                              self.highlight);
 
         self.model.forEach(function(strip, i) {
-            var v = self.model.getPosition(i);
+            let v = self.model.getPosition(i);
             if (isClipped(v))
                 return;
 
-            var s = screenManager.activeScreen.screenCoords(v);
+            let s = screenManager.activeScreen.screenCoords(v);
 
             if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
                 if (self.subtracting) {
@@ -231,7 +231,7 @@ export function MarqueeSelection(viewport, model) {
 
         event.preventDefault();
 
-        var coords = Util.relativeCoords(container, event.pageX, event.pageY);
+        let coords = Util.relativeCoords(container, event.pageX, event.pageY);
         rect.endX = coords.x;
         rect.endY = coords.y;
 
@@ -240,14 +240,14 @@ export function MarqueeSelection(viewport, model) {
     }
 
     this.reset = function() {
-    }
+    };
 }
 
 export function LineSelection(viewport, model) {
-    SelectionTool.call(this, viewport, model, "line");
-    var self = this;
+    SelectionTool.call(this, viewport, model, 'line');
+    let self = this;
 
-    var p1 = undefined;
+    let p1 = undefined;
 
     this.viewport.addEventListener('mousedown', onMouseDown, false);
 
@@ -255,8 +255,8 @@ export function LineSelection(viewport, model) {
         if (!self.enabled)
             return;
 
-        var coords = Util.relativeCoords(container, event.pageX, event.pageY);
-        var chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
+        let coords = Util.relativeCoords(container, event.pageX, event.pageY);
+        let chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
         if (!chosen)
             return;
 
@@ -265,19 +265,19 @@ export function LineSelection(viewport, model) {
             p1 = chosen.index;
             self.current_selection.set(p1, self.highlight);
         } else {
-            var p2 = chosen.index;
+            let p2 = chosen.index;
             self.current_selection.set(p2, self.highlight);
-            var pos1 = self.model.getPosition(p1);
-            var pos2 = self.model.getPosition(p2);
-            var line = new THREE.Line3(pos1, pos2);
+            let pos1 = self.model.getPosition(p1);
+            let pos2 = self.model.getPosition(p2);
+            let line = new THREE.Line3(pos1, pos2);
 
             // Reduce search to points within a sphere containing the line
-            var midPoint = pos1.clone().add(pos2).divideScalar(2);
-            var rad = midPoint.clone().sub(pos1).length() + 0.1;
-            var points = self.model.pointsWithinRadius(midPoint, rad);
+            let midPoint = pos1.clone().add(pos2).divideScalar(2);
+            let rad = midPoint.clone().sub(pos1).length() + 0.1;
+            let points = self.model.pointsWithinRadius(midPoint, rad);
 
-            for (var i = 0; i < points.length; i++) {
-                var dist = Util.distanceToLine(points[i].position, line);
+            for (let i = 0; i < points.length; i++) {
+                let dist = Util.distanceToLine(points[i].position, line);
                 if (dist < selectionThreshold) {
                     self.current_selection.set(points[i].index, self.highlight);
                 }
@@ -290,23 +290,23 @@ export function LineSelection(viewport, model) {
 }
 
 export function PlaneSelection(viewport, model) {
-    SelectionTool.call(this, viewport, model, "plane");
-    var self = this;
+    SelectionTool.call(this, viewport, model, 'plane');
+    let self = this;
 
-    var points = [];
+    let points = [];
 
     this.viewport.addEventListener('mousedown', onMouseDown, false);
 
     this.reset = function() {
         points = [];
-    }
+    };
 
     function onMouseDown(event) {
         if (!self.enabled)
             return;
 
-        var coords = Util.relativeCoords(container, event.pageX, event.pageY);
-        var chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
+        let coords = Util.relativeCoords(container, event.pageX, event.pageY);
+        let chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
         if (!chosen)
             return;
 
@@ -325,16 +325,16 @@ export function PlaneSelection(viewport, model) {
         }
 
         if (points.length == 3) {
-            var line = new THREE.Line3(points[0], points[1]);
-            var dist = Util.distanceToLine(points[2], line, false);
+            let line = new THREE.Line3(points[0], points[1]);
+            let dist = Util.distanceToLine(points[2], line, false);
 
             if (dist < selectionThreshold) {
-                LiteGUI.showMessage("Points must not be collinear");
+                LiteGUI.showMessage('Points must not be collinear');
                 points = [];
                 self.cancelSelection();
                 return;
             }
-            var plane = new THREE.Plane().setFromCoplanarPoints(points[0], points[1], points[2]);
+            let plane = new THREE.Plane().setFromCoplanarPoints(points[0], points[1], points[2]);
 
             self.model.forEach(function(strip, i) {
                 if (Math.abs(plane.distanceToPoint(self.model.getPosition(i))) < selectionThreshold) {

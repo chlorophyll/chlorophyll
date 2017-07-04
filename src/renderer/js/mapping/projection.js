@@ -9,9 +9,9 @@ import { CartesianAxes } from 'chl/widgets/axes2d';
 export default function ProjectionMapping(manager, group, id, initname) {
 
     Mapping.call(this, manager, group, id, initname);
-    var self = this;
+    let self = this;
 
-    this.display_name = "2D Projection";
+    this.display_name = '2D Projection';
     this.isProjection = true;
 
     this.mapping_valid = false;
@@ -19,45 +19,45 @@ export default function ProjectionMapping(manager, group, id, initname) {
 
     this.widget = new CartesianAxes(container);
 
-    var ui_controls = {};
+    let ui_controls = {};
 
-    var screen = screenManager.addScreen(this.tree_id,
+    let screen = screenManager.addScreen(this.tree_id,
             {isOrtho: true, inheritOrientation: true});
 
     function projectPoint(idx) {
-        var pos = self.model.getPosition(idx);
-        var fromOrigin = pos.clone().sub(self.proj_plane.origin);
+        let pos = self.model.getPosition(idx);
+        let fromOrigin = pos.clone().sub(self.proj_plane.origin);
         return new THREE.Vector2(self.proj_plane.xaxis.dot(fromOrigin),
                                  self.proj_plane.yaxis.dot(fromOrigin));
     }
 
     this.map_types.cartesian2d = {
-        name: "2D Cartesian",
+        name: '2D Cartesian',
         mapPoint: projectPoint
     };
 
     this.map_types.polar2d = {
-        name: "2D Polar",
+        name: '2D Polar',
         mapPoint: function(idx) {
-            var point = projectPoint(idx);
+            let point = projectPoint(idx);
             // map from x,y -> r, theta
             return new THREE.Vector2(point.length(), point.angle());
         }
     };
 
     this.setFromCamera = function() {
-        var origin = self.widget.data();
+        let origin = self.widget.data();
         screen.camera.updateMatrixWorld();
-        var cam_quaternion = screen.camera.quaternion.clone();
+        let cam_quaternion = screen.camera.quaternion.clone();
 
         // Create plane from the camera's look vector
-        var plane_normal = new THREE.Vector3(0, 0, -1);
+        let plane_normal = new THREE.Vector3(0, 0, -1);
         plane_normal.applyQuaternion(cam_quaternion).normalize();
-        var plane = new THREE.Plane(plane_normal);
+        let plane = new THREE.Plane(plane_normal);
         self.proj_plane.euler = screen.camera.rotation.clone();
 
         // Create axes for the projection and rotate them appropriately
-        var up = screen.camera.up.clone();
+        let up = screen.camera.up.clone();
         self.proj_plane.yaxis = up.applyQuaternion(cam_quaternion);
         self.proj_plane.yaxis.applyAxisAngle(plane_normal, origin.angle);
         self.proj_plane.yaxis.normalize();
@@ -67,28 +67,28 @@ export default function ProjectionMapping(manager, group, id, initname) {
 
         // Project the screen position of the origin widget onto the proejction
         // plane.  This is the 3d position of the mapping origin.
-        var raycaster = new THREE.Raycaster();
-        var widgetpos = new THREE.Vector2(origin.x, origin.y);
+        let raycaster = new THREE.Raycaster();
+        let widgetpos = new THREE.Vector2(origin.x, origin.y);
         raycaster.setFromCamera(widgetpos, screen.camera);
         self.proj_plane.origin = raycaster.ray.intersectPlane(plane);
 
         // generate normalization factor once
-        var pixels = group.pixels.map(i => [i, projectPoint(i)]);
+        let pixels = group.pixels.map((i) => [i, projectPoint(i)]);
 
         self.mapping_valid = true;
 
         self.dispatchEvent(new CustomEvent('change'));
-    }
+    };
 
     /* Updates the camera projection and shows it in the ui */
-    var setProjection = function() {
-        var angle = screen.camera.rotation;
+    let setProjection = function() {
+        let angle = screen.camera.rotation;
         ui_controls.cam_angle_widget.setValue(
             [angle.x * THREE.Math.RAD2DEG,
              angle.y * THREE.Math.RAD2DEG,
              angle.z * THREE.Math.RAD2DEG], true);
         self.setFromCamera();
-    }
+    };
 
     this.hideConfig = function() {
         self.model.showUnderlyingModel();
@@ -100,7 +100,7 @@ export default function ProjectionMapping(manager, group, id, initname) {
         screen.controls.removeEventListener('end', setProjection);
         ui_controls.inspector.clear();
         ui_controls = {};
-    }
+    };
 
     /*
      * When the projection origin widget is moved, re-generate the mapping
@@ -108,7 +108,7 @@ export default function ProjectionMapping(manager, group, id, initname) {
      */
     function onWidgetChange(evt) {
         self.setFromCamera();
-        var map_origin = self.proj_plane.origin;
+        let map_origin = self.proj_plane.origin;
         ui_controls.origin_pos_widget.setValue(
             [map_origin.x, map_origin.y, map_origin.z], true);
     }
@@ -128,16 +128,16 @@ export default function ProjectionMapping(manager, group, id, initname) {
         screen.controls.addEventListener('end', setProjection);
 
         // Default values for position/angle settings
-        var origin_pos = [0,0,0];
-        var plane_angle = screen.camera.rotation;
+        let origin_pos = [0, 0, 0];
+        let plane_angle = screen.camera.rotation;
         if (self.mapping_valid) {
-            var map_origin = self.proj_plane.origin;
+            let map_origin = self.proj_plane.origin;
             origin_pos = [map_origin.x, map_origin.y, map_origin.z];
             plane_angle = self.proj_plane.euler;
         }
 
         // display as degrees for human readability
-        ui_controls.cam_angle_widget = inspector.addVector3("plane normal",
+        ui_controls.cam_angle_widget = inspector.addVector3('plane normal',
             [plane_angle.x * THREE.Math.RAD2DEG,
              plane_angle.y * THREE.Math.RAD2DEG,
              plane_angle.z * THREE.Math.RAD2DEG],
@@ -146,7 +146,7 @@ export default function ProjectionMapping(manager, group, id, initname) {
                 precision: 1,
                 callback: function(v) {
                     // Rotate the camera to the set angle
-                    var new_normal = new THREE.Vector3(0, 0, 1);
+                    let new_normal = new THREE.Vector3(0, 0, 1);
                     new_normal.applyEuler(new THREE.Euler(
                         v[0] * THREE.Math.DEG2RAD,
                         v[1] * THREE.Math.DEG2RAD,
@@ -157,28 +157,28 @@ export default function ProjectionMapping(manager, group, id, initname) {
                 }
             });
 
-        ui_controls.origin_pos_widget = inspector.addVector3("origin position",
+        ui_controls.origin_pos_widget = inspector.addVector3('origin position',
             origin_pos, {
                 disabled: true,
                 precision: 1,
             });
 
         self.widget.addEventListener('change', onWidgetChange);
-    }
+    };
 
     this.destroy = function() {
         if (self.configuring)
             self.hideConfig();
         manager.tree.removeItem(self.tree_id);
-    }
+    };
 
     this.snapshot = function() {
         if (self.configuring) {
-            console.error("Attempted to snapshot ", self.tree_id,
-                " while configuring");
+            console.error('Attempted to snapshot ', self.tree_id,
+                ' while configuring');
         }
-        var widgetdata = self.widget.data();
-        var snap = {
+        let widgetdata = self.widget.data();
+        let snap = {
             map_class: 'projection',
             name: self.name,
             id: self.id,
@@ -188,13 +188,13 @@ export default function ProjectionMapping(manager, group, id, initname) {
             widget_x: widgetdata.x,
             widget_y: widgetdata.y,
             widget_angle: widgetdata.angle
-        }
+        };
         if (self.mapping_valid) {
-            var normal = self.proj_plane.euler;
+            let normal = self.proj_plane.euler;
             snap.plane_normal = normal.toArray();
         }
         return Immutable.fromJS(snap);
-    }
+    };
 
     this.restore = function(snapshot) {
         if (self.configuring) {
@@ -208,11 +208,11 @@ export default function ProjectionMapping(manager, group, id, initname) {
         self.mapping_valid = snapshot.get('mapping_valid');
         self.normalize = snapshot.get('normalize');
         if (self.mapping_valid) {
-            var norm = snapshot.get('plane_normal');
-            var euler = new THREE.Euler().fromArray(norm.toArray());
-            var cam_up = new THREE.Vector3(0, 0, 1);
+            let norm = snapshot.get('plane_normal');
+            let euler = new THREE.Euler().fromArray(norm.toArray());
+            let cam_up = new THREE.Vector3(0, 0, 1);
             Util.alignWithVector(cam_up.applyEuler(euler), screen.camera);
             self.setFromCamera();
         }
-    }
+    };
 }

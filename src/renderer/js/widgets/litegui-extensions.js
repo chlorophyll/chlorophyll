@@ -1,12 +1,12 @@
 LiteGUI.DualSlider = function(value, options) {
     options = options || {};
-    this.root = document.createElement("div");
+    this.root = document.createElement('div');
     this.root.style.display = 'inline-block';
     this.root.style.width = 'calc(100% - 6.5em)';
     this.root.style.height = '1.2em';
     this.root.style.position = 'relative';
 
-    var slider = document.createElement('div');
+    let slider = document.createElement('div');
 
     slider.style.position = 'relative';
     slider.style.backgroundColor = '#999';
@@ -16,26 +16,26 @@ LiteGUI.DualSlider = function(value, options) {
 
     this.root.appendChild(slider);
 
-    var self = this;
+    let self = this;
 
     this.value = value; // should be an object with left and right
 
-    var min = options.min || 0.0;
-    var max = options.max || 1.0;
+    let min = options.min || 0.0;
+    let max = options.max || 1.0;
 
-    var range = max - min;
+    let range = max - min;
 
     this.setValue = function(value, skip_event) {
         if (value.left > value.right) {
-            var temp = value.left;
+            let temp = value.left;
             value.left = value.right;
             value.right = temp;
         }
-        var left = Util.clamp(value.left, min, max);
-        var right = Util.clamp(value.right, min, max);
+        let left = Util.clamp(value.left, min, max);
+        let right = Util.clamp(value.right, min, max);
 
-        var normleft = (left - min) / range;
-        var normright = (right - min) / range;
+        let normleft = (left - min) / range;
+        let normright = (right - min) / range;
 
         slider.style.left = (normleft*100) + '%';
         slider.style.width = ((normright-normleft)*100) + '%';
@@ -44,20 +44,20 @@ LiteGUI.DualSlider = function(value, options) {
             self.value.left = left;
             self.value.right = right;
             if (!skip_event)
-                LiteGUI.trigger(self.root, "change", self.value);
+                LiteGUI.trigger(self.root, 'change', self.value);
         }
-    }
+    };
 
     function setFromX(x) {
-        var width = self.root.clientWidth;
-        var norm = x / width;
+        let width = self.root.clientWidth;
+        let norm = x / width;
 
-        var val = range * norm + min;
+        let val = range * norm + min;
 
-        var value = {
+        let value = {
             left: self.value.left,
             right: self.value.right
-        }
+        };
 
         if (Math.abs(val - value.left) < Math.abs(val - value.right)) {
             value.left = val;
@@ -67,13 +67,13 @@ LiteGUI.DualSlider = function(value, options) {
         self.setValue(value);
     }
 
-    var doc_binded = null;
+    let doc_binded = null;
 
-    self.root.addEventListener("mousedown", function(e) {
+    self.root.addEventListener('mousedown', function(e) {
         setFromX(Util.relativeCoords(self.root, e.pageX, e.pageY).x);
         doc_binded = self.root.ownerDocument;
-        doc_binded.addEventListener("mousemove", onMouseMove);
-        doc_binded.addEventListener("mouseup", onMouseUp);
+        doc_binded.addEventListener('mousemove', onMouseMove);
+        doc_binded.addEventListener('mouseup', onMouseUp);
     });
 
     function onMouseMove(e) {
@@ -83,27 +83,27 @@ LiteGUI.DualSlider = function(value, options) {
     }
 
     function onMouseUp(e) {
-        var doc = doc_binded || document;
+        let doc = doc_binded || document;
         doc_binded = null;
-        doc.removeEventListener("mousemove", onMouseMove);
-        doc.removeEventListener("mouseup", onMouseUp);
+        doc.removeEventListener('mousemove', onMouseMove);
+        doc.removeEventListener('mouseup', onMouseUp);
         e.preventDefault();
         return false;
     }
 
     this.setValue(value);
-}
+};
 
 LiteGUI.Slider = function(value, options) {
     options = options || {};
-    this.root = document.createElement("div");
+    this.root = document.createElement('div');
     this.root.style.display = 'inline-block';
     this.root.style.width = 'calc(100% - 3.5em)';
     this.root.style.float = 'right';
     this.root.style.height = '1.2em';
     this.root.style.position = 'relative';
 
-    var slider = document.createElement('div');
+    let slider = document.createElement('div');
 
     slider.style.position = 'relative';
     slider.style.backgroundColor = '#999';
@@ -113,45 +113,45 @@ LiteGUI.Slider = function(value, options) {
 
     this.root.appendChild(slider);
 
-    var self = this;
+    let self = this;
 
     this.value = value; // should be an object with left and right
 
-    var min = options.min || 0.0;
-    var max = options.max || 1.0;
+    let min = options.min || 0.0;
+    let max = options.max || 1.0;
 
-    var range = max - min;
+    let range = max - min;
 
     this.setValue = function(value, skip_event) {
-        var value = Util.clamp(value, min, max);
+        let value = Util.clamp(value, min, max);
 
-        var norm = (value - min) / range;
+        let norm = (value - min) / range;
 
         slider.style.width = (norm*100) + '%';
 
         if (value != self.value) {
             self.value = value;
             if (!skip_event)
-                LiteGUI.trigger(self.root, "change", value);
+                LiteGUI.trigger(self.root, 'change', value);
         }
-    }
+    };
 
     function setFromX(x) {
-        var width = self.root.clientWidth;
-        var norm = x / width;
+        let width = self.root.clientWidth;
+        let norm = x / width;
 
-        var val = range * norm + min;
+        let val = range * norm + min;
 
         self.setValue(val);
     }
 
-    var doc_binded = null;
+    let doc_binded = null;
 
-    self.root.addEventListener("mousedown", function(e) {
+    self.root.addEventListener('mousedown', function(e) {
         setFromX(Util.relativeCoords(self.root, e.pageX, e.pageY).x);
         doc_binded = self.root.ownerDocument;
-        doc_binded.addEventListener("mousemove", onMouseMove);
-        doc_binded.addEventListener("mouseup", onMouseUp);
+        doc_binded.addEventListener('mousemove', onMouseMove);
+        doc_binded.addEventListener('mouseup', onMouseUp);
     });
 
     function onMouseMove(e) {
@@ -161,10 +161,10 @@ LiteGUI.Slider = function(value, options) {
     }
 
     function onMouseUp(e) {
-        var doc = doc_binded || document;
+        let doc = doc_binded || document;
         doc_binded = null;
-        doc.removeEventListener("mousemove", onMouseMove);
-        doc.removeEventListener("mouseup", onMouseUp);
+        doc.removeEventListener('mousemove', onMouseMove);
+        doc.removeEventListener('mouseup', onMouseUp);
         e.preventDefault();
         return false;
     }
@@ -173,38 +173,38 @@ LiteGUI.Slider = function(value, options) {
 };
 
 (function() {
-var oldSlider = LiteGUI.Inspector.prototype.addSlider;
+let oldSlider = LiteGUI.Inspector.prototype.addSlider;
 LiteGUI.Inspector.prototype.addSlider = function(name, value, options) {
-    var element = oldSlider.call(this, name, value, options);
-    var sliderText = element.querySelector('.slider-text');
+    let element = oldSlider.call(this, name, value, options);
+    let sliderText = element.querySelector('.slider-text');
     sliderText.style.width = '2em';
     return element;
-}
+};
 
 LiteGUI.Inspector.prototype.addQuantity = function(name, value, options) {
-    var self = this;
+    let self = this;
 
     options = this.processOptions(options);
 
     value = value || {number: 0, units: options.units[0]};
 
-    var element = this.createWidget(name,"", options);
+    let element = this.createWidget(name, '', options);
     this.append(element, options);
 
     self.values[name] = value;
 
-    var units = options.units;
+    let units = options.units;
     options.units = null;
-    options.extraclass = "full";
+    options.extraclass = 'full';
     options.tab_index = this.tab_index;
     options.full = true;
     options.precision = options.precision !== undefined ? options.precision : 2;
     options.step = options.step === undefined ? (options.precision == 0 ? 1 : 0.1) : options.step;
     this.tab_index++;
 
-    var dragger = new LiteGUI.Dragger(value.number, options);
-    var div = dragger.root;
-    var input = dragger.input;
+    let dragger = new LiteGUI.Dragger(value.number, options);
+    let div = dragger.root;
+    let input = dragger.input;
     element.content.appendChild(div);
     div.style.width = 'calc(99% - 4em - 5px)';
     div.style.display = 'inline-block';
@@ -212,29 +212,29 @@ LiteGUI.Inspector.prototype.addQuantity = function(name, value, options) {
     input.addEventListener('change', function(e) {
         value.number = e.target.value;
         if (options.callback) {
-            var ret = options.callback.call(element, element.getValue());
+            let ret = options.callback.call(element, element.getValue());
             if (ret !== undefined) {
                 element.setValue(ret);
             }
         }
     });
 
-    var select = document.createElement('select');
+    let select = document.createElement('select');
     element.content.appendChild(select);
     select.style.width = '4em';
     options = this.processOptions(options);
-    for (var i = 0; i < units.length; i++) {
-        var option = document.createElement('option');
+    for (let i = 0; i < units.length; i++) {
+        let option = document.createElement('option');
         option.value = units[i];
         option.innerText = units[i];
         select.appendChild(option);
     }
     select.value = value.units;
     select.addEventListener('change', function() {
-        var old = value.units;
+        let old = value.units;
         value.units = select.value;
         if (options.callback) {
-            var ret = options.callback.call(element, element.getValue(), old);
+            let ret = options.callback.call(element, element.getValue(), old);
             if (ret !== undefined) {
                 element.setValue(ret);
             }
@@ -387,22 +387,22 @@ Inspector.prototype.addColor = function(name, value, options) {
     }
     this.processElement(element, options);
     return element;
-}
+};
 
 LiteGUI.MiniColor = function(value, options) {
     options = options || {};
 
     value = value || [0, 0, 0];
 
-    var self = this;
+    let self = this;
 
-    var input = this.root = document.createElement('input');
+    let input = this.root = document.createElement('input');
     input.readOnly = true;
 
     input.id = 'colorpicker-'+name;
     input.className = 'minicolor';
 
-    var picker = new jscolor(input, {
+    let picker = new jscolor(input, {
         valueElement: null,
         backgroundColor: '#333',
         borderColor: 'black',
@@ -416,25 +416,25 @@ LiteGUI.MiniColor = function(value, options) {
     });
 
     picker.onFineChange = function() {
-        var v = picker.rgb.map(v => v / 255);
+        let v = picker.rgb.map((v) => v / 255);
         if (options.callback)
             options.callback.call(self, v);
-    }
-    self.setValue = function(value,skip_event) {
-        picker.fromRGB(value[0]*255,value[1]*255,value[2]*255);
-        if(!skip_event)
-            LiteGUI.trigger(self.root, "change", picker.rgb.concat());
-    }
+    };
+    self.setValue = function(value, skip_event) {
+        picker.fromRGB(value[0]*255, value[1]*255, value[2]*255);
+        if (!skip_event)
+            LiteGUI.trigger(self.root, 'change', picker.rgb.concat());
+    };
     self.setValue(value);
-}
+};
 
 LiteGUI.Inspector.prototype.addNumber = function(name, value, options) {
     options = this.processOptions(options);
 
-    var self = this;
+    let self = this;
 
-    var element = this.createWidget(name, '', options);
-    this.append(element,options);
+    let element = this.createWidget(name, '', options);
+    this.append(element, options);
 
     options.extraclass = 'full';
     options.tab_index = this.tab_index;
@@ -504,4 +504,4 @@ LiteGUI.Inspector.prototype.addNumber = function(name, value, options) {
 
     this.processElement(element, options);
     return element;
-}
+};

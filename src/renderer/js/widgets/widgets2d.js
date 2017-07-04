@@ -5,7 +5,7 @@ import Util from 'chl/util';
  * spatial coordinates (which are normalized and range from 0-1, and an angle.
  */
 function Coordinates2D() {
-    var self = this;
+    let self = this;
 
     this.x = 0;
     this.y = 0;
@@ -15,15 +15,15 @@ function Coordinates2D() {
         // Normalize angle and position
         this.angle = this.angle % (Math.PI * 2);
         return {x: this.x, y: this.y, angle: this.angle};
-    }
+    };
 
     this.setPos = function(vx, vy) {
         this.x = vx; this.y = vy;
-    }
+    };
 
     this.setRot = function(new_angle) {
         this.angle = new_angle;
-    }
+    };
 }
 
 /* This is a Coordinates2D object that has a describes a bunch of behaviors for letting the
@@ -37,21 +37,21 @@ export default function Widget2D(container) {
     Coordinates2D.call(this);
     Util.EventDispatcher.call(this);
 
-    var self = this;
+    let self = this;
 
-    var snap_angles = false;
+    let snap_angles = false;
 
     function setPos(vx, vy) {
         self.x = vx;
         self.y = vy;
         if (self.onPosChange)
-            self.onPosChange(self.x, self.y)
+            self.onPosChange(self.x, self.y);
     }
 
     this.showAt = function(vx, vy) {
         setPos(vx / container.clientWidth, vy / container.clientHeight);
         self.show();
-    }
+    };
 
     /*
      * Control bindings: modifier keys and draggable areas
@@ -71,13 +71,13 @@ export default function Widget2D(container) {
         self.x =  (coords.x / container.clientWidth ) * 2 - 1;
         self.y = -(coords.y / container.clientHeight) * 2 + 1;
         if (self.onPosChange)
-            self.onPosChange(self.x, self.y)
+            self.onPosChange(self.x, self.y);
     }
 
     function _endDrag(event) {
         event.preventDefault();
-        container.removeEventListener("mousemove", _drag);
-        container.removeEventListener("mouseup", _endDrag);
+        container.removeEventListener('mousemove', _drag);
+        container.removeEventListener('mouseup', _endDrag);
         notifyChange();
     }
 
@@ -93,7 +93,7 @@ export default function Widget2D(container) {
             });
             d3.event.preventDefault();
         });
-    }
+    };
 
 
     this.rotationBehavior = function(start, angleOffset) {
@@ -101,7 +101,7 @@ export default function Widget2D(container) {
             self.rotating = true;
             start();
         }).on('drag', function() {
-            var clk = new THREE.Vector2(d3.event.x, d3.event.y);
+            let clk = new THREE.Vector2(d3.event.x, d3.event.y);
             self.angle += (clk.sub(self.origin).angle() + angleOffset);
 
             /* shift-snap to 15 degree angle increments */
@@ -115,6 +115,6 @@ export default function Widget2D(container) {
             self.rotating = false;
             notifyChange();
         });
-    }
+    };
 }
 Widget2D.prototype = Object.create(Coordinates2D.prototype);
