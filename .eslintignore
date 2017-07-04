@@ -1,4 +1,4 @@
 dist/*
 build/*
-src/renderer/js/fastled/fastled.js
+src/renderer/js/fastled/*.js
 src/renderer/js/fastled/src/*

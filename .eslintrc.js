@@ -44,6 +44,7 @@ module.exports = {
     'no-mixed-spaces-and-tabs': 2,
     'object-curly-spacing': 0,
     // 'curly': [1, 'multi', 'consistent'],
+    'curly': 0,
     'comma-dangle': 0,
     'require-jsdoc': 0,
     'camelcase': 0,
