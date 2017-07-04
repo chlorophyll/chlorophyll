@@ -25,7 +25,7 @@ function arrow(handle, opts) {
  * 100-unit svg viewboxes and have some arrows which describe the direction of
  * a 2d axis system, positioned by the embedded Coordinates2D.
  */
-AxesWidget(container) {
+function AxesWidget(container) {
 	var self = this;
 
 	Widget2D.call(this, container);
