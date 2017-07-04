@@ -1,4 +1,6 @@
-FastLED = Module;
+import GraphLib from 'chl/graphlib/graph';
+import FastLED from './fastled';
+
 Math8 = {};
 
 (function() {

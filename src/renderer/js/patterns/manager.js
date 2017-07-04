@@ -1,8 +1,13 @@
-import { worldState } from 'chl/init';
+import keyboardJS from 'keyboardjs';
+import Immutable from 'immutable';
+import { worldState, groupManager } from 'chl/init';
+import Util from 'chl/util';
+import Graph from 'chl/graphlib/graph';
+import MappingInputs from './util';
+
 
 var patternStages = ['precompute', 'pixel'];
 var defaultStage = 'pixel';
-
 
 
 function showNodeInspector(node) {
@@ -182,7 +187,7 @@ function showNodeInspector(node) {
 	dialog.show();
 }
 
-function PatternGraph(id, name, manager) {
+export function PatternGraph(id, name, manager) {
 	var self = this;
 	self.name = name;
 	self.id = id;
@@ -344,7 +349,7 @@ function PatternGraph(id, name, manager) {
 		}
 	}
 
-function PatternManager() {
+export default function PatternManager() {
 	var self = this;
 
 	var _nextid = 0;

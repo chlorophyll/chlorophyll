@@ -1,3 +1,5 @@
+import GraphLib from 'chl/graphlib/graph';
+
 // Structural node types for the pattern graph
 function OutputColor() {
 	this.addInput('outcolor', 'CRGB');
@@ -19,7 +21,7 @@ OutputColor.prototype.removable = false;
 
 GraphLib.registerNodeType("lowlevel/output/color", OutputColor);
 
-var MappingInputs = {
+export const MappingInputs = {
 	cartesian2d: {
 		name: "Cartesian2D",
 		coords: [

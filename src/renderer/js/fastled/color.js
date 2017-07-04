@@ -1,4 +1,5 @@
-FastLED = Module;
+import GraphLib from 'chl/graphlib/graph';
+import FastLED from './fastled';
 
 var hsv2rgb = function(hue, sat, val) {
 	var h = 360*(hue/255), s = sat/255, v = val/255;
