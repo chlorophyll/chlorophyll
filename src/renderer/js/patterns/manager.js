@@ -3,7 +3,7 @@ import Immutable from 'immutable';
 import { worldState, groupManager } from 'chl/init';
 import Util from 'chl/util';
 import Graph from 'chl/graphlib/graph';
-import MappingInputs from './util';
+import { MappingInputs } from './util';
 
 
 var patternStages = ['precompute', 'pixel'];
