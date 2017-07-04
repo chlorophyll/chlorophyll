@@ -12,85 +12,85 @@ import keyboardJS from 'keyboardjs';
  */
 export default function Toolbar(managername, toolbar, menu) {
 
-	var self = this;
-	var tools = {};
-	var activeTool = null;
+    var self = this;
+    var tools = {};
+    var activeTool = null;
 
-	this.setActiveTool = function(name) {
-		if (activeTool != null)
-			self.exitActiveTool();
+    this.setActiveTool = function(name) {
+        if (activeTool != null)
+            self.exitActiveTool();
 
-		if (typeof name === 'string')
-			tool = tools[name];
-		else
-			tool = name;
+        if (typeof name === 'string')
+            tool = tools[name];
+        else
+            tool = name;
 
-		tool.enable();
-		tool.ui_button.disabled = false;
-		Util.hilightElement(tool.ui_button);
-		activeTool = tool;
-	}
+        tool.enable();
+        tool.ui_button.disabled = false;
+        Util.hilightElement(tool.ui_button);
+        activeTool = tool;
+    }
 
-	this.exitActiveTool = function() {
-		if (activeTool === null)
-			return;
+    this.exitActiveTool = function() {
+        if (activeTool === null)
+            return;
 
-		activeTool.disable();
-		Util.unhilightElement(activeTool.ui_button);
-		activeTool = null;
-	}
+        activeTool.disable();
+        Util.unhilightElement(activeTool.ui_button);
+        activeTool = null;
+    }
 
-	this.forEachTool = function(f) {
-		for (name in tools) {
-			if (tools.hasOwnProperty(name))
-				f(tools[name]);
-		}
-	}
+    this.forEachTool = function(f) {
+        for (name in tools) {
+            if (tools.hasOwnProperty(name))
+                f(tools[name]);
+        }
+    }
 
-	this.enableButtons = function() {
-		self.forEachTool(function(tool) {
-			tool.ui_button.disabled = false;
-			Util.unhilightElement(tool.ui_button);
-		});
-	}
+    this.enableButtons = function() {
+        self.forEachTool(function(tool) {
+            tool.ui_button.disabled = false;
+            Util.unhilightElement(tool.ui_button);
+        });
+    }
 
-	this.disableButtons = function() {
-		self.forEachTool(function(tool) {
-			tool.ui_button.disabled = true;
-			Util.unhilightElement(tool.ui_button);
-		});
-	}
+    this.disableButtons = function() {
+        self.forEachTool(function(tool) {
+            tool.ui_button.disabled = true;
+            Util.unhilightElement(tool.ui_button);
+        });
+    }
 
-	this.addTool = function(name, tool, hotkey, momentary_hotkey) {
-		tool.manager = self;
+    this.addTool = function(name, tool, hotkey, momentary_hotkey) {
+        tool.manager = self;
 
-		var f = function() {
-			self.setActiveTool(name);
-		}
+        var f = function() {
+            self.setActiveTool(name);
+        }
 
-		var elem = toolbar.addButton(null, name, f);
-		elem.classList.remove('even');
-		elem = elem.querySelector('button');
-		elem.disabled = true;
+        var elem = toolbar.addButton(null, name, f);
+        elem.classList.remove('even');
+        elem = elem.querySelector('button');
+        elem.disabled = true;
 
-		keyboardJS.withContext('global', function() {
-			keyboardJS.bind(hotkey, f);
-			var prev_tool = null;
-			if (typeof momentary_hotkey !== 'undefined') {
-				keyboardJS.bind(momentary_hotkey, function() {
-					prev_tool = activeTool;
-					self.setActiveTool(name);
-				}, function() {
-					self.setActiveTool(prev_tool);
-				});
-			}
-		});
+        keyboardJS.withContext('global', function() {
+            keyboardJS.bind(hotkey, f);
+            var prev_tool = null;
+            if (typeof momentary_hotkey !== 'undefined') {
+                keyboardJS.bind(momentary_hotkey, function() {
+                    prev_tool = activeTool;
+                    self.setActiveTool(name);
+                }, function() {
+                    self.setActiveTool(prev_tool);
+                });
+            }
+        });
 
-		if (menu)
-			menu.add(managername+'/'+name, f);
+        if (menu)
+            menu.add(managername+'/'+name, f);
 
-		tool.ui_button = elem;
+        tool.ui_button = elem;
 
-		tools[name] = tool;
-	}
+        tools[name] = tool;
+    }
 }

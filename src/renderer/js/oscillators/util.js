@@ -1,58 +1,58 @@
 import Util from 'chl/util';
 
 export default function Frequency() {
-	var frequency = 1; /* in hz internally */
+    var frequency = 1; /* in hz internally */
 
-	var curUnits = 'hz';
+    var curUnits = 'hz';
 
-	Object.defineProperty(this, 'hz', {
-		get: function() { return frequency; },
-		set: function(v) { frequency = v; },
-		enumerable: true
-	});
+    Object.defineProperty(this, 'hz', {
+        get: function() { return frequency; },
+        set: function(v) { frequency = v; },
+        enumerable: true
+    });
 
-	Object.defineProperty(this, 'bpm', {
-		get: function() { return frequency * 60; },
-		set: function(v) { frequency = v/60; },
-		enumerable: true
-	});
+    Object.defineProperty(this, 'bpm', {
+        get: function() { return frequency * 60; },
+        set: function(v) { frequency = v/60; },
+        enumerable: true
+    });
 
-	Object.defineProperty(this, 'sec', {
-		get: function() { return 1/frequency; },
-		set: function(v) { frequency = 1/v; },
-		enumerable: true
-	});
+    Object.defineProperty(this, 'sec', {
+        get: function() { return 1/frequency; },
+        set: function(v) { frequency = 1/v; },
+        enumerable: true
+    });
 
-	this.toString = function() {
-		return this[curUnits] + ' ' + curUnits;
-	}
+    this.toString = function() {
+        return this[curUnits] + ' ' + curUnits;
+    }
 
-	this.setDisplayUnits = function(units) {
-		curUnits = units;
-	}
+    this.setDisplayUnits = function(units) {
+        curUnits = units;
+    }
 
-	this.quantity = function() {
-		return {number: this[curUnits], units: curUnits};
-	}
+    this.quantity = function() {
+        return {number: this[curUnits], units: curUnits};
+    }
 
-	this.units = ['hz', 'bpm', 'sec'];
+    this.units = ['hz', 'bpm', 'sec'];
 
-	this.clone = function() {
-		var f = new Frequency();
-		f.hz = frequency;
-		f.setDisplayUnits(curUnits);
-		return f;
-	}
+    this.clone = function() {
+        var f = new Frequency();
+        f.hz = frequency;
+        f.setDisplayUnits(curUnits);
+        return f;
+    }
 
-	this.serialize = function() {
-		return frequency;
-	}
+    this.serialize = function() {
+        return frequency;
+    }
 
-	this.constructor.deserialize = function(freq) {
-		var f = new Frequency();
-		f.hz = freq;
-		return f;
-	}
+    this.constructor.deserialize = function(freq) {
+        var f = new Frequency();
+        f.hz = freq;
+        return f;
+    }
 }
 
 Util.JSON.addType('Frequency', Frequency);

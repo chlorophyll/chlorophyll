@@ -1,16 +1,16 @@
 import keyboardJS from 'keyboardjs';
 
 export const Hotkey = {
-	reset_camera: 'space',
-	widget_snap_angles: 'shift',
-	undo: 'mod + z',
-	redo: 'mod + shift + z',
-	tool_camera: 'c',
-	tool_camera_momentary: 'shift',
-	tool_select_marquee: 'm',
-	tool_select_line: 'l',
-	tool_select_plane: 'p',
-	cancel_selection: 'esc',
+    reset_camera: 'space',
+    widget_snap_angles: 'shift',
+    undo: 'mod + z',
+    redo: 'mod + shift + z',
+    tool_camera: 'c',
+    tool_camera_momentary: 'shift',
+    tool_select_marquee: 'm',
+    tool_select_line: 'l',
+    tool_select_plane: 'p',
+    cancel_selection: 'esc',
 }
 
 /*
@@ -130,9 +130,9 @@ keyboardJS.setLocale('us-chlorophyll', function(locale, platform, userAgent) {
   for (var keyCode = 65; keyCode <= 90; keyCode += 1) {
     var keyName = String.fromCharCode(keyCode + 32);
     var capitalKeyName = String.fromCharCode(keyCode);
-  	locale.bindKeyCode(keyCode, keyName);
-  	locale.bindMacro('shift + ' + keyName, capitalKeyName);
-  	locale.bindMacro('capslock + ' + keyName, capitalKeyName);
+    locale.bindKeyCode(keyCode, keyName);
+    locale.bindMacro('shift + ' + keyName, capitalKeyName);
+    locale.bindMacro('capslock + ' + keyName, capitalKeyName);
   }
 
   // browser caveats
@@ -156,9 +156,9 @@ keyboardJS.setLocale('us-chlorophyll', function(locale, platform, userAgent) {
   locale.bindKeyCode(rightCommandKeyCode, ['command', 'windows', 'win', 'super', 'rightcommand', 'rightwindows', 'rightwin', 'rightsuper']);
 
   if (/Mac|iPod|iPhone|iPad/.test(platform)) {
-	  locale.bindMacro('command', ['mod']);
+      locale.bindMacro('command', ['mod']);
   } else {
-	  locale.bindMacro('ctrl', ['mod']);
+      locale.bindMacro('ctrl', ['mod']);
   }
 
   // kill keys
