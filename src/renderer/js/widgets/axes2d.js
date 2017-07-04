@@ -1,5 +1,5 @@
-import THREE from 'three';
-import d3 from 'd3';
+import * as THREE from 'three';
+import * as d3 from 'd3';
 import Widget2D from './widgets2d';
 
 /*

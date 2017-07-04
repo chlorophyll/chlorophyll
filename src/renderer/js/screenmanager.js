@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import keyboardJS from 'keyboardjs';
 import Util from 'chl/util';
 

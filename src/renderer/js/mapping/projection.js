@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import Util from 'chl/util';
 import Mapping from './maputil';
 import { CartesianAxes } from 'chl/widgets/axes2d';

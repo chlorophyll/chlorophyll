@@ -1,4 +1,4 @@
-import d3 from 'd3';
+import * as d3 from 'd3';
 
 export default function OscillatorPlotter(container, options) {
     var margin = {top: 20, right: 20, bottom: 20, left: 20};

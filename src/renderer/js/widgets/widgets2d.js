@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import Util from 'chl/util';
 
 /* This describes a position and orientation in 2d space; it has both 2d

@@ -1,5 +1,5 @@
 import Immutable from 'immutable';
-import THREE from 'three';
+import * as THREE from 'three';
 
 export function Overlay(model) {
     var self = this;

@@ -1,7 +1,7 @@
 /*
  * Constants, configuration, and magic numbers
  */
-export default const Const = {
+export default Const = {
     // UI & field sizes
     dock_size: 225,
     sidebar_size: 235,

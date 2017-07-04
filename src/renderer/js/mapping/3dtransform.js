@@ -1,4 +1,4 @@
-import THREE from 'three';
+import * as THREE from 'three';
 import Mapping from './maputil';
 import Immutable from 'immutable';
 import { worldState } from 'chl/init';
