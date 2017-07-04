@@ -70,9 +70,7 @@ export function PixelGroup(manager, id, pixels, initname, color) {
     elem.querySelector('.postcontent').appendChild(inlinePicker.root);
 
     Object.defineProperty(this, 'name', {
-        get: function() {
-            return _name;
-        },
+        get: function() { return _name; },
         set: function(v) {
             if (v.length > Const.max_name_len) {
                 v = v.slice(0, Const.max_name_len);
@@ -86,9 +84,7 @@ export function PixelGroup(manager, id, pixels, initname, color) {
     });
 
     Object.defineProperty(this, 'color', {
-        get: function() {
-            return _color;
-        },
+        get: function() { return _color; },
         set: function(v) {
             _color = v;
             if (this.overlay.size() > 0)
@@ -316,9 +312,7 @@ export default function GroupManager(model) {
                     '3D Transform': TransformMapping,
                     '2D Projection': ProjectionMapping
                 },
-                callback: function(val) {
- self.next_maptype = val;
-}
+                callback: function(val) { self.next_maptype = val; }
             });
 
         let createMappingButton = currGroupInspector.addButton(null, 'add', {

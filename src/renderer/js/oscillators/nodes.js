@@ -26,13 +26,9 @@ function Oscillator() {
     });
 
     this.visualization = {
-        enabled: function() {
- return self.graph.numEdgesToNode(self) == 0;
-},
+        enabled: function() { return self.graph.numEdgesToNode(self) == 0; },
         root: container,
-        update: function() {
- plotter.plot(self);
-}
+        update: function() { plotter.plot(self); }
     };
 }
 

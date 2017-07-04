@@ -64,12 +64,8 @@ export default function Chlorophyll() {
 
         UI.menu = new LiteGUI.Menubar();
         UI.menu.add('File/New');
-        UI.menu.add('Edit/Undo', function() {
-            worldState.undo();
-        });
-        UI.menu.add('Edit/Redo', function() {
-            worldState.redo();
-        });
+        UI.menu.add('Edit/Undo', function() { worldState.undo(); });
+        UI.menu.add('Edit/Redo', function() { worldState.redo(); });
             keyboardJS.bind(Hotkey.undo, function() {
             worldState.undo();
         });

@@ -200,9 +200,7 @@ export function PatternGraph(id, name, manager) {
     self.curStage = defaultStage;
 
     Object.defineProperty(this, 'curStageGraph', {
-        get: function() {
- return this.stages[this.curStage];
-}
+        get: function() { return this.stages[this.curStage]; }
     });
 
     let running = false;
@@ -228,9 +226,7 @@ export function PatternGraph(id, name, manager) {
     }
 
     Object.defineProperty(this, 'mapping_type', {
-        get: function() {
-            return _mapping_type;
-        },
+        get: function() { return _mapping_type; },
         set: function(v) {
             if (v == _mapping_type)
                 return;

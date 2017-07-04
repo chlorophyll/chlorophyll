@@ -35,9 +35,7 @@ export default function Mapping(manager, group, id, initname) {
     this.map_types = {};
 
     Object.defineProperty(this, 'name', {
-        get: function() {
-            return _name;
-        },
+        get: function() { return _name; },
         set: function(v) {
             if (v.length > Const.max_name_len) {
                 v = v.slice(0, Const.max_name_len);

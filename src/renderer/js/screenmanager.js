@@ -25,9 +25,7 @@ export function Screen(camera, renderer, scene) {
 
     Object.defineProperties(this, {
         controlsEnabled: {
-            get: function() {
-                return controlsEnabled;
-            },
+            get: function() { return controlsEnabled; },
             set: function(v) {
                 controlsEnabled = v;
                 if (self.isActive)
@@ -147,9 +145,7 @@ export default function ScreenManager(renderer, scene) {
 
     Object.defineProperties(this, {
         activeScreen: {
-            get: function() {
-                return _activeScreen;
-            }
+            get: function() { return _activeScreen; }
         },
     });
 

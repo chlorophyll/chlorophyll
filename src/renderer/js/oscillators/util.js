@@ -6,32 +6,20 @@ export default function Frequency() {
     let curUnits = 'hz';
 
     Object.defineProperty(this, 'hz', {
-        get: function() {
-            return frequency;
-        },
-        set: function(v) {
-            frequency = v;
-        },
+        get: function() { return frequency; },
+        set: function(v) { frequency = v; },
         enumerable: true
     });
 
     Object.defineProperty(this, 'bpm', {
-        get: function() {
-            return frequency * 60;
-        },
-        set: function(v) {
-            frequency = v/60;
-        },
+        get: function() { return frequency * 60; },
+        set: function(v) { frequency = v/60; },
         enumerable: true
     });
 
     Object.defineProperty(this, 'sec', {
-        get: function() {
-            return 1/frequency;
-        },
-        set: function(v) {
-            frequency = 1/v;
-        },
+        get: function() { return 1/frequency; },
+        set: function(v) { frequency = 1/v; },
         enumerable: true
     });
 

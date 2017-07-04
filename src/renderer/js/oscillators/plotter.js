@@ -18,19 +18,16 @@ export default function OscillatorPlotter(container, options) {
     let x = d3.scaleLinear().rangeRound([0, width]);
     let y = d3.scaleLinear().rangeRound([height, 0]);
     let line = d3.line()
-        .x(function(d) {
- return x(d.x);
-})
-        .y(function(d) {
- return y(d.y);
-});
+        .x(function(d) { return x(d.x); })
+        .y(function(d) { return y(d.y); });
 
     this.plot = function(oscillator) {
         g.selectAll('*').remove();
         let sample = 3;
-        let data = d3.range(0, sample, oscillator.properties.frequency.sec / 100).map(function(t) {
-            return {x: t, y: oscillator.value(t)};
-        });
+        let data = d3.range(0, sample, oscillator.properties.frequency.sec / 100)
+            .map(function(t) {
+                return {x: t, y: oscillator.value(t)};
+            });
 
         x.domain([0, sample]);
         y.domain([0, 1]);

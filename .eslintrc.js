@@ -34,6 +34,7 @@ module.exports = {
     'no-shadow': 2,
     'one-var': 0,
     'guard-for-in': 1,
+    'new-cap': [2, { 'capIsNew': false }],
     'max-len': [1, {
       code: 100,
       tabWidth: 4,
@@ -45,11 +46,13 @@ module.exports = {
     'object-curly-spacing': 0,
     // 'curly': [1, 'multi', 'consistent'],
     'curly': 0,
+    'brace-style': [1, '1tbs', { 'allowSingleLine': true }],
     'comma-dangle': 0,
     'require-jsdoc': 0,
     'camelcase': 0,
     'padded-blocks': 0,
     'no-trailing-spaces': 1,
+    'no-multi-spaces': 0,
     'quote-props': 0,
     // allow debugger during development
     'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0
