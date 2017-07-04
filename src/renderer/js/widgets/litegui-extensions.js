@@ -1,3 +1,5 @@
+import Util from 'chl/util';
+
 LiteGUI.DualSlider = function(value, options) {
     options = options || {};
     this.root = document.createElement('div');

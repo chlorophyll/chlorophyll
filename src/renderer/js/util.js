@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export default Util = {
+let Util = {
     clone: function(obj) {
         // Handle the 3 simple types, and null or undefined
         if (null == obj || 'object' != typeof obj) return obj;
@@ -251,3 +251,5 @@ Util.EventDispatcher = function() {
         return !event.defaultPrevented;
     };
 };
+
+export default Util;

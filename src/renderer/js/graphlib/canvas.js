@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import Const from 'chl/const';
+import Util from 'chl/util';
 
 export function NodeElement(canvas, node) {
     let self = this;

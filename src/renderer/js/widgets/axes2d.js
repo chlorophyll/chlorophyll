@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import * as d3 from 'd3';
 import Widget2D from './widgets2d';
+import Util from 'chl/util';
 
 /*
  * Return the clickable object, so that we can add onclick callbacks later

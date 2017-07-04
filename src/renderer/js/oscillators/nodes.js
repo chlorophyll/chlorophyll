@@ -1,3 +1,4 @@
+import Util from 'chl/util';
 import GraphLib from 'chl/graphlib/graph';
 
 function Oscillator() {

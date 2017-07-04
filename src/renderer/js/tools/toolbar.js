@@ -1,4 +1,5 @@
 import keyboardJS from 'keyboardjs';
+import Util from 'chl/util';
 
 /*
  * Toolbar manager

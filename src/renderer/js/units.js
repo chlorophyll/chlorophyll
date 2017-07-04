@@ -1,8 +1,8 @@
-import Util from 'util';
+import Util from 'chl/util';
 
 function binop(oper) {
     return function(a, b) {
-        let target, lhs, rhs, val;
+        let lhs, rhs, val;
 
         if (!a || !b || a.isConvertibleTo == undefined || b.isConvertibleTo == undefined)
             return oper(a, b);
@@ -17,12 +17,13 @@ function binop(oper) {
             return oper(a, b);
         }
 
-        let rhs = val.convertTo(lhs.constructor);
+        rhs = val.convertTo(lhs.constructor);
 
         return new lhs.constructor(oper(lhs, rhs));
     };
 }
-_Units = {
+
+let _Units = {
     Operations: {
         add: binop(function(a, b) { return a+b; }),
         sub: binop(function(a, b) { return a-b; }),
@@ -32,8 +33,7 @@ _Units = {
     },
 };
 
-
-Units = new Proxy(_Units, {
+let Units = new Proxy(_Units, {
     set: function(obj, prop, value) {
         obj[prop] = value;
 
@@ -79,6 +79,8 @@ Units = new Proxy(_Units, {
         value.prototype.clone = function() {
             return new value(this.val);
         };
+
+        return true;
     }
 });
 
@@ -137,4 +139,4 @@ Units.Angle.prototype.conversions = {
     }
 };
 
-export { Units };
+export default Units;

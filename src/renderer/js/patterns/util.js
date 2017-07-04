@@ -1,4 +1,5 @@
 import GraphLib from 'chl/graphlib/graph';
+import Units from 'chl/units';
 
 // Structural node types for the pattern graph
 function OutputColor() {
@@ -65,7 +66,7 @@ export const MappingInputs = {
 /*
  * Generate input nodes for each mapping type
  */
-for (type in MappingInputs) {
+for (let type in MappingInputs) {
     let info = MappingInputs[type];
 
     function MapInputNode() {

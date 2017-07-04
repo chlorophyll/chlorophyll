@@ -1,3 +1,4 @@
+import Immutable from 'immutable';
 import Util from 'chl/util';
 
 function GraphLib() {
@@ -6,7 +7,7 @@ function GraphLib() {
     this.node_types = Immutable.OrderedMap();
 
     this.registerNodeType = function(path, constructor) {
-        node_types = node_types.set(path, constructor);
+        self.node_types = self.node_types.set(path, constructor);
 
         constructor.type = path;
 
