@@ -1,4 +1,6 @@
-function Frequency() {
+import Util from 'chl/util';
+
+export default function Frequency() {
 	var frequency = 1; /* in hz internally */
 
 	var curUnits = 'hz';

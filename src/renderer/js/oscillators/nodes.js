@@ -1,3 +1,5 @@
+import GraphLib from 'chl/graphlib/graph';
+
 function Oscillator() {
 	var self = this;
 	this.addOutput('result', Units.Percentage);
@@ -42,7 +44,7 @@ Oscillator.prototype.phasedTime = function(t) {
 	return t + Units.Operations.mul(cycles, frequency.sec);
 }
 
-function TriangleWaveOscillator() {
+export function TriangleWaveOscillator() {
 	Oscillator.call(this);
 }
 TriangleWaveOscillator.title = 'Triangle wave';
@@ -69,7 +71,7 @@ GraphLib.registerNodeType('oscillators/triangle', TriangleWaveOscillator);
 
 ///
 
-function SquareWaveOscillator() {
+export function SquareWaveOscillator() {
 	Oscillator.call(this);
 }
 SquareWaveOscillator.title = 'Square wave';
@@ -100,7 +102,7 @@ SquareWaveOscillator.prototype.value = function(t) {
 
 GraphLib.registerNodeType('oscillators/square', SquareWaveOscillator);
 
-function SawWaveOscillator() {
+export function SawWaveOscillator() {
 	Oscillator.call(this);
 }
 SawWaveOscillator.title = 'Saw wave';
@@ -122,7 +124,7 @@ SawWaveOscillator.prototype.value = function(t) {
 }
 GraphLib.registerNodeType('oscillators/saw', SawWaveOscillator);
 
-function SineWaveOscillator() {
+export function SineWaveOscillator() {
 	Oscillator.call(this);
 }
 
@@ -143,7 +145,7 @@ SineWaveOscillator.prototype.value = function(t) {
 }
 GraphLib.registerNodeType('oscillators/sine', SineWaveOscillator);
 
-function CosWaveOscillator() {
+export function CosWaveOscillator() {
 	Oscillator.call(this);
 }
 

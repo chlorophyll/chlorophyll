@@ -1,7 +1,7 @@
 import THREE from 'three';
 import Model from 'chl/model';
-import { GroupManager } from 'chl/mapping/groups';
-import { PatternManager } from 'chl/patterns/manager';
+import GroupManager from 'chl/mapping/groups';
+import PatternManager from 'chl/patterns/manager';
 import WorldState from 'chl/worldstate';
 
 // dom

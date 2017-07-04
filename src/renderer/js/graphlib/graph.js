@@ -1,4 +1,6 @@
-GraphLib = (function() {
+import Util from 'chl/util';
+
+export default const GraphLib = (function() {
 	this.node_types = Immutable.OrderedMap();
 
 	this.registerNodeType = function(path, constructor) {
@@ -19,7 +21,7 @@ GraphLib = (function() {
 	return this;
 })();
 
-Graph = function() {
+export Graph = function() {
 	Util.EventDispatcher.call(this);
 	var self = this;
 
@@ -419,7 +421,7 @@ Graph = function() {
 }
 
 
-GraphNode = function() {
+export function GraphNode() {
 	this.inputs = [];
 	this.outputs = [];
 	this.properties = {};

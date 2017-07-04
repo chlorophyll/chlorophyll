@@ -1,4 +1,7 @@
-function NodeElement(canvas, node) {
+import d3 from 'd3';
+import Const from 'chl/const';
+
+export function NodeElement(canvas, node) {
 	var self = this;
 	var graph = canvas.graph;
 	var input_elems = [];
@@ -304,7 +307,7 @@ function NodeElement(canvas, node) {
 
 }
 
-function EdgeElement(canvas, edge) {
+export function EdgeElement(canvas, edge) {
 	var self = this;
 	var graph = canvas.graph;
 	var path = canvas.edgeContainer.append('path')
@@ -333,7 +336,7 @@ function EdgeElement(canvas, edge) {
 	}
 }
 
-function GraphCanvas(divNode) {
+export default function GraphCanvas(divNode) {
 	var self = this;
 
 	var div = d3.select(divNode);

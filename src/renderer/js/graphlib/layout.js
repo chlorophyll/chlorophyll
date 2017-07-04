@@ -1,3 +1,5 @@
+import GraphLib from './graph';
+
 GraphLib.AutoLayout = function() {
 	var defaultOptions = {
 		"intCoordinates": true,
