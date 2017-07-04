@@ -82,7 +82,6 @@ export default function Model(json) {
     let numPixels;
     let pixelData;
     let colors;
-    let defaultColors;
     let geometry;
 
     this.displayOnly = false;
@@ -242,24 +241,24 @@ export default function Model(json) {
         colors = [];
         strips = model_dict['strips'];
 
-        let i = 0;
+        let p_idx = 0;
         for (let strip = 0; strip < strips.length; strip++) {
             let stripGeometry = new THREE.Geometry();
             for (let pixel = 0; pixel < strips[strip].length; pixel++) {
-                pixelData[i] = new THREE.Vector3().fromArray(strips[strip][pixel]);
+                pixelData[p_idx] = new THREE.Vector3().fromArray(strips[strip][pixel]);
                 if (pixel > 0) {
-                    stripGeometry.vertices.push(pixelData[i-1]);
-                    stripGeometry.vertices.push(pixelData[i]);
+                    stripGeometry.vertices.push(pixelData[p_idx - 1]);
+                    stripGeometry.vertices.push(pixelData[p_idx]);
                 }
-                i++;
+                p_idx++;
                 colors.push(new THREE.Color());
             }
             let model = new THREE.LineSegments(stripGeometry, lineMaterial);
             model.visible = false;
             stripModels.push(model);
-            stripOffsets.push(i);
+            stripOffsets.push(p_idx);
         }
-        numPixels = i;
+        numPixels = p_idx;
         self.numStrips = strips.length;
 
         geometry = new THREE.Geometry();

@@ -58,7 +58,7 @@ export default function Mapping(manager, group, id, initname) {
         }
     });
 
-    let elem = manager.tree.insertItem({
+    manager.tree.insertItem({
         id: self.tree_id,
         content: _name,
         dataset: {mapping: self}

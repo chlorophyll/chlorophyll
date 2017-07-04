@@ -1,6 +1,8 @@
 import Util from 'chl/util';
 
-export default GraphLib = (function() {
+function GraphLib() {
+    let self = this;
+
     this.node_types = Immutable.OrderedMap();
 
     this.registerNodeType = function(path, constructor) {
@@ -15,11 +17,10 @@ export default GraphLib = (function() {
     };
 
     this.getNodeTypes = function() {
-        return this.node_types;
+        return self.node_types;
     };
-
-    return this;
-})();
+};
+export default new GraphLib();
 
 export function Graph() {
     Util.EventDispatcher.call(this);
@@ -56,7 +57,7 @@ export function Graph() {
                     let marked = visited.get(id);
 
                     if (marked == GREY)
-                        throw 'cycle detected';
+                        throw Error('cycle detected');
 
                     if (marked == BLACK)
                         continue;
@@ -101,10 +102,10 @@ export function Graph() {
         let constructor = GraphLib.node_types.get(path);
 
         if (!constructor) {
-            throw 'unknown node type'+path;
+            throw Error('unknown node type' + path);
         }
 
-        const options = options || {};
+        options = options || {};
 
         if (!options.title)
             options.title = constructor.title || path;

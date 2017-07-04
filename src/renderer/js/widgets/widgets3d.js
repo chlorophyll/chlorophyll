@@ -68,11 +68,11 @@ export default function ViewportHandle(screen) {
 
     this.hide = function() {
         self.control.detach();
-        centerpoint.traverse(function (object) { object.visible = false; });
-    }
+        centerpoint.traverse(function(object) { object.visible = false; });
+    };
 
     this.show = function() {
-        centerpoint.traverse(function (object) { object.visible = true; });
+        centerpoint.traverse(function(object) { object.visible = true; });
         self.control.attach(centerpoint);
     };
 

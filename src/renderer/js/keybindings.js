@@ -143,10 +143,10 @@ keyboardJS.setLocale('us-chlorophyll', function(locale, platform, userAgent) {
   if (platform.match('Mac') && (userAgent.match('Safari') || userAgent.match('Chrome'))) {
     leftCommandKeyCode  = 91;
     rightCommandKeyCode = 93;
-  } else if(platform.match('Mac') && userAgent.match('Opera')) {
+  } else if (platform.match('Mac') && userAgent.match('Opera')) {
     leftCommandKeyCode  = 17;
     rightCommandKeyCode = 17;
-  } else if(platform.match('Mac') && userAgent.match('Firefox')) {
+  } else if (platform.match('Mac') && userAgent.match('Firefox')) {
     leftCommandKeyCode  = 224;
     rightCommandKeyCode = 224;
   }

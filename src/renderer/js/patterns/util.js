@@ -68,14 +68,17 @@ export const MappingInputs = {
 for (type in MappingInputs) {
     let info = MappingInputs[type];
 
-    let map_input_node = function() {
+    function MapInputNode() {
+        this.title = info.name + 'Input';
+        this.visible_stages = [];
+
         for (let i = 0; i < info.coords.length; i++) {
             this.addOutput(info.coords[i].name, info.coords[i].unit);
         }
         this.addOutput('color', 'CRGB');
     };
 
-    map_input_node.prototype.onExecute = function() {
+    MapInputNode.prototype.onExecute = function() {
         let coords = this.graph.getGlobalInputData('coords');
 
         for (let i = 0; i < info.coords.length; i++) {
@@ -88,14 +91,11 @@ for (type in MappingInputs) {
         this.setOutputData(info.coords.length, color);
     };
 
-    map_input_node.title = info.name + 'Input';
-    map_input_node.visible_stages = [];
+    MapInputNode.prototype.color = '#7496a6';
+    MapInputNode.prototype.boxcolor = '#69a4bf';
+    MapInputNode.prototype.removable = false;
 
-    map_input_node.prototype.color = '#7496a6';
-    map_input_node.prototype.boxcolor = '#69a4bf';
-    map_input_node.prototype.removable = false;
-
-    GraphLib.registerNodeType('lowlevel/input/' + type, map_input_node);
+    GraphLib.registerNodeType('lowlevel/input/' + type, MapInputNode);
 }
 
 

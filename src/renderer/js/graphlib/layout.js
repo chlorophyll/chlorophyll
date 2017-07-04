@@ -19,7 +19,6 @@ GraphLib.AutoLayout = function() {
     this.layout = function(canvas, callback) {
         callback = callback || console.log;
 
-        let graph = canvas.graph;
         let kgraph = encodeAsKGraph(canvas);
 
         $klay.layout({
@@ -32,7 +31,6 @@ GraphLib.AutoLayout = function() {
     function encodeAsKGraph(canvas) {
         let graph = canvas.graph;
 
-        let direction = 'RIGHT';
         let portConstraints = 'FIXED_POS';
 
         let portProperties = {

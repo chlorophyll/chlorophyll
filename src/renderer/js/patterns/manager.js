@@ -302,7 +302,7 @@ export function PatternGraph(id, name, manager) {
                 return;
 
             running = false;
-            window.cancelAnimationFrame(requestid);
+            window.cancelAnimationFrame(request_id);
             self.model.displayOnly = false;
         };
 
@@ -339,10 +339,10 @@ export function PatternGraph(id, name, manager) {
                 self.model.updateColors();
 
                 if (running)
-                    requestid = window.requestAnimationFrame(computePatternStep);
+                    request_id = window.requestAnimationFrame(computePatternStep);
             };
 
-            requestid = window.requestAnimationFrame(computePatternStep);
+            request_id = window.requestAnimationFrame(computePatternStep);
         };
         this.destroy = function() {
             manager.pattern_browser.removeItem(self.tree_id);
@@ -359,7 +359,6 @@ export default function PatternManager() {
 
     let nameWidget;
     let stageWidget;
-    let mappingTypeList;
     let selectedMappingType = Const.default_map_type;
     let previewMappingList;
 
@@ -548,7 +547,7 @@ export default function PatternManager() {
         for (type in MappingInputs) {
             mapmenu_values[MappingInputs[type].name] = type;
         }
-        mappingTypeList = self.sidebar_widgets.addCombo('map type',
+        self.sidebar_widgets.addCombo('map type',
             Const.default_map_type,
             {
                 values: mapmenu_values,

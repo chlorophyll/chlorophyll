@@ -105,7 +105,7 @@ export function PixelGroup(manager, id, pixels, initname, color) {
     };
 
     this.destroy = function() {
-        self.mappings.forEach(function(mapping, id) {
+        self.mappings.forEach(function(mapping, _) {
             mapping.destroy();
         });
         self.mappings = self.mappings.clear();
@@ -158,8 +158,8 @@ export function PixelGroup(manager, id, pixels, initname, color) {
          * currently exist, we need to create a new one to update, and
          * similarly if it stopped existing it should be deleted.
          */
-        let newmappings = snapshot.get('mappings').map(function(mapsnap, id) {
-            let existingMapping = self.mappings.get(id);
+        let newmappings = snapshot.get('mappings').map(function(mapsnap, child_id) {
+            let existingMapping = self.mappings.get(child_id);
             if (existingMapping) {
                 existingMapping.restore(mapsnap);
                 return existingMapping;
@@ -167,9 +167,9 @@ export function PixelGroup(manager, id, pixels, initname, color) {
                 let map_class = mapsnap.get('map_class');
                 let newMapping = null;
                 if (map_class === 'projection')
-                    newMapping = new ProjectionMapping(manager, self, id);
+                    newMapping = new ProjectionMapping(manager, self, child_id);
                 else if (map_class === 'transform')
-                    newMapping = new TransformMapping(manager, self, id);
+                    newMapping = new TransformMapping(manager, self, child_id);
                 else
                     console.error('Tried to restore invalid mapping');
 
@@ -178,9 +178,9 @@ export function PixelGroup(manager, id, pixels, initname, color) {
             }
         });
         // Check for destroyed mappings
-        self.mappings.forEach(function(mapping, id) {
-            if (!newmappings.get(id)) {
-                if (manager.currentMapping && id == manager.currentMapping.id)
+        self.mappings.forEach(function(mapping, child_id) {
+            if (!newmappings.get(child_id)) {
+                if (manager.currentMapping && child_id == manager.currentMapping.id)
                     manager.clearCurrentMapping();
                 mapping.destroy();
             }
@@ -472,7 +472,7 @@ export default function GroupManager(model) {
 
     function createGroup(pixels, name) {
         let id = newgid();
-        let name = (typeof name !== 'undefined') ? name : ('Group ' + id);
+        name = (typeof name !== 'undefined') ? name : ('Group ' + id);
         if (name.length > Const.max_name_len) {
             name = name.slice(0, Const.max_name_len);
         }
@@ -522,7 +522,7 @@ export default function GroupManager(model) {
         let type = (typeof with_type !== 'undefined') ? with_type : null;
         let maps = [];
         self.groups.forEach(function(group, id) {
-            group.mappings.forEach(function(mapping, id) {
+            group.mappings.forEach(function(mapping, _) {
                 if (!type || type in mapping.map_types) {
                     maps.push({
                         title: mapping.name,

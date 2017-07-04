@@ -24,11 +24,11 @@ function binop(oper) {
 }
 _Units = {
     Operations: {
-        add: binop(function(a,b) { return a+b; }),
-        sub: binop(function(a,b) { return a-b; }),
-        mul: binop(function(a,b) { return a*b; }),
-        div: binop(function(a,b) { return a/b; }),
-        mod: binop(function(a,b) { return a%b; }),
+        add: binop(function(a, b) { return a+b; }),
+        sub: binop(function(a, b) { return a-b; }),
+        mul: binop(function(a, b) { return a*b; }),
+        div: binop(function(a, b) { return a/b; }),
+        mod: binop(function(a, b) { return a%b; }),
     },
 };
 
@@ -43,8 +43,8 @@ Units = new Proxy(_Units, {
             return this.val;
         };
 
-        value.deserialize = function(prop) {
-            return new value(prop);
+        value.deserialize = function(property) {
+            return new value(property);
         };
         Util.JSON.addType(prop, value);
 
@@ -86,7 +86,7 @@ Units.Numeric = function(val) {
     this.val = val;
 };
 
-Units.Numeric.prototype.isConvertibleTo = function() { return true; }
+Units.Numeric.prototype.isConvertibleTo = function() { return true; };
 Units.Numeric.prototype.convertTo = function(constructor) {
     if (!constructor || !constructor._unit_name)
         return undefined;

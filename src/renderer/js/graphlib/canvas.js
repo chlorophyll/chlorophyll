@@ -3,11 +3,11 @@ import Const from 'chl/const';
 
 export function NodeElement(canvas, node) {
     let self = this;
-    let graph = canvas.graph;
     let input_elems = [];
     let output_elems = [];
     self.width = undefined;
     self.height = undefined;
+    self.graph = null;
 
     this.connectionPos = function(slot, is_input) {
         let x = is_input ? 0 : self.width;
@@ -168,7 +168,8 @@ export function NodeElement(canvas, node) {
     self.height = Math.max(rows, 1) * Const.Graph.NODE_SLOT_HEIGHT + 5;
 
     // now that we have the width and height, we can place everything
-    let nodebox = boxgroup.append('rect')
+    // Node box
+    boxgroup.append('rect')
         .attr('x', 0)
         .attr('y', 0)
         .attr('width', self.width)
@@ -176,7 +177,8 @@ export function NodeElement(canvas, node) {
         .style('stroke', fgcolor)
         .style('fill', bgcolor);
 
-    let titlebar = boxgroup.append('rect')
+    // Title bar
+    boxgroup.append('rect')
         .attr('x', 0)
         .attr('y', -title_height)
         .attr('width', self.width)
@@ -186,7 +188,8 @@ export function NodeElement(canvas, node) {
 
 
     let boxcolor = node.boxcolor || Const.Graph.NODE_DEFAULT_BOXCOLOR;
-    let titlebox = boxgroup.append('rect')
+    // Title box
+    boxgroup.append('rect')
         .attr('x', 3)
         .attr('y', -title_height+3)
         .attr('width', title_height-6)
@@ -307,7 +310,6 @@ export function NodeElement(canvas, node) {
 
 export function EdgeElement(canvas, edge) {
     let self = this;
-    let graph = canvas.graph;
     let path = canvas.edgeContainer.append('path')
                                    .attr('stroke', '#aaa')
                                    .attr('fill', 'transparent');
@@ -376,7 +378,7 @@ export default function GraphCanvas(divNode) {
            .attr('stroke', 'black')
            .attr('stroke-width', '0.5');
 
-    let rect = canvas.append('rect')
+    canvas.append('rect')
     .attr('width', '100%')
     .attr('height', '100%')
     .style('fill', 'none')

@@ -56,7 +56,7 @@ export default function Chlorophyll() {
         reader.readAsText(file);
     }
 
-    function init() {
+    this.init = function() {
         /**************
          * GUI layout *
          **************/
@@ -220,9 +220,9 @@ export default function Chlorophyll() {
 
         mainarea.onresize = screenManager.resize;
         window.addEventListener('resize', screenManager.resize, false);
-    }
+    };
 
-    function animate() {
+    this.animate = function() {
         requestAnimationFrame(animate);
 
         let v = new THREE.Vector3();
@@ -231,5 +231,5 @@ export default function Chlorophyll() {
         backPlane.normal = v.clone().negate();
 
         screenManager.render();
-    }
+    };
 }

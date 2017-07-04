@@ -72,9 +72,6 @@ export default function ProjectionMapping(manager, group, id, initname) {
         raycaster.setFromCamera(widgetpos, screen.camera);
         self.proj_plane.origin = raycaster.ray.intersectPlane(plane);
 
-        // generate normalization factor once
-        let pixels = group.pixels.map((i) => [i, projectPoint(i)]);
-
         self.mapping_valid = true;
 
         self.dispatchEvent(new CustomEvent('change'));

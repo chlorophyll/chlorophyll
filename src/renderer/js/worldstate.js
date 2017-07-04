@@ -1,5 +1,3 @@
-import Immutable from 'immutable';
-
 export default function WorldState(start) {
 
     let self = this;
