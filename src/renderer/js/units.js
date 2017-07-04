@@ -1,3 +1,5 @@
+import Util from 'util';
+
 function binop(oper) {
 	return function(a, b) {
 		var target, lhs, rhs, val;
@@ -134,3 +136,5 @@ Units.Angle.prototype.conversions = {
 		return this.val / (2*Math.PI) * 0xff;
 	}
 }
+
+export { Units };

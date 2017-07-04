@@ -1,4 +1,6 @@
-ColorPool = (function() {
+import THREE from 'three';
+
+export default function ColorPool() {
 	var colors = [
 		new THREE.Color(0x24c6ff),
 		new THREE.Color(0xffa21a),
@@ -35,11 +37,8 @@ ColorPool = (function() {
 
 	*/
 	var i = 0;
-
-	return {
-		random: function() {
-			i = (i + 1) % (colors.length);
-			return colors[i];
-		}
+	this.random = function() {
+		i = (i + 1) % (colors.length);
+		return colors[i];
 	}
-})();
+}

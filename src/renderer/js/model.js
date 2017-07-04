@@ -1,4 +1,7 @@
-function Overlay(model) {
+import Immutable from 'immutable';
+import THREE from 'three';
+
+export function Overlay(model) {
 	var self = this;
 	this.colors = Immutable.Map();
 
@@ -70,7 +73,7 @@ function Overlay(model) {
 	}
 }
 
-function Model(json) {
+export function Model(json) {
 	var self = this;
 	this.overlays = [];
 	this.numStrips = 0;

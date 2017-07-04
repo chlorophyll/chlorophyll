@@ -1,4 +1,6 @@
-Hotkey = {
+import keyboardJS from 'keyboardjs';
+
+export const Hotkey = {
 	reset_camera: 'space',
 	widget_snap_angles: 'shift',
 	undo: 'mod + z',

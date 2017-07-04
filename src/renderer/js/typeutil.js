@@ -1,4 +1,4 @@
-var TypeUtil = {
+export default const TypeUtil = {
 	convert_to_uint8_t: function(val) {
 		return val & 0xff;
 	},

@@ -1,4 +1,7 @@
-// This contains patches, etc
+/*
+ * Patches and fixes for other packages
+ */
+import keyboardJS from 'keyboardjs';
 
 Inspector.prototype.addComboButtons = function(name, value, options)
 {

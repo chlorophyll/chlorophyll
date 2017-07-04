@@ -1,5 +1,9 @@
+import THREE from 'three';
+import keyboardJS from 'keyboardjs';
+import Util from 'chl/util';
+
 //TODO(rpearl) potentially support multiple views
-Screen = function(camera, renderer, scene) {
+export function Screen(camera, renderer, scene) {
 	var self = this;
 
 	this.camera = camera;
@@ -74,7 +78,7 @@ Screen = function(camera, renderer, scene) {
 	}
 }
 
-ScreenManager = function(renderer, scene) {
+export default function ScreenManager(renderer, scene) {
 	var screens = {};
 	var _activeScreen = undefined;
 

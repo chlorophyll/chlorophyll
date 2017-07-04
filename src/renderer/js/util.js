@@ -1,4 +1,6 @@
-var Util = {
+import THREE from 'three';
+
+export default Util = {
 	clone: function(obj) {
 		// Handle the 3 simple types, and null or undefined
 		if (null == obj || "object" != typeof obj) return obj;

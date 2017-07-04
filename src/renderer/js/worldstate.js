@@ -1,4 +1,7 @@
-WorldState = function(start) {
+import Immutable from 'immutable';
+
+export default function WorldState(start) {
+
 	var self = this;
 
 	function restore() {
