@@ -21,7 +21,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 let whiteListedModules = ['vue']
 
 let rendererConfig = {
-  devtool: 'eval-source-map',
+  devtool: '#inline-source-map',
   entry: {
     renderer: path.join(__dirname, '../src/renderer/main.js')
   },
@@ -148,8 +148,9 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  * Adjust rendererConfig for production settings
  */
+/*
 if (process.env.NODE_ENV === 'production') {
-  rendererConfig.devtool = ''
+  //rendererConfig.devtool = ''
 
   rendererConfig.plugins.push(
     new BabiliWebpackPlugin({
@@ -171,5 +172,5 @@ if (process.env.NODE_ENV === 'production') {
     })
   )
 }
-
+*/
 module.exports = rendererConfig

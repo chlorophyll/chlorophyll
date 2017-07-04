@@ -11,7 +11,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 let webConfig = {
-  devtool: '#cheap-module-eval-source-map',
+  devtool: '#inline-source-map',
   entry: {
     web: path.join(__dirname, '../src/renderer/main.js')
   },
@@ -115,6 +115,7 @@ let webConfig = {
 /**
  * Adjust webConfig for production settings
  */
+/*
 if (process.env.NODE_ENV === 'production') {
   webConfig.devtool = ''
 
@@ -138,5 +139,6 @@ if (process.env.NODE_ENV === 'production') {
     })
   )
 }
+*/
 
 module.exports = webConfig
