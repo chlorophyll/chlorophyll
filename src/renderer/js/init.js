@@ -1,8 +1,8 @@
-import { THREE } from 'three';
-import { Model } from 'chl/model';
+import THREE from 'three';
+import Model from 'chl/model';
 import { GroupManager } from 'chl/mapping/groups';
-import { PatternManager } from 'chl/patterns/manager.js';
-import { WorldState } from 'chl/worldstate';
+import { PatternManager } from 'chl/patterns/manager';
+import WorldState from 'chl/worldstate';
 
 // dom
 var container;
@@ -18,7 +18,16 @@ var worldState;
 
 const UI = {};
 
-function Chlorophyll() {
+export {
+	UI,
+	toolbarManager,
+	screenManager,
+	groupManager,
+	patternManager,
+	worldState
+};
+
+export default function Chlorophyll() {
 	var frontPlane, backPlane;
 	var selectionThreshold = 5; // TODO track in selection tools
 
@@ -224,13 +233,3 @@ function Chlorophyll() {
 		screenManager.render();
 	}
 }
-
-export {
-	Chlorophyll,
-	UI,
-	toolbarManager,
-	screenManager,
-	groupManager,
-	patternManager,
-	worldState
-};

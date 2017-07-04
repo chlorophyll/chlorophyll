@@ -73,7 +73,7 @@ export function Overlay(model) {
 	}
 }
 
-export function Model(json) {
+export default function Model(json) {
 	var self = this;
 	this.overlays = [];
 	this.numStrips = 0;
