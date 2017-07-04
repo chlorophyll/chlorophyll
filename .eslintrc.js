@@ -52,6 +52,7 @@ module.exports = {
     'camelcase': 0,
     'padded-blocks': 0,
     'no-trailing-spaces': 1,
+    'spaced-comment': [2, 'always', { 'exceptions': ['/', '*', '+', '@']}],
     'no-multi-spaces': 0,
     'quote-props': 0,
     // allow debugger during development
