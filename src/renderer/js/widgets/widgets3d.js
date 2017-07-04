@@ -1,7 +1,9 @@
+import THREE from 'three';
+
 /*
  * 3d viewport UI components
  */
-function ViewportHandle(screen) {
+export default function ViewportHandle(screen) {
 	var self = this;
 
 	this.control = new THREE.TransformControls(screen.camera,

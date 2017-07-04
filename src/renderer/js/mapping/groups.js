@@ -1,3 +1,9 @@
+import Util from 'chl/util';
+import Immutable from 'immutable';
+import ColorPool from 'chl/colors'
+import { ProjectionMapping, TransformMapping } from 'chl/mapping/maputil';
+import { worldState } from 'chl/init';
+
 /*
  * Pixel group management
  *
@@ -5,8 +11,7 @@
  * A pixel group is a set of pixels and a collection of mappings for those
  * points.
  */
-
-function PixelGroup(manager, id, pixels, initname, color) {
+export function PixelGroup(manager, id, pixels, initname, color) {
 	var self = this;
 
 	this.id = id;
@@ -186,7 +191,7 @@ function PixelGroup(manager, id, pixels, initname, color) {
 	}
 }
 
-function GroupManager(model) {
+export default function GroupManager(model) {
 	Util.EventDispatcher.call(this);
 	var self = this;
 	var currentSelection = null;

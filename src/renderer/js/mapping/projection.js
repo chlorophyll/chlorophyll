@@ -1,4 +1,13 @@
-var ProjectionMapping = function(manager, group, id, initname) {
+import THREE from 'three';
+import Util from 'chl/util';
+import Mapping from './maputil';
+import { CartesianAxes } from 'chl/widgets/axes2d';
+
+/*
+ * Tools for projecting sets of points from 3d space onto a 2d plane
+ */
+export default function ProjectionMapping(manager, group, id, initname) {
+
 	Mapping.call(this, manager, group, id, initname);
 	var self = this;
 

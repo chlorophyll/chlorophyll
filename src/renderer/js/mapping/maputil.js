@@ -1,10 +1,13 @@
+export TransformMapping from './3dtransform';
+export ProjectionMapping from './projection';
+
 /*
  * Generic Mapping class.
  *
  * Provides a common interface to list types of mapping transformations and
  * generate sets of points from them.
  */
-var Mapping = function(manager, group, id, initname) {
+export default function Mapping(manager, group, id, initname) {
 	Util.EventDispatcher.call(this);
 	var self = this;
 

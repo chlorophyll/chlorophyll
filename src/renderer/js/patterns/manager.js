@@ -1,3 +1,5 @@
+import { worldState } from 'chl/init';
+
 var patternStages = ['precompute', 'pixel'];
 var defaultStage = 'pixel';
 

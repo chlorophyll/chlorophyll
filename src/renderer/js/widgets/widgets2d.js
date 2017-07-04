@@ -1,3 +1,6 @@
+import THREE from 'three';
+import Util from 'chl/util';
+
 /* This describes a position and orientation in 2d space; it has both 2d
  * spatial coordinates (which are normalized and range from 0-1, and an angle.
  */
@@ -29,7 +32,7 @@ function Coordinates2D() {
  *
  * (The callbacks should probably be rewritten to use events)
  */
-function Widget2D(container) {
+export default function Widget2D(container) {
 
 	Coordinates2D.call(this);
 	Util.EventDispatcher.call(this);

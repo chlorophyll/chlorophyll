@@ -1,3 +1,7 @@
+import THREE from 'three';
+import d3 from 'd3';
+import Widget2D from './widgets2d';
+
 /*
  * Return the clickable object, so that we can add onclick callbacks later
  */
@@ -21,7 +25,7 @@ function arrow(handle, opts) {
  * 100-unit svg viewboxes and have some arrows which describe the direction of
  * a 2d axis system, positioned by the embedded Coordinates2D.
  */
-AxesWidget = function(container) {
+AxesWidget(container) {
 	var self = this;
 
 	Widget2D.call(this, container);
@@ -89,7 +93,7 @@ AxesWidget = function(container) {
 }
 AxesWidget.prototype = Object.create(Widget2D.prototype);
 
-CartesianAxes = function(container) {
+export function CartesianAxes(container) {
 	var self = this;
 	AxesWidget.call(this, container);
 
@@ -131,7 +135,7 @@ CartesianAxes = function(container) {
 }
 CartesianAxes.prototype = Object.create(AxesWidget.prototype);
 
-PolarAxes = function(container) {
+export function PolarAxes(container) {
 	var self = this;
 	AxesWidget.call(this, container);
 

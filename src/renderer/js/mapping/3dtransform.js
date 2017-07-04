@@ -1,3 +1,8 @@
+import THREE from 'three';
+import Mapping from './maputil';
+import Immutable from 'immutable';
+import { worldState } from 'chl/init';
+
 /*
  * 3d transform mappings
  *
@@ -7,7 +12,7 @@
  * When a pattern is applied, pixel positions can be described in
  * cartesian, cylindrical (along any axis), or spherical coordinates.
  */
-var TransformMapping = function(manager, group, id, initname) {
+export default function TransformMapping(manager, group, id, initname) {
 	Mapping.call(this, manager, group, id, initname)
 	var self = this;
 
