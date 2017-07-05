@@ -205,6 +205,27 @@ ModNode.prototype.onExecute = function() {
 };
 GraphLib.registerNodeType('math/mod', ModNode);
 
+function SineNode() {
+	this.addInput('x', Units.Numeric);
+	this.addOutput('sin(x)');
+}
+SineNode.title = 'sin(x)';
+SineNode.prototype.onExecute = function() {
+	var x = this.getInputData(0);
+	this.setOutputData(0, Math.sin(x));
+}
+GraphLib.registerNodeType("math/sin", SineNode);
+function CosNode() {
+	this.addInput('x', Units.Numeric);
+	this.addOutput('cos(x)');
+}
+CosNode.title = 'cos(x)';
+CosNode.prototype.onExecute = function() {
+	var x = this.getInputData(0);
+	this.setOutputData(0, Math.cos(x));
+}
+GraphLib.registerNodeType("math/cos", CosNode);
+
 function MapNode() {
     this.addInput('value', Units.Numeric);
     this.addInput('fromLow', Units.Numeric);
