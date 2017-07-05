@@ -264,7 +264,7 @@ function Rotate2D() {
     this.addOutput('y\'', Units.Distance);
 }
 
-Rotate2D.title = '2D roration';
+Rotate2D.title = '2D rotation';
 Rotate2D.prototype.onExecute = function() {
     let x = this.getInputData(0).valueOf();
     let y = this.getInputData(1).valueOf();
