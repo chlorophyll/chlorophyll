@@ -173,7 +173,7 @@ export function NodeElement(canvas, node) {
         });
     }
 
-    const title_width = title_text.node().getBBox().width;
+    const title_width = title_text.node().getBBox().width + 20 + (title_height+4);
 
     self.width = Math.max(title_width, Const.Graph.NODE_WIDTH);
 
@@ -237,8 +237,8 @@ export function NodeElement(canvas, node) {
         closebox.append('rect')
             .attr('x', 0)
             .attr('y', 0)
-            .attr('width', title_height-8)
-            .attr('height', title_height-8)
+            .attr('width', title_height-4)
+            .attr('height', title_height-4)
             .attr('fill', fgcolor);
 
         closebox.append('line')
