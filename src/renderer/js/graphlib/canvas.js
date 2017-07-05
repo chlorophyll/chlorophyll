@@ -22,6 +22,32 @@ export function NodeElement(canvas, node) {
          nodegroup.attr('transform', 'translate('+node.pos[0]+ ','+node.pos[1]+')');
     };
 
+    this.transitionMove = function(newx, newy, duration) {
+        let edges = [];
+        graph.forEachEdgeToNode(node, function(edge) {
+            let edge_elem = canvas.edge_elements.get(edge.id);
+            edges.push(edge_elem);
+        });
+        graph.forEachEdgeFromNode(node, function(edge) {
+            let edge_elem = canvas.edge_elements.get(edge.id);
+            edges.push(edge_elem);
+        });
+        nodegroup.transition()
+            .duration(duration)
+            .tween('node.move', function() {
+                let x = d3.interpolateNumber(node.pos[0], newx);
+                let y = d3.interpolateNumber(node.pos[1], newy);
+                return function(t) {
+                    let xpos = x(t);
+                    let ypos = y(t);
+                    node.pos[0] = xpos;
+                    node.pos[1] = ypos;
+                    self.move();
+                    edges.forEach((e) => e.updatePath());
+                };
+            });
+    };
+
     this.canvasPos = function(pos) {
         return [node.pos[0] + pos[0], node.pos[1] + pos[1]];
     };
@@ -356,10 +382,8 @@ export function GraphCanvas(divNode) {
     }
 
     // preamble
-    let canvas = div.append('svg')
-                    .attr('width', '100%')
-                    .attr('height', '100%')
-                    .call(d3.zoom()
+    //
+    let zoom = d3.zoom()
                     .scaleExtent([0.25, 10])
                     .filter(function() {
                         if (d3.event.type == 'dblclick')
@@ -370,7 +394,13 @@ export function GraphCanvas(divNode) {
                         if (self.graph == null)
                             return;
                         setTransform(d3.event.transform);
-                    }));
+                    });
+
+    let canvas = div.append('svg')
+                    .attr('width', '100%')
+                    .attr('height', '100%')
+                    .call(zoom);
+
     let pattern = canvas.append('pattern')
                         .attr('id', 'grid')
                         .attr('width', 10)
@@ -518,14 +548,45 @@ export function GraphCanvas(divNode) {
 
     let layoutEngine = new GraphAutoLayout();
 
+    function zoomFit(bounds, options) {
+        let paddingPercent = options.paddingPercent || 0.75;
+        let transitionDuration = options.duration || 0;
+        let parent = divNode;
+        let fullWidth = parent.clientWidth,
+            fullHeight = parent.clientHeight;
+        let width = bounds.width,
+            height = bounds.height;
+        let midX = bounds.x + width / 2,
+            midY = bounds.y + height / 2;
+        if (width == 0 || height == 0) return; // nothing to fit
+        let scale = ((paddingPercent || 0.75) / Math.max(width / fullWidth, height / fullHeight));
+
+        let transform = d3.zoomIdentity
+                          .translate(fullWidth / 2 - scale * midX, 0)
+                          .scale(scale);
+        canvas.transition()
+              .duration(transitionDuration || 0) // milliseconds
+              .call(zoom.transform, transform)
+              .on('end', options.after);
+    }
+
+
     this.autolayout = function() {
         layoutEngine.layout(self, function(kgraph) {
             kgraph.children.forEach(function(knode) {
                 let node_id = parseInt(knode.id.slice(4));
-                self.graph.getNodeById(node_id).pos[0] = knode.x;
-                self.graph.getNodeById(node_id).pos[1] = knode.y;
+                self.node_elements.get(node_id).transitionMove(knode.x, knode.y, 250);
+            });
+            let bounds = {
+                width: kgraph.width,
+                height: kgraph.height,
+                x: 0,
+                y: 0
+            };
+            zoomFit(bounds, {
+                paddingPercent: 0.95,
+                duration: 250 /* ms */,
             });
         });
-        self.setGraph(self.graph); // xxx
     };
 }

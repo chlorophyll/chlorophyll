@@ -2,7 +2,6 @@ import GraphLib from './graph';
 
 export function GraphAutoLayout() {
     let defaultOptions = {
-        'intCoordinates': true,
         'algorithm': 'de.cau.cs.kieler.klay.layered',
         'layoutHierarchy': true,
         'spacing': 20,
