@@ -127,7 +127,7 @@ make_node(CRGB.prototype, 'setHue', [['hue', Units.UInt8]],  function(hue) {
     return this;
 });
 
-make_node(CRGB.prototype, 'add', [['rhs', 'color']], function(rhs) {
+make_node(CRGB.prototype, 'add', [['rhs', 'CRGB']], function(rhs) {
     this.r = Math8.qadd8(this.r, rhs.r);
     this.g = Math8.qadd8(this.g, rhs.g);
     this.b = Math8.qadd8(this.b, rhs.b);
@@ -145,7 +145,7 @@ make_node(CRGB.prototype, 'inc', [], function() {
     return this.addToRGB(1);
 });
 
-make_node(CRGB.prototype, 'subtract', [['rhs', 'color']], function(rhs) {
+make_node(CRGB.prototype, 'subtract', [['rhs', 'CRGB']], function(rhs) {
     this.r = Math8.qsub8(this.r, rhs.r);
     this.g = Math8.qsub8(this.g, rhs.g);
     this.b = Math8.qsub8(this.b, rhs.b);
@@ -196,7 +196,7 @@ make_node(CRGB.prototype,'nscale8', [['scaledown', Units.UInt8]], function(scale
     return this.setColorCode(Math8.nscale8x3(this.r, this.b, this.g, scaledown));
 });
 
-make_node(CRGB.prototype,'nscale8_each', [['rgb', 'color']], function(rgb) {
+make_node(CRGB.prototype,'nscale8_each', [['rgb', 'CRGB']], function(rgb) {
     this.r = Math8.scale8(this.r, rgb.r);
     this.g = Math8.scale8(this.g, rgb.g);
     this.b = Math8.scale8(this.b, rgb.b);
@@ -207,7 +207,7 @@ make_node(CRGB.prototype,'fadeToBlackBy', [['fadefactor', Units.UInt8]], functio
     return this.setColorCode(Math8.nscale8x3(this.r, this.g, this.b, 255-fadefactor));
 });
 
-make_node(CRGB.prototype,'or_each', [['rhs', 'color']], function(rhs) {
+make_node(CRGB.prototype,'or_each', [['rhs', 'CRGB']], function(rhs) {
     if (rhs.r > this.r) this.r = rhs.r;
     if (rhs.g > this.g) this.g = rhs.g;
     if (rhs.b > this.b) this.b = rhs.b;
@@ -221,7 +221,7 @@ make_node(CRGB.prototype,'or', [['d', Units.UInt8]], function(d) {
     return this;
 });
 
-make_node(CRGB.prototype,'and_each', [['rhs', 'color']], function(rhs) {
+make_node(CRGB.prototype,'and_each', [['rhs', 'CRGB']], function(rhs) {
     if (rhs.r < this.r) this.r = rhs.r;
     if (rhs.g < this.g) this.g = rhs.g;
     if (rhs.b < this.b) this.b = rhs.b;
