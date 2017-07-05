@@ -35,11 +35,13 @@ export default function ProjectionMapping(manager, group, id, initname) {
 
     this.map_types.cartesian2d = {
         name: '2D Cartesian',
+        norm_coords: [true, true],
         mapPoint: projectPoint
     };
 
     this.map_types.polar2d = {
         name: '2D Polar',
+        norm_coords: [true, false],
         mapPoint: function(idx) {
             let point = projectPoint(idx);
             // map from x,y -> r, theta

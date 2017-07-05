@@ -87,11 +87,13 @@ export default function TransformMapping(manager, group, id, initname) {
 
     this.map_types.cartesian3d = {
         name: '3D Cartesian',
+        norm_coords: [true, true, true],
         mapPoint: transformPoint
     };
 
     this.map_types.cylinder3d = {
         name: '3D Cylindrical',
+        norm_coords: [true, false, true],
         mapPoint: function(idx) {
             let cart = transformPoint(idx);
             // x, y, z -> r, theta, z
@@ -102,6 +104,7 @@ export default function TransformMapping(manager, group, id, initname) {
 
     this.map_types.sphere3d = {
         name: '3D Spherical',
+        norm_coords: [true, false, false],
         mapPoint: function(idx) {
             let cart = transformPoint(idx);
             let r = cart.length();

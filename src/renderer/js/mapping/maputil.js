@@ -74,25 +74,36 @@ export default function Mapping(manager, group, id, initname) {
         }
         let mapFn = self.map_types[type].mapPoint;
         let norm_factor = 1;
+        let norm_coord = self.map_types[type].norm_coords;
         // Normalize points to within [-1, 1], if enabled.
         if (self.normalize) {
             let max = 0;
             group.pixels.forEach(function(idx) {
-                for (let coord of mapFn(idx).toArray()) {
-                    if (coord > max)
-                        max = coord;
-                    else if (-coord > max)
-                        max = -coord;
+                let coords = mapFn(idx).toArray();
+                for (let i = 0; i < coords.length; i++) {
+                    if (norm_coord[i]) {
+                        if (coords[i] > max)
+                            max = coords[i];
+                        else if (-coords[i] > max)
+                            max = -coords[i];
+                    }
                 }
             });
             if (max != 0)
                 norm_factor = 1 / max;
         }
         return group.pixels.map(function(idx) {
-            if (self.normalize)
-                return [idx, mapFn(idx).multiplyScalar(norm_factor)];
-            else
+            if (self.normalize) {
+                let out = mapFn(idx);
+                let coords = out.toArray();
+                for (let i = 0; i < coords.length; i++) {
+                    if (norm_coord[i])
+                        coords[i] = coords[i] * norm_factor;
+                }
+                return [idx, out.fromArray(coords)];
+            } else {
                 return [idx, mapFn(idx)];
+            }
         });
     };
 
