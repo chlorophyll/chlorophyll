@@ -502,7 +502,8 @@ export function GraphCanvas(divNode) {
 
         }
         self.graph = null;
-        setTransform(d3.zoomIdentity);
+
+		canvas.call(zoom.transform, d3.zoomIdentity);
         grid.style('display', 'none');
     };
 
