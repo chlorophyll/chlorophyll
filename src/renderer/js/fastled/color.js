@@ -88,7 +88,8 @@ function make_node(target, name, args, code) {
         var that = undefined;
 
         if (hasThis) {
-            that = values.shift();
+			var inp = values.shift();
+			that = new CRGB(inp.r, inp.g, inp.b);
         }
         this.setOutputData(0, code.apply(that, values));
     }
