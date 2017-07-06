@@ -40,21 +40,18 @@
     "pack": "npm run pack:main && npm run pack:renderer",
     "pack:main": "cross-env NODE_ENV=production webpack --progress --colors --config buildscripts/webpack.main.config.js",
     "pack:renderer": "cross-env NODE_ENV=production webpack --progress --colors --config buildscripts/webpack.renderer.config.js",
-    "postinstall": "",
-    "install": "napa"
+    "postinstall": ""
   },
   "dependencies": {
     "d3": "^4.9.1",
     "immutable": "^3.8.1",
+    "jquery": "^3.2.1",
     "jscolor-picker": "^2.0.4",
     "keyboardjs": "^2.3.3",
     "klayjs": "^0.4.1",
     "three": "^0.85.2",
     "vue": "^2.3.3",
     "vue-electron": "^1.0.6"
-  },
-  "napa": {
-    "litegui": "jagenjo/litegui.js"
   },
   "devDependencies": {
     "babel-core": "^6.22.1",
@@ -91,7 +88,6 @@
     "imports-loader": "^0.7.1",
     "json-loader": "^0.5.4",
     "multispinner": "^0.2.1",
-    "napa": "^3.0.0",
     "style-loader": "^0.18.1",
     "url-loader": "^0.5.7",
     "vue-html-loader": "^1.2.2",
