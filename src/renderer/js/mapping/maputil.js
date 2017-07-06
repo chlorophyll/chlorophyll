@@ -1,6 +1,8 @@
+import Util from 'chl/util';
+import Const from 'chl/const';
+
 export TransformMapping from './3dtransform';
 export ProjectionMapping from './projection';
-import Util from 'chl/util';
 
 /*
  * Generic Mapping class.

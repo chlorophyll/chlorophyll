@@ -1,5 +1,6 @@
 import GraphLib from 'chl/graphlib/graph';
 import Units from 'chl/units';
+import LiteGUI from 'chl/litegui';
 
 // Structural node types for the pattern graph
 function OutputColor() {

@@ -1,5 +1,6 @@
 import Immutable from 'immutable';
 import * as THREE from 'three';
+import 'three-examples/Octree';
 
 export function Overlay(model) {
     let self = this;

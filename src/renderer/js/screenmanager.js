@@ -1,6 +1,10 @@
 import * as THREE from 'three';
+import 'three-examples/controls/OrbitControls';
 import keyboardJS from 'keyboardjs';
+
+import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
+import Const from 'chl/const';
 
 // TODO(rpearl) potentially support multiple views
 export function Screen(camera, renderer, scene) {

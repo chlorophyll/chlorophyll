@@ -1,7 +1,7 @@
 /*
  * Constants, configuration, and magic numbers
  */
-export default Const = {
+const Const = {
     // UI & field sizes
     dock_size: 225,
     sidebar_size: 235,
@@ -26,3 +26,4 @@ export default Const = {
         NODE_MIN_WIDTH: 50
     }
 };
+export default Const;

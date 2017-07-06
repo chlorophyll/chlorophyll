@@ -93,6 +93,10 @@ let rendererConfig = {
             name: 'fonts/[name].[ext]'
           }
         }
+      },
+      {
+        test: /three\/examples\/js/,
+        use: 'imports-loader?THREE=three'
       }
     ]
   },
@@ -127,6 +131,8 @@ let rendererConfig = {
       '@': path.join(__dirname, '../src/renderer'),
       'components': path.join(__dirname, '../src/renderer/components'),
       'chl': path.join(__dirname, '../src/renderer/js'),
+      'three-examples': path.join(__dirname, '../node_modules/three/examples/js'),
+      'models': path.join(__dirname, '../static/models'),
       'vue$': 'vue/dist/vue.esm.js'
     },
     extensions: ['.js', '.vue', '.json', '.css', '.node']

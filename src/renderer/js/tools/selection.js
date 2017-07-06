@@ -1,6 +1,8 @@
 import keyboardJS from 'keyboardjs';
+import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
 import { worldState } from 'chl/init';
+import LiteGUI from 'chl/litegui';
 
 function isClipped(v) {
     if (frontPlane.distanceToPoint(v) < 0)

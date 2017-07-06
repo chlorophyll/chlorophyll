@@ -1,8 +1,11 @@
-import Util from 'chl/util';
 import Immutable from 'immutable';
+
 import ColorPool from 'chl/colors';
 import { ProjectionMapping, TransformMapping } from 'chl/mapping/maputil';
 import { worldState } from 'chl/init';
+import LiteGUI from 'chl/litegui';
+import Util from 'chl/util';
+import Const from 'chl/const';
 
 /*
  * Pixel group management

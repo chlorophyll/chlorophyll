@@ -1,4 +1,5 @@
 import Util from 'chl/util';
+import LiteGUI, { Inspector } from 'chl/litegui';
 
 LiteGUI.DualSlider = function(value, options) {
     options = options || {};

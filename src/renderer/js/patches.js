@@ -2,6 +2,7 @@
  * Patches and fixes for other packages
  */
 import keyboardJS from 'keyboardjs';
+import LiteGUI, { Inspector } from 'chl/litegui';
 
 Inspector.prototype.addComboButtons = function(name, value, options) {
     options = this.processOptions(options);

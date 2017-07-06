@@ -1,6 +1,6 @@
 import keyboardJS from 'keyboardjs';
 
-export const Hotkey = {
+const Hotkey = {
     reset_camera: 'space',
     widget_snap_angles: 'shift',
     undo: 'mod + z',
@@ -12,6 +12,7 @@ export const Hotkey = {
     tool_select_plane: 'p',
     cancel_selection: 'esc',
 };
+export default Hotkey;
 
 /*
  * Slightly modified version of the default keyboard.js locale to handle

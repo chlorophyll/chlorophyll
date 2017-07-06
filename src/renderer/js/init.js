@@ -1,8 +1,16 @@
 import * as THREE from 'three';
+import keyboardJS from 'keyboardjs';
+
+import Hotkey from 'chl/keybindings';
 import Model from 'chl/model';
 import GroupManager from 'chl/mapping/groups';
 import PatternManager from 'chl/patterns/manager';
+import ScreenManager from 'chl/screenmanager';
 import WorldState from 'chl/worldstate';
+import LiteGUI from 'chl/litegui';
+import Const from 'chl/const';
+
+import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
 // dom
 let container;
@@ -27,7 +35,7 @@ export {
     worldState
 };
 
-export default function Chlorophyll() {
+function Chlorophyll() {
     let frontPlane, backPlane;
     let selectionThreshold = 5; // TODO track in selection tools
 
@@ -233,3 +241,5 @@ export default function Chlorophyll() {
         screenManager.render();
     };
 }
+
+export default new Chlorophyll();
