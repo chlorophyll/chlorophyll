@@ -431,6 +431,7 @@ GraphNode.prototype.addInput = function(name, type) {
     this.inputs.push({
         name: name,
         type: type,
+        autoconvert: true
     });
 };
 
@@ -467,7 +468,7 @@ GraphNode.prototype.getInputData = function(slot) {
         data = this.properties[input.name];
     }
 
-    if (data !== undefined && data.isUnit && input.type && input.type.isUnit) {
+    if (data !== undefined && data.isUnit && input.autoconvert && input.type && input.type.isUnit) {
         data = data.convertTo(input.type);
     }
 
@@ -505,6 +506,7 @@ GraphNode.prototype.snapshot = function() {
     return Immutable.fromJS({
         pos: this.pos,
         properties: Util.JSON.dump(this.properties),
+        input_settings: this.inputs.map((input) => input.autoconvert),
         type: this.type,
         id: this.id,
         title: this.title,
@@ -512,8 +514,12 @@ GraphNode.prototype.snapshot = function() {
 };
 
 GraphNode.prototype.restore = function(snapshot) {
+    let self = this;
     this.pos = snapshot.get('pos').toJS();
     this.properties = Util.JSON.load(snapshot.get('properties'));
+    snapshot.get('input_settings').forEach(function(val, i) {
+        self.inputs[i].autoconvert = val;
+    });
     this.type = snapshot.get('type');
     this.id = snapshot.get('id');
     this.title = snapshot.get('title');

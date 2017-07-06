@@ -51,7 +51,7 @@ function showNodeInspector(node) {
     node.graph.addEventListener('graph-changed', updateVisualization);
 
     let inspector = new LiteGUI.Inspector('node-settings-inspector', {
-        widgets_per_row: 2,
+        widgets_per_row: 3,
         onchange: updateVisualization,
     });
 
@@ -63,10 +63,31 @@ function showNodeInspector(node) {
     let cur_values = node.properties;
 
     let show = false;
+    let numShown= 0;
 
     function add(input, widget) {
         show = true;
         let disabled = (node.required_properties || []).indexOf(input.name) != -1;
+        let checkbox;
+
+        if (input.type.isUnit) {
+            checkbox = inspector.addCheckbox(null, input.autoconvert, {
+                name_width: '0',
+                width: '2.7em',
+                callback: function(val) {
+                    input.autoconvert = val;
+                }
+            });
+            checkbox.title = 'automatically convert input to appropriate unit';
+            checkbox.querySelector('.wcontent .checkbox').style.width = '1.8em';
+            checkbox.style.paddingRight = '1.2em';
+        } else {
+            checkbox = inspector.addInfo('', '<span style="display: inline-block />', {
+                width: '2.7em',
+                className: 'widget'
+            });
+        }
+
         let button = inspector.addButton(null, 'clear', {
             name_width: '0',
             disabled: disabled,
@@ -77,10 +98,19 @@ function showNodeInspector(node) {
         });
         let name = widget.querySelector('.wname');
         name.style.width = '6em';
-        widget.style.width = 'calc(99% - 4em)';
+        widget.style.width = 'calc(99% - 6em)';
         button.classList.add('material-icons');
         button.style.fontSize = '12px';
-        button.style.width = '4em';
+        button.style.width = '3.5em';
+
+        [widget, checkbox, button].forEach(function(el) {
+            el.style.height = '2em';
+            if (numShown % 2 == 0) {
+                el.classList.add('even');
+            } else {
+                el.classList.remove('even');
+            }
+        });
     }
 
     inputs.forEach(function(input, i) {
