@@ -17,13 +17,15 @@ function Oscillator() {
     this.properties.amplitude = new Util.Range(0, 1, 0, 1);
     this.properties.phase = 0;
 
-    let width = 250;
+    let width = 325;
     let height = 200;
 
     let oscElement = document.createElement('div');
     oscElement.style.width = width+'px';
     oscElement.style.height = height+'px';
     oscElement.style.backgroundColor = '#222';
+    oscElement.style.clear = 'both';
+    oscElement.style.marginBottom = '2em';
 
     let plotter = new OscillatorPlotter(oscElement, {
         width: width,

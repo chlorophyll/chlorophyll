@@ -17,19 +17,7 @@ let defaultStage = 'pixel';
 
 
 function showNodeInspector(node) {
-    let dialog = new LiteGUI.Dialog('Node Settings', {
-        title: node.title + ' Settings',
-        minimize: false,
-        width: 256,
-        height: 300,
-        scroll: true,
-        resizeable: false,
-        draggable: true,
-        closable: false,
-    });
-
     let visualization_root = undefined;
-
 
     function updateVisualization() {
         if (!node.visualization)
@@ -55,7 +43,6 @@ function showNodeInspector(node) {
         onchange: updateVisualization,
     });
 
-    dialog.add(inspector);
 
     let inputs = node.inputs || [];
 
@@ -98,7 +85,7 @@ function showNodeInspector(node) {
         });
         let name = widget.querySelector('.wname');
         name.style.width = '6em';
-        widget.style.width = 'calc(99% - 6em)';
+        widget.style.width = 'calc(99% - 6.5em)';
         button.classList.add('material-icons');
         button.style.fontSize = '12px';
         button.style.width = '3.5em';
@@ -179,6 +166,17 @@ function showNodeInspector(node) {
     if (!show) {
         return;
     }
+    let dialog = new LiteGUI.Dialog('Node Settings', {
+        title: node.title + ' Settings',
+        minimize: false,
+        width: 325,
+        height: 'calc('+(numShown * 2)+'em + 300px)',
+        scroll: true,
+        resizeable: false,
+        draggable: true,
+        closable: false,
+    });
+    dialog.add(inspector);
 
     updateVisualization();
 

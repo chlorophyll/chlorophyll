@@ -6,7 +6,7 @@ LiteGUI.DualSlider = function(value, options) {
     options = options || {};
     this.root = document.createElement('div');
     this.root.style.display = 'inline-block';
-    this.root.style.width = 'calc(100% - 6.5em)';
+    this.root.style.width = 'calc(100% - 5em)';
     this.root.style.height = '1.2em';
     this.root.style.position = 'relative';
 
@@ -95,7 +95,7 @@ LiteGUI.DualSlider = function(value, options) {
         return false;
     }
 
-    this.setValue(value);
+    this.setValue(value, true);
 };
 
 LiteGUI.Slider = function(value, options) {
@@ -173,7 +173,7 @@ LiteGUI.Slider = function(value, options) {
         return false;
     }
 
-    this.setValue(value);
+    this.setValue(value, true);
 };
 
 (function() {
@@ -429,7 +429,7 @@ LiteGUI.MiniColor = function(value, options) {
         if (!skip_event)
             LiteGUI.trigger(self.root, 'change', picker.rgb.concat());
     };
-    self.setValue(value);
+    self.setValue(value, true);
 };
 
 LiteGUI.Inspector.prototype.addNumber = function(name, value, options) {
@@ -504,7 +504,7 @@ LiteGUI.Inspector.prototype.addNumber = function(name, value, options) {
 
     element.focus = function() { LiteGUI.focus(input) };
 
-    element.setValue(value);
+    element.setValue(value, true);
 
     this.processElement(element, options);
     return element;
