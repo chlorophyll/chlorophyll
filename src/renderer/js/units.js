@@ -4,24 +4,14 @@ function binop(oper) {
     return function(a, b) {
         let lhs, rhs, val;
 
-        if (!a || !b || a.isConvertibleTo == undefined || b.isConvertibleTo == undefined)
+        if (a === undefined || b === undefined || !a.isUnit || !b.isUnit)
             return oper(a, b);
 
-        if (a.isConvertibleTo(b.constructor)) {
-            lhs = b;
-            val = a;
-        } else if (b.isConvertibleTo(a.constructor)) {
-            lhs = a;
-            val = b;
-        } else {
-            return oper(a, b);
-        }
-
-        rhs = val.convertTo(lhs.constructor);
-
-        return new lhs.constructor(oper(lhs, rhs));
+        lhs = a.convertTo(Units.Numeric);
+        rhs = b.convertTo(Units.Numeric);
+        return new Units.Numeric(oper(lhs, rhs));
     };
-}
+};
 
 let _Units = {
     Operations: {
@@ -48,24 +38,21 @@ let Units = new Proxy(_Units, {
         };
         Util.JSON.addType(prop, value);
 
-        value.isConvertibleUnit = true;
-
-        value.prototype.isConvertibleTo = function(constructor) {
-            if (!constructor || !constructor._unit_name)
-                return false;
-            if (this.constructor == constructor)
-                return true;
-            return this.conversions[constructor._unit_name] !== undefined;
-        };
+        value.isUnit = true;
+        value.prototype.isUnit = true;
 
         value.prototype.convertTo = function(constructor) {
             if (!constructor || !constructor._unit_name)
                 return undefined;
 
-            if (this.constructor == constructor)
-                return new this.constructor(this.val);
+            if (value == constructor)
+                return new value(this.val);
 
-            return new constructor(this.conversions[constructor._unit_name].call(this));
+            return new constructor(Util.map(
+                this.val,
+                value.low, value.high,
+                constructor.low, constructor.high
+            ));
         };
 
         value.prototype.valueOf = function() {
@@ -84,59 +71,32 @@ let Units = new Proxy(_Units, {
     }
 });
 
-Units.Numeric = function(val) {
+function RangeType(low, high, constructor) {
+    constructor.low = low;
+    constructor.high = high;
+    return constructor;
+}
+
+/* eslint-disable no-invalid-this */
+
+Units.Numeric = RangeType(0, 1, function(val) {
     this.val = val;
-};
+});
 
-Units.Numeric.prototype.isConvertibleTo = function() { return true; };
-Units.Numeric.prototype.convertTo = function(constructor) {
-    if (!constructor || !constructor._unit_name)
-        return undefined;
-    return new constructor(this.val);
-};
-
-Units.Percentage = function(val) {
+Units.Percentage = RangeType(0, 1, function(val) {
     this.val = val;
-};
+});
 
-Units.Percentage.prototype.conversions = {
-    UInt8: function() {
-        return this.val * 0xff;
-    },
-    Angle: function() {
-        return this.val * Math.PI * 2;
-    }
-};
-
-Units.UInt8 = function(val) {
+Units.UInt8 = RangeType(0, 0xff, function(val) {
     this.val = val & 0xff;
-};
-
+});
 Units.UInt8.isIntegral = true;
 
-Units.Distance = function(val) {
+Units.Distance = RangeType(-1, 1, function(val) {
     this.val = val;
-};
-Units.Distance.prototype.conversions = {
-    Percentage: function() {
-        return 0.5 * (this.val + 1);
-    },
-    UInt8: function() {
-        return 0.5 * (this.val + 1) * 0xff;
-    }
-};
+});
 
-Units.Angle = function(val) {
+Units.Angle = RangeType(0, 2*Math.PI, function(val) {
     this.val = val;
-};
-
-Units.Angle.prototype.conversions = {
-    Percentage: function() {
-        return this.val / (2*Math.PI);
-    },
-    UInt8: function() {
-        return this.val / (2*Math.PI) * 0xff;
-    }
-};
-
+});
 export default Units;

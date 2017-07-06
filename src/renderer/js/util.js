@@ -36,6 +36,10 @@ let Util = {
 
         throw new Error('Unable to copy obj! Its type isn\'t supported.');
     },
+    map: function(value, fromLow, fromHigh, toLow, toHigh) {
+        let toRange = (toHigh - toLow);
+        return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
+    },
     clamp: function(val, min, max) {
         if (val < min)
             val = min;

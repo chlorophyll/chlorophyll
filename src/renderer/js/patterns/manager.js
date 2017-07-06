@@ -93,7 +93,7 @@ function showNodeInspector(node) {
         if (!input.type)
             return;
 
-        if (input.type.isConvertibleUnit) {
+        if (input.type.isUnit) {
             let display = val !== undefined ? val.valueOf() : undefined;
             let precision = input.type.isIntegral ? 0 : 2;
             add(input, inspector.addNumber(input.name, display, {
@@ -113,7 +113,7 @@ function showNodeInspector(node) {
             let f = cur_values[input.name];
             add(input, inspector.addQuantity(input.name, f.quantity(), {
                 step: 0.5,
-                precision: 1,
+                precision: 2,
                 min: 0,
                 units: val.units,
                 callback: function(v, oldUnits) {

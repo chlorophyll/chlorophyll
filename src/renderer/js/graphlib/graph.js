@@ -92,15 +92,7 @@ export function Graph() {
             return (src_type == dst_type);
         }
 
-        if (dst_type == Units.Numeric) {
-            return src_type.isConvertibleUnit !== undefined;
-        }
-
-        if (src_type.isConvertibleUnit) {
-            return src_type.prototype.isConvertibleTo(dst_type);
-        }
-
-        return false;
+        return dst_type.isUnit && src_type.isUnit;
     };
 
     this.addNode = function(path, options) {
@@ -455,7 +447,7 @@ GraphNode.prototype.getOutgoingData = function(slot) {
 
     let outgoing = this.outgoing_data[slot];
 
-    if (outgoing && output.type && output.type.isConvertibleUnit)
+    if (outgoing && output.type && output.type.isUnit)
         outgoing = new output.type(outgoing.valueOf());
 
     return outgoing;
@@ -475,10 +467,7 @@ GraphNode.prototype.getInputData = function(slot) {
         data = this.properties[input.name];
     }
 
-    if (data !== undefined
-        && data.isConvertibleTo !== undefined
-        && input.type
-        && input.type != Units.Numeric) {
+    if (data !== undefined && data.isUnit && input.type && input.type.isUnit) {
         data = data.convertTo(input.type);
     }
 
