@@ -94,6 +94,8 @@ let rendererConfig = {
           }
         }
       },
+      // THREE examples add new constructors to the THREE object rather than
+      // exporting a module, so they're imported for side effects.
       {
         test: /three\/examples\/js/,
         use: 'imports-loader?THREE=three'
@@ -119,7 +121,12 @@ let rendererConfig = {
         : false
     }),
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoEmitOnErrorsPlugin()
+    new webpack.NoEmitOnErrorsPlugin(),
+    // Automatically inject 'var $ = require('jquery');' if $ is used
+    new webpack.ProvidePlugin({
+      $: 'jquery',
+      jQuery: 'jquery'
+    })
   ],
   output: {
     filename: '[name].js',

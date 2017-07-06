@@ -1,9 +1,9 @@
 import keyboardJS from 'keyboardjs';
 import Immutable from 'immutable';
 
-import { worldState, groupManager } from 'chl/init';
+import { UILayout, worldState, groupManager } from 'chl/init';
 import Util from 'chl/util';
-import Graph from 'chl/graphlib/graph';
+import GraphLib, { Graph, GraphCanvas, GraphAutoLayout } from 'chl/graphlib/graph';
 import LiteGUI from 'chl/litegui';
 import Const from 'chl/const';
 
@@ -442,9 +442,9 @@ export default function PatternManager() {
 
         side_tree_panel.add(self.pattern_browser);
         side_settings_panel.add(self.sidebar_widgets);
-        UI.sidebar_bottom.split('vertical', ['50%', null], true);
-        UI.sidebar_bottom.getSection(0).add(side_tree_panel);
-        UI.sidebar_bottom.getSection(1).add(side_settings_panel);
+        UILayout.sidebar_bottom.split('vertical', ['50%', null], true);
+        UILayout.sidebar_bottom.getSection(0).add(side_tree_panel);
+        UILayout.sidebar_bottom.getSection(1).add(side_settings_panel);
 
         let runningPattern = false;
         let previewMapping = null;
@@ -548,7 +548,7 @@ export default function PatternManager() {
 
         self.sidebar_widgets.addSeparator();
         let mapmenu_values = {};
-        for (type in MappingInputs) {
+        for (let type in MappingInputs) {
             mapmenu_values[MappingInputs[type].name] = type;
         }
         self.sidebar_widgets.addCombo('map type',
@@ -597,7 +597,7 @@ export default function PatternManager() {
         self.root.appendChild(area.root);
 
         let canvasContainer = document.createElement('div');
-        UI.tabs.addTab('Pattern Builder', {
+        UILayout.tabs.addTab('Pattern Builder', {
             content: self.root,
             width: '100%',
             size: 'full',

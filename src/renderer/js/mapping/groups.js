@@ -2,8 +2,9 @@ import Immutable from 'immutable';
 
 import ColorPool from 'chl/colors';
 import { ProjectionMapping, TransformMapping } from 'chl/mapping/maputil';
-import { worldState } from 'chl/init';
+import { UILayout, worldState } from 'chl/init';
 import LiteGUI from 'chl/litegui';
+import 'chl/widgets/litegui-extensions';
 import Util from 'chl/util';
 import Const from 'chl/const';
 
@@ -213,7 +214,7 @@ export default function GroupManager(model) {
 
     // Manually assign group id labels so that deleting a group doesn't
     // reassign ids
-    _nextid = 0;
+    let _nextid = 0;
     function newgid() {
         return _nextid++;
     }
@@ -270,7 +271,7 @@ export default function GroupManager(model) {
         mappingConfigDialog.show();
         mappingConfigDialog.adjustSize();
         let dialog = mappingConfigDialog.root;
-        let viewport = UI.viewport.root;
+        let viewport = UILayout.viewport.root;
         mappingConfigDialog.setPosition(
             viewport.offsetLeft + viewport.offsetWidth - dialog.offsetWidth,
             viewport.offsetTop + viewport.offsetHeight - dialog.offsetHeight);
@@ -469,9 +470,9 @@ export default function GroupManager(model) {
     panel.add(currGroupInspector);
     panel.add(currMappingInspector);
 
-    UI.sidebar_top.split('vertical', ['30%', null], true);
-    UI.sidebar_top.getSection(0).add(treePanel);
-    UI.sidebar_top.getSection(1).add(panel);
+    UILayout.sidebar_top.split('vertical', ['30%', null], true);
+    UILayout.sidebar_top.getSection(0).add(treePanel);
+    UILayout.sidebar_top.getSection(1).add(panel);
 
     function createGroup(pixels, name) {
         let id = newgid();

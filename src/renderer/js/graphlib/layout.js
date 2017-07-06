@@ -1,6 +1,6 @@
 import GraphLib from './graph';
 
-GraphLib.AutoLayout = function() {
+export function GraphAutoLayout() {
     let defaultOptions = {
         'intCoordinates': true,
         'algorithm': 'de.cau.cs.kieler.klay.layered',

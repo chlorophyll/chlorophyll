@@ -1,5 +1,6 @@
 import Util from 'chl/util';
 import LiteGUI, { Inspector } from 'chl/litegui';
+import 'jscolor-picker';
 
 LiteGUI.DualSlider = function(value, options) {
     options = options || {};
@@ -126,7 +127,7 @@ LiteGUI.Slider = function(value, options) {
     let range = max - min;
 
     this.setValue = function(value, skip_event) {
-        let value = Util.clamp(value, min, max);
+        value = Util.clamp(value, min, max);
 
         let norm = (value - min) / range;
 

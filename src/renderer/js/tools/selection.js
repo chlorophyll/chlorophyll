@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';

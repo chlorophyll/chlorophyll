@@ -7,6 +7,8 @@ import GroupManager from 'chl/mapping/groups';
 import PatternManager from 'chl/patterns/manager';
 import ScreenManager from 'chl/screenmanager';
 import WorldState from 'chl/worldstate';
+import Toolbar from 'chl/tools/toolbar';
+import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
 import LiteGUI from 'chl/litegui';
 import Const from 'chl/const';
 
@@ -24,10 +26,10 @@ let patternManager;
 // chlorophyll objects
 let worldState;
 
-const UI = {};
+const UILayout = {};
 
 export {
-    UI,
+    UILayout,
     toolbarManager,
     screenManager,
     groupManager,
@@ -36,6 +38,8 @@ export {
 };
 
 function Chlorophyll() {
+    let self = this;
+
     let frontPlane, backPlane;
     let selectionThreshold = 5; // TODO track in selection tools
 
@@ -70,22 +74,22 @@ function Chlorophyll() {
          **************/
         LiteGUI.init();
 
-        UI.menu = new LiteGUI.Menubar();
-        UI.menu.add('File/New');
-        UI.menu.add('Edit/Undo', function() { worldState.undo(); });
-        UI.menu.add('Edit/Redo', function() { worldState.redo(); });
+        UILayout.menu = new LiteGUI.Menubar();
+        UILayout.menu.add('File/New');
+        UILayout.menu.add('Edit/Undo', function() { worldState.undo(); });
+        UILayout.menu.add('Edit/Redo', function() { worldState.redo(); });
             keyboardJS.bind(Hotkey.undo, function() {
             worldState.undo();
         });
-        UI.menu.add('View');
+        UILayout.menu.add('View');
 
         keyboardJS.bind(Hotkey.redo, function() {
             worldState.redo();
         });
 
-        UI.menu.add('Help/About');
+        UILayout.menu.add('Help/About');
 
-        LiteGUI.add(UI.menu);
+        LiteGUI.add(UILayout.menu);
 
         // Center viewport container
         let mainarea = new LiteGUI.Area('mainarea', {
@@ -99,17 +103,17 @@ function Chlorophyll() {
         mainarea.split('vertical', [null, Const.dock_size], true);
         let dock = mainarea.getSection(1);
         dock.split('horizontal', [null, Const.sidebar_size], true);
-        UI.sidebar_bottom = dock.getSection(1);
+        UILayout.sidebar_bottom = dock.getSection(1);
         dock = dock.getSection(0);
 
-        UI.tabs = new LiteGUI.Tabs(null, {size: 'full'});
-        dock.add(UI.tabs);
+        UILayout.tabs = new LiteGUI.Tabs(null, {size: 'full'});
+        dock.add(UILayout.tabs);
         mainarea = mainarea.getSection(0);
 
         // Group, mapping & pattern browser sidebar
         mainarea.split('horizontal', [null, Const.sidebar_size], true);
-        UI.sidebar_top = mainarea.getSection(1);
-        // UI.sidebar_bottom = UI.sidebar.getSection(1);
+        UILayout.sidebar_top = mainarea.getSection(1);
+        // UILayout.sidebar_bottom = UILayout.sidebar.getSection(1);
 
         mainarea = mainarea.getSection(0);
 
@@ -118,13 +122,13 @@ function Chlorophyll() {
         mainarea.split('horizontal', [Const.toolbar_size, null], true);
         let toolbar_panel = new LiteGUI.Panel('toolbar');
 
-        UI.toolbar = new LiteGUI.Inspector();
+        UILayout.toolbar = new LiteGUI.Inspector();
 
-        toolbar_panel.add(UI.toolbar);
+        toolbar_panel.add(UILayout.toolbar);
 
         mainarea.getSection(0).add(toolbar_panel);
         mainarea = mainarea.getSection(1);
-        UI.viewport = mainarea;
+        UILayout.viewport = mainarea;
 
         container = mainarea.content;
         container.style.position = 'relative';
@@ -159,7 +163,7 @@ function Chlorophyll() {
         /**************************
          * Viewport toolbar setup *
          **************************/
-        toolbarManager = new Toolbar('Edit/Select', UI.toolbar, UI.menu);
+        toolbarManager = new Toolbar('Edit/Select', UILayout.toolbar, UILayout.menu);
         toolbarManager.addTool('camera', {
             enable: function() {
                 screenManager.activeScreen.controlsEnabled = true;
@@ -168,7 +172,7 @@ function Chlorophyll() {
                 screenManager.activeScreen.controlsEnabled = false;
             }
         }, Hotkey.tool_camera, Hotkey.tool_camera_momentary);
-        UI.toolbar.addSeparator();
+        UILayout.toolbar.addSeparator();
         toolbarManager.addTool('marquee', new MarqueeSelection(container, model),
             Hotkey.tool_select_marquee);
         toolbarManager.addTool('line', new LineSelection(container, model),
@@ -220,7 +224,7 @@ function Chlorophyll() {
                 }
             });
         rendering_win.add(rendering_widgets);
-        UI.menu.add('View/Viewport Settings', function() {
+        UILayout.menu.add('View/Viewport Settings', function() {
             rendering_win.show();
             rendering_win.setPosition(window.innerWidth - 520, 20);
         });
@@ -231,7 +235,7 @@ function Chlorophyll() {
     };
 
     this.animate = function() {
-        requestAnimationFrame(animate);
+        requestAnimationFrame(self.animate);
 
         let v = new THREE.Vector3();
         screenManager.activeScreen.camera.getWorldDirection(v);

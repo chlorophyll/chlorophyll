@@ -5041,7 +5041,7 @@ function dataURItoBlob( dataURI ) {
 		if(!item.listbox)
 			return;
 
-		listbox.setValue(true); //this propagates changes
+		item.listbox.setValue(true); //this propagates changes
 	}
 
 	/**
@@ -5058,7 +5058,7 @@ function dataURItoBlob( dataURI ) {
 		if(!item.listbox)
 			return;
 
-		listbox.setValue(false);  //this propagates changes
+		item.listbox.setValue(false);  //this propagates changes
 	}
 
 

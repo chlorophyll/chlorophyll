@@ -1,6 +1,8 @@
 import * as d3 from 'd3';
 import Const from 'chl/const';
 import Util from 'chl/util';
+import GraphLib from './graph';
+import { GraphAutoLayout } from './layout';
 
 export function NodeElement(canvas, node) {
     let self = this;
@@ -337,7 +339,7 @@ export function EdgeElement(canvas, edge) {
     };
 }
 
-export default function GraphCanvas(divNode) {
+export function GraphCanvas(divNode) {
     let self = this;
 
     let div = d3.select(divNode);
@@ -513,7 +515,7 @@ export default function GraphCanvas(divNode) {
     };
     this.clearGraph();
 
-    let layoutEngine = new GraphLib.AutoLayout();
+    let layoutEngine = new GraphAutoLayout();
 
     this.autolayout = function() {
         layoutEngine.layout(self, function(kgraph) {

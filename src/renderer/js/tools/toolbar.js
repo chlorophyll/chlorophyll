@@ -21,6 +21,7 @@ export default function Toolbar(managername, toolbar, menu) {
         if (activeTool != null)
             self.exitActiveTool();
 
+        let tool;
         if (typeof name === 'string')
             tool = tools[name];
         else

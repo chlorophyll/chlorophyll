@@ -1,6 +1,9 @@
 import Immutable from 'immutable';
 import Util from 'chl/util';
 
+export { GraphAutoLayout } from './layout';
+export { NodeElement, EdgeElement, GraphCanvas } from './canvas';
+
 function GraphLib() {
     let self = this;
 

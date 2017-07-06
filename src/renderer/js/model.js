@@ -240,7 +240,7 @@ export default function Model(json) {
 
         pixelData = [];
         colors = [];
-        strips = model_dict['strips'];
+        const strips = model_dict['strips'];
 
         let p_idx = 0;
         for (let strip = 0; strip < strips.length; strip++) {
@@ -290,7 +290,7 @@ export default function Model(json) {
 
         let pixelsize = THREE.Math.clamp(avgDist / 3, 5, 15);
         let material = new THREE.PointsMaterial({
-            pixelsize: pixelsize,
+            size: pixelsize,
             vertexColors: THREE.VertexColors
         });
         self.particles = new THREE.Points(geometry, material);

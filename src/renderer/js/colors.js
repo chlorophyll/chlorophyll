@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-export default function ColorPool() {
-    let colors = [
+function ColorPool() {
+    this.colors = [
         new THREE.Color(0x24c6ff),
         new THREE.Color(0xffa21a),
         new THREE.Color(0x774cfa),
@@ -38,7 +38,8 @@ export default function ColorPool() {
     */
     let i = 0;
     this.random = function() {
-        i = (i + 1) % (colors.length);
-        return colors[i];
+        i = (i + 1) % (this.colors.length);
+        return this.colors[i];
     };
 }
+export default new ColorPool();

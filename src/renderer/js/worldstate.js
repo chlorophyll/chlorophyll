@@ -16,7 +16,7 @@ export default function WorldState(start) {
         let snapshot = {};
         // future optimization: only snapshot properties that have changed
         // would be nice for not making empty snapshots as well.
-        for (prop in self) {
+        for (let prop in self) {
             if (self[prop].hasOwnProperty('snapshot')) {
                 snapshot[prop] = self[prop].snapshot();
             }
@@ -42,7 +42,7 @@ export default function WorldState(start) {
     };
 
     // fill in initial properties
-    for (prop in start) {
+    for (let prop in start) {
         this[prop] = start[prop];
     }
     this.checkpoint();
