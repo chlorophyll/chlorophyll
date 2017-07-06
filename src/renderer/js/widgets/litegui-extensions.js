@@ -344,7 +344,7 @@ Inspector.prototype.addDualSlider = function(name, value, options) {
 })();
 
 Inspector.prototype.addColor = function(name, value, options) {
-    optins = this.processOptions(options);
+    options = this.processOptions(options);
 
     value = value || [0, 0, 0];
 
