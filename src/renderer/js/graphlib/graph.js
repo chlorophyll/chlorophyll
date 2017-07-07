@@ -1,10 +1,10 @@
 import Immutable from 'immutable';
 import Util from 'chl/util';
-
+import Const from 'chl/const';
 export { GraphAutoLayout } from './layout';
 export { NodeElement, EdgeElement, GraphCanvas } from './canvas';
 
-function GraphLib() {
+function GraphLib_() {
     let self = this;
 
     this.node_types = Immutable.OrderedMap();
@@ -24,7 +24,8 @@ function GraphLib() {
         return self.node_types;
     };
 };
-export default new GraphLib();
+let GraphLib = new GraphLib_();
+export default GraphLib;
 
 export function Graph() {
     Util.EventDispatcher.call(this);
@@ -316,7 +317,7 @@ export function Graph() {
         if (is_input)
             return self.hasIncomingEdge(node, slot) ? 1 : 0;
 
-        edgelist = edges_by_src.getIn([node.id, slot]);
+        let edgelist = edges_by_src.getIn([node.id, slot]);
         return edgelist ? edgelist.count() : 0;
     };
 

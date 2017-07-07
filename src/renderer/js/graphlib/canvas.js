@@ -6,11 +6,11 @@ import { GraphAutoLayout } from './layout';
 
 export function NodeElement(canvas, node) {
     let self = this;
+    let graph = canvas.graph;
     let input_elems = [];
     let output_elems = [];
     self.width = undefined;
     self.height = undefined;
-    self.graph = null;
 
     this.connectionPos = function(slot, is_input) {
         let x = is_input ? 0 : self.width;
