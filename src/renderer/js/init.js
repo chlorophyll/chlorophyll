@@ -37,7 +37,8 @@ export {
 function Chlorophyll() {
     let self = this;
 
-    let frontPlane, backPlane;
+    this.frontPlane = null;
+    this.backPlane = null;
     let selectionThreshold = 5; // TODO track in selection tools
 
     function initModelFromJson(scene, json) {
@@ -126,7 +127,7 @@ function Chlorophyll() {
         mainarea.getSection(0).add(toolbar_panel);
         mainarea = mainarea.getSection(1);
 
-        let viewport = UILayout.viewport = mainarea.content;
+        let viewport = UILayout.viewport = mainarea.root;
         viewport.style.position = 'relative';
         viewport.style.top = 0;
         viewport.style.left = 0;
@@ -142,15 +143,15 @@ function Chlorophyll() {
         renderer.setClearColor(scene.fog.color);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(viewport.clientWidth, viewport.clientHeight);
-        viewport.appendChild(renderer.domElement);
+        mainarea.content.appendChild(renderer.domElement);
 
         screenManager = new ScreenManager(UILayout.viewport, renderer, scene);
         screenManager.addScreen('main', {isOrtho: false, active: true});
         let v = new THREE.Vector3();
         screenManager.activeScreen.camera.getWorldDirection(v);
         let nv = v.clone().negate();
-        frontPlane = new THREE.Plane(v, Const.max_clip_plane);
-        backPlane = new THREE.Plane(nv, Const.max_clip_plane);
+        self.frontPlane = new THREE.Plane(v, Const.max_clip_plane);
+        self.backPlane = new THREE.Plane(nv, Const.max_clip_plane);
         renderer.clippingPlanes = [];
 
         let model = initModelFromJson(scene, chrysanthemum);
@@ -198,7 +199,7 @@ function Chlorophyll() {
         let rendering_widgets = new LiteGUI.Inspector();
         rendering_widgets.addCheckbox('Clip view', false, function(val) {
             if (val)
-                renderer.clippingPlanes = [frontPlane, backPlane];
+                renderer.clippingPlanes = [self.frontPlane, self.backPlane];
             else
                 renderer.clippingPlanes = [];
         });
@@ -208,8 +209,8 @@ function Chlorophyll() {
                 max: Const.max_clip_plane,
                 step: 10,
                 callback: function(val) {
-                    backPlane.constant = -val.left;
-                    frontPlane.constant = val.right;
+                    self.backPlane.constant = -val.left;
+                    self.frontPlane.constant = val.right;
                 }
             });
         rendering_widgets.addSlider('Selection Threshold', selectionThreshold,
@@ -238,8 +239,8 @@ function Chlorophyll() {
 
         let v = new THREE.Vector3();
         screenManager.activeScreen.camera.getWorldDirection(v);
-        frontPlane.normal = v;
-        backPlane.normal = v.clone().negate();
+        self.frontPlane.normal = v;
+        self.backPlane.normal = v.clone().negate();
 
         screenManager.render();
     };

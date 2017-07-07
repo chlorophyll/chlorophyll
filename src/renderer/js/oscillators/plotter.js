@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-export default function OscillatorPlotter(container, options) {
+export default function OscillatorPlotter(oscElement, options) {
     let margin = {top: 20, right: 20, bottom: 20, left: 20};
 
     let elWidth = options.width || 200;
@@ -9,7 +9,7 @@ export default function OscillatorPlotter(container, options) {
     let width = elWidth - margin.left - margin.right;
     let height = elHeight - margin.top - margin.bottom;
 
-    let svg = d3.select(container).append('svg');
+    let svg = d3.select(oscElement).append('svg');
 
     svg.attr('width', elWidth)
        .attr('height', elHeight);

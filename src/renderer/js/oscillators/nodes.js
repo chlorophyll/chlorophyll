@@ -16,19 +16,19 @@ function Oscillator() {
     let width = 250;
     let height = 200;
 
-    let container = document.createElement('div');
-    container.style.width = width+'px';
-    container.style.height = height+'px';
-    container.style.backgroundColor = '#222';
+    let oscElement = document.createElement('div');
+    oscElement.style.width = width+'px';
+    oscElement.style.height = height+'px';
+    oscElement.style.backgroundColor = '#222';
 
-    let plotter = new OscillatorPlotter(container, {
+    let plotter = new OscillatorPlotter(oscElement, {
         width: width,
         height: height,
     });
 
     this.visualization = {
         enabled: function() { return self.graph.numEdgesToNode(self) == 0; },
-        root: container,
+        root: oscElement,
         update: function() { plotter.plot(self); }
     };
 }

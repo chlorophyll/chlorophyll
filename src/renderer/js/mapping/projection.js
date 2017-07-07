@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import Immutable from 'immutable';
-import { screenManager, toolbarManager } from 'chl/init';
+import { UILayout, screenManager, toolbarManager } from 'chl/init';
 import Util from 'chl/util';
 import Mapping from './maputil';
 import { CartesianAxes } from 'chl/widgets/axes2d';
@@ -19,7 +19,7 @@ export default function ProjectionMapping(manager, group, id, initname) {
     this.mapping_valid = false;
     this.proj_plane = {};
 
-    this.widget = new CartesianAxes(container);
+    this.widget = new CartesianAxes(UILayout.viewport);
 
     let ui_controls = {};
 

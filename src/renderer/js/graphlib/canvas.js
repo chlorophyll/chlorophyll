@@ -351,7 +351,7 @@ export function GraphCanvas(divNode) {
 
     function setTransform(transform) {
         curTransform = transform;
-        container.attr('transform', transform);
+        self.container.attr('transform', transform);
     }
 
     // preamble
@@ -387,17 +387,17 @@ export function GraphCanvas(divNode) {
     .style('fill', 'none')
     .style('pointer-events', 'all');
 
-    let container = self.container = canvas.append('g');
+    self.container = canvas.append('g');
 
-    let grid = container.append('rect')
+    let grid = self.container.append('rect')
              .attr('width', '2000%')
              .attr('height', '2000%')
              .attr('id', 'grid')
              .style('transform', 'translate(-50%, -50%)')
              .style('fill', 'url(#grid)');
 
-    self.edgeContainer = container.append('g');
-    self.nodeContainer = container.append('g');
+    self.edgeContainer = self.container.append('g');
+    self.nodeContainer = self.container.append('g');
 
     // graph observations
     self.node_elements = new Map();

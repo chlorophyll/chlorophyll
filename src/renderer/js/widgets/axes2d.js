@@ -26,19 +26,19 @@ function arrow(handle, opts) {
  * 100-unit svg viewboxes and have some arrows which describe the direction of
  * a 2d axis system, positioned by the embedded Coordinates2D.
  */
-function AxesWidget(container) {
+function AxesWidget(widgetElement) {
     let self = this;
 
-    Widget2D.call(this, container);
+    Widget2D.call(this, widgetElement);
 
     this.origin = new THREE.Vector2(50, 50);
 
-    let size = 50 + (container.clientHeight * 0.2);
+    let size = 50 + (widgetElement.clientHeight * 0.2);
 
     let center_x = size / 2;
     let center_y = size / 2;
 
-    this.axesContainer = d3.select(container)
+    this.axesContainer = d3.select(widgetElement)
         .append('svg')
         .attr('width', size + 'px')
         .attr('height', size + 'px')
@@ -47,8 +47,8 @@ function AxesWidget(container) {
     this.axes = this.axesContainer.append('g');
 
     this.onPosChange = function(new_x, new_y) {
-        let x = container.clientWidth * (new_x + 1)/2;
-        let y = -container.clientHeight * (new_y - 1)/2;
+        let x = widgetElement.clientWidth * (new_x + 1)/2;
+        let y = -widgetElement.clientHeight * (new_y - 1)/2;
         self.axesContainer.style('left', (x - center_x) + 'px')
                           .style('top',  (y - center_y) + 'px');
     };
@@ -58,7 +58,7 @@ function AxesWidget(container) {
     };
 
     function onWindowResize() {
-        size = 50 + container.clientHeight * 0.2;
+        size = 50 + widgetElement.clientHeight * 0.2;
         center_x = size / 2;
         center_y = size / 2;
         self.onPosChange(self.x, self.y);
@@ -94,9 +94,9 @@ function AxesWidget(container) {
 }
 AxesWidget.prototype = Object.create(Widget2D.prototype);
 
-export function CartesianAxes(container) {
+export function CartesianAxes(widgetElement) {
     let self = this;
-    AxesWidget.call(this, container);
+    AxesWidget.call(this, widgetElement);
 
 
     this.axes.append('g')
@@ -136,9 +136,9 @@ export function CartesianAxes(container) {
 }
 CartesianAxes.prototype = Object.create(AxesWidget.prototype);
 
-export function PolarAxes(container) {
+export function PolarAxes(widgetElement) {
     let self = this;
-    AxesWidget.call(this, container);
+    AxesWidget.call(this, widgetElement);
 
     this.axes.append('g').call(arrow, {
         color: '#f00',

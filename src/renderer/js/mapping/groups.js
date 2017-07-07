@@ -271,7 +271,7 @@ export default function GroupManager(model) {
         mappingConfigDialog.show();
         mappingConfigDialog.adjustSize();
         let dialog = mappingConfigDialog.root;
-        let viewport = UILayout.viewport.root;
+        let viewport = UILayout.viewport;
         mappingConfigDialog.setPosition(
             viewport.offsetLeft + viewport.offsetWidth - dialog.offsetWidth,
             viewport.offsetTop + viewport.offsetHeight - dialog.offsetHeight);

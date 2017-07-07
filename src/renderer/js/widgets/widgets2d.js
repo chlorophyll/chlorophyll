@@ -35,7 +35,7 @@ function Coordinates2D() {
  *
  * (The callbacks should probably be rewritten to use events)
  */
-export default function Widget2D(container) {
+export default function Widget2D(widgetElement) {
 
     Coordinates2D.call(this);
     Util.EventDispatcher.call(this);
@@ -52,7 +52,7 @@ export default function Widget2D(container) {
     }
 
     this.showAt = function(vx, vy) {
-        setPos(vx / container.clientWidth, vy / container.clientHeight);
+        setPos(vx / widgetElement.clientWidth, vy / widgetElement.clientHeight);
         self.show();
     };
 
@@ -69,18 +69,18 @@ export default function Widget2D(container) {
 
     function _drag(event) {
         event.preventDefault();
-        let coords = Util.relativeCoords(container, event.pageX, event.pageY);
+        let coords = Util.relativeCoords(widgetElement, event.pageX, event.pageY);
 
-        self.x =  (coords.x / container.clientWidth ) * 2 - 1;
-        self.y = -(coords.y / container.clientHeight) * 2 + 1;
+        self.x =  (coords.x / widgetElement.clientWidth ) * 2 - 1;
+        self.y = -(coords.y / widgetElement.clientHeight) * 2 + 1;
         if (self.onPosChange)
             self.onPosChange(self.x, self.y);
     }
 
     function _endDrag(event) {
         event.preventDefault();
-        container.removeEventListener('mousemove', _drag);
-        container.removeEventListener('mouseup', _endDrag);
+        widgetElement.removeEventListener('mousemove', _drag);
+        widgetElement.removeEventListener('mouseup', _endDrag);
         notifyChange();
     }
 
@@ -88,8 +88,8 @@ export default function Widget2D(container) {
         thing.on('mousedown', function() {
             self.dragging = true;
             if (start) start();
-            container.addEventListener('mousemove', _drag);
-            container.addEventListener('mouseup', function(event) {
+            widgetElement.addEventListener('mousemove', _drag);
+            widgetElement.addEventListener('mouseup', function(event) {
                 self.dragging = false;
                 if (end) end(event);
                 _endDrag(event);

@@ -64,18 +64,17 @@ let Util = {
         return ret;
     },
 
-    relativeCoords: function relativeCoords(container, pageX, pageY) {
-        let offset = $(container).offset();
+    relativeCoords: function relativeCoords(element, pageX, pageY) {
         return {
-            x: pageX - offset.left,
-            y: pageY - offset.top
+            x: pageX - element.offsetLeft,
+            y: pageY - element.offsetTop
         };
     },
 
     cameraPlaneCoords: function(camera, renderer, position) {
         let vector = position.clone();
-        let width = container.clientWidth;
-        let height = container.clientHeight;
+        let width = renderer.domElement.clientWidth;
+        let height = renderer.domElement.clientHeight;
 
         // map to normalized device coordinate (NDC) space
         vector.project( camera );

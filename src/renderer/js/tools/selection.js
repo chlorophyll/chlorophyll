@@ -2,14 +2,14 @@ import * as THREE from 'three';
 import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
-import { worldState } from 'chl/init';
+import Chlorophyll, { worldState, screenManager } from 'chl/init';
 import LiteGUI from 'chl/litegui';
 
 function isClipped(v) {
-    if (frontPlane.distanceToPoint(v) < 0)
+    if (Chlorophyll.frontPlane.distanceToPoint(v) < 0)
         return true;
 
-    if (backPlane.distanceToPoint(v) < 0)
+    if (Chlorophyll.backPlane.distanceToPoint(v) < 0)
         return true;
     return false;
 }
@@ -176,11 +176,10 @@ export function MarqueeSelection(viewport, model) {
     }
 
     function drawRect() {
-        l = Math.min(rect.startX, rect.endX);
-        r = Math.max(rect.startX, rect.endX);
-
-        t = Math.min(rect.startY, rect.endY);
-        b = Math.max(rect.startY, rect.endY);
+        let l = Math.min(rect.startX, rect.endX);
+        let r = Math.max(rect.startX, rect.endX);
+        let t = Math.min(rect.startY, rect.endY);
+        let b = Math.max(rect.startY, rect.endY);
 
         self.box.style.left = l+'px';
         self.box.style.top = t+'px';
