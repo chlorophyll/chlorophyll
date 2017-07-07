@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as d3 from 'd3';
 import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
@@ -68,7 +69,7 @@ export default function Widget2D(container) {
 
     function _drag(event) {
         event.preventDefault();
-        coords = Util.relativeCoords(container, event.pageX, event.pageY);
+        let coords = Util.relativeCoords(container, event.pageX, event.pageY);
 
         self.x =  (coords.x / container.clientWidth ) * 2 - 1;
         self.y = -(coords.y / container.clientHeight) * 2 + 1;

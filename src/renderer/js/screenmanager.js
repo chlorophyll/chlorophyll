@@ -7,7 +7,7 @@ import Util from 'chl/util';
 import Const from 'chl/const';
 
 // TODO(rpearl) potentially support multiple views
-export function Screen(camera, renderer, scene) {
+export function Screen(element, camera, renderer, scene) {
     let self = this;
 
     this.camera = camera;
@@ -64,8 +64,8 @@ export function Screen(camera, renderer, scene) {
 
     this.getPointAt = function(model, x, y) {
         let mouse3D = new THREE.Vector3(
-             (x / container.clientWidth ) * 2 - 1,
-            -(y / container.clientHeight) * 2 + 1,
+             (x / element.clientWidth ) * 2 - 1,
+            -(y / element.clientHeight) * 2 + 1,
             0.5);
         let raycaster = new THREE.Raycaster();
         raycaster.params.Points.threshold = 10;
@@ -82,15 +82,15 @@ export function Screen(camera, renderer, scene) {
     };
 }
 
-export default function ScreenManager(renderer, scene) {
+export default function ScreenManager(viewport, renderer, scene) {
     let screens = {};
     let _activeScreen = undefined;
 
     this.addScreen = function(name, options) {
         let active = options.active || false;
         let camera;
-        let width = container.clientWidth;
-        let height = container.clientHeight;
+        let width = viewport.clientWidth;
+        let height = viewport.clientHeight;
         if (options.isOrtho) {
             camera = new THREE.OrthographicCamera(
                 width / -2, width / 2,
@@ -109,7 +109,7 @@ export default function ScreenManager(renderer, scene) {
         } else {
             camera.position.z = 1000;
         }
-        let screen = new Screen(camera, renderer, scene);
+        let screen = new Screen(viewport, camera, renderer, scene);
         screens[name] = screen;
 
         if (options.active) {
@@ -119,8 +119,8 @@ export default function ScreenManager(renderer, scene) {
     };
 
     this.resize = function() {
-        let width = container.clientWidth;
-        let height = container.clientHeight;
+        let width = viewport.clientWidth;
+        let height = viewport.clientHeight;
         renderer.setSize(width, height);
 
         for (let name in screens) {

@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import Immutable from 'immutable';
+import { screenManager, toolbarManager } from 'chl/init';
 import Util from 'chl/util';
 import Mapping from './maputil';
 import { CartesianAxes } from 'chl/widgets/axes2d';

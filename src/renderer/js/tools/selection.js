@@ -169,7 +169,7 @@ export function MarqueeSelection(viewport, model) {
 
         self.startSelection(event);
 
-        let coords = Util.relativeCoords(container, event.pageX, event.pageY);
+        let coords = Util.relativeCoords(viewport, event.pageX, event.pageY);
         rect.startX = coords.x;
         rect.startY = coords.y;
         self.box.style.display = 'block';
@@ -234,7 +234,7 @@ export function MarqueeSelection(viewport, model) {
 
         event.preventDefault();
 
-        let coords = Util.relativeCoords(container, event.pageX, event.pageY);
+        let coords = Util.relativeCoords(viewport, event.pageX, event.pageY);
         rect.endX = coords.x;
         rect.endY = coords.y;
 
@@ -258,7 +258,7 @@ export function LineSelection(viewport, model) {
         if (!self.enabled)
             return;
 
-        let coords = Util.relativeCoords(container, event.pageX, event.pageY);
+        let coords = Util.relativeCoords(viewport, event.pageX, event.pageY);
         let chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
         if (!chosen)
             return;
@@ -308,7 +308,7 @@ export function PlaneSelection(viewport, model) {
         if (!self.enabled)
             return;
 
-        let coords = Util.relativeCoords(container, event.pageX, event.pageY);
+        let coords = Util.relativeCoords(viewport, event.pageX, event.pageY);
         let chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
         if (!chosen)
             return;

@@ -244,7 +244,6 @@ Util.EventDispatcher = function() {
             return true;
         }
         let stack = this._listeners[event.type];
-        event.target = this;
         for (let i = 0, l = stack.length; i < l; i++) {
             stack[i].call(this, event);
         }

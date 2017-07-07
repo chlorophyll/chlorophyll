@@ -14,9 +14,6 @@ import Const from 'chl/const';
 
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
-// dom
-let container;
-
 // Chlorophyll dataset manager objects
 let toolbarManager;
 let screenManager;
@@ -96,7 +93,7 @@ function Chlorophyll() {
             content_id: 'container',
             height: 'calc( 100% - 20px )',
             main: true,
-            inmediateResize: true
+            immediateResize: true
         });
         LiteGUI.add(mainarea);
         // Bottom tabbed pattern / sequencer editor area
@@ -128,12 +125,11 @@ function Chlorophyll() {
 
         mainarea.getSection(0).add(toolbar_panel);
         mainarea = mainarea.getSection(1);
-        UILayout.viewport = mainarea;
 
-        container = mainarea.content;
-        container.style.position = 'relative';
-        container.style.top = 0;
-        container.style.left = 0;
+        let viewport = UILayout.viewport = mainarea.content;
+        viewport.style.position = 'relative';
+        viewport.style.top = 0;
+        viewport.style.left = 0;
 
 
         /****************************
@@ -145,10 +141,10 @@ function Chlorophyll() {
         let renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setClearColor(scene.fog.color);
         renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        container.appendChild(renderer.domElement);
+        renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+        viewport.appendChild(renderer.domElement);
 
-        screenManager = new ScreenManager(renderer, scene);
+        screenManager = new ScreenManager(UILayout.viewport, renderer, scene);
         screenManager.addScreen('main', {isOrtho: false, active: true});
         let v = new THREE.Vector3();
         screenManager.activeScreen.camera.getWorldDirection(v);
@@ -173,11 +169,14 @@ function Chlorophyll() {
             }
         }, Hotkey.tool_camera, Hotkey.tool_camera_momentary);
         UILayout.toolbar.addSeparator();
-        toolbarManager.addTool('marquee', new MarqueeSelection(container, model),
+        toolbarManager.addTool('marquee',
+            new MarqueeSelection(UILayout.viewport, model),
             Hotkey.tool_select_marquee);
-        toolbarManager.addTool('line', new LineSelection(container, model),
+        toolbarManager.addTool('line',
+            new LineSelection(UILayout.viewport, model),
             Hotkey.tool_select_line);
-        toolbarManager.addTool('plane', new PlaneSelection(container, model),
+        toolbarManager.addTool('plane',
+            new PlaneSelection(UILayout.viewport, model),
             Hotkey.tool_select_plane);
         toolbarManager.enableButtons();
         toolbarManager.setActiveTool('camera');
