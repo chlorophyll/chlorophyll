@@ -10,6 +10,7 @@ import WorldState from 'chl/worldstate';
 import Toolbar from 'chl/tools/toolbar';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
 import LiteGUI from 'chl/litegui';
+import 'chl/patches';
 import Const from 'chl/const';
 
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader

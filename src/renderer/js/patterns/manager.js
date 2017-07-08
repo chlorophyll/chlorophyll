@@ -396,10 +396,7 @@ export default function PatternManager() {
             return;
         curPattern.curStage = stage;
         self.graphcanvas.setGraph(curPattern.curStageGraph);
-        /*
-         * XXX Litegui doesn't actually provide this?
-         * stageWidget.setValue(stage);
-         */
+        stageWidget.setValue(stage);
     }
 
     let init = function() {
