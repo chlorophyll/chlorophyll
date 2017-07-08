@@ -6,8 +6,10 @@ import Util from 'chl/util';
 import GraphLib, { Graph, GraphCanvas, GraphAutoLayout } from 'chl/graphlib/graph';
 import LiteGUI from 'chl/litegui';
 import Const from 'chl/const';
-
-import { MappingInputs } from './util';
+// TODO It'd be convenient to have all the node registrations in one module
+import 'chl/oscillators/nodes';
+import 'chl/patterns/nodes';
+import { MappingInputs } from 'chl/patterns/util';
 
 
 let patternStages = ['precompute', 'pixel'];

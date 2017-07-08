@@ -33,6 +33,7 @@ export function NodeElement(canvas, node) {
         portlist[slot].circle.attr('fill', fillColor);
     };
 
+    let path = null;
     let dragConnection = d3.drag()
         .on('start', function(d) {
             path = canvas.edgeContainer.append('path')

@@ -1,5 +1,9 @@
 import Util from 'chl/util';
 import GraphLib from 'chl/graphlib/graph';
+import Units from 'chl/units';
+
+import OscillatorPlotter from './plotter';
+import Frequency from './util';
 
 function Oscillator() {
     let self = this;

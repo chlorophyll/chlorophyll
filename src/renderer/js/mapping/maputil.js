@@ -54,7 +54,7 @@ export default function Mapping(manager, group, id, initname) {
     Object.defineProperty(this, 'type_menu', {
         get: function() {
             let menu = {};
-            for (type in self.map_types) {
+            for (let type in self.map_types) {
                 menu[self.map_types[type].name] = type;
             }
             return menu;

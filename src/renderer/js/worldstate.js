@@ -4,7 +4,7 @@ export default function WorldState(start) {
 
     function restore() {
         let snapshot = history[idx];
-        for (prop in snapshot) {
+        for (let prop in snapshot) {
             self[prop].restore(snapshot[prop]);
         }
     }

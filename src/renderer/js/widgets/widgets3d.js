@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import 'three-examples/controls/TransformControls';
 
 /*
  * 3d viewport UI components
@@ -78,7 +79,7 @@ export default function ViewportHandle(screen) {
 
     this.setPos = function(pos) {
         if (pos.isVector3) {
-            centerpoint.position = pos;
+            centerpoint.position.copy(pos);
         } else if (Array.isArray(pos) && pos.length == 3) {
             centerpoint.position.fromArray(pos);
         }

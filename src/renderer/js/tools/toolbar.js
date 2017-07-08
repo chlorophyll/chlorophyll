@@ -43,7 +43,7 @@ export default function Toolbar(managername, toolbar, menu) {
     };
 
     this.forEachTool = function(f) {
-        for (name in tools) {
+        for (let name in tools) {
             if (tools.hasOwnProperty(name))
                 f(tools[name]);
         }
