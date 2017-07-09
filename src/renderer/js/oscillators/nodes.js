@@ -27,7 +27,7 @@ function Oscillator() {
     oscElement.style.clear = 'both';
     oscElement.style.marginBottom = '2em';
 
-    let plotter = new OscillatorPlotter(oscElement, {
+    let plotter = new OscillatorPlotter(oscElement, self, {
         width: width,
         height: height,
     });
@@ -35,7 +35,7 @@ function Oscillator() {
     this.visualization = {
         enabled: function() { return self.graph.numEdgesToNode(self) == 0; },
         root: oscElement,
-        update: function() { plotter.plot(self); }
+        update: plotter.plot
     };
 }
 
@@ -72,6 +72,11 @@ TriangleWaveOscillator.prototype.value = function(t) {
     let p = 1/(2*freq);
 
     return lower + (a/p) * (p - Math.abs(t % (2*p) - p) );
+    function mod(n, m) {
+        return ((n % m) + m) % m;
+    }
+
+    return lower + (a/p) * (p - Math.abs(mod(t, 2*p) - p) );
 };
 
 GraphLib.registerNodeType('oscillators/triangle', TriangleWaveOscillator);
