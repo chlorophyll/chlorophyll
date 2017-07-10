@@ -11,12 +11,17 @@ import 'chl/oscillators/nodes';
 import 'chl/patterns/nodes';
 import { MappingInputs } from 'chl/patterns/util';
 
-
 let patternStages = ['precompute', 'pixel'];
 let defaultStage = 'pixel';
 
 
-function showNodeInspector(node) {
+function showNodePanel(node) {
+
+    if (node.nodePanel) {
+        console.log(node.nodePanel);
+        node.nodePanel();
+        return;
+    }
     let visualization_root = undefined;
 
     function updateVisualization() {
@@ -246,7 +251,7 @@ export function PatternGraph(id, name, manager) {
         let graph = new Graph();
         this.stages[stage] = graph;
         graph.addEventListener('node-opened', function(ev) {
-            showNodeInspector(ev.detail.node);
+            showNodePanel(ev.detail.node);
         });
     }
 

@@ -88,8 +88,12 @@ export function Graph() {
         if (!src_type || !dst_type)
             return true;
 
-        if (typeof(src_type) === 'string' || typeof(dst_type) === 'string') {
+        if (typeof(src_type) === 'string' && typeof(dst_type) === 'string') {
             return (src_type == dst_type);
+        }
+
+        if (src_type == 'number' && dst_type.isUnit) {
+            return true;
         }
 
         return dst_type.isUnit && src_type.isUnit;
@@ -468,10 +472,13 @@ GraphNode.prototype.getInputData = function(slot) {
         data = this.properties[input.name];
     }
 
-    if (data !== undefined && data.isUnit && input.autoconvert && input.type && input.type.isUnit) {
+    if (data !== undefined && input.type && input.type.isUnit) {
+        if (data.isUnit && input.autoconvert) {
         data = data.convertTo(input.type);
+        } else {
+            data = new input.type(data);
+        }
     }
-
     return data;
 };
 

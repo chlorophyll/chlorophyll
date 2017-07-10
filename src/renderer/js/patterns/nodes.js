@@ -1,17 +1,52 @@
 import GraphLib from 'chl/graphlib/graph';
 import Units from 'chl/units';
 
-function LogNode() {
-    this.addInput('val');
-}
+function ConstNode() {
+    let self = this;
+    this.addOutput('constant', 'number');
+    this.setConstant = function(constant) {
+        self.properties.constant = constant;
+        self.outputs[0].label = `constant (${constant})`;
+    };
 
-LogNode.prototype.onExecute = function() {
-    console.log(this.getInputData(0));
+    self.nodePanel = function() {
+        let old_constant = self.properties.constant;
+        let dialog = new LiteGUI.Dialog('Constant Settings', {
+            title: 'Constant Settings',
+            minimize: false,
+            width: 200,
+            height: '6em',
+            resizable: false, 
+            draggable: true,
+            closable: false,
+        });
+
+        let inspector = new LiteGUI.Inspector('constant-settings', {
+        });
+
+        inspector.addNumber('constant', self.properties.constant, {
+            callback: self.setConstant
+        });
+
+        dialog.add(inspector);
+
+        dialog.addButton('Ok', { close: true, callback: function() {
+            self.modified();
+        }});
+        dialog.addButton('Cancel', {
+            close: true,
+            callback: () => self.setConstant(old_constant)
+        });
+        dialog.show();
+    };
+    this.setConstant(0);
 };
 
-LogNode.title = 'log';
+ConstNode.prototype.onExecute = function() {
+    this.setOutputData(0, this.properties.constant);
+};
 
-GraphLib.registerNodeType('lowlevel/debug/log', LogNode);
+GraphLib.registerNodeType('basic/constant', ConstNode);
 
 function IfNode() {
     this.addInput('clause', 'boolean');
