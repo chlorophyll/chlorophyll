@@ -1,4 +1,5 @@
 import GraphLib from './graph';
+import klay from 'klayjs';
 
 export function GraphAutoLayout() {
     let defaultOptions = {
@@ -20,7 +21,7 @@ export function GraphAutoLayout() {
 
         let kgraph = encodeAsKGraph(canvas);
 
-        $klay.layout({
+        klay.layout({
             graph: kgraph,
             options: defaultOptions,
             success: callback
