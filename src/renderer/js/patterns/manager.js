@@ -6,9 +6,9 @@ import Util from 'chl/util';
 import GraphLib, { Graph, GraphCanvas, GraphAutoLayout } from 'chl/graphlib/graph';
 import LiteGUI from 'chl/litegui';
 import Const from 'chl/const';
+import CRGB from 'chl/fastled/color';
 import { MappingInputs } from 'chl/patterns/util';
-// TODO It'd be convenient to have all the node registrations in one module
-//
+
 import register_nodes from 'chl/patterns/registry';
 
 register_nodes();

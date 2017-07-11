@@ -184,7 +184,7 @@ export function Graph() {
         edges_by_src = edges_by_src.updateIn([src.id, src_slot],
             Immutable.Set(), (edgelist) => edgelist.add(edge));
 
-        prev_edge = edges_by_dst.getIn([dst.id, dst_slot]);
+        let prev_edge = edges_by_dst.getIn([dst.id, dst_slot]);
 
         if (prev_edge)
             self.disconnect(prev_edge);

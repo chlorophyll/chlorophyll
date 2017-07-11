@@ -41,13 +41,13 @@ let hsv2rgb = function(hue, sat, val) {
     return rgb[0]*255 << 16 | rgb[1]*255 << 8 | rgb[2]*255;
 };
 
-function CHSV(h, s, v) {
+export function CHSV(h, s, v) {
     this.h = h;
     this.s = s;
     this.v = v;
 };
 
-function CRGB(r, g, b) {
+export function CRGB(r, g, b) {
     this.r = r;
     this.g = g;
     this.b = b;
