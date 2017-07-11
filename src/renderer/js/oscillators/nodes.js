@@ -73,10 +73,9 @@ TriangleWaveOscillator.prototype.value = function(t) {
     let freq = frequency.hz;
     let p = 1/(2*freq);
 
-    return lower + (a/p) * (p - Math.abs(t % (2*p) - p) );
     function mod(n, m) {
         return ((n % m) + m) % m;
-    }
+    };
 
     return lower + (a/p) * (p - Math.abs(mod(t, 2*p) - p) );
 };
