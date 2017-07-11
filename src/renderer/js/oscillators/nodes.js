@@ -5,6 +5,8 @@ import Units from 'chl/units';
 import OscillatorPlotter from './plotter';
 import Frequency from './util';
 
+let node_types = [];
+
 function Oscillator() {
     let self = this;
     this.addOutput('result', Units.Percentage);
@@ -51,7 +53,7 @@ Oscillator.prototype.phasedTime = function(t) {
     return t + Units.Operations.mul(cycles, frequency.sec);
 };
 
-export function TriangleWaveOscillator() {
+function TriangleWaveOscillator() {
     Oscillator.call(this);
 }
 TriangleWaveOscillator.title = 'Triangle wave';
@@ -79,11 +81,11 @@ TriangleWaveOscillator.prototype.value = function(t) {
     return lower + (a/p) * (p - Math.abs(mod(t, 2*p) - p) );
 };
 
-GraphLib.registerNodeType('oscillators/triangle', TriangleWaveOscillator);
+node_types.push(['oscillators/triangle', TriangleWaveOscillator]);
 
 ///
 
-export function SquareWaveOscillator() {
+function SquareWaveOscillator() {
     Oscillator.call(this);
 }
 SquareWaveOscillator.title = 'Square wave';
@@ -112,9 +114,9 @@ SquareWaveOscillator.prototype.value = function(t) {
     }
 };
 
-GraphLib.registerNodeType('oscillators/square', SquareWaveOscillator);
+node_types.push(['oscillators/square', SquareWaveOscillator]);
 
-export function SawWaveOscillator() {
+function SawWaveOscillator() {
     Oscillator.call(this);
 }
 SawWaveOscillator.title = 'Saw wave';
@@ -134,9 +136,9 @@ SawWaveOscillator.prototype.value = function(t) {
 
     return lower + (upper - lower)*(cyc / p);
 };
-GraphLib.registerNodeType('oscillators/saw', SawWaveOscillator);
+node_types.push(['oscillators/saw', SawWaveOscillator]);
 
-export function SineWaveOscillator() {
+function SineWaveOscillator() {
     Oscillator.call(this);
 }
 
@@ -155,9 +157,9 @@ SineWaveOscillator.prototype.value = function(t) {
 
     return lower + a * (Math.sin(t*2*Math.PI/p)+1);
 };
-GraphLib.registerNodeType('oscillators/sine', SineWaveOscillator);
+node_types.push(['oscillators/sine', SineWaveOscillator]);
 
-export function CosWaveOscillator() {
+function CosWaveOscillator() {
     Oscillator.call(this);
 }
 
@@ -176,4 +178,8 @@ CosWaveOscillator.prototype.value = function(t) {
 
     return lower + a * (Math.cos(t*2*Math.PI/p)+1);
 };
-GraphLib.registerNodeType('oscillators/cos', CosWaveOscillator);
+node_types.push(['oscillators/cos', CosWaveOscillator]);
+
+export default function register_oscillator_nodes() {
+    GraphLib.registerNodeTypes(node_types);
+};

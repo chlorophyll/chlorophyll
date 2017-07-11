@@ -20,6 +20,12 @@ function GraphLib_() {
         }
     };
 
+    this.registerNodeTypes = function(node_types) {
+        for (let [path, constructor] of node_types) {
+            this.registerNodeType(path, constructor);
+        }
+    };
+
     this.getNodeTypes = function() {
         return self.node_types;
     };

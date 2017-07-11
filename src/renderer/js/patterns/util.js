@@ -2,6 +2,8 @@ import GraphLib from 'chl/graphlib/graph';
 import Units from 'chl/units';
 import LiteGUI from 'chl/litegui';
 
+let node_types = [];
+
 // Structural node types for the pattern graph
 function OutputColor() {
     this.addInput('outcolor', 'CRGB');
@@ -21,7 +23,7 @@ OutputColor.prototype.color = '#e5a88a';
 OutputColor.prototype.boxcolor = '#cc8866';
 OutputColor.prototype.removable = false;
 
-GraphLib.registerNodeType('lowlevel/output/color', OutputColor);
+node_types.push(['lowlevel/output/color', OutputColor]);
 
 export const MappingInputs = {
     cartesian2d: {
@@ -97,7 +99,7 @@ for (let type in MappingInputs) {
     MapInputNode.prototype.boxcolor = '#69a4bf';
     MapInputNode.prototype.removable = false;
 
-    GraphLib.registerNodeType('lowlevel/input/' + type, MapInputNode);
+    node_types.push(['lowlevel/input/' + type, MapInputNode]);
 }
 
 
@@ -108,7 +110,7 @@ TimeInput.prototype.onExecute = function() {
     this.setOutputData(0, this.graph.getGlobalInputData('t'));
 };
 TimeInput.title = 'TimeInput';
-GraphLib.registerNodeType('lowlevel/input/time', TimeInput);
+node_types.push(['lowlevel/input/time', TimeInput]);
 
 function PrecomputeOutput() {
     this.addProperty('name', null);
@@ -130,4 +132,8 @@ PrecomputeOutput.prototype.onExecute = function() {
 PrecomputeOutput.visible_stages = ['precompute'];
 PrecomputeOutput.title = 'Precompute Output';
 
-GraphLib.registerNodeType('lowlevel/output/value', PrecomputeOutput);
+node_types.push(['lowlevel/output/value', PrecomputeOutput]);
+
+export default function register_util_nodes() {
+    GraphLib.registerNodeTypes(node_types);
+};

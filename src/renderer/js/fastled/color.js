@@ -1,20 +1,23 @@
 import GraphLib from 'chl/graphlib/graph';
 import FastLED from './fastled';
+import Units from 'chl/units';
 
-var hsv2rgb = function(hue, sat, val) {
-    var h = 360*(hue/255), s = sat/255, v = val/255;
-    var rgb, i, data = [];
+let node_types = [];
+
+let hsv2rgb = function(hue, sat, val) {
+    let h = 360*(hue/255), s = sat/255, v = val/255;
+    let rgb, i, data = [];
     h = h % 360;
     if (h == 0) h = 1;
 
 
     if (s === 0) {
-        rgb = [v,v,v];
+        rgb = [v, v, v];
     } else {
         h = h / 60;
         i = Math.floor(h);
         data = [v*(1-s), v*(1-s*(h-i)), v*(1-s*(1-(h-i)))];
-        switch(i) {
+        switch (i) {
             case 0:
                 rgb = [v, data[2], data[0]];
                 break;
@@ -36,27 +39,28 @@ var hsv2rgb = function(hue, sat, val) {
         }
     }
     return rgb[0]*255 << 16 | rgb[1]*255 << 8 | rgb[2]*255;
-}
+};
 
 function CHSV(h, s, v) {
     this.h = h;
     this.s = s;
     this.v = v;
-}
+};
 
 function CRGB(r, g, b) {
     this.r = r;
     this.g = g;
     this.b = b;
-}
+};
 
+/* eslint-disable no-invalid-this */
 function make_node(target, name, args, code) {
-    var output, hasThis;
+    let output, hasThis;
     // expose as normal code
     target[name] = code;
 
     // now expose to GraphLib
-    var arglist = args.slice();
+    let arglist = args.slice();
 
     if (target.prototype == undefined) { // this is on the prototype
         output = target.constructor.name;
@@ -68,49 +72,50 @@ function make_node(target, name, args, code) {
     }
 
 
-    var f = function() {
-        var self = this;
+    let f = function() {
+        let self = this;
         arglist.forEach(function([arg, type]) {
             self.addInput(arg, type);
         });
         this.addOutput(output, output);
-    }
+    };
 
     f.title = output + '.' + name;
 
     f.prototype.onExecute = function() {
-        var values = [];
+        let values = [];
 
-        for (var i = 0; i < arglist.length; i++) {
+        for (let i = 0; i < arglist.length; i++) {
             values.push(this.getInputData(i));
         }
 
-        var that = undefined;
+        let that = undefined;
 
         if (hasThis) {
-			var inp = values.shift();
-			that = new CRGB(inp.r, inp.g, inp.b);
+            let inp = values.shift();
+            that = new CRGB(inp.r, inp.g, inp.b);
         }
         this.setOutputData(0, code.apply(that, values));
-    }
+    };
 
-    GraphLib.registerNodeType(output+'/'+name, f);
-}
+    node_types.push([output+'/'+name, f]);
+};
 
 CRGB.fromColorCode = function(colorCode) {
-    var c = new CRGB();
+    let c = new CRGB();
     return c.setColorCode(colorCode);
-}
+};
 
 CRGB.prototype.setColorCode = function(colorCode) {
     this.r = (colorCode >> 16) & 0xFF;
     this.g = (colorCode >>  8) & 0xFF;
     this.b = (colorCode >>  0) & 0xFF;
     return this;
-}
+};
 
-make_node(CRGB, 'construct', [['r', Units.UInt8], ['g', Units.UInt8], ['b', Units.UInt8]], function(r,g,b) {
-    return new CRGB(r,g,b);
+
+make_node(CRGB, 'construct', [['r', Units.UInt8], ['g', Units.UInt8], ['b', Units.UInt8]], function(r, g, b) {
+    return new CRGB(r, g, b);
 });
 
 make_node(CRGB, 'fromHSV', [['hue', Units.UInt8], ['sat', Units.UInt8], ['val', Units.UInt8]], function(hue, sat, val) {
@@ -122,7 +127,7 @@ make_node(CRGB, 'fromHue', [['hue', Units.UInt8]], function(hue) {
 });
 
 make_node(CRGB.prototype, 'setHue', [['hue', Units.UInt8]],  function(hue) {
-    var ccode = hsv2rgb(hue, 255, 255);
+    let ccode = hsv2rgb(hue, 255, 255);
     this.setColorCode(ccode);
     return this;
 });
@@ -184,74 +189,78 @@ make_node(CRGB.prototype, 'mul', [['d', Units.UInt8]], function(d) {
     return this;
 });
 
-make_node(CRGB.prototype,'nscale8_video', [['scaledown', Units.UInt8]], function(scaledown) {
+make_node(CRGB.prototype, 'nscale8_video', [['scaledown', Units.UInt8]], function(scaledown) {
     return this.setColorCode(Math8.nscale8x3_video(this.r, this.b, this.g, scaledown));
 });
 
-make_node(CRGB.prototype,'fadeLightBy', [['fadefactor', Units.UInt8]], function(fadefactor) {
+make_node(CRGB.prototype, 'fadeLightBy', [['fadefactor', Units.UInt8]], function(fadefactor) {
     return this.setColorCode(Math8.nscale8x3_video(this.r, this.g, this.b, 255-fadefactor));
 });
 
-make_node(CRGB.prototype,'nscale8', [['scaledown', Units.UInt8]], function(scaledown) {
+make_node(CRGB.prototype, 'nscale8', [['scaledown', Units.UInt8]], function(scaledown) {
     return this.setColorCode(Math8.nscale8x3(this.r, this.b, this.g, scaledown));
 });
 
-make_node(CRGB.prototype,'nscale8_each', [['rgb', 'CRGB']], function(rgb) {
+make_node(CRGB.prototype, 'nscale8_each', [['rgb', 'CRGB']], function(rgb) {
     this.r = Math8.scale8(this.r, rgb.r);
     this.g = Math8.scale8(this.g, rgb.g);
     this.b = Math8.scale8(this.b, rgb.b);
     return this;
 });
 
-make_node(CRGB.prototype,'fadeToBlackBy', [['fadefactor', Units.UInt8]], function(fadefactor) {
+make_node(CRGB.prototype, 'fadeToBlackBy', [['fadefactor', Units.UInt8]], function(fadefactor) {
     return this.setColorCode(Math8.nscale8x3(this.r, this.g, this.b, 255-fadefactor));
 });
 
-make_node(CRGB.prototype,'or_each', [['rhs', 'CRGB']], function(rhs) {
+make_node(CRGB.prototype, 'or_each', [['rhs', 'CRGB']], function(rhs) {
     if (rhs.r > this.r) this.r = rhs.r;
     if (rhs.g > this.g) this.g = rhs.g;
     if (rhs.b > this.b) this.b = rhs.b;
     return this;
 });
 
-make_node(CRGB.prototype,'or', [['d', Units.UInt8]], function(d) {
+make_node(CRGB.prototype, 'or', [['d', Units.UInt8]], function(d) {
     if (d > this.r) this.r = d;
     if (d > this.g) this.g = d;
     if (d > this.b) this.b = d;
     return this;
 });
 
-make_node(CRGB.prototype,'and_each', [['rhs', 'CRGB']], function(rhs) {
+make_node(CRGB.prototype, 'and_each', [['rhs', 'CRGB']], function(rhs) {
     if (rhs.r < this.r) this.r = rhs.r;
     if (rhs.g < this.g) this.g = rhs.g;
     if (rhs.b < this.b) this.b = rhs.b;
     return this;
 });
 
-make_node(CRGB.prototype,'and', [['d', Units.UInt8]], function(d) {
+make_node(CRGB.prototype, 'and', [['d', Units.UInt8]], function(d) {
     if (d < this.r) this.r = d;
     if (d < this.g) this.g = d;
     if (d < this.b) this.b = d;
     return this;
 });
 
-make_node(CRGB.prototype,'invert', [], function() {
+make_node(CRGB.prototype, 'invert', [], function() {
     this.r = 255 - this.r;
     this.g = 255 - this.g;
     this.b = 255 - this.b;
     return this;
 });
 
-make_node(CRGB.prototype,'lerp8', [['other', Units.UInt8], ['frac', Units.UInt8]], function(other, frac) {
-    var r = Math8.lerp8by8(this.r, other.r, frac);
-    var g = Math8.lerp8by8(this.g, other.g, frac);
-    var b = Math8.lerp8by8(this.b, other.b, frac);
-    return new CRGB(r,g,b);
+make_node(CRGB.prototype, 'lerp8', [['other', Units.UInt8], ['frac', Units.UInt8]], function(other, frac) {
+    let r = Math8.lerp8by8(this.r, other.r, frac);
+    let g = Math8.lerp8by8(this.g, other.g, frac);
+    let b = Math8.lerp8by8(this.b, other.b, frac);
+    return new CRGB(r, g, b);
 });
 
-make_node(CRGB.prototype,'lerp16', [['other', Units.UInt8], ['frac', Units.UInt16]], function(other, frac) {
-    var r = Math8.lerp16by16(this.r, other.r, frac);
-    var g = Math8.lerp16by16(this.g, other.g, frac);
-    var b = Math8.lerp16by16(this.b, other.b, frac);
-    return new CRGB(r,g,b);
+make_node(CRGB.prototype, 'lerp16', [['other', Units.UInt8], ['frac', Units.UInt16]], function(other, frac) {
+    let r = Math8.lerp16by16(this.r, other.r, frac);
+    let g = Math8.lerp16by16(this.g, other.g, frac);
+    let b = Math8.lerp16by16(this.b, other.b, frac);
+    return new CRGB(r, g, b);
 });
+
+export default function register_crgb_nodes() {
+    GraphLib.registerNodeTypes(node_types);
+};

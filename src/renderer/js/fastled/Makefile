@@ -2,6 +2,7 @@ SRC=src
 TOOLS=tools
 
 SOURCES=$(SRC)/math8.cpp $(SRC)/hsv2rgb.cpp
+CPPFLAGS=--post-js fastled-post.js --pre-js fastled-pre.js
 
 
 .PHONY: all clean
