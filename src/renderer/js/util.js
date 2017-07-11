@@ -69,9 +69,14 @@ let Util = {
     },
 
     relativeCoords: function relativeCoords(element, pageX, pageY) {
+        let de = document.documentElement;
+        let box = element.getBoundingClientRect();
+        let top = box.top + window.pageYOffset - de.clientTop;
+        let left = box.left + window.pageXOffset - de.clientLeft;
+
         return {
-            x: pageX - element.offsetLeft,
-            y: pageY - element.offsetTop
+            x: pageX - left,
+            y: pageY - top
         };
     },
 
