@@ -5,7 +5,6 @@ process.env.BABEL_ENV = 'web'
 const path = require('path')
 const webpack = require('webpack')
 
-const BabiliWebpackPlugin = require('babili-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
@@ -115,15 +114,10 @@ let webConfig = {
 /**
  * Adjust webConfig for production settings
  */
-/*
 if (process.env.NODE_ENV === 'production') {
   webConfig.devtool = ''
 
   webConfig.plugins.push(
-    new BabiliWebpackPlugin({
-      removeConsole: true,
-      removeDebugger: true
-    }),
     new CopyWebpackPlugin([
       {
         from: path.join(__dirname, '../static'),
@@ -139,6 +133,5 @@ if (process.env.NODE_ENV === 'production') {
     })
   )
 }
-*/
 
 module.exports = webConfig

@@ -161,15 +161,10 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  * Adjust rendererConfig for production settings
  */
-/*
 if (process.env.NODE_ENV === 'production') {
-  //rendererConfig.devtool = ''
+  rendererConfig.devtool = ''
 
   rendererConfig.plugins.push(
-    new BabiliWebpackPlugin({
-      removeConsole: true,
-      removeDebugger: true
-    }),
     new CopyWebpackPlugin([
       {
         from: path.join(__dirname, '../static'),
@@ -185,5 +180,4 @@ if (process.env.NODE_ENV === 'production') {
     })
   )
 }
-*/
 module.exports = rendererConfig
