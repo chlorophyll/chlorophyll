@@ -55,18 +55,6 @@ function Chlorophyll() {
         return model;
     }
 
-    function chooseModelFile(scene, file) {
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                initModelFromJson(scene, e.target.result);
-            } catch (ex) {
-                console.log('ex when trying to parse json = ' + ex);
-            }
-        };
-        reader.readAsText(file);
-    }
-
     this.init = function() {
         /**************
          * GUI layout *

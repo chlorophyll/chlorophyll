@@ -1,10 +1,9 @@
 import * as d3 from 'd3';
 import Const from 'chl/const';
 import Util from 'chl/util';
-import GraphLib from './graph';
-import { GraphAutoLayout } from './layout';
+import GraphAutoLayout from './layout';
 
-export function NodeElement(canvas, node) {
+function NodeElement(canvas, node) {
     let self = this;
     let graph = canvas.graph;
     let input_elems = [];
@@ -338,7 +337,7 @@ export function NodeElement(canvas, node) {
 
 }
 
-export function EdgeElement(canvas, edge) {
+function EdgeElement(canvas, edge) {
     let self = this;
     let path = canvas.edgeContainer.append('path')
                                    .attr('stroke', '#aaa')
@@ -366,7 +365,7 @@ export function EdgeElement(canvas, edge) {
     };
 }
 
-export function GraphCanvas(divNode) {
+export default function GraphCanvas(divNode) {
     let self = this;
 
     let div = d3.select(divNode);
@@ -503,7 +502,7 @@ export function GraphCanvas(divNode) {
         }
         self.graph = null;
 
-		canvas.call(zoom.transform, d3.zoomIdentity);
+        canvas.call(zoom.transform, d3.zoomIdentity);
         grid.style('display', 'none');
     };
 
@@ -557,8 +556,9 @@ export function GraphCanvas(divNode) {
             fullHeight = parent.clientHeight;
         let width = bounds.width,
             height = bounds.height;
-        let midX = bounds.x + width / 2,
-            midY = bounds.y + height / 2;
+
+        let midX = bounds.x + width / 2;
+
         if (width == 0 || height == 0) return; // nothing to fit
         let scale = ((paddingPercent || 0.75) / Math.max(width / fullWidth, height / fullHeight));
 

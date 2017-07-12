@@ -63,7 +63,6 @@ TriangleWaveOscillator.prototype = Object.create(Oscillator.prototype);
 TriangleWaveOscillator.prototype.value = function(t) {
     let frequency = this.getInputData(0);
     let amplitude = this.getInputData(1);
-    let phase = this.getInputData(2);
     t = this.phasedTime(t);
     let lower = amplitude.lower;
     let upper = amplitude.upper;

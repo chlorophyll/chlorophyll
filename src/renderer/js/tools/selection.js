@@ -339,7 +339,8 @@ export function PlaneSelection(viewport, model) {
             let plane = new THREE.Plane().setFromCoplanarPoints(points[0], points[1], points[2]);
 
             self.model.forEach(function(strip, i) {
-                if (Math.abs(plane.distanceToPoint(self.model.getPosition(i))) < selectionThreshold) {
+                let planeToPoint = plane.distanceToPoint(self.model.getPosition(i));
+                if (Math.abs(planeToPoint) < selectionThreshold) {
                     if (self.subtracting) {
                         self.current_selection.unset(i);
                     } else {

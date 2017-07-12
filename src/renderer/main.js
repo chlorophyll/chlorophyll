@@ -4,7 +4,7 @@ import '../style/chlorophyll.css';
 import '../style/material-icons.css';
 
 import Vue from 'vue';
-import App from './App';
+/* import App from './App'; */
 import Chlorophyll from 'chl/init';
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));

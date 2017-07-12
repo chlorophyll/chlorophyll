@@ -1,7 +1,7 @@
 import GraphLib from 'chl/graphlib/graph';
 import FastLED from './fastled';
 
-let Math8 = {};
+export let Math8 = {};
 let node_types = [];
 
 (function() {
@@ -91,5 +91,5 @@ let node_types = [];
 })();
 
 export default function register_math8_nodes() {
-	GraphLib.registerNodeTypes(node_types);
+    GraphLib.registerNodeTypes(node_types);
 };

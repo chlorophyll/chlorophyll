@@ -1,7 +1,6 @@
-import GraphLib from './graph';
 import klay from 'klayjs';
 
-export function GraphAutoLayout() {
+export default function GraphAutoLayout() {
     let defaultOptions = {
         'algorithm': 'de.cau.cs.kieler.klay.layered',
         'layoutHierarchy': true,

@@ -70,6 +70,8 @@ export const MappingInputs = {
  * Generate input nodes for each mapping type
  */
 for (let type in MappingInputs) {
+    if (MappingInputs[type] === undefined)
+        continue;
     let info = MappingInputs[type];
 
     function MapInputNode() {
@@ -87,9 +89,9 @@ for (let type in MappingInputs) {
 
         for (let i = 0; i < info.coords.length; i++) {
             let in_val = coords[i];
-            let unitConstructor = info.coords[i].unit;
+            let UnitConstructor = info.coords[i].unit;
 
-            this.setOutputData(i, new unitConstructor(in_val));
+            this.setOutputData(i, new UnitConstructor(in_val));
         }
         let color = this.graph.getGlobalInputData('color');
         this.setOutputData(info.coords.length, color);

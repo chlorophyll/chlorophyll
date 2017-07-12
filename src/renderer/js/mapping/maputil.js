@@ -55,7 +55,8 @@ export default function Mapping(manager, group, id, initname) {
         get: function() {
             let menu = {};
             for (let type in self.map_types) {
-                menu[self.map_types[type].name] = type;
+                if (self.map_types[type] !== undefined)
+                    menu[self.map_types[type].name] = type;
             }
             return menu;
         }

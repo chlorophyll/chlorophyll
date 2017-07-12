@@ -1,6 +1,6 @@
 import GraphLib from 'chl/graphlib/graph';
-import FastLED from './fastled';
 import Units from 'chl/units';
+import { Math8 } from 'chl/fastled/math8';
 
 let node_types = [];
 
@@ -114,13 +114,18 @@ CRGB.prototype.setColorCode = function(colorCode) {
 };
 
 
-make_node(CRGB, 'construct', [['r', Units.UInt8], ['g', Units.UInt8], ['b', Units.UInt8]], function(r, g, b) {
-    return new CRGB(r, g, b);
-});
+make_node(CRGB, 'construct',
+    [['r', Units.UInt8], ['g', Units.UInt8], ['b', Units.UInt8]],
+    function(r, g, b) {
+        return new CRGB(r, g, b);
+    });
 
-make_node(CRGB, 'fromHSV', [['hue', Units.UInt8], ['sat', Units.UInt8], ['val', Units.UInt8]], function(hue, sat, val) {
-    return CRGB.fromColorCode(hsv2rgb(hue, sat, val));
-});
+make_node(CRGB, 'fromHSV',
+    [['hue', Units.UInt8], ['sat', Units.UInt8], ['val', Units.UInt8]],
+    function(hue, sat, val) {
+        return CRGB.fromColorCode(hsv2rgb(hue, sat, val));
+    }
+);
 
 make_node(CRGB, 'fromHue', [['hue', Units.UInt8]], function(hue) {
     return CRGB.fromColorCode(hsv2rgb(hue, 255, 255));
@@ -247,19 +252,26 @@ make_node(CRGB.prototype, 'invert', [], function() {
     return this;
 });
 
-make_node(CRGB.prototype, 'lerp8', [['other', Units.UInt8], ['frac', Units.UInt8]], function(other, frac) {
-    let r = Math8.lerp8by8(this.r, other.r, frac);
-    let g = Math8.lerp8by8(this.g, other.g, frac);
-    let b = Math8.lerp8by8(this.b, other.b, frac);
-    return new CRGB(r, g, b);
-});
+make_node(CRGB.prototype, 'lerp8',
+    [['other', Units.UInt8], ['frac', Units.UInt8]],
+    function(other, frac) {
+        let r = Math8.lerp8by8(this.r, other.r, frac);
+        let g = Math8.lerp8by8(this.g, other.g, frac);
+        let b = Math8.lerp8by8(this.b, other.b, frac);
+        return new CRGB(r, g, b);
+    }
+);
 
-make_node(CRGB.prototype, 'lerp16', [['other', Units.UInt8], ['frac', Units.UInt16]], function(other, frac) {
-    let r = Math8.lerp16by16(this.r, other.r, frac);
-    let g = Math8.lerp16by16(this.g, other.g, frac);
-    let b = Math8.lerp16by16(this.b, other.b, frac);
-    return new CRGB(r, g, b);
-});
+make_node(CRGB.prototype, 'lerp16',
+    [['other', Units.UInt8], ['frac', Units.UInt16]],
+
+    function(other, frac) {
+        let r = Math8.lerp16by16(this.r, other.r, frac);
+        let g = Math8.lerp16by16(this.g, other.g, frac);
+        let b = Math8.lerp16by16(this.b, other.b, frac);
+        return new CRGB(r, g, b);
+    }
+);
 
 export default function register_crgb_nodes() {
     GraphLib.registerNodeTypes(node_types);

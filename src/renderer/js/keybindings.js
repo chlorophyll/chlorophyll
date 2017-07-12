@@ -151,10 +151,17 @@ keyboardJS.setLocale('us-chlorophyll', function(locale, platform, userAgent) {
     leftCommandKeyCode  = 224;
     rightCommandKeyCode = 224;
   }
+
+  let commandKeys = function(side) {
+    let common = ['command', 'windows', 'win', 'super'];
+    let sided = common.map((key) => side+key);
+    return common.concat(sided);
+  };
+
   locale.bindKeyCode(semicolonKeyCode,    ['semicolon', ';']);
   locale.bindKeyCode(dashKeyCode,         ['dash', '-']);
-  locale.bindKeyCode(leftCommandKeyCode,  ['command', 'windows', 'win', 'super', 'leftcommand', 'leftwindows', 'leftwin', 'leftsuper']);
-  locale.bindKeyCode(rightCommandKeyCode, ['command', 'windows', 'win', 'super', 'rightcommand', 'rightwindows', 'rightwin', 'rightsuper']);
+  locale.bindKeyCode(leftCommandKeyCode,  commandKeys('left'));
+  locale.bindKeyCode(rightCommandKeyCode, commandKeys('right'));
 
   if (/Mac|iPod|iPhone|iPad/.test(platform)) {
       locale.bindMacro('command', ['mod']);

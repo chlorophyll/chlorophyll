@@ -3,7 +3,8 @@ import Immutable from 'immutable';
 
 import { UILayout, worldState, groupManager } from 'chl/init';
 import Util from 'chl/util';
-import GraphLib, { Graph, GraphCanvas, GraphAutoLayout } from 'chl/graphlib/graph';
+import { GraphLib, Graph } from 'chl/graphlib/graph';
+import GraphCanvas from 'chl/graphlib/canvas';
 import LiteGUI from 'chl/litegui';
 import Const from 'chl/const';
 import CRGB from 'chl/fastled/color';
@@ -123,7 +124,8 @@ function showNodePanel(node) {
             add(input, inspector.addNumber(input.name, display, {
                 precision: precision,
                 callback: function(v) {
-                    cur_values[input.name] = v !== undefined ? new input.type(v) : undefined;
+                    let Ctor = input.type;
+                    cur_values[input.name] = v !== undefined ? new Ctor(v) : undefined;
                 }
             }));
         } else if (input.type == 'number') {
@@ -189,7 +191,8 @@ function showNodePanel(node) {
 
     function resetProperties() {
         for (let k in old_values) {
-            node.properties[k] = old_values[k];
+            if (node.properties.hasOwnProperty(k))
+                node.properties[k] = old_values[k];
         }
         node.modified();
         node.graph.removeEventListener('graph-changed', updateVisualization);
@@ -263,7 +266,9 @@ export function PatternGraph(id, name, manager) {
     function createMapInput() {
         if (map_input)
             self.stages.pixel.removeNode(map_input);
-        map_input = self.stages.pixel.addNode('lowlevel/input/' + self.mapping_type, {title: 'input'});
+
+        let type = 'lowlevel/input/' + self.mapping_type;
+        map_input = self.stages.pixel.addNode(type, {title: 'input'});
     }
 
     Object.defineProperty(this, 'mapping_type', {
@@ -291,7 +296,8 @@ export function PatternGraph(id, name, manager) {
 
     function forEachStage(f) {
         for (let stage in self.stages) {
-            f(stage, self.stages[stage]);
+            if (self.stages.hasOwnProperty(stage))
+                f(stage, self.stages[stage]);
         }
     }
 
@@ -586,7 +592,8 @@ export default function PatternManager() {
         self.sidebar_widgets.addSeparator();
         let mapmenu_values = {};
         for (let type in MappingInputs) {
-            mapmenu_values[MappingInputs[type].name] = type;
+            if (MappingInputs[type] !== undefined)
+                mapmenu_values[MappingInputs[type].name] = type;
         }
         self.sidebar_widgets.addCombo('map type',
             Const.default_map_type,

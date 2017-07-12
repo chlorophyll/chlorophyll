@@ -83,7 +83,7 @@ export function Screen(element, camera, renderer, scene) {
 }
 
 export default function ScreenManager(viewport, renderer, scene) {
-    let screens = {};
+    let screens = new Map();
     let _activeScreen = undefined;
 
     this.addScreen = function(name, options) {
@@ -110,9 +110,9 @@ export default function ScreenManager(viewport, renderer, scene) {
             camera.position.z = 1000;
         }
         let screen = new Screen(viewport, camera, renderer, scene);
-        screens[name] = screen;
+        screens.set(name, screen);
 
-        if (options.active) {
+        if (active) {
             this.setActive(name);
         }
         return screen;
@@ -123,8 +123,8 @@ export default function ScreenManager(viewport, renderer, scene) {
         let height = viewport.clientHeight;
         renderer.setSize(width, height);
 
-        for (let name in screens) {
-            let camera = screens[name].camera;
+        screens.forEach(function(screen) {
+            let camera = screen.camera;
 
             if (camera.isOrthographicCamera) {
                 camera.left = -width/2;
@@ -135,11 +135,15 @@ export default function ScreenManager(viewport, renderer, scene) {
                 camera.aspect = width/height;
             }
             camera.updateProjectionMatrix();
-        }
+        });
     };
 
     this.setActive = function(name) {
-        let newScreen = screens[name];
+        let newScreen = screens.get(name);
+
+        if (newScreen == undefined)
+            return; // throw, maybe?
+
         if (_activeScreen)
             _activeScreen.deactivate();
 

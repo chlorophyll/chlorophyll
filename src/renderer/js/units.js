@@ -2,13 +2,12 @@ import Util from 'chl/util';
 
 function binop(oper) {
     return function(a, b) {
-        let lhs, rhs, val;
 
         if (a === undefined || b === undefined || !a.isUnit || !b.isUnit)
             return oper(a, b);
 
-        lhs = a.convertTo(Units.Numeric);
-        rhs = b.convertTo(Units.Numeric);
+        let lhs = a.convertTo(Units.Numeric);
+        let rhs = b.convertTo(Units.Numeric);
         return new Units.Numeric(oper(lhs, rhs));
     };
 };
@@ -24,47 +23,47 @@ let _Units = {
 };
 
 let Units = new Proxy(_Units, {
-    set: function(obj, prop, value) {
-        obj[prop] = value;
+    set: function(obj, prop, Value) {
+        obj[prop] = Value;
 
-        value._unit_name = prop;
+        Value._unit_name = prop;
 
-        value.prototype.serialize = function() {
+        Value.prototype.serialize = function() {
             return this.val;
         };
 
-        value.deserialize = function(property) {
-            return new value(property);
+        Value.deserialize = function(property) {
+            return new Value(property);
         };
-        Util.JSON.addType(prop, value);
+        Util.JSON.addType(prop, Value);
 
-        value.isUnit = true;
-        value.prototype.isUnit = true;
+        Value.isUnit = true;
+        Value.prototype.isUnit = true;
 
-        value.prototype.convertTo = function(constructor) {
-            if (!constructor || !constructor._unit_name)
+        Value.prototype.convertTo = function(Constructor) {
+            if (!Constructor || !Constructor._unit_name)
                 return undefined;
 
-            if (value == constructor)
-                return new value(this.val);
+            if (Value == constructor)
+                return new Value(this.val);
 
-            return new constructor(Util.map(
+            return new Constructor(Util.map(
                 this.val,
-                value.low, value.high,
-                constructor.low, constructor.high
+                Value.low, Value.high,
+                Constructor.low, Constructor.high
             ));
         };
 
-        value.prototype.valueOf = function() {
+        Value.prototype.valueOf = function() {
             return this.val;
         };
 
-        value.prototype.toString = function() {
+        Value.prototype.toString = function() {
             return this.val.toString();
         };
 
-        value.prototype.clone = function() {
-            return new value(this.val);
+        Value.prototype.clone = function() {
+            return new Value(this.val);
         };
 
         return true;

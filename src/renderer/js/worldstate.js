@@ -5,7 +5,9 @@ export default function WorldState(start) {
     function restore() {
         let snapshot = history[idx];
         for (let prop in snapshot) {
-            self[prop].restore(snapshot[prop]);
+            if (self.hasOwnProperty(prop)) {
+                self[prop].restore(snapshot[prop]);
+            }
         }
     }
 
@@ -43,7 +45,9 @@ export default function WorldState(start) {
 
     // fill in initial properties
     for (let prop in start) {
-        this[prop] = start[prop];
+        if (start.hasOwnProperty(prop)) {
+            this[prop] = start[prop];
+        }
     }
     this.checkpoint();
 }

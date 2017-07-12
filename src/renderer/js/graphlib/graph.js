@@ -1,8 +1,6 @@
 import Immutable from 'immutable';
 import Util from 'chl/util';
 import Const from 'chl/const';
-export { GraphAutoLayout } from './layout';
-export { NodeElement, EdgeElement, GraphCanvas } from './canvas';
 
 function GraphLib_() {
     let self = this;
@@ -30,7 +28,7 @@ function GraphLib_() {
         return self.node_types;
     };
 };
-let GraphLib = new GraphLib_();
+export let GraphLib = new GraphLib_();
 export default GraphLib;
 
 export function Graph() {
@@ -124,7 +122,8 @@ export function Graph() {
         constructor.call(node);
 
         for (let o in options) {
-            node[o] = options[o];
+            if (options[o] !== undefined)
+                node[o] = options[o];
         }
 
         nodes = nodes.set(node.id, node);
@@ -458,8 +457,10 @@ GraphNode.prototype.getOutgoingData = function(slot) {
 
     let outgoing = this.outgoing_data[slot];
 
-    if (outgoing && output.type && output.type.isUnit)
-        outgoing = new output.type(outgoing.valueOf());
+    if (outgoing && output.type && output.type.isUnit) {
+        let Ctor = output.type;
+        outgoing = new Ctor(outgoing.valueOf());
+    }
 
     return outgoing;
 };
@@ -482,7 +483,8 @@ GraphNode.prototype.getInputData = function(slot) {
         if (data.isUnit && input.autoconvert) {
         data = data.convertTo(input.type);
         } else {
-            data = new input.type(data);
+            let Ctor = input.type;
+            data = new Ctor(data);
         }
     }
     return data;

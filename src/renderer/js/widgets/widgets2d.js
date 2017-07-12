@@ -16,16 +16,16 @@ function Coordinates2D() {
 
     this.data = function() {
         // Normalize angle and position
-        this.angle = this.angle % (Math.PI * 2);
-        return {x: this.x, y: this.y, angle: this.angle};
+        self.angle = self.angle % (Math.PI * 2);
+        return {x: self.x, y: self.y, angle: self.angle};
     };
 
     this.setPos = function(vx, vy) {
-        this.x = vx; this.y = vy;
+        self.x = vx; self.y = vy;
     };
 
     this.setRot = function(new_angle) {
-        this.angle = new_angle;
+        self.angle = new_angle;
     };
 }
 
