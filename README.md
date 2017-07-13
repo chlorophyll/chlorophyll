@@ -4,4 +4,4 @@ Chlorophyll is a set of tools for photon synthesis. It is used to generate patte
 
 ### Setup
 
-Requires npm. Run `npm install` to install dependencies.
+Requires yarn. Run `yarn install` to install dependencies.
