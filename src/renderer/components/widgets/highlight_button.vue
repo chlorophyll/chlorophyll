@@ -16,7 +16,7 @@ export default {
 </script>
 
 <style scoped>
-    .highlighted button {
+    button.highlighted {
         background: transparent linear-gradient(#ed5f0e, #b7551d) repeat scroll
             0px 0px !important;
     }
