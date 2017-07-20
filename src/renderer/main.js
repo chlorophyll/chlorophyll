@@ -3,7 +3,6 @@ import '../style/litegui-chlorophyll.css';
 import '../style/chlorophyll.css';
 import '../style/material-icons.css';
 
-/* import App from './App'; */
 import Vue from 'vue';
 import Chlorophyll from 'chl/init';
 
