@@ -5,6 +5,7 @@ import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
 import Const from 'chl/const';
+import { isClipped } from 'chl/tools/selection';
 
 // TODO(rpearl) potentially support multiple views
 export function Screen(element, camera, renderer, scene) {

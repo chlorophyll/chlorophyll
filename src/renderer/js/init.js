@@ -46,7 +46,7 @@ function Chlorophyll() {
 
     this.frontPlane = null;
     this.backPlane = null;
-    let selectionThreshold = 5; // TODO track in selection tools
+    this.selectionThreshold = 5; // TODO track in selection tools
 
     function initModelFromJson(scene, json) {
         let model = new Model(json);
@@ -222,9 +222,9 @@ function Chlorophyll() {
                     self.frontPlane.constant = val.right;
                 }
             });
-        rendering_widgets.addSlider('Selection Threshold', selectionThreshold,
+        rendering_widgets.addSlider('Selection Threshold', self.selectionThreshold,
             { min: 0, max: 15, step: 0.1, callback: function(val) {
-                    selectionThreshold = val;
+                    self.selectionThreshold = val;
                 }
             });
         rendering_widgets.addCheckbox('Show Strips', false,

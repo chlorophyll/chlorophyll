@@ -5,7 +5,7 @@ import Util from 'chl/util';
 import Chlorophyll, { worldState, screenManager } from 'chl/init';
 import LiteGUI from 'chl/litegui';
 
-function isClipped(v) {
+export function isClipped(v) {
     if (Chlorophyll.frontPlane.distanceToPoint(v) < 0)
         return true;
 
@@ -280,7 +280,7 @@ export function LineSelection(viewport, model) {
 
             for (let i = 0; i < points.length; i++) {
                 let dist = Util.distanceToLine(points[i].position, line);
-                if (dist < selectionThreshold) {
+                if (dist < Chlorophyll.selectionThreshold) {
                     self.current_selection.set(points[i].index, self.highlight);
                 }
             }
@@ -330,7 +330,7 @@ export function PlaneSelection(viewport, model) {
             let line = new THREE.Line3(points[0], points[1]);
             let dist = Util.distanceToLine(points[2], line, false);
 
-            if (dist < selectionThreshold) {
+            if (dist < Chlorophyll.selectionThreshold) {
                 LiteGUI.showMessage('Points must not be collinear');
                 points = [];
                 self.cancelSelection();
@@ -340,7 +340,7 @@ export function PlaneSelection(viewport, model) {
 
             self.model.forEach(function(strip, i) {
                 let planeToPoint = plane.distanceToPoint(self.model.getPosition(i));
-                if (Math.abs(planeToPoint) < selectionThreshold) {
+                if (Math.abs(planeToPoint) < Chlorophyll.selectionThreshold) {
                     if (self.subtracting) {
                         self.current_selection.unset(i);
                     } else {
