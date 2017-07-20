@@ -119,7 +119,7 @@ export default function ProjectionMapping(manager, group, id, initname) {
 
         ui_controls.inspector = inspector;
 
-        toolbarManager.exitActiveTool();
+        toolbarManager.active = null;
         self.model.hideUnderlyingModel();
         screenManager.setActive(self.tree_id);
 

@@ -135,7 +135,6 @@ let rendererConfig = {
   resolve: {
     alias: {
       '@': path.join(__dirname, '../src/renderer'),
-      'components': path.join(__dirname, '../src/renderer/components'),
       'chl': path.join(__dirname, '../src/renderer/js'),
       'three-examples': path.join(__dirname, '../node_modules/three/examples/js'),
       'models': path.join(__dirname, '../static/models'),

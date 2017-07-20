@@ -1,19 +1,25 @@
+// External dependencies
 import * as THREE from 'three';
 import keyboardJS from 'keyboardjs';
+import Vue from 'vue';
 
+// Chlorophyll modules
 import Hotkey from 'chl/keybindings';
 import Model from 'chl/model';
 import GroupManager from 'chl/mapping/groups';
 import PatternManager from 'chl/patterns/manager';
 import ScreenManager from 'chl/screenmanager';
 import WorldState from 'chl/worldstate';
-import Toolbar from 'chl/tools/toolbar';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
 import LiteGUI from 'chl/litegui';
 import 'chl/patches';
 import Const from 'chl/const';
 
+// Vue components
+import Toolbar from '@/components/toolbar';
+
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
+
 
 // Chlorophyll dataset manager objects
 let toolbarManager;
@@ -109,9 +115,7 @@ function Chlorophyll() {
         mainarea.split('horizontal', [Const.toolbar_size, null], true);
         let toolbar_panel = new LiteGUI.Panel('toolbar');
 
-        UILayout.toolbar = new LiteGUI.Inspector();
-
-        toolbar_panel.add(UILayout.toolbar);
+        UILayout.toolbar = toolbar_panel.root;
 
         mainarea.getSection(0).add(toolbar_panel);
         mainarea = mainarea.getSection(1);
@@ -149,27 +153,43 @@ function Chlorophyll() {
         /**************************
          * Viewport toolbar setup *
          **************************/
-        toolbarManager = new Toolbar('Edit/Select', UILayout.toolbar, UILayout.menu);
-        toolbarManager.addTool('camera', {
-            enable: function() {
-                screenManager.activeScreen.controlsEnabled = true;
+        toolbarManager = new Vue(Toolbar).$mount('#toolbar');
+        toolbarManager.menu = UILayout.menu;
+        toolbarManager.menu_dir = 'Edit/Select';
+        toolbarManager.tools = [
+            null,
+            {
+                name: 'camera',
+                toolobj: {
+                    enable() {
+                        screenManager.activeScreen.controlsEnabled = true;
+                    },
+                    disable() {
+                        screenManager.activeScreen.controlsEnabled = false;
+                    }
+                },
+                hotkey: Hotkey.tool_camera,
+                momentary_hotkey: Hotkey.tool_camera_momentary
             },
-            disable: function() {
-                screenManager.activeScreen.controlsEnabled = false;
-            }
-        }, Hotkey.tool_camera, Hotkey.tool_camera_momentary);
-        UILayout.toolbar.addSeparator();
-        toolbarManager.addTool('marquee',
-            new MarqueeSelection(UILayout.viewport, model),
-            Hotkey.tool_select_marquee);
-        toolbarManager.addTool('line',
-            new LineSelection(UILayout.viewport, model),
-            Hotkey.tool_select_line);
-        toolbarManager.addTool('plane',
-            new PlaneSelection(UILayout.viewport, model),
-            Hotkey.tool_select_plane);
-        toolbarManager.enableButtons();
-        toolbarManager.setActiveTool('camera');
+            null,
+            {
+                name: 'marquee',
+                toolobj: new MarqueeSelection(UILayout.viewport, model),
+                hotkey: Hotkey.tool_select_marquee
+            },
+            {
+                name: 'line',
+                toolobj: new LineSelection(UILayout.viewport, model),
+                hotkey: Hotkey.tool_select_line
+            },
+            {
+                name: 'plane',
+                toolobj: new PlaneSelection(UILayout.viewport, model),
+                hotkey: Hotkey.tool_select_plane
+            },
+            null
+        ];
+        toolbarManager.active = 'camera';
 
 
         /******************************
