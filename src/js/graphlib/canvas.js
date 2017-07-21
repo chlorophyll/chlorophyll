@@ -10,6 +10,7 @@ function NodeElement(canvas, node) {
     let output_elems = [];
     self.width = undefined;
     self.height = undefined;
+    self.node = node;
 
     this.connectionPos = function(slot, is_input) {
         let x = is_input ? 0 : self.width;
@@ -351,10 +352,94 @@ function EdgeElement(canvas, edge) {
 
     this.updatePath = function() {
 
-        let src_pos = src_elem.canvasPos(src_elem.connectionPos(edge.src_slot, false));
-        let dst_pos = dst_elem.canvasPos(dst_elem.connectionPos(edge.dst_slot, true));
+        const src_pos = src_elem.canvasPos(src_elem.connectionPos(edge.src_slot, false));
+        const dst_pos = dst_elem.canvasPos(dst_elem.connectionPos(edge.dst_slot, true));
+        // [left, top, right, bottom]
+        const src_box = src_elem.canvasPos([0, -Const.Graph.NODE_TITLE_HEIGHT])
+                        .concat(src_elem.canvasPos([src_elem.width, src_elem.height]));
+        const dst_box = dst_elem.canvasPos([0, -Const.Graph.NODE_TITLE_HEIGHT])
+                        .concat(dst_elem.canvasPos([dst_elem.width, dst_elem.height]));
 
-        path.attr('d', Util.bezierByH(src_pos[0], src_pos[1], dst_pos[0], dst_pos[1]));
+
+        // Source is to the right of dest and there's a vertical gap,
+        // add an additional curve to avoid overlapping box corners.
+        if (src_pos[0] > dst_pos[0] && (src_box[3] < dst_box[1] ||
+                                        dst_box[3] < src_box[1])) {
+            /*
+             * Calculate an offset point above/below the corner of each node
+             * to wrap a curve around to, so different slots don't overlap.
+             */
+            function get_curve_y(node_box, node_slots, slot) {
+                let other_box = (node_box === src_box) ? dst_box : src_box;
+                let on_top = (node_box[1] < other_box[1]);
+                let v_gap, rel_slot;
+                // Route around top or bottom corner based on which is on top
+                if (on_top) {
+                    v_gap = other_box[1] - node_box[3];
+                    rel_slot = node_slots.length - slot;
+                } else {
+                    v_gap = node_box[1] - other_box[3];
+                    rel_slot = slot + 1;
+                }
+                let vert_off = rel_slot * Math.min(Const.Graph.NODE_SLOT_HEIGHT / 2,
+                                                   v_gap / (node_slots.length + 1));
+
+                return on_top ? node_box[3] + vert_off : node_box[1] - vert_off;
+            }
+
+            let src_end_y = get_curve_y(src_box, src_elem.node.outputs, edge.src_slot);
+            let dst_end_y = get_curve_y(dst_box, dst_elem.node.inputs, edge.dst_slot);
+
+            // Don't slope further away from the destination
+            if ((src_box[1] < dst_box[1] && src_end_y > dst_end_y) ||
+                    (src_box[1] > dst_box[1] && src_end_y < dst_end_y)) {
+                src_end_y = dst_end_y;
+            }
+
+            let src_end_x = src_pos[0] + 5;
+            let dst_end_x = dst_pos[0] - 5;
+            let dx = src_end_x - dst_end_x;
+            let dy = src_end_y - dst_end_y;
+
+            // Scale the width of the curve up with the height
+            let src_cwidth1 = Math.abs(src_end_y - src_pos[1]) / 2;
+            let dst_cwidth1 = Math.abs(dst_end_y - dst_pos[1]) / 2;
+            let src_cwidth2 = Math.min(src_cwidth1, dx / 2);
+            let dst_cwidth2 = Math.min(dst_cwidth1, dx / 2);
+            // Align the curve handles with the connecting line
+            let src_cheight = src_cwidth2 * (dy / dx);
+            let dst_cheight = dst_cwidth2 * (dy / dx);
+            // Scale the handle down if it pokes past the slot
+            let src_hratio = Math.abs(src_end_y - src_pos[1]) / Math.abs(src_cheight);
+            let dst_hratio = Math.abs(dst_end_y - dst_pos[1]) / Math.abs(dst_cheight);
+            if (src_hratio < 1) {
+                src_cheight *= src_hratio;
+                src_cwidth2 *= src_hratio;
+            }
+            if (dst_hratio < 1) {
+                dst_cheight *= dst_hratio;
+                dst_cwidth2 *= dst_hratio;
+            }
+
+            let src_curve =
+                `M ${src_pos[0]}              ${src_pos[1]} ` +
+                `C ${src_pos[0] + src_cwidth1} ${src_pos[1]} ` +
+                 ` ${src_end_x + src_cwidth2}  ${src_end_y + src_cheight} ` +
+                 ` ${src_end_x}               ${src_end_y} `;
+
+            let middle_curve =
+                `S ${dst_end_x + dst_cwidth2} ${dst_end_y + dst_cheight} ` +
+                  `${dst_end_x}               ${dst_end_y} `;
+
+            let dst_curve =
+                `S ${dst_pos[0] - dst_cwidth1} ${dst_pos[1]} ` +
+                  `${dst_pos[0]}               ${dst_pos[1]} `;
+
+            path.attr('d', src_curve + middle_curve + dst_curve);
+        } else {
+            path.attr('d', Util.bezierByH(src_pos[0], src_pos[1],
+                                          dst_pos[0], dst_pos[1]));
+        }
     };
     self.updatePath();
 

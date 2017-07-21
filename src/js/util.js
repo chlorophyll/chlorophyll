@@ -47,12 +47,13 @@ let Util = {
         return val;
     },
     bezierByH: function(x0, y0, x1, y1) {
-        let mx = x0 + (x1 - x0) / 2;
+        let lead_len = Math.min(20, Math.abs(y1 - y0) / 5 + 5);
+        if (x0 > x1)
+            lead_len = -lead_len;
+        const mx = x0 + (x1 - x0) / 2;
 
-        return 'M' + x0 + ' ' + y0 + ' '
-             + 'C' + mx + ' ' + y0 + ' '
-             +       mx + ' ' + y1 + ' '
-             +       x1 + ' ' + y1;
+        return `M ${x0} ${y0} `
+             + `C ${mx + lead_len} ${y0} ${mx - lead_len} ${y1} ${x1} ${y1} `;
     },
     rotateTransform: function(angleRad, origin) {
         return 'rotate('+[THREE.Math.radToDeg(angleRad), origin.x, origin.y].join(',')+')';
