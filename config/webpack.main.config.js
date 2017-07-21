@@ -8,7 +8,7 @@ const webpack = require('webpack')
 
 let mainConfig = {
   entry: {
-    main: path.join(__dirname, '../src/main/index.js')
+    main: path.join(__dirname, './main/index.js')
   },
   externals: [
     ...Object.keys(dependencies || {})
