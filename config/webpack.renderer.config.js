@@ -22,7 +22,7 @@ let whiteListedModules = ['vue']
 let rendererConfig = {
   devtool: '#inline-source-map',
   entry: {
-    renderer: path.join(__dirname, '../src/renderer/main.js')
+    renderer: path.join(__dirname, '../src/main.js')
   },
   externals: [
     ...Object.keys(dependencies || {}).filter(d => !whiteListedModules.includes(d))
@@ -134,8 +134,8 @@ let rendererConfig = {
   },
   resolve: {
     alias: {
-      '@': path.join(__dirname, '../src/renderer'),
-      'chl': path.join(__dirname, '../src/renderer/js'),
+      '@': path.join(__dirname, '../src'),
+      'chl': path.join(__dirname, '../src/js'),
       'three-examples': path.join(__dirname, '../node_modules/three/examples/js'),
       'models': path.join(__dirname, '../static/models'),
       'vue$': 'vue/dist/vue.esm.js'
