@@ -23,7 +23,7 @@ export default function ProjectionMapping(manager, group, id, initname) {
 
     let ui_controls = {};
 
-    let screen = screenManager.addScreen(this.tree_id,
+    let screen = screenManager.addScreen(self.tree_id,
             {isOrtho: true, inheritOrientation: true});
 
     function projectPoint(idx) {
@@ -183,16 +183,15 @@ export default function ProjectionMapping(manager, group, id, initname) {
             map_class: 'projection',
             name: self.name,
             id: self.id,
-            tree_id: self.tree_id,
             mapping_valid: self.mapping_valid,
             normalize: self.normalize,
-            widget_x: widgetdata.x,
-            widget_y: widgetdata.y,
-            widget_angle: widgetdata.angle
+            rot_angle: widgetdata.angle,
+            origin: null,
+            plane_normal: null
         };
         if (self.mapping_valid) {
-            let normal = self.proj_plane.euler;
-            snap.plane_normal = normal.toArray();
+            snap.plane_normal = self.proj_plane.euler.toArray();
+            snap.origin = self.proj_plane.origin.toArray();
         }
         return Immutable.fromJS(snap);
     };
@@ -202,10 +201,8 @@ export default function ProjectionMapping(manager, group, id, initname) {
             self.hideConfig();
         }
         self.id = snapshot.get('id');
-        self.tree_id = snapshot.get('tree_id');
         self.name = snapshot.get('name');
-        self.widget.setPos(snapshot.get('widget_x'), snapshot.get('widget_y'));
-        self.widget.setRot(snapshot.get('widget_angle'));
+        self.widget.setRot(snapshot.get('rot_angle'));
         self.mapping_valid = snapshot.get('mapping_valid');
         self.normalize = snapshot.get('normalize');
         if (self.mapping_valid) {
@@ -213,7 +210,15 @@ export default function ProjectionMapping(manager, group, id, initname) {
             let euler = new THREE.Euler().fromArray(norm.toArray());
             let cam_up = new THREE.Vector3(0, 0, 1);
             Util.alignWithVector(cam_up.applyEuler(euler), screen.camera);
+
+            let origin = new THREE.Vector3();
+            origin.fromArray(snapshot.get('origin').toArray());
+            origin.project(screen.camera);
+            self.widget.setPos(origin.x, origin.y);
+
             self.setFromCamera();
+        } else {
+            self.widget.setPos(0, 0);
         }
     };
 }

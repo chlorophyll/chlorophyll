@@ -37,6 +37,10 @@ export default function Mapping(manager, group, id, initname) {
     // in the form: { uniqueidentifier: { name: ..., mapPoint: ...}, ... }
     this.map_types = {};
 
+    Object.defineProperty(this, 'tree_id', {
+        get: function() { return `${group.tree_id}-map-${id}`; }
+    });
+
     Object.defineProperty(this, 'name', {
         get: function() { return _name; },
         set: function(v) {

@@ -243,7 +243,6 @@ export default function TransformMapping(manager, group, id, initname) {
             map_class: 'transform',
             name: self.name,
             id: self.id,
-            tree_id: self.tree_id,
             normalize: self.normalize,
             position: self.position.toArray(),
             rotation: self.rotation.toArray(),
@@ -254,7 +253,6 @@ export default function TransformMapping(manager, group, id, initname) {
 
     this.restore = function(snapshot) {
         self.id = snapshot.get('id');
-        self.tree_id = snapshot.get('tree_id');
         self.name = snapshot.get('name');
         self.normalize = snapshot.get('normalize');
         self.position.fromArray(snapshot.get('position').toArray());

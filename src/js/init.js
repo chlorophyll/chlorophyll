@@ -68,11 +68,11 @@ function Chlorophyll() {
         UILayout.menu.add('File/New');
         UILayout.menu.add('Edit/Undo', function() { worldState.undo(); });
         UILayout.menu.add('Edit/Redo', function() { worldState.redo(); });
-            keyboardJS.bind(Hotkey.undo, function() {
-            worldState.undo();
-        });
         UILayout.menu.add('View');
 
+        keyboardJS.bind(Hotkey.undo, function() {
+            worldState.undo();
+        });
         keyboardJS.bind(Hotkey.redo, function() {
             worldState.redo();
         });

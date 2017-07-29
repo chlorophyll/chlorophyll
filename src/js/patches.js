@@ -97,9 +97,13 @@ keyboardJS.Keyboard.prototype._clearBindings = function(event) {
 (function() {
     function stopCallback(element) {
         // Don't trigger keyboard events inside a text field
-        return element.tagName == 'INPUT'
-            || element.tagName == 'TEXTAREA'
-            || element.isContentEditable;
+        if (element) {
+            return element.tagName == 'INPUT'
+                || element.tagName == 'TEXTAREA'
+                || element.isContentEditable;
+        } else {
+            return false;
+        }
     };
 
     function wrapHandler(handler) {
