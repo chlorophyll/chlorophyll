@@ -182,6 +182,18 @@ let Util = {
             return new Util.Range(obj.min, obj.max, obj.lower, obj.upper);
         };
     },
+
+    uniqueName: function(prefix, nameseq) {
+        let candidate;
+        let taken = true;
+        let suffix = nameseq.length || nameseq.size;
+        while (taken) {
+            candidate = prefix + suffix;
+            taken = nameseq.indexOf(candidate) !== -1;
+            suffix++;
+        }
+        return candidate;
+    },
 };
 
 Util.JSON = {
@@ -198,22 +210,50 @@ Util.JSON = {
         };
     },
 
+    normalized: function(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    },
+
+    reviver: function(key, val) {
+        if (val instanceof Object && val._tag) {
+            if (val.value !== undefined) {
+                return Util.JSON.tags[val._tag].deserialize(val.value);
+            } else {
+                return Util.JSON.tags[val._tag];
+            }
+        } else {
+            return val;
+        }
+    },
+
+    denormalized: function(obj) {
+        if (null == obj || 'object' != typeof obj) return obj;
+        let ret = {};
+        if (obj instanceof Array) {
+            ret = obj.map(Util.JSON.denormalized);
+        } else {
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    let val = obj[key];
+
+                    if (val instanceof Object)
+                        val = Util.JSON.denormalized(val);
+
+                    let result = Util.JSON.reviver(key, val);
+
+                    ret[key] = result;
+                }
+            }
+        }
+        return ret;
+    },
+
     dump: function(obj) {
         return JSON.stringify(obj);
     },
 
     load: function(s) {
-        let out = JSON.parse(s, function(key, val) {
-            if (val instanceof Object && val._tag) {
-                if (val.value !== undefined) {
-                    return Util.JSON.tags[val._tag].deserialize(val.value);
-                } else {
-                    return Util.JSON.tags[val._tag];
-                }
-            } else {
-                return val;
-            }
-        });
+        let out = JSON.parse(s, Util.JSON.reviver);
         return out;
     }
 };

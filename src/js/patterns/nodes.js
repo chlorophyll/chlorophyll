@@ -5,9 +5,9 @@ let node_types = [];
 
 function ConstNode() {
     let self = this;
-    this.addOutput('constant', 'number');
+    this.addOutput('constant', Units.Numeric);
     this.setConstant = function(constant) {
-        self.properties.constant = constant;
+        self.properties.constant = new Units.Numeric(constant);
         self.outputs[0].label = `constant (${constant})`;
     };
 

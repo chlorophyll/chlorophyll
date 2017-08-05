@@ -114,28 +114,6 @@ TimeInput.prototype.onExecute = function() {
 TimeInput.title = 'TimeInput';
 node_types.push(['lowlevel/input/time', TimeInput]);
 
-function PrecomputeOutput() {
-    this.addProperty('name', null);
-}
-
-PrecomputeOutput.prototype.onAdded = function() {
-    let self = this;
-    LiteGUI.prompt('name', function(v) {
-        self.addInput(v);
-        self.properties['name'] = v;
-        self.graph.addGlobalOutput(v);
-    });
-};
-
-PrecomputeOutput.prototype.onExecute = function() {
-    this.graph.setGlobalOutputData(this.properties['name'], this.getInputData(0));
-};
-
-PrecomputeOutput.visible_stages = ['precompute'];
-PrecomputeOutput.title = 'Precompute Output';
-
-node_types.push(['lowlevel/output/value', PrecomputeOutput]);
-
 export default function register_util_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };

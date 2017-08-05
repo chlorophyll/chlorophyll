@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import Mapping from './maputil';
 import Immutable from 'immutable';
-import { worldState, screenManager, toolbarManager } from 'chl/init';
+import { screenManager, toolbarManager } from 'chl/init';
+import { worldState } from 'chl/worldstate';
 import ViewportHandle from 'chl/widgets/widgets3d';
 
 /*

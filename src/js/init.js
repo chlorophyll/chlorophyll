@@ -6,10 +6,10 @@ import Vue from 'vue';
 // Chlorophyll modules
 import Hotkey from 'chl/keybindings';
 import Model from 'chl/model';
+import ScreenManager from 'chl/screenmanager';
 import GroupManager from 'chl/mapping/groups';
 import PatternManager from 'chl/patterns/manager';
-import ScreenManager from 'chl/screenmanager';
-import WorldState from 'chl/worldstate';
+import { initWorldState } from 'chl/worldstate';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
 import LiteGUI from 'chl/litegui';
 import 'chl/patches';
@@ -21,14 +21,11 @@ import Toolbar from '@/components/toolbar';
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
 
-// Chlorophyll dataset manager objects
+// Chlorophyll UI manager objects
 let toolbarManager;
 let screenManager;
-let groupManager;
-let patternManager;
 
 // chlorophyll objects
-let worldState;
 
 const UILayout = {};
 
@@ -36,9 +33,6 @@ export {
     UILayout,
     toolbarManager,
     screenManager,
-    groupManager,
-    patternManager,
-    worldState
 };
 
 function Chlorophyll() {
@@ -51,13 +45,16 @@ function Chlorophyll() {
     function initModelFromJson(scene, json) {
         let model = new Model(json);
         model.addToScene(scene);
-        groupManager = new GroupManager(model);
-        patternManager = new PatternManager();
-        worldState = new WorldState({
+
+        let groupManager = new GroupManager(model);
+        let patternManager = new PatternManager(groupManager);
+
+        initWorldState({
             activeSelection: model.createOverlay(10),
-            groupSet: groupManager,
-            graphManager: patternManager,
+            groupManager: groupManager,
+            patternManager: patternManager,
         });
+
         return model;
     }
 

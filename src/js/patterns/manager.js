@@ -1,7 +1,8 @@
 import keyboardJS from 'keyboardjs';
 import Immutable from 'immutable';
 
-import { UILayout, worldState, groupManager } from 'chl/init';
+import { UILayout } from 'chl/init';
+import { newgid, worldState } from 'chl/worldstate';
 import Util from 'chl/util';
 import { GraphLib, Graph } from 'chl/graphlib/graph';
 import GraphCanvas from 'chl/graphlib/canvas';
@@ -396,13 +397,8 @@ export function PatternGraph(id, name, manager) {
         };
     }
 
-export default function PatternManager() {
+export default function PatternManager(groupManager) {
     let self = this;
-
-    let _nextid = 0;
-    function newgid() {
-        return _nextid++;
-    }
 
     let nameWidget;
     let stageWidget;
@@ -738,9 +734,9 @@ export default function PatternManager() {
 
     function newPattern() {
         let id = newgid();
-        let name = 'pattern-'+id;
+        let nameseq = patterns.valueSeq().map((pattern) => pattern.name);
+        let name = Util.uniqueName('pattern-', nameseq);
         let pattern = new PatternGraph(id, name, self);
-
 
         patterns = patterns.set(id, pattern);
         setCurrentPattern(pattern);

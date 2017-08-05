@@ -15,6 +15,17 @@
           "modules": false
         }],
         "stage-0"
+      ],
+    },
+    "test": {
+      "presets": [
+        ["env", {
+          "modules": false
+        }],
+        "stage-0",
+      ],
+      "plugins": [
+        "transform-es2015-modules-commonjs",
       ]
     },
     "web": {
@@ -26,5 +37,18 @@
       ]
     }
   },
-  "plugins": ["transform-runtime"]
+  "plugins": [
+	  "transform-runtime",
+	  ["module-resolver", {
+		  "root": ["./src"],
+		  'cwd': '.',
+		  "alias": {
+			  'chl': './src/js',
+			  '@': './src',
+			  'three-examples': './node_modules/three/examples/js',
+			  'models': './static/models',
+			  'vue$': './vue/dist/vue.esm.js'
+		  }
+	  }]
+  ]
 }

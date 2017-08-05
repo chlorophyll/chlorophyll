@@ -1,0 +1,352 @@
+{
+    "$id": "chlorophyll",
+    "definitions": {
+        "types": {
+            "vector3": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+            },
+            "vector2": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+            },
+            "euler": {
+                "type": "array",
+                "items": [{
+                        "type": "number"
+                    },
+                    {
+                        "type": "number"
+                    },
+                    {
+                        "type": "number"
+                    },
+                    {
+                        "type": "string"
+                    }
+                ],
+                "minItems": 4,
+                "maxItems": 4
+            },
+            "color": {
+                "type": "string",
+                "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+            },
+            "pixelArray": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                }
+            },
+            "unit": {
+                "type": "object",
+                "properties": {
+                    "_tag": {
+                        "type": "string"
+                    }
+                },
+                "required": ["_tag"]
+            },
+            "unitValue": {
+                "type": "object",
+                "properties": {
+                    "_tag": {
+                        "type": "string"
+                    },
+                    "value": {}
+                },
+                "required": ["_tag", "value"]
+            }
+        },
+        "objects": {
+            "group": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "number"
+                    },
+                    "pixels": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        }
+                    },
+                    "color": {
+                        "$ref": "#/definitions/types/color"
+                    },
+                    "mappings": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/objects/mapping"
+                        }
+                    }
+                },
+                "additionalProperties": false,
+                "required": ["name", "id", "color", "pixels", "mappings"]
+            },
+            "baseMapping": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "number"
+                    },
+                    "mapped_points": {
+                        "type": "array"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "required": ["name", "id", "mapped_ponts", "type"]
+            },
+            "transformMapping": {
+                "allOf": [{
+                        "$ref": "#/definitions/objects/baseMapping"
+                    },
+                    {
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "pattern": "transform"
+                            },
+                            "mapped_points": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/types/vector3"
+                                }
+                            },
+                            "position": {
+                                "$ref": "#/definitions/types/vector3"
+                            },
+                            "rotation": {
+                                "$ref": "#/definitions/types/euler"
+                            },
+                            "scale": {
+                                "$ref": "#/definitions/types/vector3"
+                            },
+                            "autoscale": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": ["position", "rotation", "scale", "autoscale"],
+                        "additionalProperties": false
+                    }
+                ]
+            },
+            "projectionMapping": {
+                "allOf": [{
+                        "$ref": "#/definitions/objects/baseMapping"
+                    },
+                    {
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "pattern": "projection"
+                            },
+                            "mapped_points": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/types/vector2"
+                                }
+                            },
+                            "plane_normal": {
+                                "$ref": "#/definitions/types/euler"
+                            },
+                            "widget_angle": {
+                                "type": "number"
+                            },
+                            "origin": {
+                                "$ref": "#/definitions/types/vector2"
+                            }
+                        },
+                        "required": ["plane_normal", "widget_angle", "origin"],
+                        "additionalProperties": false
+                    }
+                ]
+            },
+            "mapping": {
+                "anyOf": [{
+                        "$ref": "#/definitions/objects/transformMapping"
+                    },
+                    {
+                        "$ref": "#/definitions/objects/projectionMapping"
+                    }
+                ]
+            },
+            "graphData": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "anyOf": [{
+                                "$ref": "#/definitions/types/unit"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                "additionalProperties": false,
+                "required": ["name"]
+            },
+            "node": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "number"
+                    },
+                    "pos": {
+                        "$ref": "#/definitions/types/vector2"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "input_settings": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "defaults": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/definitions/types/unitValue"
+                        }
+                    }
+                },
+                "additionalProperties": false,
+                "required": ["id", "title", "type", "defaults"]
+            },
+            "edge": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "number"
+                    },
+                    "src_id": {
+                        "type": "number"
+                    },
+                    "src_slot": {
+                        "type": "number"
+                    },
+                    "dst_id": {
+                        "type": "number"
+                    },
+                    "dst_slot": {
+                        "type": "number"
+                    }
+                },
+                "additionalProperties": false,
+                "required": ["id", "src_id", "src_slot", "dst_id", "dst_slot"]
+            },
+            "graph": {
+                "type": "object",
+                "properties": {
+                    "global_inputs": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/objects/graphData"
+                        }
+                    },
+                    "global_outputs": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/objects/graphData"
+                        }
+                    },
+                    "nodes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/objects/node"
+                        }
+                    },
+                    "edges": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/objects/edge"
+                        }
+                    }
+                },
+                "required": ["global_inputs", "global_outputs", "nodes", "edges"],
+                "additionalProperties": false
+            },
+            "patternType": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "number"
+                    },
+                    "stages": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/objects/graph"
+                        }
+                    }
+                },
+                "required": ["name", "id", "stages"],
+                "additionalProperties": false
+            }
+        },
+        "chlorophyllState": {
+            "type": "object",
+            "properties": {
+                "last_id": {
+                    "type": "number"
+                },
+                "project_name": {
+                    "type": "string"
+                },
+                "model_file": {
+                    "type": "string"
+                },
+                "active_selection": {
+                    "$ref": "#/definitions/types/pixelArray"
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/objects/group"
+                    }
+                },
+                "patterns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/objects/patternType"
+                    }
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "last_id",
+                "project_name",
+                "model_file",
+                "active_selection",
+                "groups",
+                "patterns"
+            ]
+        }
+    }
+}

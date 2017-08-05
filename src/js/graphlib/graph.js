@@ -2,6 +2,8 @@ import Immutable from 'immutable';
 import Util from 'chl/util';
 import Const from 'chl/const';
 
+import { newgid } from 'chl/worldstate';
+
 function GraphLib_() {
     let self = this;
 
@@ -31,6 +33,7 @@ function GraphLib_() {
 export let GraphLib = new GraphLib_();
 export default GraphLib;
 
+
 export function Graph() {
     Util.EventDispatcher.call(this);
     let self = this;
@@ -41,8 +44,6 @@ export function Graph() {
     let nodes = Immutable.OrderedMap(); // key: id, val: node
     let edges_by_src = Immutable.Map(); // key: id, val: edge list
     let edges_by_dst = Immutable.Map(); // key: id, slot; val: edge
-
-    let last_id = 0;
 
     let GREY = 1;
     let BLACK = 2;
@@ -116,7 +117,7 @@ export function Graph() {
             options.title = constructor.title || path;
 
         if (!options.id)
-            options.id = last_id++;
+            options.id = newgid();
         let node = Object.create(constructor.prototype);
         GraphNode.call(node);
         constructor.call(node);
@@ -131,7 +132,6 @@ export function Graph() {
         node.graph = self;
         node.type = path;
 
-        if (!node.properties) node.properties = {};
         if (!node.pos) node.pos = Const.Graph.DEFAULT_POSITION.concat();
 
         self.dispatchChange(new CustomEvent('node-added', {
@@ -170,7 +170,7 @@ export function Graph() {
             return false;
 
         let edge = {
-            id: last_id++,
+            id: newgid(),
             src_id: src.id,
             src_slot, src_slot,
             dst_id: dst.id,
@@ -196,7 +196,7 @@ export function Graph() {
                     edge: edge
                 }
             }));
-            return true;
+            return edge;
         } catch (e) {
             // a cycle was created
             edges_by_src = old_src;
@@ -310,6 +310,15 @@ export function Graph() {
             edges_by_slot.forEach((slot) => slot.forEach(f));
     };
 
+    this.numEdgesFromNode = function(node) {
+        let total = 0;
+        let edges_by_slot = edges_by_src.get(node.id);
+
+        if (edges_by_slot)
+            edges_by_slot.forEach((slot) => total += slot.count());
+        return total;
+    };
+
     this.forEachEdgeFromSlot = function(node, slot, f) {
         edges_by_src.getIn([node.id, slot], Immutable.List()).forEach(f);
     };
@@ -338,31 +347,28 @@ export function Graph() {
         let edges = [];
         self.forEachEdge((edge) => edges.push(Util.clone(edge)));
 
+        let extractInfo = function(slot) {
+            return {
+                name: slot.name,
+                type: slot.type
+            };
+        };
+
         return Immutable.fromJS({
-            nodes: nodes.map((node) => node.snapshot()),
+            nodes: Array.from(nodes.map((node) => node.snapshot()).values()),
             edges: edges,
-            global_inputs: global_inputs.map(function(input) {
-                return {
-                    name: input.name,
-                    type: input.type
-                };
-            }),
-            global_outputs: global_outputs.map(function(output) {
-                return {
-                    name: output.name,
-                    type: output.type
-                };
-            }),
-            last_id: last_id,
+            global_inputs: Array.from(global_inputs.map(extractInfo).values()),
+            global_outputs: Array.from(global_outputs.map(extractInfo).values()),
         });
     };
 
     this.restore = function(snapshot) {
-        nodes = snapshot.get('nodes').map(function(nodesnap, id) {
+        nodes = Immutable.Map(snapshot.get('nodes').map(function(nodesnap) {
+            let id = nodesnap.get('id');
             let existingNode = nodes.get(id);
             if (existingNode) {
                 existingNode.restore(nodesnap);
-                return existingNode;
+                return [id, existingNode];
             } else {
                 let type = nodesnap.get('type');
                 let constructor = GraphLib.node_types.get(type);
@@ -373,9 +379,9 @@ export function Graph() {
                 node.restore(nodesnap);
 
                 node.graph = self;
-                return node;
+                return [id, node];
             }
-        });
+        }));
 
         edges_by_src = edges_by_src.clear();
         edges_by_dst = edges_by_dst.clear();
@@ -395,23 +401,18 @@ export function Graph() {
             });
         });
 
-        last_id = snapshot.get('last_id');
-
-        global_inputs = snapshot.get('global_inputs').map(function(input) {
-            return {
-                name: input.name,
-                type: input.type,
-                data: null,
+        let entry = function(slot) {
+            let val = {
+                name: slot.name,
+                type: slot.type,
+                data: null
             };
-        });
+            return [slot.name, val];
+        };
 
-        global_outputs = snapshot.get('global_outputs').map(function(output) {
-            return {
-                name: output.name,
-                type: output.type,
-                data: null,
-            };
-        });
+        global_inputs = Immutable.Map(snapshot.get('global_inputs').map(entry));
+
+        global_outputs = Immutable.Map(snapshot.get('global_outputs').map(entry));
 
         self.dispatchEvent(new CustomEvent('graph-restored'));
     };
@@ -518,22 +519,27 @@ GraphNode.prototype.modified = function() {
 };
 
 GraphNode.prototype.snapshot = function() {
-    return Immutable.fromJS({
+    let input_settings = this.inputs.map(function(input) {
+        return {autoconvert: input.autoconvert};
+    });
+    let data = {
         pos: this.pos,
-        properties: Util.JSON.dump(this.properties),
-        input_settings: this.inputs.map((input) => input.autoconvert),
+        defaults: Util.JSON.normalized(this.properties),
+        input_settings: input_settings,
         type: this.type,
         id: this.id,
         title: this.title,
-    });
+    };
+
+    return Immutable.fromJS(data);
 };
 
 GraphNode.prototype.restore = function(snapshot) {
     let self = this;
     this.pos = snapshot.get('pos').toJS();
-    this.properties = Util.JSON.load(snapshot.get('properties'));
+    this.properties = Util.JSON.denormalized(snapshot.get('defaults').toJS());
     snapshot.get('input_settings').forEach(function(val, i) {
-        self.inputs[i].autoconvert = val;
+        self.inputs[i].autoconvert = val.autoconvert;
     });
     this.type = snapshot.get('type');
     this.id = snapshot.get('id');

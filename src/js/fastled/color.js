@@ -1,4 +1,4 @@
-import GraphLib from 'chl/graphlib/graph';
+import { GraphLib } from 'chl/graphlib/graph';
 import Units from 'chl/units';
 import { Math8 } from 'chl/fastled/math8';
 

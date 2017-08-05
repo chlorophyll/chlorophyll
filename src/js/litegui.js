@@ -6527,7 +6527,7 @@ LiteGUI.Table = Table;
 */
 
 //TODO: remove jQuery
-if(this.jQuery)
+if(jQuery)
 {
 	jQuery.fn.wchange = function(callback) {
 		$(this[0]).on("wchange",callback);

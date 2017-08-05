@@ -2,7 +2,8 @@ import Immutable from 'immutable';
 
 import ColorPool from 'chl/colors';
 import { ProjectionMapping, TransformMapping } from 'chl/mapping/maputil';
-import { UILayout, worldState } from 'chl/init';
+import { UILayout } from 'chl/init';
+import { newgid, worldState } from 'chl/worldstate';
 import LiteGUI from 'chl/litegui';
 import 'chl/widgets/litegui-extensions';
 import Util from 'chl/util';
@@ -26,11 +27,6 @@ export function PixelGroup(manager, id, pixels, initname, color) {
     this.pixels = pixels ? pixels : Immutable.Set();
     this.model = manager.model;
     this.overlay = this.model.createOverlay(1);
-
-    let _nextid = 0;
-    function newgid() {
-        return _nextid++;
-    }
 
     /*
      * If this group is being restored from a snapshot, the name might not
@@ -120,7 +116,8 @@ export function PixelGroup(manager, id, pixels, initname, color) {
     this.createMapping = function(type) {
         let map_id = newgid();
 
-        let name = self.name + '-map-' + map_id;
+        let nameseq = self.mappings.valueSeq().map((mapping) => mapping.name);
+        let name = Util.uniqueName(self.name + ' map ', nameseq);
         let Map = manager.next_maptype;
         let newmap = new Map(manager, self, map_id, name);
         // Set an initial value for the mapping - it probably won't
@@ -211,13 +208,6 @@ export default function GroupManager(model) {
     // Future work: nice group reordering UI, probably a layer on top of this
     // referencing group IDs, to keep groups in order
     this.groups = Immutable.Map();
-
-    // Manually assign group id labels so that deleting a group doesn't
-    // reassign ids
-    let _nextid = 0;
-    function newgid() {
-        return _nextid++;
-    }
 
     let treePanel = new LiteGUI.Panel('group-tree-panel', {
         title: 'Pixel Group Browser',
@@ -476,7 +466,11 @@ export default function GroupManager(model) {
 
     function createGroup(pixels, name) {
         let id = newgid();
-        name = (typeof name !== 'undefined') ? name : ('Group ' + id);
+        if (typeof name === 'undefined') {
+            let nameseq = self.groups.valueSeq().map((group) => group.name);
+            name = Util.uniqueName('Group ', nameseq);
+        }
+
         if (name.length > Const.max_name_len) {
             name = name.slice(0, Const.max_name_len);
         }

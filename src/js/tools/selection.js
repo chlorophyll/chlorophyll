@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
-import Chlorophyll, { worldState, screenManager } from 'chl/init';
+import Chlorophyll, { screenManager } from 'chl/init';
+import { worldState } from 'chl/worldstate';
 import LiteGUI from 'chl/litegui';
 
 export function isClipped(v) {

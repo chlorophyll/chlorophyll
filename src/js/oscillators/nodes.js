@@ -17,7 +17,7 @@ function Oscillator() {
     this.properties.frequency = new Frequency();
     this.properties.frequency.hz = 1;
     this.properties.amplitude = new Util.Range(0, 1, 0, 1);
-    this.properties.phase = 0;
+    this.properties.phase = new Units.Percentage(0);
 
     let width = 325;
     let height = 200;

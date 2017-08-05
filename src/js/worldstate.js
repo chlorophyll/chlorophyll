@@ -1,4 +1,21 @@
-export default function WorldState(start) {
+
+function IDGenerator() {
+    let last_id = 0;
+
+    this.newgid = function() {
+        return last_id++;
+    };
+
+    this.snapshot = function() {
+        return last_id;
+    };
+
+    this.restore = function(snapshot) {
+        last_id = snapshot;
+    };
+};
+
+function WorldState(start) {
 
     let self = this;
 
@@ -51,3 +68,12 @@ export default function WorldState(start) {
     }
     this.checkpoint();
 }
+let idGen = new IDGenerator();
+
+export function initWorldState(initialState) {
+    initialState.idGen = idGen;
+    worldState = new WorldState(initialState);
+}
+
+export let worldState;
+export let newgid = idGen.newgid;
