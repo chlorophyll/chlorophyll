@@ -165,11 +165,11 @@ export function PixelGroup(manager, id, pixels, initname, color) {
                 existingMapping.restore(mapsnap);
                 return existingMapping;
             } else {
-                let map_class = mapsnap.get('map_class');
+                let map_type = mapsnap.get('type');
                 let newMapping = null;
-                if (map_class === 'projection')
+                if (map_type === 'projection')
                     newMapping = new ProjectionMapping(manager, self, child_id);
-                else if (map_class === 'transform')
+                else if (map_type === 'transform')
                     newMapping = new TransformMapping(manager, self, child_id);
                 else
                     console.error('Tried to restore invalid mapping');
@@ -513,15 +513,15 @@ export default function GroupManager(model) {
     /*
      * Return a list of all current mappings ({name -> mapping obj})
      * This list is not guaranteed to stay valid if mappings are changed!
-     * if has_type is provided, only mappings which support the provided type
-     * of point mapping will be returned.
+     * if has_coord_type is provided, only mappings which support the provided
+     * type of point mapping will be returned.
      */
-    this.listMappings = function(with_type) {
-        let type = (typeof with_type !== 'undefined') ? with_type : null;
+    this.listMappings = function(with_coord_type) {
+        let type = (typeof with_coord_type !== 'undefined') ? with_coord_type : null;
         let maps = [];
         self.groups.forEach(function(group, id) {
             group.mappings.forEach(function(mapping, _) {
-                if (!type || type in mapping.map_types) {
+                if (!type || type in mapping.coord_types) {
                     maps.push({
                         title: mapping.name,
                         mapping: mapping

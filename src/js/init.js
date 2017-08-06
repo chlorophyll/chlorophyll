@@ -9,7 +9,7 @@ import Model from 'chl/model';
 import ScreenManager from 'chl/screenmanager';
 import GroupManager from 'chl/mapping/groups';
 import PatternManager from 'chl/patterns/manager';
-import { initWorldState } from 'chl/worldstate';
+import { worldState, initWorldState } from 'chl/worldstate';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
 import LiteGUI from 'chl/litegui';
 import 'chl/patches';

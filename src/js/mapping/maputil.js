@@ -27,18 +27,24 @@ export default function Mapping(manager, group, id, initname) {
     /*
      * To be provided by mapping subclasses:
      */
-    this.mapPoint = null;
     this.showConfig = null;
     this.hideConfig = null;
-    this.isProjection = false;
-    this.isTransform = false;
+    this.type = '';
     this.display_name = 'Unknown Type';
-    // map_types describes each type of transformation the mapping supports,
+    // coord_types describes each type of transformation the mapping supports,
     // in the form: { uniqueidentifier: { name: ..., mapPoint: ...}, ... }
-    this.map_types = {};
+    this.coord_types = {};
 
     Object.defineProperty(this, 'tree_id', {
         get: function() { return `${group.tree_id}-map-${id}`; }
+    });
+
+    Object.defineProperty(this, 'isProjection', {
+        get: function() { return (this.type === 'projection'); }
+    });
+
+    Object.defineProperty(this, 'isTransform', {
+        get: function() { return (this.type === 'transform'); }
     });
 
     Object.defineProperty(this, 'name', {
@@ -55,12 +61,12 @@ export default function Mapping(manager, group, id, initname) {
         }
     });
 
-    Object.defineProperty(this, 'type_menu', {
+    Object.defineProperty(this, 'coord_type_menu', {
         get: function() {
             let menu = {};
-            for (let type in self.map_types) {
-                if (self.map_types[type] !== undefined)
-                    menu[self.map_types[type].name] = type;
+            for (let type in self.coord_types) {
+                if (self.coord_types[type] !== undefined)
+                    menu[self.coord_types[type].name] = type;
             }
             return menu;
         }
@@ -73,13 +79,13 @@ export default function Mapping(manager, group, id, initname) {
     }, group.tree_id);
 
     this.getPositions = function(type) {
-        if (!(type in self.map_types)) {
+        if (!(type in self.coord_types)) {
             console.error('No such mapping type: ' + type);
             return;
         }
-        let mapFn = self.map_types[type].mapPoint;
+        let mapFn = self.coord_types[type].mapPoint;
         let norm_factor = 1;
-        let norm_coord = self.map_types[type].norm_coords;
+        let norm_coord = self.coord_types[type].norm_coords;
         // Normalize points to within [-1, 1], if enabled.
         if (self.normalize) {
             let max = 0;
@@ -110,6 +116,20 @@ export default function Mapping(manager, group, id, initname) {
                 return [idx, mapFn(idx)];
             }
         });
+    };
+
+    /*
+     * Returns a serialized object containing an array of mapped points for
+     * each coordinate type the mapping supports, keyed by coord type.
+     */
+    this.allMappedPoints = function() {
+        let mapped = {};
+        for (let type in self.coord_types) {
+            if (self.coord_types.hasOwnProperty(type)) {
+                mapped[type] = self.getPositions(type);
+            }
+        }
+        return mapped;
     };
 
     this.destroy = function() {

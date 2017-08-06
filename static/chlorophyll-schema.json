@@ -105,7 +105,21 @@
                         "type": "number"
                     },
                     "mapped_points": {
-                        "type": "array"
+                        "patternProperties": {
+                            "^.*2d$": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/types/vector2"
+                                }
+                            },
+                            "^.*3d$": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/types/vector3"
+                                }
+                            }
+                        },
+                        "additionalProperties": false
                     },
                     "type": {
                         "type": "string"
@@ -122,12 +136,6 @@
                             "type": {
                                 "type": "string",
                                 "pattern": "transform"
-                            },
-                            "mapped_points": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/types/vector3"
-                                }
                             },
                             "position": {
                                 "$ref": "#/definitions/types/vector3"

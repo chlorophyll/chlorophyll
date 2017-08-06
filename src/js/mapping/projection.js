@@ -13,8 +13,8 @@ export default function ProjectionMapping(manager, group, id, initname) {
     Mapping.call(this, manager, group, id, initname);
     let self = this;
 
+    this.type = 'projection';
     this.display_name = '2D Projection';
-    this.isProjection = true;
 
     this.mapping_valid = false;
     this.proj_plane = {};
@@ -33,13 +33,13 @@ export default function ProjectionMapping(manager, group, id, initname) {
                                  self.proj_plane.yaxis.dot(fromOrigin));
     }
 
-    this.map_types.cartesian2d = {
+    this.coord_types.cartesian2d = {
         name: '2D Cartesian',
         norm_coords: [true, true],
         mapPoint: projectPoint
     };
 
-    this.map_types.polar2d = {
+    this.coord_types.polar2d = {
         name: '2D Polar',
         norm_coords: [true, false],
         mapPoint: function(idx) {
@@ -119,7 +119,7 @@ export default function ProjectionMapping(manager, group, id, initname) {
 
         ui_controls.inspector = inspector;
 
-        toolbarManager.active = null;
+        toolbarManager.active = 'camera';
         self.model.hideUnderlyingModel();
         screenManager.setActive(self.tree_id);
 
@@ -180,7 +180,7 @@ export default function ProjectionMapping(manager, group, id, initname) {
         }
         let widgetdata = self.widget.data();
         let snap = {
-            map_class: 'projection',
+            type: 'projection',
             name: self.name,
             id: self.id,
             mapping_valid: self.mapping_valid,
@@ -190,6 +190,7 @@ export default function ProjectionMapping(manager, group, id, initname) {
             plane_normal: null
         };
         if (self.mapping_valid) {
+            snap.mapped_points = self.allMappedPoints();
             snap.plane_normal = self.proj_plane.euler.toArray();
             snap.origin = self.proj_plane.origin.toArray();
         }

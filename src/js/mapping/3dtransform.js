@@ -18,8 +18,9 @@ export default function TransformMapping(manager, group, id, initname) {
     Mapping.call(this, manager, group, id, initname);
     let self = this;
 
+    this.type = 'transform';
     this.display_name = '3D Transform';
-    this.isTransform = true;
+
     this.shape = 'cube';
     this.position = new THREE.Vector3(0, 0, 0);
     this.rotation = new THREE.Euler(0, 0, 0);
@@ -86,13 +87,13 @@ export default function TransformMapping(manager, group, id, initname) {
         return fromOrigin;
     }
 
-    this.map_types.cartesian3d = {
+    this.coord_types.cartesian3d = {
         name: '3D Cartesian',
         norm_coords: [true, true, true],
         mapPoint: transformPoint
     };
 
-    this.map_types.cylinder3d = {
+    this.coord_types.cylinder3d = {
         name: '3D Cylindrical',
         norm_coords: [true, false, true],
         mapPoint: function(idx) {
@@ -103,7 +104,7 @@ export default function TransformMapping(manager, group, id, initname) {
         }
     };
 
-    this.map_types.sphere3d = {
+    this.coord_types.sphere3d = {
         name: '3D Spherical',
         norm_coords: [true, false, false],
         mapPoint: function(idx) {
@@ -125,7 +126,7 @@ export default function TransformMapping(manager, group, id, initname) {
 
         ui_controls.inspector = inspector;
 
-        toolbarManager.setActiveTool('camera');
+        toolbarManager.active = 'camera';
         self.model.hideUnderlyingModel();
 
         self.widget.show();
@@ -240,14 +241,15 @@ export default function TransformMapping(manager, group, id, initname) {
 
     this.snapshot = function() {
         return Immutable.fromJS({
-            map_class: 'transform',
+            type: 'transform',
             name: self.name,
             id: self.id,
             normalize: self.normalize,
             position: self.position.toArray(),
             rotation: self.rotation.toArray(),
             scale: self.scale.toArray(),
-            autoscale: self.autoscale
+            autoscale: self.autoscale,
+            mapped_points: self.allMappedPoints()
         });
     };
 
