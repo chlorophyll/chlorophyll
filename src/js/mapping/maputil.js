@@ -17,7 +17,6 @@ export default function Mapping(manager, group, id, initname) {
     this.group = group;
     this.model = group.model;
     this.id = id;
-    this.tree_id = group.tree_id + '-map-' + id;
     let _name = initname;
 
     this.widget = null;

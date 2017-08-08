@@ -1,4 +1,5 @@
 import Immutable from 'immutable';
+import * as THREE from 'three';
 
 import ColorPool from 'chl/colors';
 import { ProjectionMapping, TransformMapping } from 'chl/mapping/maputil';
@@ -20,13 +21,16 @@ export function PixelGroup(manager, id, pixels, initname, color) {
     let self = this;
 
     this.id = id;
-    this.tree_id = 'group-'+id;
     let _name = initname ? initname : 'unnamed';
     let _color = color ? color : new THREE.Color(0xff0000);
     this.mappings = Immutable.Map();
     this.pixels = pixels ? pixels : Immutable.Set();
     this.model = manager.model;
     this.overlay = this.model.createOverlay(1);
+
+    Object.defineProperty(this, 'tree_id', {
+        get: function() { return `group-${self.id}`; }
+    });
 
     /*
      * If this group is being restored from a snapshot, the name might not
@@ -36,9 +40,8 @@ export function PixelGroup(manager, id, pixels, initname, color) {
     let elem = manager.tree.insertItem({
         id: this.tree_id,
         content: _name,
-        dataset: {group: self}},
-        'root'
-    );
+        dataset: {group: self}
+    }, 'root');
 
     let visible = true;
 
@@ -136,7 +139,6 @@ export function PixelGroup(manager, id, pixels, initname, color) {
         return Immutable.fromJS({
             name: _name,
             id: self.id,
-            tree_id: self.tree_id,
             pixels: self.pixels,
             color: self.color,
             overlay: self.overlay.snapshot(),
@@ -148,8 +150,7 @@ export function PixelGroup(manager, id, pixels, initname, color) {
 
     this.restore = function(snapshot) {
         self.id = snapshot.get('id');
-        self.tree_id = snapshot.get('tree_id');
-        // Set name after the tree_id, so that the tree gets properly updated.
+        // Set name after the id, so that the tree gets properly updated.
         self.name = snapshot.get('name');
         self.pixels = snapshot.get('pixels');
         self.overlay.restore(snapshot.get('overlay'));
