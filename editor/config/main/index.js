@@ -6,6 +6,7 @@ import { app, BrowserWindow } from 'electron' // eslint-disable-line
  */
 if (process.env.NODE_ENV !== 'development') {
   global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\') // eslint-disable-line
+  global.__schemas = require('path').join(__dirname, '/schemas').replace(/\\/g, '\\\\') // eslint-disable-line
 }
 
 let mainWindow;

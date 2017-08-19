@@ -142,7 +142,8 @@ let rendererConfig = {
 if (process.env.NODE_ENV !== 'production') {
   rendererConfig.plugins.push(
     new webpack.DefinePlugin({
-      '__static': `"${path.join(__dirname, '../static').replace(/\\/g, '\\\\')}"`
+      '__static': `"${path.join(__dirname, '../static').replace(/\\/g, '\\\\')}"`,
+      '__schemas': `"${path.join(__dirname, '../../schemas').replace(/\\/g, '\\\\')}"`
     })
   )
 }
@@ -158,6 +159,11 @@ if (process.env.NODE_ENV === 'production') {
       {
         from: path.join(__dirname, '../static'),
         to: path.join(__dirname, '../dist/electron/static'),
+        ignore: ['.*']
+      },
+        {
+        from: path.join(__dirname, '../../schemas'),
+        to: path.join(__dirname, '../dist/electron/schemas'),
         ignore: ['.*']
       }
     ]),
