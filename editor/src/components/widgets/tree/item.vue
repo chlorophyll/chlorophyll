@@ -1,8 +1,9 @@
 <template>
     <li class="item" v-bind:class="{withChildren: hasChildren}">
-        <div @click="toggle" class="label">
-        <span class="icon">{{ icon }}</span>
-        <slot :item="item" :leaf="!hasChildren" />
+        <div class="label" v-bind:class="{ selected: item.selected }"
+             @click="toggle">
+            <span class="icon">{{ icon }}</span>
+            <slot :item="item" :leaf="!hasChildren" />
         </div>
 
         <tree-view v-show="open" v-if="hasChildren" :items="item.children">
@@ -62,6 +63,10 @@ export default {
     padding-left: 100%;
     margin-left: -100%;
     border-bottom: 1px solid rgba(0,0,0, 0.1);
+}
+
+div.label.selected {
+    background-color: #2c5a75;
 }
 
 .label:hover {
