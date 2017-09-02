@@ -1,5 +1,5 @@
 <template>
-<div v-show="visible"
+<div v-show="show"
      class="modal-dialog litedialog"
      v-bind:style="{ left: `${x}px`, top: `${y}px`, width }">
     <div class="panel-header drag-handle" @mousedown="startDrag">
@@ -54,21 +54,18 @@ export default {
         return {
             x: this.pos.x,
             y: this.pos.y,
-            visible: this.show,
         };
     },
     methods: {
         close(save) {
             this.$emit('close', save);
-            this.visible = false;
         },
-        open(xpos, ypos) {
+        move(xpos, ypos) {
             if (typeof xpos !== 'undefined' &&
                 typeof ypos !== 'undefined') {
                 this.x = xpos;
                 this.y = ypos;
             }
-            this.visible = true;
         },
         startDrag(event) {
             this.drag_x = event.clientX;
