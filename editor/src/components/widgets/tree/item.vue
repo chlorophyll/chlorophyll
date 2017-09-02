@@ -47,6 +47,14 @@ export default {
                 this.open = !this.open;
             }
         },
+    },
+    watch: {
+        item(new_item) {
+            if (new_item.children.find((c) => c.selected) !== undefined) {
+                if (!this.open)
+                    this.toggle();
+            }
+        }
     }
 };
 </script>
