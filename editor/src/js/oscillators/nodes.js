@@ -1,5 +1,5 @@
 import Util from 'chl/util';
-import GraphLib from 'chl/graphlib/graph';
+import { GraphLib, GraphNode } from 'chl/graphlib/graph';
 import Units from 'chl/units';
 
 import OscillatorPlotter from './plotter';
@@ -7,63 +7,68 @@ import Frequency from './util';
 
 let node_types = [];
 
-function Oscillator() {
-    let self = this;
-    this.addOutput('result', Units.Percentage);
-    this.addInput('frequency', 'frequency');
-    this.addInput('amplitude', 'range');
-    this.addInput('phase', Units.Percentage);
+function make_oscillator(name, waveform) {
+    let Oscillator = class extends GraphNode {
+        constructor(options) {
+            const outputs = [GraphNode.output('result', Units.Percentage)];
+            const inputs = [
+                GraphNode.input('frequency', 'frequency'),
+                GraphNode.input('amplitude', 'range'),
+                GraphNode.input('phase', Units.Percentage),
+            ];
+            let frequency = new Frequency();
+            frequency.hz = 1;
 
-    this.properties.frequency = new Frequency();
-    this.properties.frequency.hz = 1;
-    this.properties.amplitude = new Util.Range(0, 1, 0, 1);
-    this.properties.phase = new Units.Percentage(0);
+            const properties = {
+                frequency,
+                amplitude: new Util.Range(0, 1, 0, 1),
+                phase: new Units.Percentage(0),
+            };
+            super(options, inputs, outputs, { properties });
 
-    let width = 325;
-    let height = 200;
+            // rewrite this to use Vue...
+            const width = 325;
+            const height = 200;
+            let oscElement = document.createElement('div');
+            oscElement.style.width = width+'px';
+            oscElement.style.height = height+'px';
+            oscElement.style.backgroundColor = '#222';
+            oscElement.style.clear = 'both';
+            oscElement.style.marginBottom = '2em';
 
-    let oscElement = document.createElement('div');
-    oscElement.style.width = width+'px';
-    oscElement.style.height = height+'px';
-    oscElement.style.backgroundColor = '#222';
-    oscElement.style.clear = 'both';
-    oscElement.style.marginBottom = '2em';
+            let plotter = new OscillatorPlotter(oscElement, this, {
+                width: width,
+                height: height,
+            });
 
-    let plotter = new OscillatorPlotter(oscElement, self, {
-        width: width,
-        height: height,
-    });
+            this.visualization = {
+                enabled: () => this.numEdgesToNode() == 0,
+                root: oscElement,
+                update: plotter.plot
+            };
+        }
 
-    this.visualization = {
-        enabled: function() { return self.graph.numEdgesToNode(self) == 0; },
-        root: oscElement,
-        update: plotter.plot
+        value(t) {
+            let frequency = this.getInputData(0);
+            let amplitude = this.getInputData(1);
+            let cycles = this.getInputData(2);
+            let phased_t = t + Units.Operations.mul(cycles, frequency.sec);
+
+            return waveform(frequency, amplitude, phased_t);
+        }
+
+        onExecute() {
+            let t = this.graph.getGlobalInputData('t') / 60;
+            let out = this.value(t);
+            this.setOutputData(0, new Units.Percentage(out));
+        }
     };
+
+    Oscillator.title = `${name} wave`;
+    node_types.push([`oscillators/${name}`, Oscillator]);
 }
 
-Oscillator.prototype.onExecute = function() {
-    let t = this.graph.getGlobalInputData('t') / 60;
-    let out = this.value(t);
-    this.setOutputData(0, new Units.Percentage(out));
-};
-
-Oscillator.prototype.phasedTime = function(t) {
-    let frequency = this.getInputData(0);
-    let cycles = this.getInputData(2);
-    return t + Units.Operations.mul(cycles, frequency.sec);
-};
-
-function TriangleWaveOscillator() {
-    Oscillator.call(this);
-}
-TriangleWaveOscillator.title = 'Triangle wave';
-
-TriangleWaveOscillator.prototype = Object.create(Oscillator.prototype);
-
-TriangleWaveOscillator.prototype.value = function(t) {
-    let frequency = this.getInputData(0);
-    let amplitude = this.getInputData(1);
-    t = this.phasedTime(t);
+make_oscillator('triangle', function(frequency, amplitude, t) {
     let lower = amplitude.lower;
     let upper = amplitude.upper;
 
@@ -77,23 +82,9 @@ TriangleWaveOscillator.prototype.value = function(t) {
     };
 
     return lower + (a/p) * (p - Math.abs(mod(t, 2*p) - p) );
-};
+});
 
-node_types.push(['oscillators/triangle', TriangleWaveOscillator]);
-
-///
-
-function SquareWaveOscillator() {
-    Oscillator.call(this);
-}
-SquareWaveOscillator.title = 'Square wave';
-
-SquareWaveOscillator.prototype = Object.create(Oscillator.prototype);
-
-SquareWaveOscillator.prototype.value = function(t) {
-    let frequency = this.getInputData(0);
-    let amplitude = this.getInputData(1);
-    t = this.phasedTime(t);
+make_oscillator('square', function(frequency, amplitude, t) {
     let lower = amplitude.lower;
     let upper = amplitude.upper;
 
@@ -110,19 +101,9 @@ SquareWaveOscillator.prototype.value = function(t) {
     } else {
         return upper;
     }
-};
+});
 
-node_types.push(['oscillators/square', SquareWaveOscillator]);
-
-function SawWaveOscillator() {
-    Oscillator.call(this);
-}
-SawWaveOscillator.title = 'Saw wave';
-SawWaveOscillator.prototype = Object.create(Oscillator.prototype);
-SawWaveOscillator.prototype.value = function(t) {
-    let frequency = this.getInputData(0);
-    let amplitude = this.getInputData(1);
-    t = this.phasedTime(t);
+make_oscillator('saw', function(frequency, amplitude, t) {
     let lower = amplitude.lower;
     let upper = amplitude.upper;
 
@@ -133,19 +114,9 @@ SawWaveOscillator.prototype.value = function(t) {
         cyc += p;
 
     return lower + (upper - lower)*(cyc / p);
-};
-node_types.push(['oscillators/saw', SawWaveOscillator]);
+});
 
-function SineWaveOscillator() {
-    Oscillator.call(this);
-}
-
-SineWaveOscillator.title = 'Sine wave';
-SineWaveOscillator.prototype = Object.create(Oscillator.prototype);
-SineWaveOscillator.prototype.value = function(t) {
-    let frequency = this.getInputData(0);
-    let amplitude = this.getInputData(1);
-    t = this.phasedTime(t);
+make_oscillator('sine', function(frequency, amplitude, t) {
     let lower = amplitude.lower;
     let upper = amplitude.upper;
 
@@ -154,19 +125,9 @@ SineWaveOscillator.prototype.value = function(t) {
     let p = frequency.sec;
 
     return lower + a * (Math.sin(t*2*Math.PI/p)+1);
-};
-node_types.push(['oscillators/sine', SineWaveOscillator]);
+});
 
-function CosWaveOscillator() {
-    Oscillator.call(this);
-}
-
-CosWaveOscillator.title = 'Cos wave';
-CosWaveOscillator.prototype = Object.create(Oscillator.prototype);
-CosWaveOscillator.prototype.value = function(t) {
-    let frequency = this.getInputData(0);
-    let amplitude = this.getInputData(1);
-    t = this.phasedTime(t);
+make_oscillator('cos', function(frequency, amplitude, t) {
     let lower = amplitude.lower;
     let upper = amplitude.upper;
 
@@ -175,8 +136,7 @@ CosWaveOscillator.prototype.value = function(t) {
     let p = frequency.sec;
 
     return lower + a * (Math.cos(t*2*Math.PI/p)+1);
-};
-node_types.push(['oscillators/cos', CosWaveOscillator]);
+});
 
 export default function register_oscillator_nodes() {
     GraphLib.registerNodeTypes(node_types);

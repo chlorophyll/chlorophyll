@@ -17,9 +17,6 @@ const Const = {
 
     Graph: {
         NODE_SLOT_HEIGHT: 15,
-        NODE_DEFAULT_COLOR: '#999',
-        NODE_DEFAULT_BGCOLOR: '#444',
-        NODE_DEFAULT_BOXCOLOR: '#AEF',
         DEFAULT_POSITION: [100, 100],
         NODE_TITLE_HEIGHT: 16,
         NODE_WIDTH: 140,

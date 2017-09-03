@@ -10,14 +10,11 @@ function GraphLib_() {
     this.node_types = Immutable.OrderedMap();
 
     this.registerNodeType = function(path, constructor) {
+        if (Object.getPrototypeOf(constructor) != GraphNode)
+            throw new Error('All registered node types must inherit from GraphNode');
+
         self.node_types = self.node_types.set(path, constructor);
-
         constructor.type = path;
-
-        for (let key in GraphNode.prototype) {
-            if (!constructor.prototype[key])
-                constructor.prototype[key] = GraphNode.prototype[key];
-        }
     };
 
     this.registerNodeTypes = function(node_types) {
@@ -104,35 +101,22 @@ export function Graph() {
         return dst_type.isUnit && src_type.isUnit;
     };
 
-    this.addNode = function(path, options) {
-        let constructor = GraphLib.node_types.get(path);
+    this.addNode = function(path, options = {}) {
+        let Ctor = GraphLib.node_types.get(path);
 
-        if (!constructor) {
+        if (!Ctor) {
             throw Error('unknown node type' + path);
         }
 
-        options = options || {};
+        const id = newgid();
+        const graph = this;
+        const title = options.title || Ctor.title || path;
+        const pos = options.pos || Const.Graph.DEFAULT_POSITION.concat();
+        const type = path;
 
-        if (!options.title)
-            options.title = constructor.title || path;
-
-        if (!options.id)
-            options.id = newgid();
-        let node = Object.create(constructor.prototype);
-        GraphNode.call(node);
-        constructor.call(node);
-
-        for (let o in options) {
-            if (options[o] !== undefined)
-                node[o] = options[o];
-        }
+        let node = new Ctor({graph, id, title, pos, type});
 
         nodes = nodes.set(node.id, node);
-
-        node.graph = self;
-        node.type = path;
-
-        if (!node.pos) node.pos = Const.Graph.DEFAULT_POSITION.concat();
 
         self.dispatchChange(new CustomEvent('node-added', {
             detail: {
@@ -416,132 +400,130 @@ export function Graph() {
 
         self.dispatchEvent(new CustomEvent('graph-restored'));
     };
+};
 
-    // hax below
+const DEFAULT_CONFIG = {
+    color: '#999',
+    bgcolor: '#444',
+    boxcolor: '#aef',
+    removable: false,
+};
 
-    this.serialize = function() {
-        return {};
-    };
+export class GraphNode {
+    static input(name, type) {
+        return {name, type, autoconvert: true};
+    }
 
-    this.configure = function() {
-        return {};
-    };
+    static output(name, type) {
+        return {name, type};
+    }
+
+    constructor({graph, id, title, pos, type},
+                inputs, outputs,
+                {config = {}, properties = {}} = {}) {
+
+        this.graph = graph;
+        this.id = id;
+        this.title = title;
+        this.pos = pos;
+        this.type = type;
+
+        this.inputs = inputs;
+        this.outputs = outputs;
+        this.properties = properties;
+        this.config = {...DEFAULT_CONFIG, ...config};
+        this.outgoing_data = [];
+    }
+
+    getOutgoingData(slot) {
+        let output = this.outputs[slot];
+
+        let outgoing = this.outgoing_data[slot];
+
+        if (outgoing && output.type && output.type.isUnit) {
+            let Ctor = output.type;
+            outgoing = new Ctor(outgoing.valueOf());
+        }
+        return outgoing;
+    }
+    getInputData(slot) {
+        let src = this.graph.getNodeByInput(this, slot);
+
+        let input = this.inputs[slot];
+
+        let data = undefined;
+        if (src) {
+            data = src.node.getOutgoingData(src.slot);
+        }
+
+        if (data == undefined) {
+            data = this.properties[input.name];
+        }
+
+        if (data !== undefined && input.type && input.type.isUnit) {
+            if (data.isUnit && input.autoconvert) {
+                data = data.convertTo(input.type);
+            } else {
+                let Ctor = input.type;
+                data = new Ctor(data);
+            }
+        }
+        return data;
+    }
+
+    setOutputData(slot, data) {
+        this.outgoing_data[slot] = data;
+    }
+
+    setPosition(x, y) {
+        this.pos = [x, y];
+        this.graph.dispatchChange(new CustomEvent('node-moved', {
+            detail: {
+                node: this,
+                position: this.pos
+            }
+        }));
+    }
+    clearOutgoingData() {
+        for (let i = 0; i < this.outgoing_data.length; i++)
+            this.outgoing_data[i] = null;
+    }
+
+    numEdgesToNode() {
+        return this.graph.numEdgesToNode(this);
+    }
+
+    modified() {
+        this.graph.dispatchChange(new CustomEvent('node-modified', {
+            detail: {
+                node: this
+            }
+        }));
+    }
+    snapshot() {
+        let input_settings = this.inputs.map(function(input) {
+            return {autoconvert: input.autoconvert};
+        });
+        let data = {
+            pos: this.pos,
+            defaults: Util.JSON.normalized(this.properties),
+            input_settings: input_settings,
+            type: this.type,
+            id: this.id,
+            title: this.title,
+        };
+        return Immutable.fromJS(data);
+    }
+
+    restore(snapshot) {
+        let self = this;
+        this.pos = snapshot.get('pos').toJS();
+        this.properties = Util.JSON.denormalized(snapshot.get('defaults').toJS());
+        snapshot.get('input_settings').forEach(function(val, i) {
+            self.inputs[i].autoconvert = val.autoconvert;
+        });
+        this.type = snapshot.get('type');
+        this.id = snapshot.get('id');
+        this.title = snapshot.get('title');
+    }
 }
-
-
-export function GraphNode() {
-    this.inputs = [];
-    this.outputs = [];
-    this.properties = {};
-
-    this.outgoing_data = [];
-}
-
-GraphNode.prototype.addInput = function(name, type) {
-    this.inputs.push({
-        name: name,
-        type: type,
-        autoconvert: true
-    });
-};
-
-GraphNode.prototype.addOutput = function(name, type) {
-    this.outputs.push({
-        name: name,
-        type: type
-    });
-    this.outgoing_data.push(null);
-};
-
-GraphNode.prototype.getOutgoingData = function(slot) {
-    let output = this.outputs[slot];
-
-    let outgoing = this.outgoing_data[slot];
-
-    if (outgoing && output.type && output.type.isUnit) {
-        let Ctor = output.type;
-        outgoing = new Ctor(outgoing.valueOf());
-    }
-
-    return outgoing;
-};
-
-GraphNode.prototype.getInputData = function(slot) {
-    let src = this.graph.getNodeByInput(this, slot);
-
-    let input = this.inputs[slot];
-
-    let data = undefined;
-    if (src) {
-        data = src.node.getOutgoingData(src.slot);
-    }
-
-    if (data == undefined) {
-        data = this.properties[input.name];
-    }
-
-    if (data !== undefined && input.type && input.type.isUnit) {
-        if (data.isUnit && input.autoconvert) {
-        data = data.convertTo(input.type);
-        } else {
-            let Ctor = input.type;
-            data = new Ctor(data);
-        }
-    }
-    return data;
-};
-
-GraphNode.prototype.setOutputData = function(slot, data) {
-    this.outgoing_data[slot] = data;
-};
-
-GraphNode.prototype.setPosition = function(x, y) {
-    this.pos = [x, y];
-    this.graph.dispatchChange(new CustomEvent('node-moved', {
-        detail: {
-            node: this,
-            position: this.pos
-        }
-    }));
-};
-
-GraphNode.prototype.clearOutgoingData = function() {
-    for (let i = 0; i < this.outgoing_data.length; i++)
-        this.outgoing_data[i] = null;
-};
-
-GraphNode.prototype.modified = function() {
-    this.graph.dispatchChange(new CustomEvent('node-modified', {
-        detail: {
-            node: this
-        }
-    }));
-};
-
-GraphNode.prototype.snapshot = function() {
-    let input_settings = this.inputs.map(function(input) {
-        return {autoconvert: input.autoconvert};
-    });
-    let data = {
-        pos: this.pos,
-        defaults: Util.JSON.normalized(this.properties),
-        input_settings: input_settings,
-        type: this.type,
-        id: this.id,
-        title: this.title,
-    };
-
-    return Immutable.fromJS(data);
-};
-
-GraphNode.prototype.restore = function(snapshot) {
-    let self = this;
-    this.pos = snapshot.get('pos').toJS();
-    this.properties = Util.JSON.denormalized(snapshot.get('defaults').toJS());
-    snapshot.get('input_settings').forEach(function(val, i) {
-        self.inputs[i].autoconvert = val.autoconvert;
-    });
-    this.type = snapshot.get('type');
-    this.id = snapshot.get('id');
-    this.title = snapshot.get('title');
-};

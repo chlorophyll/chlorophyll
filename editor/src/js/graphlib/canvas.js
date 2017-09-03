@@ -11,6 +11,7 @@ function NodeElement(canvas, node) {
     self.width = undefined;
     self.height = undefined;
     self.node = node;
+    const {color, bgcolor, boxcolor} = node.config;
 
     this.connectionPos = function(slot, is_input) {
         let x = is_input ? 0 : self.width;
@@ -121,8 +122,6 @@ function NodeElement(canvas, node) {
                  node.setPosition(node.pos[0], node.pos[1]); // trigger node-moved
              }));
     self.move();
-    let fgcolor = node.color || Const.Graph.NODE_DEFAULT_COLOR;
-    let bgcolor = node.bgcolor || Const.Graph.NODE_DEFAULT_BGCOLOR;
 
     const title_height = Const.Graph.NODE_TITLE_HEIGHT;
 
@@ -147,7 +146,7 @@ function NodeElement(canvas, node) {
         let input_label = textgroup.append('text')
                 .attr('x', 0)
                 .attr('y', 0)
-                .attr('fill', fgcolor)
+                .attr('fill', color)
                 .style('font', '10px Arial')
                 .style('cursor', 'default')
                 .text(text);
@@ -163,7 +162,7 @@ function NodeElement(canvas, node) {
         let output_label = textgroup.append('text')
                 .attr('x', 0)
                 .attr('y', 0)
-                .attr('fill', fgcolor)
+                .attr('fill', color)
                 .attr('text-anchor', 'end')
                 .style('font', '10px Arial')
                 .text(text);
@@ -204,7 +203,7 @@ function NodeElement(canvas, node) {
         .attr('y', 0)
         .attr('width', self.width)
         .attr('height', self.height)
-        .style('stroke', fgcolor)
+        .style('stroke', color)
         .style('fill', bgcolor);
 
     // Title bar
@@ -213,11 +212,10 @@ function NodeElement(canvas, node) {
         .attr('y', -title_height)
         .attr('width', self.width)
         .attr('height', title_height)
-        .attr('fill', fgcolor)
-        .attr('stroke', fgcolor);
+        .attr('fill', color)
+        .attr('stroke', color);
 
 
-    let boxcolor = node.boxcolor || Const.Graph.NODE_DEFAULT_BOXCOLOR;
     // Title box
     boxgroup.append('rect')
         .attr('x', 3)
@@ -226,7 +224,7 @@ function NodeElement(canvas, node) {
         .attr('height', title_height-6)
         .attr('fill', boxcolor);
 
-    if (node.removable != false) {
+    if (node.config.removable != false) {
         let closebox = boxgroup.append('g')
             .attr('transform',
                 'translate('+(self.width-title_height+4)+','+(-title_height+4)+')')
@@ -239,7 +237,7 @@ function NodeElement(canvas, node) {
             .attr('y', 0)
             .attr('width', title_height-4)
             .attr('height', title_height-4)
-            .attr('fill', fgcolor);
+            .attr('fill', color);
 
         closebox.append('line')
             .attr('x1', 0)

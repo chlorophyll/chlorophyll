@@ -1,4 +1,4 @@
-import { GraphLib } from 'chl/graphlib/graph';
+import { GraphLib, GraphNode } from 'chl/graphlib/graph';
 import Units from 'chl/units';
 import { Math8 } from 'chl/fastled/math8';
 
@@ -71,32 +71,30 @@ function make_node(target, name, args, code) {
         hasThis = false;
     }
 
+    let f = class extends GraphNode {
+        constructor(options) {
+            const inputs = arglist.map((arg) => GraphNode.input(...arg));
+            const outputs = [GraphNode.output(output, output)];
+            super(options, inputs, outputs);
+        }
+        onExecute() {
+            let values = [];
 
-    let f = function() {
-        let self = this;
-        arglist.forEach(function([arg, type]) {
-            self.addInput(arg, type);
-        });
-        this.addOutput(output, output);
+            for (let i = 0; i < arglist.length; i++) {
+                values.push(this.getInputData(i));
+            }
+
+            let that = undefined;
+
+            if (hasThis) {
+                let inp = values.shift();
+                that = new CRGB(inp.r, inp.g, inp.b);
+            }
+            this.setOutputData(0, code.apply(that, values));
+        }
     };
 
     f.title = output + '.' + name;
-
-    f.prototype.onExecute = function() {
-        let values = [];
-
-        for (let i = 0; i < arglist.length; i++) {
-            values.push(this.getInputData(i));
-        }
-
-        let that = undefined;
-
-        if (hasThis) {
-            let inp = values.shift();
-            that = new CRGB(inp.r, inp.g, inp.b);
-        }
-        this.setOutputData(0, code.apply(that, values));
-    };
 
     node_types.push([output+'/'+name, f]);
 };

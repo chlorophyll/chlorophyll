@@ -1,27 +1,30 @@
-import GraphLib from 'chl/graphlib/graph';
+import { GraphLib, GraphNode } from 'chl/graphlib/graph';
 import Units from 'chl/units';
 import LiteGUI from 'chl/litegui';
 
 let node_types = [];
 
 // Structural node types for the pattern graph
-function OutputColor() {
-    this.addInput('outcolor', 'CRGB');
+
+class OutputColor extends GraphNode {
+    constructor(options) {
+        const inputs = [GraphNode.input('outcolor', 'CRGB')];
+        const outputs = [];
+        super(options, inputs, outputs, {
+            config: {
+                color: '#e5a88a',
+                boxcolor: '#cc8866',
+                removable: false,
+            }
+        });
+    }
+
+    onExecute() {
+        this.graph.setGlobalOutputData('outcolor', this.getInputData(0));
+    }
 }
 
-OutputColor.prototype.onAdded = function() {
-    this.graph.addGlobalOutput('outcolor');
-};
-
-OutputColor.prototype.onExecute = function() {
-    this.graph.setGlobalOutputData('outcolor', this.getInputData(0));
-};
-
 OutputColor.title = 'Output Color';
-OutputColor.visible_stages = [];
-OutputColor.prototype.color = '#e5a88a';
-OutputColor.prototype.boxcolor = '#cc8866';
-OutputColor.prototype.removable = false;
 
 node_types.push(['lowlevel/output/color', OutputColor]);
 
@@ -74,45 +77,52 @@ for (let type in MappingInputs) {
         continue;
     let info = MappingInputs[type];
 
-    function MapInputNode() {
-        this.title = info.name + 'Input';
-        this.visible_stages = [];
+    let MapInputNode = class extends GraphNode {
+        constructor(options) {
+            const inputs = [];
+            const outputs = info.coords.map((c) => GraphNode.output(c.name, c.unit));
 
-        for (let i = 0; i < info.coords.length; i++) {
-            this.addOutput(info.coords[i].name, info.coords[i].unit);
+            outputs.push(GraphNode.output('color', 'CRGB'));
+
+            super(options, inputs, outputs, {
+                config: {
+                    color: '#7496a6',
+                    boxcolor: '#69a4bf',
+                    removable: false,
+                }
+            });
         }
-        this.addOutput('color', 'CRGB');
-    };
+        onExecute() {
+            let coords = this.graph.getGlobalInputData('coords');
 
-    MapInputNode.prototype.onExecute = function() {
-        let coords = this.graph.getGlobalInputData('coords');
+            for (let i = 0; i < info.coords.length; i++) {
+                let in_val = coords[i];
+                let UnitConstructor = info.coords[i].unit;
 
-        for (let i = 0; i < info.coords.length; i++) {
-            let in_val = coords[i];
-            let UnitConstructor = info.coords[i].unit;
-
-            this.setOutputData(i, new UnitConstructor(in_val));
+                this.setOutputData(i, new UnitConstructor(in_val));
+            }
+            let color = this.graph.getGlobalInputData('color');
+            this.setOutputData(info.coords.length, color);
         }
-        let color = this.graph.getGlobalInputData('color');
-        this.setOutputData(info.coords.length, color);
     };
-
-    MapInputNode.prototype.color = '#7496a6';
-    MapInputNode.prototype.boxcolor = '#69a4bf';
-    MapInputNode.prototype.removable = false;
 
     node_types.push(['lowlevel/input/' + type, MapInputNode]);
 }
 
 
-function TimeInput() {
-    this.addOutput('t', Units.Numeric);
-}
-TimeInput.prototype.onExecute = function() {
-    this.setOutputData(0, this.graph.getGlobalInputData('t'));
+class TimeInput extends GraphNode {
+    constructor(options) {
+        const outputs = [GraphNode.output('t', Units.Numeric)];
+        const inputs = [];
+        super(options, inputs, outputs);
+    }
+
+    onExecute() {
+        this.setOutputData(0, this.graph.getGlobalInputData('t'));
+    }
 };
+
 TimeInput.title = 'TimeInput';
-node_types.push(['lowlevel/input/time', TimeInput]);
 
 export default function register_util_nodes() {
     GraphLib.registerNodeTypes(node_types);

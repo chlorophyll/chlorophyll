@@ -1,4 +1,4 @@
-import GraphLib from 'chl/graphlib/graph';
+import { GraphLib, GraphNode } from 'chl/graphlib/graph';
 import FastLED from './fastled';
 
 export let Math8 = {};
@@ -16,24 +16,26 @@ let node_types = [];
 
         Math8[name] = func;
 
-        function F() {
-            for (let arg of args) {
-                this.addInput(arg[0], arg[1]);
+        let f = class extends GraphNode {
+            constructor(options) {
+                const inputs = args.map((arg) => GraphNode.input(...arg));
+                const outputs = [GraphNode.output('result', ret)];
+                super(options, inputs, outputs);
             }
-            this.addOutput('result', ret);
-        }
 
-        F.title = name;
-
-        F.prototype.onExecute = function() {
-            let vals = [];
-            for (let i = 0; i < args.length; i++) {
-                vals[i] = this.getInputData(i);
+            onExecute() {
+                let vals = [];
+                for (let i = 0; i < args.length; i++) {
+                    vals[i] = this.getInputData(i);
+                }
+                this.setOutputData(0, Math8[name].apply(undefined, vals));
             }
-            this.setOutputData(0, Math8[name].apply(undefined, vals));
         };
 
-        node_types.push(['lowlevel/math8/'+name, F]);
+        f.title = name;
+
+
+        node_types.push(['lowlevel/math8/'+name, f]);
     };
 
     make_node('qadd8', 'number', [['i', 'number'], ['j', 'number']]);
