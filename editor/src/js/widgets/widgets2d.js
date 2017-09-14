@@ -4,57 +4,28 @@ import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
 
-/* This describes a position and orientation in 2d space; it has both 2d
- * spatial coordinates (which are normalized and range from 0-1, and an angle.
- */
-function Coordinates2D() {
-    let self = this;
-
-    this.x = 0;
-    this.y = 0;
-    this.angle = 0;
-
-    this.data = function() {
-        // Normalize angle and position
-        self.angle = self.angle % (Math.PI * 2);
-        return {x: self.x, y: self.y, angle: self.angle};
-    };
-
-    this.setPos = function(vx, vy) {
-        self.x = vx; self.y = vy;
-    };
-
-    this.setRot = function(new_angle) {
-        self.angle = new_angle;
-    };
-}
-
 /* This is a Coordinates2D object that has a describes a bunch of behaviors for letting the
  * user manipulate its position and angle. It also has callbacks to let display
  * code know what behaviors are happening at a time.
  *
  * (The callbacks should probably be rewritten to use events)
  */
-export default function Widget2D(widgetElement) {
+export default function Widget2D(widgetElement, data_obj) {
+    const self = this;
 
-    Coordinates2D.call(this);
-    Util.EventDispatcher.call(this);
-
-    let self = this;
+    this.x = data_obj.widget.x;
+    this.y = data_obj.widget.y;
+    this.angle = data_obj.widget.angle;
 
     let snap_angles = false;
 
-    function setPos(vx, vy) {
-        self.x = vx;
-        self.y = vy;
-        if (self.onPosChange)
-            self.onPosChange(self.x, self.y);
+    function notifyChange() {
+        data_obj.widget = {
+            x: self.x,
+            y: self.y,
+            angle: self.angle,
+        };
     }
-
-    this.showAt = function(vx, vy) {
-        setPos(vx / widgetElement.clientWidth, vy / widgetElement.clientHeight);
-        self.show();
-    };
 
     /*
      * Control bindings: modifier keys and draggable areas
@@ -63,9 +34,15 @@ export default function Widget2D(widgetElement) {
         function() { snap_angles = true; },
         function() { snap_angles = false; });
 
-    function notifyChange() {
-        self.dispatchEvent(new CustomEvent('change', { detail: self.data() }));
-    }
+    this.update = function() {
+        self.x = data_obj.widget.x;
+        self.y = data_obj.widget.y;
+        self.angle = data_obj.widget.angle;
+        if (self.onPosChange)
+            self.onPosChange(self.x, self.y);
+        if (self.onAngleChange)
+            self.onAngleChange(self.angle);
+    };
 
     function _drag(event) {
         event.preventDefault();
@@ -120,4 +97,3 @@ export default function Widget2D(widgetElement) {
         });
     };
 }
-Widget2D.prototype = Object.create(Coordinates2D.prototype);

@@ -26,10 +26,10 @@ function arrow(handle, opts) {
  * 100-unit svg viewboxes and have some arrows which describe the direction of
  * a 2d axis system, positioned by the embedded Coordinates2D.
  */
-function AxesWidget(widgetElement) {
+function AxesWidget(widgetElement, data_obj) {
     let self = this;
 
-    Widget2D.call(this, widgetElement);
+    Widget2D.call(this, widgetElement, data_obj);
 
     this.origin = new THREE.Vector2(50, 50);
 
@@ -94,9 +94,9 @@ function AxesWidget(widgetElement) {
 }
 AxesWidget.prototype = Object.create(Widget2D.prototype);
 
-export function CartesianAxes(widgetElement) {
+export function CartesianAxes(widgetElement, data_obj) {
     let self = this;
-    AxesWidget.call(this, widgetElement);
+    AxesWidget.call(this, widgetElement, data_obj);
 
 
     this.axes.append('g')
@@ -136,9 +136,9 @@ export function CartesianAxes(widgetElement) {
 }
 CartesianAxes.prototype = Object.create(AxesWidget.prototype);
 
-export function PolarAxes(widgetElement) {
+export function PolarAxes(widgetElement, data_obj) {
     let self = this;
-    AxesWidget.call(this, widgetElement);
+    AxesWidget.call(this, widgetElement, data_obj);
 
     this.axes.append('g').call(arrow, {
         color: '#f00',

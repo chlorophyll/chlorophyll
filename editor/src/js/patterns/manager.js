@@ -1,8 +1,8 @@
 import keyboardJS from 'keyboardjs';
 import Immutable from 'immutable';
 
-import { UILayout } from 'chl/init';
-import { newgid, worldState } from 'chl/worldstate';
+import { UILayout, groupManager } from 'chl/init';
+import { worldState } from 'chl/worldstate';
 import Util from 'chl/util';
 import { GraphLib, Graph } from 'chl/graphlib/graph';
 import GraphCanvas from 'chl/graphlib/canvas';
@@ -10,6 +10,7 @@ import LiteGUI from 'chl/litegui';
 import Const from 'chl/const';
 import CRGB from 'chl/fastled/color';
 import { MappingInputs } from 'chl/patterns/util';
+import { newgid } from 'chl/vue/store';
 
 import register_nodes from 'chl/patterns/registry';
 
@@ -397,7 +398,7 @@ export function PatternGraph(id, name, manager) {
         };
     }
 
-export default function PatternManager(groupManager) {
+export default function PatternManager() {
     let self = this;
 
     let nameWidget;
@@ -405,7 +406,7 @@ export default function PatternManager(groupManager) {
     let selectedMappingType = Const.default_map_type;
     let previewMappingList;
 
-    let patterns = Immutable.Map();
+    this.patterns = Immutable.Map();
 
     let curPattern = undefined;
 
@@ -554,8 +555,6 @@ export default function PatternManager(groupManager) {
             width: '20em'
         });
         updateMappingList();
-
-        groupManager.addEventListener('maplist_changed', updateMappingList);
 
         stageWidget = self.top_widgets.addComboButtons('stage: ', defaultStage, {
             values: patternStages,
@@ -734,11 +733,11 @@ export default function PatternManager(groupManager) {
 
     function newPattern() {
         let id = newgid();
-        let nameseq = patterns.valueSeq().map((pattern) => pattern.name);
+        let nameseq = self.patterns.valueSeq().map((pattern) => pattern.name);
         let name = Util.uniqueName('pattern-', nameseq);
         let pattern = new PatternGraph(id, name, self);
 
-        patterns = patterns.set(id, pattern);
+        self.patterns = self.patterns.set(id, pattern);
         setCurrentPattern(pattern);
         pattern.mapping_type = selectedMappingType;
 
@@ -771,7 +770,7 @@ export default function PatternManager(groupManager) {
         pattern.id = id;
         pattern.name = name;
 
-        patterns = patterns.set(id, pattern);
+        self.patterns = self.patterns.set(id, pattern);
         setCurrentPattern(pattern);
         worldState.checkpoint();
     };
@@ -779,7 +778,7 @@ export default function PatternManager(groupManager) {
     this.snapshot = function() {
         let curPatternId = curPattern ? curPattern.id : null;
         return Immutable.Map({
-            patterns: patterns.map(function(pattern, id) {
+            patterns: self.patterns.map(function(pattern, id) {
                 return pattern.snapshot();
             }),
             curPattern: curPatternId
@@ -788,7 +787,7 @@ export default function PatternManager(groupManager) {
 
     this.restore = function(snapshot) {
         let newpatterns = snapshot.get('patterns').map(function(psnap, id) {
-            let pattern = patterns.get(id);
+            let pattern = self.patterns.get(id);
             if (!pattern) {
                 pattern = new PatternGraph(id, '', self);
             }
@@ -796,13 +795,13 @@ export default function PatternManager(groupManager) {
             return pattern;
         });
 
-        patterns.forEach(function(pattern, id) {
+        self.patterns.forEach(function(pattern, id) {
             if (!newpatterns.get(id)) {
                 pattern.destroy();
             }
         });
-        patterns = newpatterns;
-        setCurrentPattern(patterns.get(snapshot.get('curPattern')));
+        self.patterns = newpatterns;
+        setCurrentPattern(self.patterns.get(snapshot.get('curPattern')));
     };
 
     init();

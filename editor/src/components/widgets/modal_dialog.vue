@@ -40,8 +40,8 @@ export default {
             default: false,
         },
         width: {
-            type: Number,
-            default: 300,
+            type: String,
+            default: '300px',
         },
         pos: {
             type: Object,
@@ -68,12 +68,16 @@ export default {
             }
         },
         startDrag(event) {
+            if (event.preventDefault) event.preventDefault();
+
             this.drag_x = event.clientX;
             this.drag_y = event.clientY;
             document.addEventListener('mousemove', this.drag);
             document.addEventListener('mouseup', this.endDrag);
         },
         drag(event) {
+            if (event.preventDefault) event.preventDefault();
+
             const delta_x = event.clientX - this.drag_x;
             const delta_y = event.clientY - this.drag_y;
             this.drag_x = event.clientX;

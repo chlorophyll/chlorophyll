@@ -2,76 +2,28 @@ import Immutable from 'immutable';
 import * as THREE from 'three';
 import 'three-examples/Octree';
 
-export function Overlay(model) {
-    let self = this;
-    this.colors = Immutable.Map();
-
+export function Overlay(model, overlay_color) {
     this.priority = 0;
+    this.visible = true;
+    let _color = (overlay_color !== undefined) ? overlay_color
+                                               : new THREE.Color(0xffffff);
+    let _pixels = Immutable.Set();
 
-    this.size = function() {
-        return this.colors.size;
-    };
+    Object.defineProperty(this, 'color', {
+        get() { return _color; },
+        set(v) {
+            _color = v;
+            model.updateColors();
+        }
+    });
 
-    this.set = function(i, color) {
-        this.colors = this.colors.set(i, color);
-        model.updateColors();
-    };
-
-    this.setNoUpdate = function(i, color) {
-        this.colors = this.colors.set(i, color);
-    };
-
-    this.get = function(i) {
-        return this.colors.get(i, new THREE.Color(0x000000));
-    };
-
-    this.unset = function(i) {
-        this.colors = this.colors.delete(i);
-        model.updateColors();
-    };
-
-    this.updateColors = function() {
-        this.colors.keySeq().forEach(function(i) {
-            model.setColor(i, self.colors.get(i));
-        });
-    };
-
-    this.setAll = function(overlay) {
-        this.colors = this.colors.merge(overlay.colors);
-        model.updateColors();
-    };
-
-    this.unsetAll = function(overlay) {
-        overlay.colors.keySeq().forEach(function(i) {
-            self.colors = self.colors.delete(i);
-        });
-        model.updateColors();
-    };
-
-    this.setAllFromSet = function(pixels, color) {
-        pixels.forEach(function(i) {
-            self.colors = self.colors.set(i, color);
-        });
-        model.updateColors();
-    };
-
-    this.clear = function() {
-        this.colors = this.colors.clear();
-        model.updateColors();
-    };
-
-    this.getPixels = function() {
-        return Immutable.Set.fromKeys(this.colors);
-    };
-
-    this.snapshot = function() {
-        return this.colors;
-    };
-
-    this.restore = function(snapshot) {
-        this.colors = snapshot;
-        model.updateColors();
-    };
+    Object.defineProperty(this, 'pixels', {
+        get() { return _pixels; },
+        set(v) {
+            _pixels = v;
+            model.updateColors();
+        }
+    });
 }
 
 export default function Model(json) {
@@ -179,19 +131,23 @@ export default function Model(json) {
             geometry.colorsNeedUpdate = true;
         } else {
             setDefaultColors();
-            this.overlays.forEach(function(pri) {
+            self.overlays.forEach(function(pri) {
                 for (let i = 0, l = pri.length; i < l; i++) {
-                    pri[i].updateColors();
+                    if (pri[i].visible) {
+                        pri[i].pixels.forEach(function(px) {
+                            self.setColor(px, pri[i].color);
+                        });
+                    }
                 }
             });
         }
     };
 
-    this.createOverlay = function(priority) {
+    this.createOverlay = function(priority, color) {
         if (!priority)
             priority = 0;
 
-        let overlay = new Overlay(this);
+        let overlay = new Overlay(this, color);
         overlay.priority = priority;
 
         if (!this.overlays[priority])

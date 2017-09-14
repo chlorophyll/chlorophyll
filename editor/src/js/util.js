@@ -80,6 +80,13 @@ let Util = {
         };
     },
 
+    normalizedCoords: function(camera, renderer, position) {
+        let vector = position.clone();
+        vector.project(camera);
+        vector.z = 0;
+        return vector;
+    },
+
     cameraPlaneCoords: function(camera, renderer, position) {
         let vector = position.clone();
         let width = renderer.domElement.clientWidth;

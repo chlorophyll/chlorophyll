@@ -63,6 +63,10 @@ export function Screen(element, camera, renderer, scene) {
         return Util.cameraPlaneCoords(camera, renderer, position);
     };
 
+    this.normalizedCoords = function(position) {
+        return Util.normalizedCoords(camera, renderer, position);
+    };
+
     this.getPointAt = function(model, x, y) {
         let mouse3D = new THREE.Vector3(
              (x / element.clientWidth ) * 2 - 1,
@@ -150,6 +154,9 @@ export default function ScreenManager(viewport, renderer, scene) {
 
         newScreen.activate();
         _activeScreen = newScreen;
+    };
+    this.getScreen = function(name) {
+        return screens.get(name);
     };
 
     Object.defineProperties(this, {

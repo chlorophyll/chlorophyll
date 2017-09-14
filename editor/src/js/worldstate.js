@@ -1,45 +1,35 @@
+import store from 'chl/vue/store';
 
-function IDGenerator() {
-    let last_id = 0;
-
-    this.newgid = function() {
-        return last_id++;
-    };
-
-    this.snapshot = function() {
-        return last_id;
-    };
-
-    this.restore = function(snapshot) {
-        last_id = snapshot;
-    };
-};
-
-function WorldState(start) {
+function WorldState() {
 
     let self = this;
 
+    this.tracked = {};
+    let history = [];
+    let idx = -1;
+
     function restore() {
         let snapshot = history[idx];
+        // Sync state with Vuex
+        store.commit('init', snapshot);
         for (let prop in snapshot) {
-            if (self.hasOwnProperty(prop)) {
-                self[prop].restore(snapshot[prop]);
+            if (self.tracked.hasOwnProperty(prop)) {
+                self.tracked[prop].restore(snapshot[prop]);
             }
         }
     }
-
-    let history = [];
-    let idx = -1;
 
     this.checkpoint = function() {
         let snapshot = {};
         // future optimization: only snapshot properties that have changed
         // would be nice for not making empty snapshots as well.
-        for (let prop in self) {
-            if (self[prop].hasOwnProperty('snapshot')) {
-                snapshot[prop] = self[prop].snapshot();
+        for (let prop in self.tracked) {
+            if (self.tracked.hasOwnProperty(prop)) {
+                snapshot[prop] = self.tracked[prop].snapshot();
             }
         }
+        // Sync state with Vuex
+        store.commit('init', snapshot);
         history = history.slice(0, idx + 1);
         history.push(snapshot);
         idx++;
@@ -60,20 +50,14 @@ function WorldState(start) {
         restore();
     };
 
-    // fill in initial properties
-    for (let prop in start) {
-        if (start.hasOwnProperty(prop)) {
-            this[prop] = start[prop];
+    this.init = function(start) {
+        // fill in initial properties
+        for (let prop in start) {
+            if (start.hasOwnProperty(prop)) {
+                self.tracked[prop] = start[prop];
+            }
         }
-    }
-    this.checkpoint();
+        self.checkpoint();
+    };
 }
-let idGen = new IDGenerator();
-
-export function initWorldState(initialState) {
-    initialState.idGen = idGen;
-    worldState = new WorldState(initialState);
-}
-
-export let worldState;
-export let newgid = idGen.newgid;
+export const worldState = new WorldState();

@@ -2,7 +2,7 @@ import Immutable from 'immutable';
 import Util from 'chl/util';
 import Const from 'chl/const';
 
-import { newgid } from 'chl/worldstate';
+import { newgid } from 'chl/vue/store';
 
 function GraphLib_() {
     let self = this;

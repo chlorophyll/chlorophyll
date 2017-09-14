@@ -1,10 +1,11 @@
 import * as THREE from 'three';
+import Immutable from 'immutable';
 import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
 import Chlorophyll, { screenManager } from 'chl/init';
-import { worldState } from 'chl/worldstate';
 import LiteGUI from 'chl/litegui';
+import store from 'chl/vue/store';
 
 export function isClipped(v) {
     if (Chlorophyll.frontPlane.distanceToPoint(v) < 0)
@@ -29,7 +30,6 @@ function SelectionTool(viewport, model, name) {
     // Used by Toolbar
     this.ui_button = null;
 
-    this.highlight = new THREE.Color(0xffffff);
 
     // Is the tool active?
     this.enabled = false;
@@ -48,15 +48,16 @@ function SelectionTool(viewport, model, name) {
 
     // Selection tools will add and remove points using this overlay, then call
     // finishSelection() to make it the active selection.
-    this.current_selection = this.model.createOverlay(20);
+    this.highlight = new THREE.Color(0xffffff);
+    this.cur_sel = this.model.createOverlay(20, this.highlight);
     // The selection as it was when startSelection() was called.
     this.initial_selection = null;
 
     // Deselect all points
     this.deselectAll = function() {
-        if (worldState.activeSelection.size() > 0) {
-            worldState.activeSelection.clear();
-            worldState.checkpoint();
+        if (store.state.selection.active.length > 0) {
+            store.commit('selection/clear');
+            // XXX worldState.checkpoint();
         }
     };
 
@@ -81,7 +82,7 @@ function SelectionTool(viewport, model, name) {
 
         keyboardJS.setContext('global');
 
-        self.current_selection.clear();
+        self.cur_sel.pixels = self.cur_sel.pixels.clear();
     };
 
     // startSelection and finishSelection are called when the tool begins and ends
@@ -98,13 +99,12 @@ function SelectionTool(viewport, model, name) {
         } else {
             // Start with an empty selection if we're not adding or subtracting
             // from an existing one.
-            worldState.activeSelection.clear();
+            store.commit('selection/clear');
         }
         self.in_progress = true;
-        self.current_selection.clear();
-        self.current_selection.setAll(worldState.activeSelection);
-        self.initial_selection = self.current_selection.getPixels();
-        worldState.activeSelection.clear();
+        self.cur_sel.pixels = Immutable.Set(store.state.selection.active);
+        self.initial_selection = self.cur_sel.pixels;
+        store.commit('selection/clear');
 
         if (self.cancellable)
             keyboardJS.setContext(selecting_kb_ctx);
@@ -112,7 +112,7 @@ function SelectionTool(viewport, model, name) {
 
     function endSelection() {
         self.in_progress = false;
-        self.current_selection.clear();
+        self.cur_sel.pixels = self.cur_sel.pixels.clear();
         self.initial_selection = null;
 
         keyboardJS.setContext(enabled_kb_ctx);
@@ -120,15 +120,15 @@ function SelectionTool(viewport, model, name) {
 
     // Stop selecting and save the current selection as final.
     this.finishSelection = function() {
-        worldState.activeSelection.setAll(self.current_selection);
+        store.commit('selection/set', self.cur_sel.pixels.toArray());
         endSelection();
-        worldState.checkpoint();
+        // XXX worldState.checkpoint();
     };
 
     // Don't exit the tool, but stop selecting and throw out state, returning
     // to before the selection
     this.cancelSelection = function() {
-        worldState.activeSelection.setAllFromSet(self.initial_selection);
+        store.commit('selection/set', self.initial_selection.toArray());
         self.reset();
         endSelection();
     };
@@ -207,9 +207,8 @@ export function MarqueeSelection(viewport, model) {
         let t = Math.min(rect.startY, rect.endY);
         let b = Math.max(rect.startY, rect.endY);
 
-        self.current_selection.clear();
-        self.current_selection.setAllFromSet(self.initial_selection,
-                                             self.highlight);
+        self.cur_sel.pixels = self.cur_sel.pixels.clear();
+        self.cur_sel.pixels = self.initial_selection;
 
         self.model.forEach(function(strip, i) {
             let v = self.model.getPosition(i);
@@ -220,9 +219,9 @@ export function MarqueeSelection(viewport, model) {
 
             if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
                 if (self.subtracting) {
-                    self.current_selection.unset(i);
+                    self.cur_sel.pixels = self.cur_sel.pixels.delete(i);
                 } else {
-                    self.current_selection.set(i, self.highlight);
+                    self.cur_sel.pixels = self.cur_sel.pixels.add(i);
                 }
             }
         });
@@ -266,10 +265,10 @@ export function LineSelection(viewport, model) {
         if (!p1) {
             self.startSelection(event);
             p1 = chosen.index;
-            self.current_selection.set(p1, self.highlight);
+            self.cur_sel.pixels = self.cur_sel.pixels.add(p1);
         } else {
             let p2 = chosen.index;
-            self.current_selection.set(p2, self.highlight);
+            self.cur_sel.pixels = self.cur_sel.pixels.add(p2);
             let pos1 = self.model.getPosition(p1);
             let pos2 = self.model.getPosition(p2);
             let line = new THREE.Line3(pos1, pos2);
@@ -282,7 +281,7 @@ export function LineSelection(viewport, model) {
             for (let i = 0; i < points.length; i++) {
                 let dist = Util.distanceToLine(points[i].position, line);
                 if (dist < Chlorophyll.selectionThreshold) {
-                    self.current_selection.set(points[i].index, self.highlight);
+                    self.cur_sel.pixels = self.cur_sel.pixels.add(points[i].index);
                 }
             }
             p1 = p2 = undefined;
@@ -321,9 +320,9 @@ export function PlaneSelection(viewport, model) {
             // TODO needs actively selecting points to be distinct from
             // already selected points or unselected points
             if (self.subtracting) {
-                self.current_selection.unset(chosen.index, self.highlight);
+                self.cur_sel.pixels = self.cur_sel.pixels.unset(chosen.index);
             } else {
-                self.current_selection.set(chosen.index, self.highlight);
+                self.cur_sel.pixels = self.cur_sel.pixels.set(chosen.index);
             }
         }
 
@@ -343,9 +342,9 @@ export function PlaneSelection(viewport, model) {
                 let planeToPoint = plane.distanceToPoint(self.model.getPosition(i));
                 if (Math.abs(planeToPoint) < Chlorophyll.selectionThreshold) {
                     if (self.subtracting) {
-                        self.current_selection.unset(i);
+                        self.cur_sel.pixels = self.cur_sel.pixels.unset(i);
                     } else {
-                        self.current_selection.set(i, self.highlight);
+                        self.cur_sel.pixels = self.cur_sel.pixels.set(i);
                     }
                 }
             });

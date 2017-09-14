@@ -10,3 +10,4 @@ editor/build/*
 !editor/build/icons
 thumbs.db
 !.gitkeep
+Session.vim

@@ -54,7 +54,8 @@
     "klayjs": "^0.4.1",
     "three": "^0.85.2",
     "vue": "^2.4.2",
-    "vue-electron": "^1.0.6"
+    "vue-electron": "^1.0.6",
+    "vuex": "^2.3.1"
   },
   "devDependencies": {
     "babel-core": "^6.22.1",
@@ -109,8 +110,8 @@
       "vue"
     ],
     "moduleNameMapper": {
-        "^@/(.+)": "<rootDir>/src/$1",
-        "^chl/(.+)": "<rootDir>/src/js/$1"
+      "^@/(.+)": "<rootDir>/src/$1",
+      "^chl/(.+)": "<rootDir>/src/js/$1"
     },
     "transform": {
       "^.+\\.vue$": "jest-vue-preprocessor",

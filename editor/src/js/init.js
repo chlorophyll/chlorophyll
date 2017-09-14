@@ -1,31 +1,38 @@
 // External dependencies
 import * as THREE from 'three';
 import keyboardJS from 'keyboardjs';
-import Vue from 'vue';
 
 // Chlorophyll modules
 import Hotkey from 'chl/keybindings';
 import Model from 'chl/model';
 import ScreenManager from 'chl/screenmanager';
-import GroupManager from 'chl/mapping/groups';
 import PatternManager from 'chl/patterns/manager';
-import { worldState, initWorldState } from 'chl/worldstate';
+import { worldState } from 'chl/worldstate';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
 import LiteGUI from 'chl/litegui';
 import 'chl/patches';
+import 'chl/widgets/litegui-extensions';
 import Const from 'chl/const';
 
 // Vue components
-import Toolbar from '@/components/toolbar';
+import {
+    animManager,
+    toolbarManager,
+    mappingManager
+} from 'chl/vue/root';
 
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
-
 // Chlorophyll UI manager objects
-let toolbarManager;
 let screenManager;
-
-// chlorophyll objects
+let patternManager;
+let currentModel;
+// XXX dummy GroupManager
+let groupManager = {
+    listMappings() {
+        return [];
+    }
+};
 
 const UILayout = {};
 
@@ -33,10 +40,14 @@ export {
     UILayout,
     toolbarManager,
     screenManager,
+    groupManager,
+    patternManager,
+    animManager,
+    currentModel
 };
 
 function Chlorophyll() {
-    let self = this;
+    const self = this;
 
     this.frontPlane = null;
     this.backPlane = null;
@@ -46,14 +57,13 @@ function Chlorophyll() {
         let model = new Model(json);
         model.addToScene(scene);
 
-        let groupManager = new GroupManager(model);
-        let patternManager = new PatternManager(groupManager);
+        patternManager = new PatternManager(groupManager);
 
-        initWorldState({
-            activeSelection: model.createOverlay(10),
-            groupManager: groupManager,
+        worldState.init({
             patternManager: patternManager,
         });
+
+        currentModel = model;
 
         return model;
     }
@@ -103,6 +113,8 @@ function Chlorophyll() {
         // Group, mapping & pattern browser sidebar
         mainarea.split('horizontal', [null, Const.sidebar_size], true);
         UILayout.sidebar_top = mainarea.getSection(1);
+
+
         // UILayout.sidebar_bottom = UILayout.sidebar.getSection(1);
 
         mainarea = mainarea.getSection(0);
@@ -122,6 +134,10 @@ function Chlorophyll() {
         viewport.style.top = 0;
         viewport.style.left = 0;
 
+        let viewport_axes = document.createElement('div');
+        viewport_axes.id = 'viewport-axes';
+        viewport.appendChild(viewport_axes);
+
 
         /****************************
          * Three.js rendering setup *
@@ -137,6 +153,11 @@ function Chlorophyll() {
 
         screenManager = new ScreenManager(UILayout.viewport, renderer, scene);
         screenManager.addScreen('main', {isOrtho: false, active: true});
+        screenManager.addScreen('proj_config', {
+            isOrtho: true,
+            inheritOrientation: true
+        });
+
         let v = new THREE.Vector3();
         screenManager.activeScreen.camera.getWorldDirection(v);
         let nv = v.clone().negate();
@@ -146,11 +167,28 @@ function Chlorophyll() {
 
         let model = initModelFromJson(scene, chrysanthemum);
 
+        /*************************************
+         * Mapping manager + Sequencer setup *
+         *************************************/
+        const mapmanager_panel = new LiteGUI.Panel('mapping-manager');
+        UILayout.sidebar_top.add(mapmanager_panel);
+        mappingManager.$mount('#mapping-manager');
+
+        const seq_area = new LiteGUI.Area({
+            content_id: 'sequencer',
+            autoresize: 'true'
+        });
+        UILayout.tabs.addTab('Sequencer', {
+            content: seq_area.root,
+            width: '100%',
+            size: 'full'
+        });
+        animManager.$mount('#sequencer');
 
         /**************************
          * Viewport toolbar setup *
          **************************/
-        toolbarManager = new Vue(Toolbar).$mount('#toolbar');
+        toolbarManager.$mount('#toolbar');
         toolbarManager.menu = UILayout.menu;
         toolbarManager.menu_dir = 'Edit/Select';
         toolbarManager.tools = [

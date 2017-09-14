@@ -1,25 +1,36 @@
 <template>
-    <div id="toolbar" class="litepanel inspector">
-        <template v-for="tool in tools">
+<div id="toolbar" class="litepanel inspector">
+    <model-overlay
+        :pixels="active_selection"
+        :priority="10"
+        :color="selection_color"
+        :visible="true">
+    </model-overlay>
+    <template v-for="tool in tools">
 
-            <highlight-button v-if="tool !== null"
-                :label="tool.name"
-                :highlight="tool.name === active"
-                @click="active = tool.name">
-            </highlight-button>
-            <div v-else class="separator"></div>
+        <highlight-button v-if="tool !== null"
+            :label="tool.name"
+            :highlight="tool.name === active"
+            @click="active = tool.name">
+        </highlight-button>
+        <div v-else class="separator"></div>
 
-        </template>
-    </div>
+    </template>
+</div>
 </template>
 
 <script>
 import keyboardJS from 'keyboardjs';
+import { mapState } from 'vuex';
+import store from 'chl/vue/store';
+
 import HighlightButton from '@/components/widgets/highlight_button';
+import ModelOverlay from '@/components/model_overlay';
 
 export default {
     name: 'viewport-toolbar',
-    components: { HighlightButton },
+    store,
+    components: { HighlightButton, ModelOverlay },
     data() {
         return {
             menu: null,
@@ -30,8 +41,12 @@ export default {
              * { name, toolobj, hotkey (optional), momentary_hotkey (optional) }
              */
             tools: [],
+            selection_color: 0xffffff,
         };
     },
+    computed: mapState({
+        active_selection: (state) => state.selection.active
+    }),
     watch: {
         active(new_name, old_name) {
             let old_tool = null;
