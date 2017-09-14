@@ -10,26 +10,21 @@
                 stroke="#fff"
                 fill="none"
                 style="opacity: 0.4" />
-        <g>
-        <axis-arrow
-          angle="0"
-          color="#f00"
-          @hoverstart="hovering=true"
-          @hoverend="hovering=false"
-          @dragstart="rotating=true"
-          @dragend="rotating=false"
-          @drag="({x,y}) => rotate(x, y, 0)"
-        />
-        <axis-arrow
-          angle="90"
-          color="#0f0"
-          @hoverstart="hovering=true"
-          @hoverend="hovering=false"
-          @dragstart="rotating=true"
-          @dragend="rotating=false"
-          @drag="({x,y}) => rotate(x, y, Math.PI/2)"
-        />
-        </g>
+        <g v-once>
+            <template v-for="axis in axes">
+                <g :transform="`rotate(${-radToDeg(axis.angle)}, 50, 50)`">
+                    <line x1="50" y1="50" x2="99" y2="50" :stroke="axis.color" />
+                    <polygon
+                        points="91,46 99,50 91,54"
+                        class="handle"
+                        :stroke="axis.color"
+                        :fill="axis.color"
+                        @mouseover="startHover"
+                        @mouseout="endHover"
+                        @mousedown="startRotate(axis.angle)"
+                    />
+                </g>
+            </template>
         <circle class="handle" cx="50" cy="50" r="1" stroke="white" fill="white" />
         <rect class="handle"
               x="42"
@@ -40,6 +35,7 @@
               fill="white"
               @mousedown="startDrag"
               />
+        </g>
 
         </g>
     </svg>
@@ -51,13 +47,15 @@ import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
 
-import AxisArrow from '@/components/widgets/arrow';
-
 import { UILayout } from 'chl/init';
+
+const axes = [
+    { angle: 0, color: '#f00' },
+    { angle: Math.PI/2, color: '#0f0' },
+];
 
 export default {
     name: 'viewport-axes',
-    components: { AxisArrow },
     props: ['value'],
     mounted() {
         UILayout.viewport.appendChild(this.$el);
@@ -76,7 +74,9 @@ export default {
             hovering: false,
             dragging: false,
             rotating: false,
+            rotate_offset: 0,
             snap_angles: false,
+            axes,
         };
     },
     computed: {
@@ -99,15 +99,31 @@ export default {
             return this.hovering && !(this.rotating || this.dragging);
         },
         angle_degrees() {
-            return THREE.Math.radToDeg(this.value.angle);
+            return this.radToDeg(this.value.angle);
         }
     },
     methods: {
+        radToDeg(deg) {
+            return THREE.Math.radToDeg(deg);
+        },
         update_container() {
             this.container_width = UILayout.viewport.clientWidth;
             this.container_height = UILayout.viewport.clientHeight;
         },
-        rotate(pageX, pageY, offset) {
+        startRotate(offset) {
+            this.rotating = true;
+            this.rotate_offset = offset;
+            window.addEventListener('mousemove', this.rotate);
+            window.addEventListener('mouseup', this.endRotate);
+        },
+        endRotate() {
+            this.rotating = false;
+            window.removeEventListener('mousemove', this.rotate);
+            window.removeEventListener('mouseup', this.endRotate);
+        },
+        rotate(event) {
+            let {pageX, pageY} = event;
+            const offset = this.rotate_offset;
             let {x, y} = Util.relativeCoords(UILayout.viewport, pageX, pageY);
             const center = new THREE.Vector2(this.center_x, this.center_y);
             const mouse = new THREE.Vector2(x, y);
@@ -135,6 +151,12 @@ export default {
             this.dragging = false;
             UILayout.viewport.removeEventListener('mousemove', this.drag);
             UILayout.viewport.removeEventListener('mouseup', this.endDrag);
+        },
+        startHover() {
+            this.hovering = true;
+        },
+        endHover() {
+            this.hovering = false;
         },
         enableSnap() {
             this.snap_angles = true;
