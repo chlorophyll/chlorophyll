@@ -1,8 +1,4 @@
 import * as THREE from 'three';
-import { UILayout, screenManager, toolbarManager } from 'chl/init';
-import Util from 'chl/util';
-import Mapping from './maputil';
-import { CartesianAxes } from 'chl/widgets/axes2d';
 import { currentModel } from 'chl/init';
 
 function projectPoint(plane, idx) {

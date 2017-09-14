@@ -1,5 +1,3 @@
-import * as THREE from 'three';
-
 function ColorPool() {
     this.colors = [
         0x24c6ff,

@@ -17,6 +17,7 @@ export default function TransformMapping(manager, group, id, initname) {
     this.scale = new THREE.Vector3(1, 1, 1);
     this.autoscale = true;
 
+    /* eslint-disable */
     function scaleToFitPoints() {
         if (!self.autoscale || self.position === null)
             return;
@@ -35,6 +36,7 @@ export default function TransformMapping(manager, group, id, initname) {
         self.widget.setScale(self.scale);
         ui_controls.scale_widget.setValue(self.scale.toArray(), true);
     }
+    /* eslint-enable */
 
     /*
      * Manipulate a point to be positioned correctly for the mapping.

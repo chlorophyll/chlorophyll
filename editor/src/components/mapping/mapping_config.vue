@@ -34,16 +34,11 @@
 </template>
 
 <script>
-import * as THREE from 'three';
 import { mappingUtilsMixin } from 'chl/mapping/maputil';
-import { screenManager } from 'chl/init';
-import Util from 'chl/util';
 
 import ProjectionConfig from '@/components/mapping/projection_config';
 
 import ModalDialog from '@/components/widgets/modal_dialog';
-import VectorInput from '@/components/widgets/vector_input';
-import ViewportAxes from '@/components/widgets/viewport_axes';
 
 export default {
     name: 'mapping-config',

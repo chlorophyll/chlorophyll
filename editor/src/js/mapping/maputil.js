@@ -2,7 +2,6 @@ import Vue from 'vue';
 
 import store from 'chl/vue/store';
 import ColorPool from 'chl/colors';
-import { screenManager } from 'chl/init';
 
 /*
  * Vuex store for mapping data

@@ -39,13 +39,6 @@ import Util from 'chl/util';
 
 import AxisArrow from '@/components/widgets/arrow';
 
-function angleBetweenPoints(p1, p2) {
-    if (p1.x == p2.x && p1.y == p2.y) {
-        return Math.PI/2;
-    }
-    return Math.atan2(p2.y - p1.y, p2.x - p1.x);
-}
-
 export default {
     name: 'viewport-axes',
     components: { AxisArrow },
