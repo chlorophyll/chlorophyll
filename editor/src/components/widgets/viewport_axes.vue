@@ -47,10 +47,13 @@
 
 <script>
 import * as THREE from 'three';
-import { UILayout } from 'chl/init';
+import keyboardJS from 'keyboardjs';
+import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
 
 import AxisArrow from '@/components/widgets/arrow';
+
+import { UILayout } from 'chl/init';
 
 export default {
     name: 'viewport-axes',
@@ -60,8 +63,10 @@ export default {
         UILayout.viewport.appendChild(this.$el);
         this.update_container();
         window.addEventListener('resize', this.update_container);
+        keyboardJS.bind(Hotkey.widget_snap_angles, this.enableSnap, this.disableSnap);
     },
     beforeDestroy() {
+        keyboardJS.unbind(Hotkey.widget_snap_angles, this.enableSnap, this.disableSnap);
         window.removeEventListener('resize', this.update_container);
     },
     data() {
@@ -71,6 +76,7 @@ export default {
             hovering: false,
             dragging: false,
             rotating: false,
+            snap_angles: false,
         };
     },
     computed: {
@@ -108,6 +114,9 @@ export default {
             mouse.sub(center);
             let angle = mouse.angle();
             angle += offset;
+            if (this.snap_angles) {
+                angle -= (angle % (Math.PI / 12));
+            }
             this.$emit('input', {angle, x: this.value.x, y: this.value.y});
         },
         startDrag(event) {
@@ -126,6 +135,12 @@ export default {
             this.dragging = false;
             UILayout.viewport.removeEventListener('mousemove', this.drag);
             UILayout.viewport.removeEventListener('mouseup', this.endDrag);
+        },
+        enableSnap() {
+            this.snap_angles = true;
+        },
+        disableSnap() {
+            this.snap_angles = false;
         }
     }
 };
