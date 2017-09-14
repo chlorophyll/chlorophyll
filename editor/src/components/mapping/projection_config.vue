@@ -19,6 +19,7 @@
 
 <script>
 import * as THREE from 'three';
+import Util from 'chl/util';
 import { screenManager } from 'chl/init';
 import { getCameraProjection } from 'chl/mapping/projection';
 

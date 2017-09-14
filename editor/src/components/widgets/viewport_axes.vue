@@ -16,6 +16,8 @@
           color="#f00"
           @hoverstart="hovering=true"
           @hoverend="hovering=false"
+          @dragstart="rotating=true"
+          @dragend="rotating=false"
           @drag="({x,y}) => rotate(x, y, 0)"
         />
         <axis-arrow
@@ -23,11 +25,22 @@
           color="#0f0"
           @hoverstart="hovering=true"
           @hoverend="hovering=false"
+          @dragstart="rotating=true"
+          @dragend="rotating=false"
           @drag="({x,y}) => rotate(x, y, Math.PI/2)"
         />
         </g>
         <circle class="handle" cx="50" cy="50" r="1" stroke="white" fill="white" />
-        <rect class="handle" x="42" y="42" width="16" height="16" stroke="white" fill="white" />
+        <rect class="handle"
+              x="42"
+              y="42"
+              width="16"
+              height="16"
+              stroke="white"
+              fill="white"
+              @mousedown="startDrag"
+              />
+
         </g>
     </svg>
 </template>
@@ -56,7 +69,8 @@ export default {
             container_width: 0,
             container_height: 0,
             hovering: false,
-            startangle: this.value.angle,
+            dragging: false,
+            rotating: false,
         };
     },
     computed: {
@@ -76,7 +90,7 @@ export default {
             return this.center_x - this.size / 2;
         },
         rotate_hinting() {
-            return this.hovering;
+            return this.hovering && !(this.rotating || this.dragging);
         },
         angle_degrees() {
             return THREE.Math.radToDeg(this.value.angle);
@@ -95,6 +109,23 @@ export default {
             let angle = mouse.angle();
             angle += offset;
             this.$emit('input', {angle, x: this.value.x, y: this.value.y});
+        },
+        startDrag(event) {
+            this.dragging = true;
+            UILayout.viewport.addEventListener('mousemove', this.drag);
+            UILayout.viewport.addEventListener('mouseup', this.endDrag);
+        },
+        drag(event) {
+            event.preventDefault();
+            let {x: px, y: py} = Util.relativeCoords(UILayout.viewport, event.pageX, event.pageY);
+            let x = +(px / this.container_width) * 2 - 1;
+            let y = -(py / this.container_height) * 2 + 1;
+            this.$emit('input', {angle: this.value.angle, x, y});
+        },
+        endDrag(event) {
+            this.dragging = false;
+            UILayout.viewport.removeEventListener('mousemove', this.drag);
+            UILayout.viewport.removeEventListener('mouseup', this.endDrag);
         }
     }
 };
