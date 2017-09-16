@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { mappingUtilsMixin } from 'chl/mapping/maputil';
+import { mappingUtilsMixin } from 'chl/mapping';
 
 import ProjectionConfig from '@/components/mapping/projection_config';
 

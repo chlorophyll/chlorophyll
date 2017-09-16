@@ -31,7 +31,7 @@
 import { mapState } from 'vuex';
 import store, { newgid } from 'chl/vue/store';
 import { currentModel } from 'chl/init';
-import { mappingUtilsMixin } from 'chl/mapping/maputil';
+import { mappingUtilsMixin } from 'chl/mapping';
 
 import MappingBrowser from '@/components/mapping/browser';
 import MappingConfig from '@/components/mapping/mapping_config';

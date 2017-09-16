@@ -25,7 +25,7 @@
 
 <script>
 import { newgid } from 'chl/vue/store';
-import { mappingUtilsMixin } from 'chl/mapping/maputil';
+import { mappingUtilsMixin } from 'chl/mapping';
 
 export default {
     name: 'group-config',

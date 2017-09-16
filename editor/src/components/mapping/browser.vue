@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { mappingUtilsMixin } from 'chl/mapping/maputil';
+import { mappingUtilsMixin } from 'chl/mapping';
 
 import TreeView from '@/components/widgets/tree/index';
 import ModelOverlay from '@/components/model_overlay';
