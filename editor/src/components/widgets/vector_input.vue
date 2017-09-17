@@ -1,5 +1,5 @@
 <template>
-  <div class="widget">
+  <div class="widget full">
     <span class="wname">{{ title }}</span>
     <div class="info_content wcontent">
       <div class="dragger"
@@ -8,9 +8,13 @@
         <span class="inputfield full">
             <input class="text number full"
                    :value="val"
+                   :disabled="disabled"
                    @change="updateValue(idx, $event.target.value);
                             $emit('change', vector);">
-            <div class="drag_widget" @mousedown="startDrag(idx, $event)"></div>
+            <div class="drag_widget"
+                 v-if="!disabled"
+                 @mousedown="startDrag(idx, $event)">
+            </div>
         </span>
       </div>
     </div>
@@ -23,7 +27,7 @@ import Vue from 'vue';
 const RANGE_NPIXELS = 400;
 export default {
     name: 'vector-input',
-    props: ['title', 'value', 'min', 'max'],
+    props: ['title', 'value', 'min', 'max', 'disabled'],
     data() {
         return {
             vector: this.value,

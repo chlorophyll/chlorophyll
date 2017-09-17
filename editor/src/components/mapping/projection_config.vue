@@ -1,10 +1,11 @@
 <template>
-<div>
+<div class="litepanel inspector">
     <vector-input title="Plane Angle"
                   min="-180" max="180"
                   :value="value.plane_angle"
                   @input="updateProjectionAndCamera" />
     <vector-input title="Origin"
+                  :disabled="true"
                   :min="-10000" :max="10000"
                   :value="value.origin">
     </vector-input>
