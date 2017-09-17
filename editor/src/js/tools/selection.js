@@ -4,9 +4,9 @@ import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
 import Chlorophyll from 'chl/init';
-import { screenManager } from 'chl/viewport';
 import LiteGUI from 'chl/litegui';
-import store from 'chl/vue/store';
+
+import { activeScreen } from 'chl/viewport';
 
 export function isClipped(v) {
     if (Chlorophyll.frontPlane.distanceToPoint(v) < 0)
@@ -216,7 +216,7 @@ export function MarqueeSelection(viewport, model) {
             if (isClipped(v))
                 return;
 
-            let s = screenManager.activeScreen.screenCoords(v);
+            let s = activeScreen().screenCoords(v);
 
             if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
                 if (self.subtracting) {
@@ -259,7 +259,7 @@ export function LineSelection(viewport, model) {
             return;
 
         let coords = Util.relativeCoords(viewport, event.pageX, event.pageY);
-        let chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
+        let chosen = activeScreen().getPointAt(self.model, coords.x, coords.y);
         if (!chosen)
             return;
 
@@ -309,7 +309,7 @@ export function PlaneSelection(viewport, model) {
             return;
 
         let coords = Util.relativeCoords(viewport, event.pageX, event.pageY);
-        let chosen = screenManager.activeScreen.getPointAt(self.model, coords.x, coords.y);
+        let chosen = activeScreen().getPointAt(self.model, coords.x, coords.y);
         if (!chosen)
             return;
 

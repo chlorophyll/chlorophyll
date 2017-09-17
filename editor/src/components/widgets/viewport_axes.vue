@@ -42,12 +42,12 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import * as THREE from 'three';
 import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
-
-import { UILayout } from 'chl/init';
+import store from 'chl/vue/store';
 
 const axes = [
     { angle: 0, color: '#f00' },
@@ -55,22 +55,19 @@ const axes = [
 ];
 
 export default {
+    store,
     name: 'viewport-axes',
     props: ['value'],
     mounted() {
-        document.getElementById('#overlays').appendChild(this.$el);
-        this.update_container();
-        window.addEventListener('resize', this.update_container);
+        document.getElementById('overlays').appendChild(this.$el);
         keyboardJS.bind(Hotkey.widget_snap_angles, this.enableSnap, this.disableSnap);
     },
     beforeDestroy() {
+        document.getElementById('overlays').removeChild(this.$el);
         keyboardJS.unbind(Hotkey.widget_snap_angles, this.enableSnap, this.disableSnap);
-        window.removeEventListener('resize', this.update_container);
     },
     data() {
         return {
-            container_width: 0,
-            container_height: 0,
             hovering: false,
             dragging: false,
             rotating: false,
@@ -100,15 +97,18 @@ export default {
         },
         angle_degrees() {
             return this.radToDeg(this.value.angle);
-        }
+        },
+		viewport() {
+			return document.getElementById('viewport');
+		}
+        ...mapState('viewport', {
+            container_width: 'width',
+            container_height: 'height'
+        })
     },
     methods: {
         radToDeg(deg) {
             return THREE.Math.radToDeg(deg);
-        },
-        update_container() {
-            this.container_width = UILayout.viewport.clientWidth;
-            this.container_height = UILayout.viewport.clientHeight;
         },
         startRotate(offset) {
             this.rotating = true;
@@ -124,7 +124,7 @@ export default {
         rotate(event) {
             let {pageX, pageY} = event;
             const offset = this.rotate_offset;
-            let {x, y} = Util.relativeCoords(UILayout.viewport, pageX, pageY);
+            let {x, y} = Util.relativeCoords(this.viewport, pageX, pageY);
             const center = new THREE.Vector2(this.center_x, this.center_y);
             const mouse = new THREE.Vector2(x, y);
             mouse.sub(center);
@@ -142,7 +142,7 @@ export default {
         },
         drag(event) {
             event.preventDefault();
-            let {x: px, y: py} = Util.relativeCoords(UILayout.viewport, event.pageX, event.pageY);
+            let {x: px, y: py} = Util.relativeCoords(this.viewport, event.pageX, event.pageY);
             let x = +(px / this.container_width) * 2 - 1;
             let y = -(py / this.container_height) * 2 + 1;
             this.$emit('input', {angle: this.value.angle, x, y});

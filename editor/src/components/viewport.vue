@@ -1,21 +1,22 @@
 <template>
     <div id="viewport">
-        <div id="rendered" />
         <div id="overlays" />
     </div>
 </template>
 
 <script>
 
-import { screens } from 'chl/viewport';
+import { renderer } from 'chl/viewport';
 import store from 'chl/vue/store';
 
 export default {
     store,
     name: 'viewport',
     mounted() {
-        this.$el.appendChild(renderer);
-        this.update_size();
+        this.$el.insertBefore(renderer.domElement, this.$el.firstChild);
+        const width = this.$el.clientWidth;
+        const height = this.$el.clientHeight;
+        this.$store.commit('viewport/init', { width, height });
 
         this.$on('resize', this.update_size);
         window.addEventListener('resize', this.update_size);
@@ -28,7 +29,7 @@ export default {
         update_size() {
             const width = this.$el.clientWidth;
             const height = this.$el.clientHeight;
-            this.$store.state.viewport.commit('set_size', {width, height});
+            this.$store.commit('viewport/set_size', { width, height });
         }
     }
 };
@@ -39,5 +40,7 @@ export default {
     position: relative;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
 }
 </style>

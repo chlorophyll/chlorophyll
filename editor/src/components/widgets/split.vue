@@ -69,20 +69,22 @@ export default {
             this.startSplit = this.split;
         },
         dragMove(e) {
-            if (this.dragging) {
-                let cur = this.direction == 'horizontal' ? e.pageX : e.pageY;
-                const delta = cur - this.start;
-                this.split = this.startSplit + delta;
-                if (this.immediateResize) {
-                    this.$slots.first.emit('resize');
-                    this.$slots.second.emit('resize');
-                }
+            if (!this.dragging)
+                return;
+            let cur = this.direction == 'horizontal' ? e.pageX : e.pageY;
+            const delta = cur - this.start;
+            this.split = this.startSplit + delta;
+            if (this.immediateResize) {
+                this.$slots.first.$emit('resize');
+                this.$slots.second.$emit('resize');
             }
         },
         dragEnd() {
+            if (!this.dragging)
+                return;
             this.dragging = false;
-            this.$slots.first.emit('resize');
-            this.$slots.second.emit('resize');
+            this.$slots.first.$emit('resize');
+            this.$slots.second.$emit('resize');
         }
     }
 };

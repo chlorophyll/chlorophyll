@@ -5,7 +5,7 @@ import keyboardJS from 'keyboardjs';
 // Chlorophyll modules
 import Hotkey from 'chl/keybindings';
 import Model from 'chl/model';
-import { renderer, scene } from 'chl/viewport';
+import { renderer, scene, activeScreen } from 'chl/viewport';
 import PatternManager from 'chl/patterns/manager';
 import { worldState } from 'chl/worldstate';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
@@ -21,8 +21,6 @@ import {
     mappingManager,
     viewportManager,
 } from 'chl/vue/root';
-
-import store from 'chl/vue/store';
 
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
@@ -135,23 +133,21 @@ function Chlorophyll() {
         viewport.style.top = 0;
         viewport.style.left = 0;
 
-        let viewport_axes = document.createElement('div');
-        viewport_axes.id = 'viewport-axes';
-        viewport.appendChild(viewport_axes);
+        let mountpoint = document.createElement('div');
+        mainarea.content.appendChild(mountpoint);
 
         /****************************
          * Three.js rendering setup *
          ****************************/
-        viewportManager.$mount(mainarea.root);
+
+        viewportManager.$mount(mountpoint);
 
         let v = new THREE.Vector3();
-        store.viewport.activeScreen.camera.getWorldDirection(v);
+        activeScreen().camera.getWorldDirection(v);
         let nv = v.clone().negate();
         self.frontPlane = new THREE.Plane(v, Const.max_clip_plane);
         self.backPlane = new THREE.Plane(nv, Const.max_clip_plane);
         renderer.clippingPlanes = [];
-
-        console.log('beep boop');
 
         let model = initModelFromJson(chrysanthemum);
 
@@ -185,10 +181,10 @@ function Chlorophyll() {
                 name: 'camera',
                 toolobj: {
                     enable() {
-                        store.viewport.activeScreen.controlsEnabled = true;
+                        activeScreen().controlsEnabled = true;
                     },
                     disable() {
-                        store.viewport.activeScreen.controlsEnabled = false;
+                        activeScreen().controlsEnabled = false;
                     }
                 },
                 hotkey: Hotkey.tool_camera,
@@ -266,11 +262,12 @@ function Chlorophyll() {
         requestAnimationFrame(self.animate);
 
         let v = new THREE.Vector3();
-        screenManager.activeScreen.camera.getWorldDirection(v);
+        activeScreen().camera.getWorldDirection(v);
         self.frontPlane.normal = v;
         self.backPlane.normal = v.clone().negate();
 
-        screenManager.render();
+        activeScreen().controls.update();
+        activeScreen().render();
     };
 }
 
