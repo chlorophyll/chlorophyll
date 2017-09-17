@@ -58,7 +58,7 @@ export default {
     name: 'viewport-axes',
     props: ['value'],
     mounted() {
-        UILayout.viewport.appendChild(this.$el);
+        document.getElementById('#overlays').appendChild(this.$el);
         this.update_container();
         window.addEventListener('resize', this.update_container);
         keyboardJS.bind(Hotkey.widget_snap_angles, this.enableSnap, this.disableSnap);

@@ -16,6 +16,7 @@ export default {
     props: {
         direction: String,
         initialSplit: Array,
+        immediateResize: Boolean,
     },
     data() {
         return {
@@ -72,10 +73,16 @@ export default {
                 let cur = this.direction == 'horizontal' ? e.pageX : e.pageY;
                 const delta = cur - this.start;
                 this.split = this.startSplit + delta;
+                if (this.immediateResize) {
+                    this.$slots.first.emit('resize');
+                    this.$slots.second.emit('resize');
+                }
             }
         },
         dragEnd() {
             this.dragging = false;
+            this.$slots.first.emit('resize');
+            this.$slots.second.emit('resize');
         }
     }
 };

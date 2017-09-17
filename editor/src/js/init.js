@@ -5,7 +5,7 @@ import keyboardJS from 'keyboardjs';
 // Chlorophyll modules
 import Hotkey from 'chl/keybindings';
 import Model from 'chl/model';
-import ScreenManager from 'chl/screenmanager';
+import { screenManager, renderer, scene } from 'chl/viewport';
 import PatternManager from 'chl/patterns/manager';
 import { worldState } from 'chl/worldstate';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
@@ -18,13 +18,13 @@ import Const from 'chl/const';
 import {
     animManager,
     toolbarManager,
-    mappingManager
+    mappingManager,
+    viewportManager,
 } from 'chl/vue/root';
 
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
 // Chlorophyll UI manager objects
-let screenManager;
 let patternManager;
 let currentModel;
 // XXX dummy GroupManager
@@ -39,7 +39,6 @@ const UILayout = {};
 export {
     UILayout,
     toolbarManager,
-    screenManager,
     groupManager,
     patternManager,
     animManager,
@@ -53,7 +52,7 @@ function Chlorophyll() {
     this.backPlane = null;
     this.selectionThreshold = 5; // TODO track in selection tools
 
-    function initModelFromJson(scene, json) {
+    function initModelFromJson(json) {
         let model = new Model(json);
         model.addToScene(scene);
 
@@ -138,25 +137,10 @@ function Chlorophyll() {
         viewport_axes.id = 'viewport-axes';
         viewport.appendChild(viewport_axes);
 
-
         /****************************
          * Three.js rendering setup *
          ****************************/
-        let scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
-
-        let renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setClearColor(scene.fog.color);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(viewport.clientWidth, viewport.clientHeight);
-        mainarea.content.appendChild(renderer.domElement);
-
-        screenManager = new ScreenManager(UILayout.viewport, renderer, scene);
-        screenManager.addScreen('main', {isOrtho: false, active: true});
-        screenManager.addScreen('proj_config', {
-            isOrtho: true,
-            inheritOrientation: true
-        });
+        viewportManager.$mount(mainarea.root);
 
         let v = new THREE.Vector3();
         screenManager.activeScreen.camera.getWorldDirection(v);
@@ -165,7 +149,7 @@ function Chlorophyll() {
         self.backPlane = new THREE.Plane(nv, Const.max_clip_plane);
         renderer.clippingPlanes = [];
 
-        let model = initModelFromJson(scene, chrysanthemum);
+        let model = initModelFromJson(chrysanthemum);
 
         /*************************************
          * Mapping manager + Sequencer setup *

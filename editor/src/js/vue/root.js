@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import Viewport from '@/components/viewport';
 import Toolbar from '@/components/toolbar';
 import AnimEditor from '@/components/animation_editor';
 import MappingManager from '@/components/mapping_manager';
@@ -17,3 +18,5 @@ const MappingManagerComponent = Vue.extend(MappingManager);
 export const toolbarManager = new ToolbarComponent();
 export const animManager = new AnimEditorComponent();
 export const mappingManager = new MappingManagerComponent();
+
+export const viewportManager = new Vue(Viewport);
