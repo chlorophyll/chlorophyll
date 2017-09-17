@@ -2,6 +2,8 @@
 import * as THREE from 'three';
 import keyboardJS from 'keyboardjs';
 
+import { remote } from 'electron';
+
 // Chlorophyll modules
 import Hotkey from 'chl/keybindings';
 import Model from 'chl/model';
@@ -24,6 +26,8 @@ import {
 
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
+const { app, Menu } = remote;
+
 // Chlorophyll UI manager objects
 let patternManager;
 let currentModel;
@@ -44,6 +48,142 @@ export {
     animManager,
     currentModel
 };
+
+
+// tool declaration
+let selectionTools;
+
+function initSelectionTools(model) {
+    selectionTools = [
+        null,
+        {
+            name: 'camera',
+            toolobj: {
+                enable() {
+                    activeScreen().controlsEnabled = true;
+                },
+                disable() {
+                    activeScreen().controlsEnabled = false;
+                }
+            },
+            hotkey: Hotkey.tool_camera,
+            momentary_hotkey: Hotkey.tool_camera_momentary
+        },
+        null,
+        {
+            name: 'marquee',
+            toolobj: new MarqueeSelection(UILayout.viewport, model),
+            hotkey: Hotkey.tool_select_marquee
+        },
+        {
+            name: 'line',
+            toolobj: new LineSelection(UILayout.viewport, model),
+            hotkey: Hotkey.tool_select_line
+        },
+        {
+            name: 'plane',
+            toolobj: new PlaneSelection(UILayout.viewport, model),
+            hotkey: Hotkey.tool_select_plane
+        },
+        null
+    ];
+}
+
+// menu creation
+
+function initMenu() {
+    let appMenu = [];
+
+    let windowMenu = {
+        role: 'window',
+        submenu: [
+            {role: 'minimize'},
+            {role: 'close'}
+        ]
+    };
+
+    if (process.platform === 'darwin') {
+        appMenu = [{
+            label: app.getName(),
+            submenu: [
+                {role: 'about'},
+                {type: 'separator'},
+                {role: 'services', submenu: []},
+                {type: 'separator'},
+                {role: 'hide'},
+                {role: 'hideothers'},
+                {role: 'unhide'},
+                {type: 'separator'},
+                {role: 'quit'}
+            ]
+        }];
+
+        windowMenu.submenu = [
+            {role: 'close'},
+            {role: 'minimize'},
+            {role: 'zoom'},
+            {type: 'separator'},
+            {role: 'front'}
+        ];
+    }
+
+    let selectionMenu = selectionTools.filter((t) => t !== null).map((tool) => ({
+        label: tool.name,
+        click() {
+            toolbarManager.active = tool.name;
+        }
+    }));
+
+    let toolMenu = {
+        label: 'Tools',
+        submenu: [
+            {
+                label: 'Selection',
+                submenu: selectionMenu
+            }
+        ],
+    };
+
+    const menuTemplate = [
+        ...appMenu,
+        {
+            label: 'Edit',
+            submenu: [
+                {
+                    label: 'Undo',
+                    accelerator: 'CommandOrControl+Z',
+                    click() {
+                        worldState.undo();
+                    }
+                },
+                {
+                    label: 'Redo',
+                    accelerator: 'ComandOrControl+Shift+Z',
+                    click() {
+                        worldState.redo();
+                    }
+                },
+                { type: 'separator' },
+                {
+                    label: 'Viewport Settings',
+                    click() {
+                        // todo once layout
+                        // rendering_win.show();
+                        // rendering_win.setPosition(window.innerWidth - 520, 20);
+                    }
+                },
+            ]
+        },
+        toolMenu,
+        windowMenu,
+        {
+            role: 'help',
+        },
+    ];
+    const menu = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menu);
+}
+
 
 function Chlorophyll() {
     const self = this;
@@ -72,23 +212,6 @@ function Chlorophyll() {
          * GUI layout *
          **************/
         LiteGUI.init();
-
-        UILayout.menu = new LiteGUI.Menubar();
-        UILayout.menu.add('File/New');
-        UILayout.menu.add('Edit/Undo', function() { worldState.undo(); });
-        UILayout.menu.add('Edit/Redo', function() { worldState.redo(); });
-        UILayout.menu.add('View');
-
-        keyboardJS.bind(Hotkey.undo, function() {
-            worldState.undo();
-        });
-        keyboardJS.bind(Hotkey.redo, function() {
-            worldState.redo();
-        });
-
-        UILayout.menu.add('Help/About');
-
-        LiteGUI.add(UILayout.menu);
 
         // Center viewport container
         let mainarea = new LiteGUI.Area('mainarea', {
@@ -172,42 +295,10 @@ function Chlorophyll() {
         /**************************
          * Viewport toolbar setup *
          **************************/
+        initSelectionTools(model);
+        initMenu();
         toolbarManager.$mount('#toolbar');
-        toolbarManager.menu = UILayout.menu;
-        toolbarManager.menu_dir = 'Edit/Select';
-        toolbarManager.tools = [
-            null,
-            {
-                name: 'camera',
-                toolobj: {
-                    enable() {
-                        activeScreen().controlsEnabled = true;
-                    },
-                    disable() {
-                        activeScreen().controlsEnabled = false;
-                    }
-                },
-                hotkey: Hotkey.tool_camera,
-                momentary_hotkey: Hotkey.tool_camera_momentary
-            },
-            null,
-            {
-                name: 'marquee',
-                toolobj: new MarqueeSelection(UILayout.viewport, model),
-                hotkey: Hotkey.tool_select_marquee
-            },
-            {
-                name: 'line',
-                toolobj: new LineSelection(UILayout.viewport, model),
-                hotkey: Hotkey.tool_select_line
-            },
-            {
-                name: 'plane',
-                toolobj: new PlaneSelection(UILayout.viewport, model),
-                hotkey: Hotkey.tool_select_plane
-            },
-            null
-        ];
+        toolbarManager.tools = selectionTools;
         toolbarManager.active = 'camera';
 
 
@@ -252,10 +343,6 @@ function Chlorophyll() {
                 }
             });
         rendering_win.add(rendering_widgets);
-        UILayout.menu.add('View/Viewport Settings', function() {
-            rendering_win.show();
-            rendering_win.setPosition(window.innerWidth - 520, 20);
-        });
     };
 
     this.animate = function() {

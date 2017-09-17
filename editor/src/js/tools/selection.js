@@ -6,16 +6,10 @@ import Util from 'chl/util';
 import Chlorophyll from 'chl/init';
 import LiteGUI from 'chl/litegui';
 
-import { activeScreen } from 'chl/viewport';
+import store from 'chl/vue/store';
 
-export function isClipped(v) {
-    if (Chlorophyll.frontPlane.distanceToPoint(v) < 0)
-        return true;
+import { activeScreen, isClipped } from 'chl/viewport';
 
-    if (Chlorophyll.backPlane.distanceToPoint(v) < 0)
-        return true;
-    return false;
-}
 
 /*
  * Generic selection tool class. Handles enabling, disabling, maintaining

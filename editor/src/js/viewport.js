@@ -4,6 +4,7 @@ import keyboardJS from 'keyboardjs';
 import Const from 'chl/const';
 import store from 'chl/vue/store';
 import Util from 'chl/util';
+import Chlorophyll from 'chl/init';
 
 import Hotkey from 'chl/keybindings';
 
@@ -13,6 +14,15 @@ scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
 export let renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setClearColor(scene.fog.color);
 renderer.setPixelRatio(window.devicePixelRatio);
+
+export function isClipped(v) {
+    if (Chlorophyll.frontPlane.distanceToPoint(v) < 0)
+        return true;
+
+    if (Chlorophyll.backPlane.distanceToPoint(v) < 0)
+        return true;
+    return false;
+}
 
 
 class Screen {
@@ -69,9 +79,10 @@ class Screen {
     }
 
     getPointAt(model, x, y) {
+        const { width, height } = store.state.viewport;
         let mouse3D = new THREE.Vector3(
-             (x / element.clientWidth ) * 2 - 1,
-            -(y / element.clientHeight) * 2 + 1,
+             (x /  width) * 2 - 1,
+            -(y / height) * 2 + 1,
             0.5);
         let raycaster = new THREE.Raycaster();
         raycaster.params.Points.threshold = 10;

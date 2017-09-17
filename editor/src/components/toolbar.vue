@@ -33,8 +33,6 @@ export default {
     components: { HighlightButton, ModelOverlay },
     data() {
         return {
-            menu: null,
-            menu_dir: null,
             active: null,
             /*
              * A tool is either null to indicate a separator, or an object:
@@ -84,12 +82,6 @@ export default {
                     old_tools.splice(oldidx, 1);
                     continue;
                 }
-                // New tool, add to the dropdown menu and map the keybinding.
-                if (self.menu && self.menu_dir) {
-                    self.menu.add(self.menu_dir + '/' + tool.name, () => {
-                        self.active = tool.name;
-                    });
-                }
                 keyboardJS.withContext('global', () => {
                     keyboardJS.bind(tool.hotkey, () => {
                         self.active = tool.name;
@@ -107,9 +99,6 @@ export default {
             }
             // Anything left in the old list doesn't exist anymore, remove it.
             for (let tool of old_tools) {
-                if (self.menu && self.menu_dir) {
-                    self.menu.remove(self.menu_dir + '/' + tool.name);
-                }
                 keyboardJS.withContext('global', () => {
                     if ('hotkey' in tool)
                         keyboardJS.unbind(tool.hotkey);
