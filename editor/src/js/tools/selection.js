@@ -3,7 +3,8 @@ import Immutable from 'immutable';
 import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
-import Chlorophyll, { screenManager } from 'chl/init';
+import Chlorophyll from 'chl/init';
+import { screenManager } from 'chl/viewport';
 import LiteGUI from 'chl/litegui';
 import store from 'chl/vue/store';
 

@@ -5,7 +5,7 @@ import keyboardJS from 'keyboardjs';
 // Chlorophyll modules
 import Hotkey from 'chl/keybindings';
 import Model from 'chl/model';
-import { screenManager, renderer, scene } from 'chl/viewport';
+import { renderer, scene } from 'chl/viewport';
 import PatternManager from 'chl/patterns/manager';
 import { worldState } from 'chl/worldstate';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
@@ -21,6 +21,8 @@ import {
     mappingManager,
     viewportManager,
 } from 'chl/vue/root';
+
+import store from 'chl/vue/store';
 
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
@@ -143,11 +145,13 @@ function Chlorophyll() {
         viewportManager.$mount(mainarea.root);
 
         let v = new THREE.Vector3();
-        screenManager.activeScreen.camera.getWorldDirection(v);
+        store.viewport.activeScreen.camera.getWorldDirection(v);
         let nv = v.clone().negate();
         self.frontPlane = new THREE.Plane(v, Const.max_clip_plane);
         self.backPlane = new THREE.Plane(nv, Const.max_clip_plane);
         renderer.clippingPlanes = [];
+
+        console.log('beep boop');
 
         let model = initModelFromJson(chrysanthemum);
 
@@ -181,10 +185,10 @@ function Chlorophyll() {
                 name: 'camera',
                 toolobj: {
                     enable() {
-                        screenManager.activeScreen.controlsEnabled = true;
+                        store.viewport.activeScreen.controlsEnabled = true;
                     },
                     disable() {
-                        screenManager.activeScreen.controlsEnabled = false;
+                        store.viewport.activeScreen.controlsEnabled = false;
                     }
                 },
                 hotkey: Hotkey.tool_camera,
@@ -256,10 +260,6 @@ function Chlorophyll() {
             rendering_win.show();
             rendering_win.setPosition(window.innerWidth - 520, 20);
         });
-
-
-        mainarea.onresize = screenManager.resize;
-        window.addEventListener('resize', screenManager.resize, false);
     };
 
     this.animate = function() {

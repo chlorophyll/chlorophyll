@@ -7,8 +7,8 @@
 
 <script>
 
-import * as ViewportManager from 'chl/viewport';
-import store from 'chl/store';
+import { screens } from 'chl/viewport';
+import store from 'chl/vue/store';
 
 export default {
     store,
@@ -16,8 +16,6 @@ export default {
     mounted() {
         this.$el.appendChild(renderer);
         this.update_size();
-
-        ViewportManager.addProjectionScreen('main');
 
         this.$on('resize', this.update_size);
         window.addEventListener('resize', this.update_size);
