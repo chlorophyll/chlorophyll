@@ -74,7 +74,7 @@ export default {
             if (this.$store.state.selection.active.length == 0)
                 return;
 
-            const id = `group${newgid()}`;
+            const id = newgid();
             this.$store.commit('mapping/create_group', {
                 id,
                 pixels: this.$store.state.selection.active
@@ -90,7 +90,7 @@ export default {
             all_pixels.push(pixel);
         });
         this.$store.commit('mapping/create_group', {
-            id: `group${newgid()}`,
+            id: newgid(),
             name: 'All Pixels',
             pixels: all_pixels
         });
@@ -101,7 +101,7 @@ export default {
                 pixels.push(pixel);
             });
             this.$store.commit('mapping/create_group', {
-                id: `group${newgid()}`,
+                id: newgid(),
                 name: `Strip ${strip + 1}`,
                 pixels: pixels
             });

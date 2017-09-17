@@ -3,6 +3,20 @@ import Vue from 'vue';
 import store from 'chl/vue/store';
 import ColorPool from 'chl/colors';
 
+import * as Projection from './projection';
+import * as Transform from './transform';
+
+const mappingTypes = {
+    projection: {
+        display_name: '2D Projection',
+        coord_types: Projection.coord_types,
+    },
+    transform: {
+        display_name: '3D Transform',
+        coord_types: Transform.coord_types,
+    },
+};
+
 /*
  * Vuex store for mapping data
  */
@@ -89,15 +103,9 @@ store.registerModule('mapping', {
         }
     },
     getters: {
-        mappedPoints(state, getters) {
-            // TODO precompute then map points
-            return (id, coord_type) => {
-                // 1. lookup
-                // 2. precompute
-                // 3. mapPoint
-                return [];
-            };
-        },
+        listMappings(state) {
+            return state.mapping_list.map((id) => state.mappings[id]);
+        }
     },
 });
 
@@ -106,20 +114,18 @@ store.registerModule('mapping', {
  */
 export const mappingUtilsMixin = {
     data() {
+        // Generate a list for use in UI selectors
+        const types = {};
+        for (const prop in mappingTypes)
+            types[prop] = mappingTypes[prop].display_name;
+
         return {
-            mapping_types: {
-                projection: '2D Projection',
-                transform: '3D Transform',
-            }
+            mapping_types: types
         };
     },
     methods: {
         mappingDisplayName(type) {
-            const names = {
-                'projection': '2D Projection',
-                'transform': '3D Transform',
-            };
-            return names[type];
+            return mappingTypes[type].display_name;
         },
         getGroup(id) {
             if (id in this.$store.state.mapping.groups) {
@@ -152,67 +158,26 @@ export const mappingUtilsMixin = {
                     autoscale: settings.autoscale
                 };
             }
-        }
+        },
+        getMappedPoints(map, coord_type) {
+            // Accept an id or the mapping object itself
+            let mapping;
+            if (map instanceof Number)
+                mapping = this.$store.state.mapping.mappings[id];
+            else
+                mapping = map;
+
+            const type_info = mappingTypes[mapping.type][coord_type];
+            const group = this.$store.state.mapping.groups[mapping.group];
+
+            let settings;
+            if (type_info.precompute)
+                settings = type_info.precompute(mapping.settings);
+            else
+                settings = mapping.settings;
+            return group.pixels.map((idx) => {
+                return type_info.mapPoint(precomp_settings, idx);
+            });
+        },
     }
 };
-
-/*
- * Generic Mapping class.
- *
- * Provides a common interface to list types of mapping transformations and
- * generate sets of points from them.
- */
-export default function Mapping(manager, group, id, initname) {
-    let self = this;
-
-    this.widget = null;
-    this.configuring = false;
-    this.normalize = true;
-
-    /*
-     * To be provided by mapping subclasses:
-     */
-    this.showConfig = null;
-    this.hideConfig = null;
-    this.type = '';
-    this.display_name = 'Unknown Type';
-    // coord_types describes each type of transformation the mapping supports,
-    // in the form: { uniqueidentifier: { name: ..., mapPoint: ...}, ... }
-    this.coord_types = {};
-
-    Object.defineProperty(this, 'coord_type_menu', {
-        get: function() {
-            let menu = {};
-            for (let type in self.coord_types) {
-                if (self.coord_types[type] !== undefined)
-                    menu[self.coord_types[type].name] = type;
-            }
-            return menu;
-        }
-    });
-
-    this.getPositions = function(type) {
-        if (!(type in self.coord_types)) {
-            console.error('No such mapping type: ' + type);
-            return;
-        }
-        let mapFn = self.coord_types[type].mapPoint;
-        return group.pixels.map(function(idx) {
-            return [idx, mapFn(idx)];
-        });
-    };
-
-    /*
-     * Returns a serialized object containing an array of mapped points for
-     * each coordinate type the mapping supports, keyed by coord type.
-     */
-    this.allMappedPoints = function() {
-        let mapped = {};
-        for (let type in self.coord_types) {
-            if (self.coord_types.hasOwnProperty(type)) {
-                mapped[type] = self.getPositions(type);
-            }
-        }
-        return mapped;
-    };
-}

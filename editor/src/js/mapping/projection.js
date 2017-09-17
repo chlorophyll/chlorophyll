@@ -4,8 +4,8 @@ import { currentModel } from 'chl/init';
 function projectPoint(plane, idx) {
     let pos = currentModel.getPosition(idx);
     let fromOrigin = pos.clone().sub(plane.origin);
-    return new THREE.Vector2(plane.proj_plane.xaxis.dot(fromOrigin),
-                             plane.proj_plane.yaxis.dot(fromOrigin));
+    return new THREE.Vector2(plane.xaxis.dot(fromOrigin),
+                             plane.yaxis.dot(fromOrigin));
 }
 
 /*
@@ -15,21 +15,15 @@ export const coord_types = {
     cartesian2d: {
         name: '2D Cartesian',
         norm_coords: [true, true],
-        precompute(settings) {
-            // TODO generate x/y axes
-            return settings;
-        },
+        precompute: getProjectedAxes,
         mapPoint(settings, idx) {
-            // TODO generate x/y axes
             return projectPoint(settings, idx);
         }
     },
     polar2d: {
         name: '2D Polar',
         norm_coords: [true, false],
-        precompute(settings) {
-            return settings;
-        },
+        precompute: getProjectedAxes,
         mapPoint(settings, idx) {
             let point = projectPoint(settings, idx);
             // map from x,y -> r, theta
@@ -63,22 +57,29 @@ export function getCameraProjection(camera, screen_origin) {
     };
 }
 
+/*
+ * Create axes for the projection and rotate them appropriately.
+ * To be precomputed at the beginning of mapPoints.
+ */
 export function getProjectedAxes(settings) {
-    /*
-     * Create axes for the projection and rotate them appropriately.
-     * To be precomputed at the beginning of mapPoints.
-     */
     let up = new THREE.Vector3(0, 1, 0);
     let quat = new THREE.Quaternion();
-    let plane_normal = new THREE.Vector3(0, 0, -1);
+    // The camera looks along the negative Z axis, so that's the initial
+    // facing direction of the projection plane.
+    const plane_normal = new THREE.Vector3(0, 0, -1);
 
     quat.setFromEuler(settings.plane_angle);
     plane_normal.applyQuaternion(quat);
 
-    self.proj_plane.yaxis = up.applyQuaternion(quat);
-    self.proj_plane.yaxis.applyAxisAngle(plane_normal, origin.angle);
-    self.proj_plane.yaxis.normalize();
+    const yaxis = up.applyQuaternion(quat);
+    yaxis.applyAxisAngle(plane_normal, origin.angle);
+    yaxis.normalize();
 
-    self.proj_plane.xaxis = plane_normal.clone().cross(self.proj_plane.yaxis);
-    self.proj_plane.xaxis.normalize();
+    const xaxis = plane_normal.clone().cross(yaxis);
+    xaxis.normalize();
+
+    const origin = new THREE.Vector3();
+    origin.fromArray(settings.origin);
+
+    return { xaxis, yaxis, origin };
 }
