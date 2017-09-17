@@ -53,7 +53,10 @@ let rendererConfig = {
       },
       {
         test: /\.js$/,
-        use: 'babel-loader',
+        use: [
+          'cache-loader',
+          'babel-loader',
+        ],
         exclude: /node_modules/
       },
       {
@@ -62,16 +65,19 @@ let rendererConfig = {
       },
       {
         test: /\.vue$/,
-        use: {
-          loader: 'vue-loader',
-          options: {
-            extractCSS: process.env.NODE_ENV === 'production',
-            loaders: {
-              sass: 'vue-style-loader!css-loader!sass-loader?indentedSyntax=1',
-              scss: 'vue-style-loader!css-loader!sass-loader'
-            }
+        use: [
+          'cache-loader',
+          {
+            loader: 'vue-loader',
+            options: {
+              extractCSS: process.env.NODE_ENV === 'production',
+              loaders: {
+                sass: 'vue-style-loader!css-loader!sass-loader?indentedSyntax=1',
+                scss: 'vue-style-loader!css-loader!sass-loader'
+              }
+            },
           }
-        }
+        ]
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,

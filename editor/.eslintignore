@@ -7,3 +7,4 @@ src/renderer/js/fastled/src/*
 patches.js
 litegui*
 *.test.js
+.cache-loader/*
