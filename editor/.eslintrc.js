@@ -34,7 +34,7 @@ module.exports = {
     'no-shadow': 2,
     'one-var': 0,
     'no-unused-vars': [1, {args: 'none', vars: 'local' }],
-    'guard-for-in': 1,
+    'guard-for-in': 0,
     'new-cap': [1, {capIsNew: false}],
     'max-len': [1, {
       code: 100,
@@ -43,7 +43,7 @@ module.exports = {
       ignorePattern: '^import .*',
     }],
     'no-tabs': 1,
-    'no-mixed-spaces-and-tabs': 2,
+    'no-mixed-spaces-and-tabs': 1,
     'object-curly-spacing': 0,
     // 'curly': [1, 'multi', 'consistent'],
     'curly': 0,
@@ -53,7 +53,7 @@ module.exports = {
     'camelcase': 0,
     'padded-blocks': 0,
     'no-trailing-spaces': 1,
-    'spaced-comment': [2, 'always', {exceptions: ['/', '*', '+', '@']}],
+    'spaced-comment': [1, 'always', {exceptions: ['/', '*', '+', '@']}],
     'no-multi-spaces': 0,
     'quote-props': 0,
     // allow debugger during development
