@@ -176,7 +176,7 @@ export const mappingUtilsMixin = {
             else
                 settings = mapping.settings;
             return group.pixels.map((idx) => {
-                return type_info.mapPoint(precomp_settings, idx);
+                return type_info.mapPoint(settings, idx);
             });
         },
     }
