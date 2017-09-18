@@ -10,7 +10,6 @@ import Model from 'chl/model';
 import { renderer, scene, activeScreen } from 'chl/viewport';
 import { worldState } from 'chl/worldstate';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
-import LiteGUI from 'chl/litegui';
 import 'chl/patches';
 import 'chl/widgets/litegui-extensions';
 import Const from 'chl/const';
@@ -18,12 +17,6 @@ import Const from 'chl/const';
 import 'chl/patterns';
 
 import rootComponent from '@/components/root';
-
-// Vue components
-import {
-    animManager,
-    mappingManager,
-} from 'chl/vue/root';
 
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
@@ -52,7 +45,6 @@ export {
 let selectionTools;
 
 function initSelectionTools(model) {
-    console.log('initializing');
     let viewport = document.getElementById('viewport');
     selectionTools = [
         null,

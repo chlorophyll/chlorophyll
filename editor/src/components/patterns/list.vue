@@ -25,7 +25,6 @@ export default {
         },
         pattern_names() {
             let o = Object.values(this.patterns).map((pattern) => pattern.name);
-            console.log(o);
             return o;
         },
         ...mapGetters('pattern', [
@@ -35,7 +34,6 @@ export default {
     methods: {
         new_pattern() {
             let name = Util.uniqueName('pattern-', this.pattern_names);
-            console.log(name);
             create_pattern(name);
         },
         ...mapMutations('pattern', [

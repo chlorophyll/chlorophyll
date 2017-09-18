@@ -3,6 +3,7 @@
 </template>
 <script>
 import GraphCanvas from 'chl/graphlib/canvas';
+
 export default {
     name: 'graph-canvas',
     props: {

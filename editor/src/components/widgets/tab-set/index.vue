@@ -50,6 +50,7 @@ export default {
 
 <style scoped>
 .tab-container {
+    background-color: #222;
     display: flex;
     flex-direction: column;
     height: 100%;
