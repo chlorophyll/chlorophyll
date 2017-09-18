@@ -4,105 +4,93 @@ import Const from 'chl/const';
 
 import { newgid } from 'chl/vue/store';
 
-function GraphLib_() {
-    let self = this;
+let node_types = Immutable.OrderedMap();
+let graphs = new Map();
 
-    this.node_types = Immutable.OrderedMap();
-
-    this.registerNodeType = function(path, constructor) {
+export const GraphLib = {
+    registerNodeType(path, constructor) {
         if (Object.getPrototypeOf(constructor) != GraphNode)
             throw new Error('All registered node types must inherit from GraphNode');
 
-        self.node_types = self.node_types.set(path, constructor);
+        node_types = node_types.set(path, constructor);
         constructor.type = path;
-    };
-
-    this.registerNodeTypes = function(node_types) {
-        for (let [path, constructor] of node_types) {
+    },
+    registerNodeTypes(node_list) {
+        for (let [path, constructor] of node_list) {
             this.registerNodeType(path, constructor);
         }
-    };
+    },
+    getNodeTypes() {
+        return node_types;
+    },
 
-    this.getNodeTypes = function() {
-        return self.node_types;
-    };
+    graphById(id) {
+        return graphs.get(id);
+    }
 };
-export let GraphLib = new GraphLib_();
+
 export default GraphLib;
 
+export class Graph {
+    constructor() {
+        Util.EventDispatcher.call(this);
 
-export function Graph() {
-    Util.EventDispatcher.call(this);
-    let self = this;
+        this.id = newgid();
+        graphs.set(this.id, this);
 
-    let global_inputs = Immutable.Map();
-    let global_outputs = Immutable.Map();
+        this.emit = function(name, detail) {
+            this.dispatchEvent(new CustomEvent(name, {
+                detail: detail
+            }));
+            this.dispatchEvent(new CustomEvent('graph-changed'));
+        };
 
-    let nodes = Immutable.OrderedMap(); // key: id, val: node
-    let edges_by_src = Immutable.Map(); // key: id, val: edge list
-    let edges_by_dst = Immutable.Map(); // key: id, slot; val: edge
+        this.global_inputs = new Immutable.Map();
+        this.global_outputs = new Immutable.Map();
 
-    let GREY = 1;
-    let BLACK = 2;
+        this.nodes = new Immutable.Map();
 
-    function toposort() {
-        let ordered = [];
-        let stack = [];
-
-        let visited = new Map();
-
-        nodes.forEach(function(source, source_id) {
-            if (visited.has(source_id))
-                return;
-
-            stack.push([source_id, false]);
-
-            while (stack.length > 0) {
-                let [id, processed] = stack.pop();
-                let node = nodes.get(id);
-                if (!processed) {
-                    let marked = visited.get(id);
-
-                    if (marked == GREY)
-                        throw Error('cycle detected');
-
-                    if (marked == BLACK)
-                        continue;
-                    stack.push([id, true]);
-                    visited.set(id, GREY);
-                    self.forEachEdgeFromNode(node, function(edge) {
-                        stack.push([edge.dst_id, false]);
-                    });
-                } else {
-                    visited.set(id, BLACK);
-                    ordered.unshift([id, node]);
-                }
-            }
-        });
-        nodes = Immutable.OrderedMap(ordered);
+        this.edges_by_src = new Immutable.Map();
+        this.edges_by_dst = new Immutable.Map();
     }
-    this.dispatchChange = function(ev) {
-        self.dispatchEvent(ev);
-        self.dispatchEvent(new CustomEvent('graph-changed'));
-    };
 
-    this.validConnection = function(src_type, dst_type) {
-        if (!src_type || !dst_type)
-            return true;
+    addGlobalInput(name, type) {
+        this.global_inputs = this.global_inputs.set(name,
+            { name, type, data: null }
+        );
+        this.emit('global-input-added', { name, type });
+    }
 
-        if (typeof(src_type) === 'string' && typeof(dst_type) === 'string') {
-            return (src_type == dst_type);
-        }
+    removeGlobalInput(name) {
+        this.global_inputs = this.global_inputs.delete(name);
+        this.emit('global-input-removed', { name });
+    }
 
-        if (src_type == 'number' && dst_type.isUnit) {
-            return true;
-        }
+    setGlobalInputData(name, data) {
+        this.global_inputs.get(name).data = data;
+    }
 
-        return dst_type.isUnit && src_type.isUnit;
-    };
+    getGlobalInputData(name) {
+        return this.global_inputs.get(name).data;
+    }
 
-    this.addNode = function(path, options = {}) {
-        let Ctor = GraphLib.node_types.get(path);
+    addGlobalOutput(name, type) {
+        this.global_outputs = this.global_outputs.set(name,
+            { name, type, data: null }
+        );
+        this.emit('global-output-added', { name, type });
+    }
+
+    removeGlobalInput(name) {
+        this.global_outputs = this.global_outputs.delete(name);
+        this.emit('global-output-removed', { name });
+    }
+    setGlobalOutputData(name, data) {
+        this.global_outputs.get(name).data = data;
+    }
+
+    addNode(path, options = {}) {
+        let Ctor = node_types.get(path);
 
         if (!Ctor) {
             throw Error('unknown node type' + path);
@@ -116,37 +104,14 @@ export function Graph() {
 
         let node = new Ctor({graph, id, title, pos, type});
 
-        nodes = nodes.set(node.id, node);
+        this.nodes = this.nodes.set(node.id, node);
 
-        self.dispatchChange(new CustomEvent('node-added', {
-            detail: {
-                node: node
-            }
-        }));
+        this.emit('node-added', { node });
 
         return node;
-    };
+    }
 
-    this.removeNode = function(node) {
-        self.forEachEdgeToNode(node, function(edge) {
-            self.disconnect(edge);
-        });
-
-        self.forEachEdgeFromNode(node, function(edge) {
-            self.disconnect(edge);
-        });
-
-        nodes = nodes.delete(node.id);
-
-        self.dispatchChange(new CustomEvent('node-removed', {
-            detail: {
-                node: node
-            }
-        }));
-    };
-
-    this.connect = function(src, src_slot, dst, dst_slot) {
-
+    connect(src, src_slot, dst, dst_slot) {
         let src_type = src.outputs[src_slot].type;
         let dst_type = dst.inputs[dst_slot].type;
 
@@ -161,246 +126,127 @@ export function Graph() {
             dst_slot: dst_slot,
         };
 
-        let old_src = edges_by_src;
-        let old_dst = edges_by_dst;
+        let old_src = this.edges_by_src;
+        let old_dst = this.edges_by_dst;
 
-        edges_by_src = edges_by_src.updateIn([src.id, src_slot],
+        edges_by_src = this.edges_by_src.updateIn([src.id, src_slot],
             Immutable.Set(), (edgelist) => edgelist.add(edge));
 
-        let prev_edge = edges_by_dst.getIn([dst.id, dst_slot]);
+        let prev_edge = this.edges_by_dst.getIn([dst.id, dst_slot]);
 
         if (prev_edge)
-            self.disconnect(prev_edge);
+            this.disconnect(prev_edge, /* no_emit= */true);
 
-        edges_by_dst = edges_by_dst.setIn([dst.id, dst_slot], edge);
+        this.edges_by_dst = this.edges_by_dst.setIn([dst.id, dst_slot], edge);
         try {
             toposort();
-            self.dispatchChange(new CustomEvent('edge-added', {
-                detail: {
-                    edge: edge
-                }
-            }));
+            this.emit('edge-added', { edge });
+            if (prev_edge)
+                this.emit('edge-removed', { prev_edge });
             return edge;
         } catch (e) {
             // a cycle was created
-            edges_by_src = old_src;
-            edges_by_dst = old_dst;
+            this.edges_by_src = old_src;
+            this.edges_by_dst = old_dst;
             return false;
         }
-    };
+    }
 
-    this.disconnect = function(edge) {
-        edges_by_src = edges_by_src.updateIn([edge.src_id, edge.src_slot],
+    disconnect(edge, no_emit=false) {
+        this.edges_by_src = this.edges_by_src.updateIn([edge.src_id, edge.src_slot],
             Immutable.Set(), (edgelist) => edgelist.delete(edge));
 
-        edges_by_dst = edges_by_dst.deleteIn([edge.dst_id, edge.dst_slot]);
-        self.dispatchChange(new CustomEvent('edge-removed', {
-            detail: {
-                edge: edge
-            }
-        }));
-    };
+        this.edges_by_dst = this.edges_by_dst.deleteIn([edge.dst_id, edge.dst_slot]);
+        if (!no_emit)
+            this.emit('edge-removed', { edge });
+    }
 
-    this.getNodeByInput = function(dst, dst_slot) {
-        let edge = edges_by_dst.getIn([dst.id, dst_slot]);
+    getNodeByInput(dst, dst_slot) {
+        let edge = this.edges_by_dst.getIn([dst.id, dst_slot]);
 
         if (!edge)
             return null;
 
-        let node = nodes.get(edge.src_id);
+        let node = this.nodes.get(edge.src_id);
 
         return {
             node: node,
             slot: edge.src_slot
         };
-    };
+    }
 
-    this.getNodeById = function(node_id) {
-        return nodes.get(node_id);
-    };
+    getNodeById(node_id) {
+        return this.nodes.get(node_id);
+    }
 
-    this.runStep = function() {
-        nodes.forEach(function(node, id) {
+    runStep() {
+        this.nodes.forEach(function(node, id) {
             node.clearOutgoingData();
             node.onExecute();
         });
-    };
+    }
 
-    this.addGlobalInput = function(name, type) {
-        global_inputs = global_inputs.set(name, {
-            name: name,
-            type: type,
-            data: null,
-        });
-    };
-    this.removeGlobalInput = function(name) {
-        global_inputs = global_inputs.delete(name);
-    };
+    forEachNode(f) {
+        return this.nodes.forEach(f);
+    }
 
-    this.getGlobalInputData = function(name) {
-        return global_inputs.get(name).data;
-    };
-
-    this.setGlobalInputData = function(name, data) {
-        let input = global_inputs.get(name);
-        input.data = data;
-    };
-
-    this.addGlobalOutput = function(name, type) {
-        global_outputs = global_outputs.set(name, {
-            name: name,
-            type: type,
-            data: null,
-        });
-    };
-    this.removeGlobalOutput = function(name) {
-        global_outputs = global_inputs.delete(name);
-    };
-
-
-    this.setGlobalOutputData = function(name, data) {
-        let output = global_outputs.get(name);
-        output.data = data;
-    };
-
-    this.getGlobalOutputData = function(name, data) {
-        return global_outputs.get(name).data;
-    };
-
-    this.forEachNode = function(f) {
-        return nodes.forEach(f);
-    };
-
-    this.forEachEdgeToNode = function(node, f) {
-        let edges_by_slot = edges_by_dst.get(node.id);
+    forEachEdgeToNode(node, f) {
+        let edges_by_slot = this.edges_by_dst.get(node.id);
 
         if (edges_by_slot !== undefined)
             edges_by_slot.forEach(f);
-    };
+    }
 
-    this.numEdgesToNode = function(node) {
-        let edges_by_slot = edges_by_dst.get(node.id);
+    numEdgesToNode(node) {
+        let edges_by_slot = this.edges_by_dst.get(node.id);
         if (edges_by_slot !== undefined) {
             return edges_by_slot.count();
         } else {
             return 0;
         }
-    };
+    }
 
-    this.forEachEdgeFromNode = function(node, f) {
-        let edges_by_slot = edges_by_src.get(node.id);
+    forEachEdgeFromNode(node, f) {
+        let edges_by_slot = this.edges_by_src.get(node.id);
 
         if (edges_by_slot)
             edges_by_slot.forEach((slot) => slot.forEach(f));
-    };
+    }
 
-    this.numEdgesFromNode = function(node) {
+    numEdgesFromNode(node) {
         let total = 0;
-        let edges_by_slot = edges_by_src.get(node.id);
+        let edges_by_slot = this.edges_by_src.get(node.id);
 
         if (edges_by_slot)
             edges_by_slot.forEach((slot) => total += slot.count());
         return total;
-    };
+    }
 
-    this.forEachEdgeFromSlot = function(node, slot, f) {
-        edges_by_src.getIn([node.id, slot], Immutable.List()).forEach(f);
-    };
+    forEachEdgeFromSlot(node, slot, f) {
+        this.edges_by_src.getIn([node.id, slot], Immutable.List()).forEach(f);
+    }
 
-    this.numEdgesAtSlot = function(node, slot, is_input) {
+    numEdgesAtSlot(node, slot, is_input) {
         if (is_input)
-            return self.hasIncomingEdge(node, slot) ? 1 : 0;
+            return this.hasIncomingEdge(node, slot) ? 1 : 0;
 
-        let edgelist = edges_by_src.getIn([node.id, slot]);
+        let edgelist = this.edges_by_src.getIn([node.id, slot]);
         return edgelist ? edgelist.count() : 0;
-    };
+    }
 
-    this.hasIncomingEdge = function(node, slot) {
-        return self.getIncomingEdge(node, slot) !== undefined;
-    };
+    hasIncomingEdge(node, slot) {
+        return this.getIncomingEdge(node, slot) !== undefined;
+    }
 
-    this.getIncomingEdge = function(node, slot) {
-        return edges_by_dst.getIn([node.id, slot]);
-    };
+    getIncomingEdge(node, slot) {
+        return this.edges_by_dst.getIn([node.id, slot]);
+    }
 
-    this.forEachEdge = function(f) {
-        return self.forEachNode((node) => self.forEachEdgeFromNode(node, f));
-    };
+    forEachEdge(f) {
+        return this.forEachNode((node) => this.forEachEdgeFromNode(node, f));
+    }
+}
 
-    this.snapshot = function() {
-        let edges = [];
-        self.forEachEdge((edge) => edges.push(Util.clone(edge)));
-
-        let extractInfo = function(slot) {
-            return {
-                name: slot.name,
-                type: slot.type
-            };
-        };
-
-        return Immutable.fromJS({
-            nodes: Array.from(nodes.map((node) => node.snapshot()).values()),
-            edges: edges,
-            global_inputs: Array.from(global_inputs.map(extractInfo).values()),
-            global_outputs: Array.from(global_outputs.map(extractInfo).values()),
-        });
-    };
-
-    this.restore = function(snapshot) {
-        nodes = Immutable.Map(snapshot.get('nodes').map(function(nodesnap) {
-            let id = nodesnap.get('id');
-            let existingNode = nodes.get(id);
-            if (existingNode) {
-                existingNode.restore(nodesnap);
-                return [id, existingNode];
-            } else {
-                let type = nodesnap.get('type');
-                let constructor = GraphLib.node_types.get(type);
-
-                let node = Object.create(constructor.prototype);
-                GraphNode.call(node);
-                constructor.call(node);
-                node.restore(nodesnap);
-
-                node.graph = self;
-                return [id, node];
-            }
-        }));
-
-        edges_by_src = edges_by_src.clear();
-        edges_by_dst = edges_by_dst.clear();
-
-        let edges = snapshot.get('edges').toJS();
-
-        edges_by_src = edges_by_src.withMutations(function(mutable) {
-            edges.forEach(function(edge) {
-                mutable.updateIn([edge.src_id, edge.src_slot],
-                    Immutable.Set(), (edgelist) => edgelist.add(edge));
-            });
-        });
-
-        edges_by_dst = edges_by_dst.withMutations(function(mutable) {
-            edges.forEach(function(edge) {
-                mutable.setIn([edge.dst_id, edge.dst_slot], edge);
-            });
-        });
-
-        let entry = function(slot) {
-            let val = {
-                name: slot.name,
-                type: slot.type,
-                data: null
-            };
-            return [slot.name, val];
-        };
-
-        global_inputs = Immutable.Map(snapshot.get('global_inputs').map(entry));
-
-        global_outputs = Immutable.Map(snapshot.get('global_outputs').map(entry));
-
-        self.dispatchEvent(new CustomEvent('graph-restored'));
-    };
-};
 
 const DEFAULT_CONFIG = {
     color: '#999',
@@ -477,12 +323,10 @@ export class GraphNode {
 
     setPosition(x, y) {
         this.pos = [x, y];
-        this.graph.dispatchChange(new CustomEvent('node-moved', {
-            detail: {
-                node: this,
-                position: this.pos
-            }
-        }));
+        this.graph.emit('node-moved', {
+            node: this,
+            position: this.pos
+        });
     }
     clearOutgoingData() {
         for (let i = 0; i < this.outgoing_data.length; i++)

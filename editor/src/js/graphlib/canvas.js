@@ -591,6 +591,9 @@ export default function GraphCanvas(divNode) {
 
     this.setGraph = function(graph) {
         self.clearGraph();
+        if (!graph)
+            return;
+
         self.graph = graph;
         self.graph.addEventListener('node-added', onNodeAdded);
         self.graph.addEventListener('node-removed', onNodeRemoved);

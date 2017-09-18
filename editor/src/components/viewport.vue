@@ -17,12 +17,12 @@ export default {
         const width = this.$el.clientWidth;
         const height = this.$el.clientHeight;
         this.$store.commit('viewport/init', { width, height });
-
-        this.$on('resize', this.update_size);
         window.addEventListener('resize', this.update_size);
     },
+    updated() {
+        this.update_size();
+    },
     beforeDestroy() {
-        this.$off('resize', this.update_size);
         window.removeEventListener('resize', this.update_size);
     },
     methods: {
@@ -42,5 +42,6 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
+    overflow: hidden;
 }
 </style>

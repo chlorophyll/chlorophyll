@@ -39,6 +39,7 @@ export default {
             }
             this.split = total - second - this.gutter;
         }
+        this.$nextTick(() => this.resize());
     },
     computed: {
         splitKey() {
@@ -63,6 +64,9 @@ export default {
         },
     },
     methods: {
+        resize() {
+            window.dispatchEvent(new CustomEvent('resize'));
+        },
         dragStart(e) {
             this.dragging = true;
             this.start = this.direction == 'horizontal' ? e.pageX : e.pageY;
@@ -74,17 +78,13 @@ export default {
             let cur = this.direction == 'horizontal' ? e.pageX : e.pageY;
             const delta = cur - this.start;
             this.split = this.startSplit + delta;
-            if (this.immediateResize) {
-                this.$slots.first.$emit('resize');
-                this.$slots.second.$emit('resize');
-            }
+            this.resize();
         },
         dragEnd() {
             if (!this.dragging)
                 return;
             this.dragging = false;
-            this.$slots.first.$emit('resize');
-            this.$slots.second.$emit('resize');
+            this.resize();
         }
     }
 };

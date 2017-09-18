@@ -10,7 +10,7 @@
 
         <highlight-button v-if="tool !== null"
             :label="tool.name"
-            :highlight="tool.name === active"
+            :highlight="tool.name == active"
             @click="active = tool.name">
         </highlight-button>
         <div v-else class="separator"></div>
@@ -28,8 +28,9 @@ import HighlightButton from '@/components/widgets/highlight_button';
 import ModelOverlay from '@/components/model_overlay';
 
 export default {
-    name: 'viewport-toolbar',
+    name: 'selection-toolbar',
     store,
+    props: ['tools'],
     components: { HighlightButton, ModelOverlay },
     data() {
         return {
@@ -38,13 +39,14 @@ export default {
              * A tool is either null to indicate a separator, or an object:
              * { name, toolobj, hotkey (optional), momentary_hotkey (optional) }
              */
-            tools: [],
             selection_color: 0xffffff,
         };
     },
-    computed: mapState({
-        active_selection: (state) => state.selection.active
-    }),
+    computed: {
+        ...mapState({
+            active_selection: (state) => state.selection.active
+        })
+    },
     watch: {
         active(new_name, old_name) {
             let old_tool = null;
@@ -69,44 +71,28 @@ export default {
             if (new_tool !== null)
                 new_tool.toolobj.enable();
         },
-
         tools(new_tools, old_tools) {
-            let self = this;
-
-            for (let tool of new_tools) {
-                if (tool === null)
-                    continue;
-                // Remove tools from consideration that weren't added/removed
-                const oldidx = old_tools.indexOf(tool);
-                if (oldidx !== -1) {
-                    old_tools.splice(oldidx, 1);
-                    continue;
+            for (let tool of this.tools) {
+                if (tool === null) continue;
+                if (tool.active === true) {
+                    this.$nextTick(() => this.active = tool.name);
                 }
-                keyboardJS.withContext('global', () => {
-                    keyboardJS.bind(tool.hotkey, () => {
-                        self.active = tool.name;
-                    });
+                keyboardJS.bind(tool.hotkey, () => {
+                    this.active = tool.name;
+                });
+
+                if (tool.momentary_hotkey !== undefined) {
                     let prev_name = null;
-                    if ('momentary_hotkey' in tool) {
-                        keyboardJS.bind(tool.momentary_hotkey, () => {
-                            prev_name = self.active;
-                            self.active = tool.name;
-                        }, () => {
-                            self.active = prev_name;
-                        });
-                    }
-                });
+                    keyboardJS.bind(tool.momentary_hotkey, () => {
+                        prev_name = this.active;
+                        this.active = tool.name;
+                    }, () => {
+                        this.active = prev_name;
+                    });
+                }
             }
-            // Anything left in the old list doesn't exist anymore, remove it.
-            for (let tool of old_tools) {
-                keyboardJS.withContext('global', () => {
-                    if ('hotkey' in tool)
-                        keyboardJS.unbind(tool.hotkey);
-                    if ('momentary_hotkey' in tool)
-                        keyboardJS.unbind(tool.momentary_hotkey);
-                });
-            }
-        },
+
+        }
     },
 };
 </script>

@@ -24,3 +24,11 @@ const Const = {
     }
 };
 export default Const;
+
+export const ConstMixin = {
+    computed: {
+        Const() {
+            return Const;
+        }
+    }
+};

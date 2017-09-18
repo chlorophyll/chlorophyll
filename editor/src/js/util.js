@@ -193,7 +193,7 @@ let Util = {
     uniqueName: function(prefix, nameseq) {
         let candidate;
         let taken = true;
-        let suffix = nameseq.length || nameseq.size;
+        let suffix = nameseq.length || nameseq.size || 0;
         while (taken) {
             candidate = prefix + suffix;
             taken = nameseq.indexOf(candidate) !== -1;
