@@ -21,15 +21,15 @@
         Configure Mapping
       </button>
     </div>
-    <modal-dialog v-if="configuring"
-                  title="Configure mapping"
-                  width="300px"
-                  :pos="{ x: 400, y: 400 }"
-                  :show="true"
-                  @close="endConfigure">
+    <dialog-box v-if="configuring"
+                title="Configure mapping"
+                width="300px"
+                :pos="{ x: 400, y: 400 }"
+                :show="true"
+                @close="endConfigure">
         <component v-bind:is="mapping.type"
                    v-model="working_settings" />
-    </modal-dialog>
+    </dialog-box>
   </div>
 </template>
 
@@ -38,14 +38,14 @@ import { mappingUtilsMixin } from 'chl/mapping';
 
 import ProjectionConfig from '@/components/mapping/projection_config';
 
-import ModalDialog from '@/components/widgets/modal_dialog';
+import DialogBox from '@/components/widgets/dialog_box';
 
 export default {
     name: 'mapping-config',
     props: ['mapping'],
     mixins: [mappingUtilsMixin],
     components: {
-        ModalDialog,
+        DialogBox,
         'projection': ProjectionConfig,
         /* 'transform': TransformConfig */
     },

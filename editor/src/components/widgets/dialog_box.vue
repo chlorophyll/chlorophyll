@@ -1,6 +1,6 @@
 <template>
 <div v-show="show"
-     class="modal-dialog litedialog"
+     class="dialog-box litedialog"
      v-bind:style="{ left: `${x}px`, top: `${y}px`, width }">
     <div class="panel-header drag-handle" @mousedown="startDrag">
         {{ title }}
@@ -21,7 +21,7 @@
 
 <script>
 export default {
-    name: 'modal-dialog',
+    name: 'dialog-box',
     props: {
         title: {
             type: String,
@@ -95,7 +95,7 @@ export default {
 </script>
 
 <style scoped>
-.modal-dialog {
+.dialog-box {
     position: fixed;
     height: auto;
     min-width: 100px;
