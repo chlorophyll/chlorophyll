@@ -12,10 +12,9 @@
 </template>
 
 <script>
-import store from 'chl/vue/store';
-import Util from 'chl/util';
 import { mapGetters, mapMutations } from 'vuex';
-import { create_pattern } from 'chl/patterns';
+import store, { newgid } from 'chl/vue/store';
+
 export default {
     name: 'pattern-list',
     store,
@@ -23,18 +22,15 @@ export default {
         patterns() {
             return this.$store.state.pattern.patterns;
         },
-        pattern_names() {
-            let o = Object.values(this.patterns).map((pattern) => pattern.name);
-            return o;
-        },
         ...mapGetters('pattern', [
             'cur_pattern',
+            'unique_name',
         ]),
     },
     methods: {
         new_pattern() {
-            let name = Util.uniqueName('pattern-', this.pattern_names);
-            create_pattern(name);
+            let id = newgid();
+            this.$store.commit('pattern/create', { id });
         },
         ...mapMutations('pattern', [
             'set_current'
@@ -46,4 +42,6 @@ export default {
 .current {
     color: yellow;
 }
+
+
 </style>

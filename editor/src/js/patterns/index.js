@@ -1,5 +1,7 @@
-import Const from 'chl/const';
 import Vue from 'vue';
+
+import Util from 'chl/util';
+import Const from 'chl/const';
 
 import { Graph } from 'chl/graphlib/graph';
 
@@ -13,7 +15,8 @@ store.registerModule('pattern', {
     },
 
     mutations: {
-        create(state, pattern) {
+        create(state, { id }) {
+            let pattern = create_pattern(id);
             Vue.set(state.patterns, pattern.id, pattern);
             if (state.cur_pattern_id === null) {
                 state.cur_pattern_id = pattern.id;
@@ -26,17 +29,24 @@ store.registerModule('pattern', {
 
     getters: {
         cur_pattern(state) {
-            console.log(state);
             if (state.cur_pattern_id === null)
                 return null;
             return state.patterns[state.cur_pattern_id];
+        },
+        pattern_list(state) {
+            return Object.values(state.patterns);
+        },
+        unique_name(state, getters) {
+            let names = getters.pattern_list.map((pattern) => pattern.name);
+            return Util.uniqueName('pattern-', names);
         }
 }
 });
 
-export function create_pattern(name) {
-    const id = newgid();
+function create_pattern(id) {
     let time = 0;
+
+    let name = store.getters['pattern/unique_name'];
 
     let mapping_type = Const.default_map_type;
     let coord_type = Const.default_coord_type;
@@ -54,7 +64,7 @@ export function create_pattern(name) {
     });
 
 
-    store.commit('pattern/create', {
+    return {
         id,
         name,
         time,
@@ -64,7 +74,7 @@ export function create_pattern(name) {
             pixel: pixel_stage.id,
         },
         map_input: map_input.id,
-    });
+    };
 }
 
 export function run_pattern(pattern, mapping) {
