@@ -98,9 +98,9 @@ export default {
         angle_degrees() {
             return this.radToDeg(this.value.angle);
         },
-		viewport() {
-			return document.getElementById('viewport');
-		}
+        viewport() {
+            return document.getElementById('viewport');
+        },
         ...mapState('viewport', {
             container_width: 'width',
             container_height: 'height'
@@ -137,8 +137,8 @@ export default {
         },
         startDrag(event) {
             this.dragging = true;
-            UILayout.viewport.addEventListener('mousemove', this.drag);
-            UILayout.viewport.addEventListener('mouseup', this.endDrag);
+            this.viewport.addEventListener('mousemove', this.drag);
+            this.viewport.addEventListener('mouseup', this.endDrag);
         },
         drag(event) {
             event.preventDefault();
@@ -149,8 +149,8 @@ export default {
         },
         endDrag(event) {
             this.dragging = false;
-            UILayout.viewport.removeEventListener('mousemove', this.drag);
-            UILayout.viewport.removeEventListener('mouseup', this.endDrag);
+            this.viewport.removeEventListener('mousemove', this.drag);
+            this.viewport.removeEventListener('mouseup', this.endDrag);
         },
         startHover() {
             this.hovering = true;
