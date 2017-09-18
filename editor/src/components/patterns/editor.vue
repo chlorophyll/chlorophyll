@@ -14,8 +14,8 @@
         <label for="preview-map-list">Preview map</label>
         <span class="inputcombo">
         <select id="preview-map-list">
-            <template v-for="entry in mappings">
-                <option :value="entry.mapping.id">{{ entry.title }}</option>
+            <template v-for="mapping in mappings">
+                <option :value="mapping.id">{{ mapping.name }}</option>
             </template>
         </select>
         </span>
@@ -76,20 +76,30 @@ export default {
         run_text() {
             return this.running ? 'pause' : 'play_arrow';
         },
-        ...mapGetters('pattern', [
-            'cur_pattern',
-        ]),
         cur_graph() {
             if (this.cur_pattern === null)
                 return null;
             return GraphLib.graphById(this.cur_pattern.stages.pixel);
+        },
+        ...mapGetters('pattern', [
+            'cur_pattern',
+        ]),
+        ...mapGetters('mapping', [
+            'mapping_list',
+        ]),
+        mappings() {
+            if (this.cur_pattern === null)
+                return [];
+
+            const type = this.cur_pattern.mapping_type;
+
+            return this.mapping_list.filter((map) => type == map.type);
         }
     },
     data() {
         return {
             running: false,
             previewMap: null,
-            mappings: [],
             nodeList: getNodeList(),
         };
     },

@@ -103,7 +103,7 @@ store.registerModule('mapping', {
         }
     },
     getters: {
-        listMappings(state) {
+        mapping_list(state) {
             return state.mapping_list.map((id) => state.mappings[id]);
         }
     },

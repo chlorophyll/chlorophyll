@@ -39,6 +39,7 @@ export function create_pattern(name) {
     let time = 0;
 
     let mapping_type = Const.default_map_type;
+    let coord_type = Const.default_coord_type;
     let pixel_stage = new Graph();
 
     pixel_stage.addGlobalInput('coords');
@@ -46,9 +47,7 @@ export function create_pattern(name) {
     pixel_stage.addGlobalInput('color');
     pixel_stage.addGlobalOutput('outcolor');
 
-    let path = `lowlevel/input/${mapping_type}`;
-
-    let map_input = pixel_stage.addNode(`lowlevel/input/${mapping_type}`, {title: 'input'});
+    let map_input = pixel_stage.addNode(`lowlevel/input/${coord_type}`, {title: 'input'});
     pixel_stage.addNode('lowlevel/output/color', {
         title: 'output',
         pos: [300, 100]
@@ -60,6 +59,7 @@ export function create_pattern(name) {
         name,
         time,
         mapping_type,
+        coord_type, // hmm
         stages: {
             pixel: pixel_stage.id,
         },
