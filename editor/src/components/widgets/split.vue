@@ -31,13 +31,7 @@ export default {
         if (first !== null) {
             this.split = first;
         } else {
-            let total;
-            if (this.direction == 'horizontal') {
-                total = this.$el.offsetWidth;
-            } else {
-                total = this.$el.offsetHeight;
-            }
-            this.split = total - second - this.gutter;
+            this.split = second;
         }
         this.$nextTick(() => this.resize());
     },
@@ -51,13 +45,23 @@ export default {
             return out;
         },
         firstStyle() {
-            let val = `${this.split}px`;
+            let val;
+            if (this.initialSplit[0] === null) {
+                val = `calc(100% - ${this.split}px - ${this.gutter}px)`;
+            } else {
+                val = `${this.split}px`;
+            }
             let out = {};
             out[this.splitKey] = val;
             return out;
         },
         secondStyle() {
-            let val = `calc(100% - ${this.split}px - ${this.gutter}px)`;
+            let val;
+            if (this.initialSplit[1] === null) {
+                val = `calc(100% - ${this.split}px - ${this.gutter}px)`;
+            } else {
+                val = `${this.split}px`;
+            }
             let out = {};
             out[this.splitKey] = val;
             return out;
