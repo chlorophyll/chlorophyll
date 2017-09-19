@@ -80,7 +80,10 @@ export default {
             if (!this.dragging)
                 return;
             let cur = this.direction == 'horizontal' ? e.pageX : e.pageY;
-            const delta = cur - this.start;
+            let delta = cur - this.start;
+            if (this.initialSplit[0] === null) {
+                delta *= -1;
+            }
             this.split = this.startSplit + delta;
             this.resize();
         },
