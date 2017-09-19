@@ -3,7 +3,10 @@ import Vue from 'vue';
 import Util from 'chl/util';
 import Const from 'chl/const';
 
-import { Graph } from 'chl/graphlib/graph';
+import GraphLib, { Graph } from 'chl/graphlib/graph';
+import { getMappedPoints, convertPointCoords } from 'chl/mapping';
+import { currentModel } from 'chl/init';
+import { CRGB } from 'chl/fastled/color';
 
 import store, { newgid } from 'chl/vue/store';
 
@@ -15,9 +18,36 @@ store.registerModule('pattern', {
     },
 
     mutations: {
-        create(state, { id }) {
-            let pattern = create_pattern(id);
+        create(state, { id, name }) {
+            let mapping_type = Const.default_map_type;
+            let coord_type = Const.default_coord_type;
+            let pixel_stage = new Graph();
+
+            pixel_stage.addGlobalInput('coords');
+            pixel_stage.addGlobalInput('t');
+            pixel_stage.addGlobalInput('color');
+            pixel_stage.addGlobalOutput('outcolor');
+
+            pixel_stage.addNode(`mapping/${mapping_type}/${coord_type}`, {title: 'input'});
+            pixel_stage.addNode('lowlevel/output/color', {
+                title: 'output',
+                pos: [300, 100]
+            });
+
+            let pattern = {
+                id,
+                name,
+                mapping_type,
+                coord_type, // hmm
+                stages: {
+                    pixel: pixel_stage.id,
+                },
+            };
+
+            console.log(pattern);
+
             Vue.set(state.patterns, pattern.id, pattern);
+            console.log(state);
             if (state.cur_pattern_id === null) {
                 state.cur_pattern_id = pattern.id;
             }
@@ -43,40 +73,24 @@ store.registerModule('pattern', {
 }
 });
 
-function create_pattern(id) {
-    let time = 0;
+export function runPattern(pattern, mapping) {
+    let graph = GraphLib.graphById(pattern.stages.pixel);
+    let mapped_points = getMappedPoints(mapping, pattern.coord_type);
+    let positions = convertPointCoords(pattern.mapping_type, pattern.coord_type, mapped_points);
 
-    let name = store.getters['pattern/unique_name'];
+    function computePatternFrame(t) {
+        graph.setGlobalInputData('t', t);
+        positions.forEach((pos, idx) => {
+            let dc = currentModel.getDisplayColor(idx);
+            let incolor = new CRGB(dc[0], dc[1], dc[2]);
+            graph.setGlobalInputData('coords', pos.toArray());
+            graph.setGlobalInputData('color', incolor);
+            graph.runStep();
+            let outcolor = graph.getGlobalOutputData('outcolor');
+            currentModel.setDisplayColor(idx, outcolor.r, outcolor.g, outcolor.b);
+        });
+        currentModel.updateColors();
+    }
 
-    let mapping_type = Const.default_map_type;
-    let coord_type = Const.default_coord_type;
-    let pixel_stage = new Graph();
-
-    pixel_stage.addGlobalInput('coords');
-    pixel_stage.addGlobalInput('t');
-    pixel_stage.addGlobalInput('color');
-    pixel_stage.addGlobalOutput('outcolor');
-
-    let map_input = pixel_stage.addNode(`lowlevel/input/${coord_type}`, {title: 'input'});
-    pixel_stage.addNode('lowlevel/output/color', {
-        title: 'output',
-        pos: [300, 100]
-    });
-
-
-    return {
-        id,
-        name,
-        time,
-        mapping_type,
-        coord_type, // hmm
-        stages: {
-            pixel: pixel_stage.id,
-        },
-        map_input: map_input.id,
-    };
-}
-
-export function run_pattern(pattern, mapping) {
-    return;
+    return computePatternFrame();
 };

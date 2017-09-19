@@ -88,6 +88,9 @@ export class Graph {
     setGlobalOutputData(name, data) {
         this.global_outputs.get(name).data = data;
     }
+    getGlobalOutputData(name) {
+        return this.global_outputs.get(name).data;
+    }
 
     addNode(path, options = {}) {
         let Ctor = node_types.get(path);
@@ -111,6 +114,61 @@ export class Graph {
         return node;
     }
 
+    validConnection(src_type, dst_type) {
+        if (!src_type || !dst_type)
+            return true;
+
+        if (typeof(src_type) === 'string' && typeof(dst_type) === 'string') {
+            return (src_type == dst_type);
+        }
+
+        if (src_type == 'number' && dst_type.isUnit) {
+            return true;
+        }
+
+        return dst_type.isUnit && src_type.isUnit;
+    }
+
+    toposort() {
+        const GREY = 1;
+        const BLACK = 2;
+
+        let ordered = [];
+        let stack = [];
+
+        let visited = new Map();
+
+        this.forEachNode((source, source_id) => {
+            if (visited.has(source_id))
+                return;
+
+            stack.push([source_id, false]);
+
+            while (stack.length > 0) {
+                let [id, processed] = stack.pop();
+                let node = this.getNodeById(id);
+                if (!processed) {
+                    let marked = visited.get(id);
+
+                    if (marked == GREY)
+                        throw Error('cycle detected');
+
+                    if (marked == BLACK)
+                        continue;
+                    stack.push([id, true]);
+                    visited.set(id, GREY);
+                    this.forEachEdgeFromNode(node, function(edge) {
+                        stack.push([edge.dst_id, false]);
+                    });
+                } else {
+                    visited.set(id, BLACK);
+                    ordered.unshift([id, node]);
+                }
+            }
+        });
+        this.nodes = Immutable.OrderedMap(ordered);
+    }
+
     connect(src, src_slot, dst, dst_slot) {
         let src_type = src.outputs[src_slot].type;
         let dst_type = dst.inputs[dst_slot].type;
@@ -129,7 +187,7 @@ export class Graph {
         let old_src = this.edges_by_src;
         let old_dst = this.edges_by_dst;
 
-        edges_by_src = this.edges_by_src.updateIn([src.id, src_slot],
+        this.edges_by_src = this.edges_by_src.updateIn([src.id, src_slot],
             Immutable.Set(), (edgelist) => edgelist.add(edge));
 
         let prev_edge = this.edges_by_dst.getIn([dst.id, dst_slot]);
@@ -139,12 +197,14 @@ export class Graph {
 
         this.edges_by_dst = this.edges_by_dst.setIn([dst.id, dst_slot], edge);
         try {
-            toposort();
+            this.toposort();
             this.emit('edge-added', { edge });
             if (prev_edge)
                 this.emit('edge-removed', { prev_edge });
             return edge;
         } catch (e) {
+            console.log('beep...');
+            console.log(e);
             // a cycle was created
             this.edges_by_src = old_src;
             this.edges_by_dst = old_dst;
@@ -252,7 +312,7 @@ const DEFAULT_CONFIG = {
     color: '#999',
     bgcolor: '#444',
     boxcolor: '#aef',
-    removable: false,
+    removable: true,
 };
 
 export class GraphNode {

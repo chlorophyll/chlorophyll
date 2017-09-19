@@ -1,4 +1,5 @@
 import { currentModel } from 'chl/init';
+import Units from 'chl/units';
 import * as THREE from 'three';
 
 /*
@@ -54,17 +55,26 @@ function settingsToVectors(settings) {
 export const coord_types = {
     cartesian3d: {
         name: '3D Cartesian',
-        norm_coords: [true, true, true],
+        coords: [
+            {normalized: true, name: 'x', unit: Units.Distance},
+            {normalized: true, name: 'y', unit: Units.Distance},
+            {normalized: true, name: 'z', unit: Units.Distance}
+        ],
         precompute: settingsToVectors,
-        mapPoint: transformPoint
+        mapPoint: transformPoint,
+        convertCoords: (point) => point,
     },
 
     cylinder3d: {
         name: '3D Cylindrical',
-        norm_coords: [true, false, true],
+        coords: [
+            {normalized: true, name: 'r', unit: Units.Percentage},
+            {normalized: false, name: 'theta', unit: Units.Angle},
+            {normalized: true, name: 'z', unit: Units.Distance}
+        ],
         precompute: settingsToVectors,
-        mapPoint: function(settings, idx) {
-            let cart = transformPoint(settings, idx);
+        mapPoint: transformPoint,
+        convertCoords(cart) {
             // x, y, z -> r, theta, z
             let polar = new THREE.Vector2(cart.x, cart.y);
             return new THREE.Vector3(polar.length(), polar.angle(), cart.z);
@@ -73,10 +83,14 @@ export const coord_types = {
 
     sphere3d: {
         name: '3D Spherical',
-        norm_coords: [true, false, false],
+        coords: [
+            {normalized: true, name: 'r', unit: Units.Percentage},
+            {normalized: false, name: 'theta', unit: Units.Angle},
+            {normalized: false, name: 'phi', unit: Units.Angle}
+        ],
         precompute: settingsToVectors,
-        mapPoint: function(settings, idx) {
-            let cart = transformPoint(settings, idx);
+        mapPoint: transformPoint,
+        convertCoords(cart) {
             let r = cart.length();
             let theta = (r == 0) ? 0 : Math.acos(cart.z / r);
             let phi = (r == 0) ? 0 : Math.atan2(cart.y, cart.x);

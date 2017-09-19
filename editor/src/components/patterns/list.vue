@@ -30,7 +30,8 @@ export default {
     methods: {
         new_pattern() {
             let id = newgid();
-            this.$store.commit('pattern/create', { id });
+            let name = this.unique_name;
+            this.$store.commit('pattern/create', { id, name });
         },
         ...mapMutations('pattern', [
             'set_current'

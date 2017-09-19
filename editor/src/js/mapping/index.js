@@ -6,7 +6,7 @@ import ColorPool from 'chl/colors';
 import * as Projection from './projection';
 import * as Transform from './transform';
 
-const mappingTypes = {
+export const mappingTypes = {
     projection: {
         display_name: '2D Projection',
         coord_types: Projection.coord_types,
@@ -16,6 +16,10 @@ const mappingTypes = {
         coord_types: Transform.coord_types,
     },
 };
+
+function coordInfo(map_type, coord_type) {
+    return mappingTypes[map_type].coord_types[coord_type];
+}
 
 /*
  * Vuex store for mapping data
@@ -159,25 +163,61 @@ export const mappingUtilsMixin = {
                 };
             }
         },
-        getMappedPoints(map, coord_type) {
-            // Accept an id or the mapping object itself
-            let mapping;
-            if (map instanceof Number)
-                mapping = this.$store.state.mapping.mappings[id];
-            else
-                mapping = map;
-
-            const type_info = mappingTypes[mapping.type][coord_type];
-            const group = this.$store.state.mapping.groups[mapping.group];
-
-            let settings;
-            if (type_info.precompute)
-                settings = type_info.precompute(mapping.settings);
-            else
-                settings = mapping.settings;
-            return group.pixels.map((idx) => {
-                return type_info.mapPoint(settings, idx);
-            });
-        },
     }
 };
+
+
+export function getMappedPoints(map, coord_type) {
+    // Accept an id or the mapping object itself
+    let mapping;
+    if (typeof(map) == 'number')
+        mapping = store.state.mapping.mappings[map];
+    else
+        mapping = map;
+
+    const type_info = coordInfo(mapping.type, coord_type);
+    const group = store.state.mapping.groups[mapping.group];
+
+    let settings;
+    if (type_info.precompute)
+        settings = type_info.precompute(mapping.settings);
+    else
+        settings = mapping.settings;
+    return group.pixels.map((idx) => {
+        return type_info.mapPoint(settings, idx);
+    });
+}
+
+export function convertPointCoords(map_type, coord_type, points) {
+    const coord_info = coordInfo(map_type, coord_type);
+    const coord_spec = coord_info.coords;
+
+    const dim = coord_spec.length;
+
+    const converted = points.map(coord_info.convertCoords);
+    const converted_arr = converted.map((pt) => pt.toArray());
+
+    // Find the largest-valued normalized coordinate along any axis
+    let extent = 0;
+    converted_arr.forEach((pt) => {
+        for (let i = 0; i < dim; i++) {
+            if (coord_spec[i].normalized) {
+                if (pt[i] > extent)
+                    extent = pt[i];
+                else if (-pt[i] > extent)
+                    extent = -pt[i];
+            }
+        }
+    });
+
+    const norm_factor = (extent != 0) ? 1 / extent : 1;
+    return converted.map((pt) => {
+        const norm_pt = pt.toArray();
+        for (let i = 0; i < dim; i++) {
+            if (coord_spec[i].normalized) {
+                norm_pt[i] *= norm_factor;
+            }
+        }
+        return pt.fromArray(norm_pt);
+    });
+}

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import Units from 'chl/units';
 import { currentModel } from 'chl/init';
 
 function projectPoint(plane, idx) {
@@ -14,18 +15,23 @@ function projectPoint(plane, idx) {
 export const coord_types = {
     cartesian2d: {
         name: '2D Cartesian',
-        norm_coords: [true, true],
+        coords: [
+            {normalized: true, name: 'x', unit: Units.Distance},
+            {normalized: true, name: 'y', unit: Units.Distance}
+        ],
         precompute: getProjectedAxes,
-        mapPoint(settings, idx) {
-            return projectPoint(settings, idx);
-        }
+        mapPoint: projectPoint,
+        convertCoords: (point) => point,
     },
     polar2d: {
         name: '2D Polar',
-        norm_coords: [true, false],
+        coords: [
+            {normalized: true, name: 'r', unit: Units.Percentage},
+            {normalized: false, name: 'theta', unit: Units.Angle}
+        ],
         precompute: getProjectedAxes,
-        mapPoint(settings, idx) {
-            let point = projectPoint(settings, idx);
+        mapPoint: projectPoint,
+        convertCoords(point) {
             // map from x,y -> r, theta
             return new THREE.Vector2(point.length(), point.angle());
         }
@@ -72,7 +78,7 @@ export function getProjectedAxes(settings) {
     plane_normal.applyQuaternion(quat);
 
     const yaxis = up.applyQuaternion(quat);
-    yaxis.applyAxisAngle(plane_normal, origin.angle);
+    yaxis.applyAxisAngle(plane_normal, settings.rotation);
     yaxis.normalize();
 
     const xaxis = plane_normal.clone().cross(yaxis);

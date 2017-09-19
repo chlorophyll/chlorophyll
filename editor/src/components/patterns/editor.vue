@@ -13,7 +13,7 @@
         </button>
         <label for="preview-map-list">Preview map</label>
         <span class="inputcombo">
-        <select id="preview-map-list">
+        <select id="preview-map-list" v-model="preview_mapping">
             <template v-for="mapping in mappings">
                 <option :value="mapping.id">{{ mapping.name }}</option>
             </template>
@@ -21,7 +21,7 @@
         </span>
     </div>
     <split-pane class="mainview" direction="horizontal" :initial-split="[210, null]">
-        <tree slot="first" :items="nodeList">
+        <tree slot="first" :items="node_list">
         <template scope="props">
             <div class="item"
                 draggable="true"
@@ -40,10 +40,12 @@
 </template>
 <script>
 import { mapGetters } from 'vuex';
+import { currentModel } from 'chl/init';
 import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graphcanvas';
 import register_nodes from 'chl/patterns/registry';
+import { runPattern } from 'chl/patterns';
 import GraphLib from 'chl/graphlib/graph';
 import store from 'chl/vue/store';
 
@@ -94,21 +96,41 @@ export default {
             const type = this.cur_pattern.mapping_type;
 
             return this.mapping_list.filter((map) => type == map.type);
-        }
+        },
     },
     data() {
         return {
+            time: 0,
             running: false,
-            previewMap: null,
-            nodeList: getNodeList(),
+            preview_mapping: null,
+            node_list: getNodeList(),
         };
     },
     methods: {
         toggleAnimation() {
             this.running = !this.running;
+            if (!this.running)
+                return;
+
+            currentModel.displayOnly = true;
+
+            let patternFrame = runPattern(this.cur_pattern, this.preview_mapping);
+
+            let animation = () => {
+                patternFrame(this.time);
+                this.time += 1;
+                if (this.running)
+                    this.request_id = window.requestAnimationFrame(animation);
+            };
+
+            this.request_id = window.requestAnimationFrame(animation);
         },
         stopAnimation() {
             this.running = false;
+            currentModel.displayOnly = false;
+            if (this.request_id)
+                window.cancelAnimationFrame(this.request_id);
+            this.request_id = null;
         },
         dragNode(item, event) {
             event.dataTransfer.setData('text/plain', item.path);
