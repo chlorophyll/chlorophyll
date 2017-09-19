@@ -1,5 +1,5 @@
 <template>
-    <div></div>
+    <div @dragover="dragOver" @drop="drop" />
 </template>
 <script>
 import GraphCanvas from 'chl/graphlib/canvas';
@@ -7,7 +7,7 @@ import GraphCanvas from 'chl/graphlib/canvas';
 export default {
     name: 'graph-canvas',
     props: {
-        graph: Object,
+        graph: { type: Object, default: null },
     },
     data() {
         return {
@@ -25,6 +25,19 @@ export default {
             if (!this.canvas)
                 return;
             this.canvas.setGraph(this.graph);
+        }
+    },
+    methods: {
+        dragOver(event) {
+            if (this.graph !== null)
+                event.preventDefault();
+        },
+        drop(event) {
+            if (this.graph === null)
+                return;
+
+            let path = event.dataTransfer.getData('text');
+            this.canvas.dropNodeAt(path, event.clientX, event.clientY);
         }
     }
 };

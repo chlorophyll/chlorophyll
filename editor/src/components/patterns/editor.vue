@@ -26,7 +26,7 @@
             <div class="item"
                 draggable="true"
                 v-if="props.leaf"
-                @dragstart="dragNode(props.item)">
+                @dragstart="dragNode(props.item, $event)">
                 {{ props.item.label }}
             </div>
             <div v-else class="item">
@@ -110,9 +110,10 @@ export default {
         stopAnimation() {
             this.running = false;
         },
-        dragNode(node) {
-            console.log(node);
-        }
+        dragNode(item, event) {
+            event.dataTransfer.setData('text/plain', item.path);
+            event.dataTransfer.dragEffect = 'link';
+        },
     }
 };
 </script>
