@@ -47,7 +47,7 @@ import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graphcanvas';
 import register_nodes from 'chl/patterns/registry';
 import { runPattern } from 'chl/patterns';
-import GraphLib from 'chl/graphlib/graph';
+import GraphLib from 'chl/graphlib';
 import store from 'chl/vue/store';
 
 function getNodeList() {

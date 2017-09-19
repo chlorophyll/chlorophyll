@@ -1,4 +1,4 @@
-import { GraphLib, Graph } from 'chl/graphlib/graph';
+import GraphLib, { Graph } from 'chl/graphlib';
 import register_nodes from 'chl/patterns/registry';
 import schemas from 'chl/schemas';
 

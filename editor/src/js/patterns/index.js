@@ -3,7 +3,7 @@ import Vue from 'vue';
 import Util from 'chl/util';
 import Const from 'chl/const';
 
-import GraphLib, { Graph } from 'chl/graphlib/graph';
+import GraphLib, { Graph } from 'chl/graphlib';
 import { getMappedPoints, convertPointCoords } from 'chl/mapping';
 import { currentModel } from 'chl/init';
 import { CRGB } from 'chl/fastled/color';

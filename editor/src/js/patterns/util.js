@@ -1,9 +1,5 @@
-import { GraphLib, GraphNode } from 'chl/graphlib/graph';
+import GraphLib, { GraphNode } from 'chl/graphlib';
 import Units from 'chl/units';
-
-import * as Transform from 'chl/mapping/transform';
-import * as Projection from 'chl/mapping/projection';
-
 
 let node_types = [];
 

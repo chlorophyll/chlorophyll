@@ -1,4 +1,4 @@
-import { GraphLib, Graph } from 'chl/graphlib/graph';
+import GraphLib, { Graph } from 'chl/graphlib';
 
 import schemas from 'chl/schemas';
 

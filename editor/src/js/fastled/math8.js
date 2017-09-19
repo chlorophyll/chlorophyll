@@ -1,4 +1,4 @@
-import { GraphLib, GraphNode } from 'chl/graphlib/graph';
+import GraphLib, { GraphNode } from 'chl/graphlib';
 import FastLED from './fastled';
 
 export let Math8 = {};
