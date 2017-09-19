@@ -38,6 +38,9 @@ export default {
 
             let path = event.dataTransfer.getData('text');
             this.canvas.dropNodeAt(path, event.clientX, event.clientY);
+        },
+        autolayout() {
+            this.canvas.autolayout();
         }
     }
 };

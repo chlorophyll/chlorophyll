@@ -19,6 +19,7 @@
             </template>
         </select>
         </span>
+        <button @click="autolayout">Autolayout</button>
     </div>
     <split-pane class="mainview" direction="horizontal" :initial-split="[210, null]">
         <tree slot="first" :items="node_list">
@@ -34,7 +35,7 @@
             </div>
         </template>
         </tree>
-        <graph-canvas slot="second" :graph="cur_graph"/>
+        <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
     </split-pane>
     </div>
 </template>
@@ -136,6 +137,9 @@ export default {
             event.dataTransfer.setData('text/plain', item.path);
             event.dataTransfer.dragEffect = 'link';
         },
+        autolayout() {
+            this.$refs.canvas.autolayout();
+        }
     }
 };
 </script>
