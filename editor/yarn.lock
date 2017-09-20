@@ -4257,9 +4257,9 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.3.6"
 
-keyboardjs@^2.3.3:
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/keyboardjs/-/keyboardjs-2.3.3.tgz#57527a4905dce72dea838ef5d8b166bf9c99bd82"
+keyboardjs@^2.3.4:
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/keyboardjs/-/keyboardjs-2.3.4.tgz#f01f86ab4097cd140dd759e96364a31362f1baf6"
 
 kind-of@^2.0.1:
   version "2.0.1"
