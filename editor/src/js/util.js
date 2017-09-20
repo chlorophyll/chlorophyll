@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+let _scratchCanvas = document.createElement('canvas').getContext('2d');
+
 let Util = {
     clone: function(obj) {
         // Handle the 3 simple types, and null or undefined
@@ -201,6 +203,11 @@ let Util = {
         }
         return candidate;
     },
+    textWidth: function(text, font) {
+        _scratchCanvas.font = font;
+        return _scratchCanvas.measureText(text).width;
+    }
+
 };
 
 Util.JSON = {

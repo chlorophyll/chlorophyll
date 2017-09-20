@@ -4,6 +4,7 @@ import Units from 'chl/units';
 
 import OscillatorPlotter from './plotter';
 import Frequency from './util';
+import Vue from 'vue';
 
 let node_types = [];
 
@@ -16,8 +17,7 @@ function make_oscillator(name, waveform) {
                 GraphNode.input('amplitude', 'range'),
                 GraphNode.input('phase', Units.Percentage),
             ];
-            let frequency = new Frequency();
-            frequency.hz = 1;
+            let frequency = new Frequency(1);
 
             const properties = {
                 frequency,

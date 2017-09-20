@@ -20,6 +20,7 @@
         </select>
         </span>
         <button @click="autolayout">Autolayout</button>
+        <button @click="resetZoom">Reset zoom</button>
     </div>
     <split-pane class="mainview" direction="horizontal" :initial-split="[210, null]">
         <tree slot="first" :items="node_list">
@@ -139,6 +140,9 @@ export default {
         },
         autolayout() {
             this.$refs.canvas.autolayout();
+        },
+        resetZoom() {
+            this.$refs.canvas.resetZoom();
         }
     }
 };

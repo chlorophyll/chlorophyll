@@ -186,6 +186,4 @@ store.registerModule('viewport', {
     },
 });
 
-console.log(store);
-
 export let activeScreen = () => store.getters['viewport/activeScreen'];

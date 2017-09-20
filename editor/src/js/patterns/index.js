@@ -44,10 +44,7 @@ store.registerModule('pattern', {
                 },
             };
 
-            console.log(pattern);
-
             Vue.set(state.patterns, pattern.id, pattern);
-            console.log(state);
             if (state.cur_pattern_id === null) {
                 state.cur_pattern_id = pattern.id;
             }
@@ -92,5 +89,5 @@ export function runPattern(pattern, mapping) {
         currentModel.updateColors();
     }
 
-    return computePatternFrame();
+    return computePatternFrame;
 };

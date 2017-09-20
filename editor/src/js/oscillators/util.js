@@ -1,58 +1,46 @@
 import Util from 'chl/util';
 
-export default function Frequency() {
-    let frequency = 1; /* in hz internally */
+export default class Frequency {
+    constructor(hz) {
+        this.frequency = hz;
+    }
 
-    let curUnits = 'hz';
+    serialize() {
+        return this.frequency;
+    }
 
-    Object.defineProperty(this, 'hz', {
-        get: function() { return frequency; },
-        set: function(v) { frequency = v; },
-        enumerable: true
-    });
+    get bpm() {
+        return this.frequency * 60;
+    }
 
-    Object.defineProperty(this, 'bpm', {
-        get: function() { return frequency * 60; },
-        set: function(v) { frequency = v/60; },
-        enumerable: true
-    });
+    set bpm(val) {
+        this.frequency = val/60;
+    }
 
-    Object.defineProperty(this, 'sec', {
-        get: function() { return 1/frequency; },
-        set: function(v) { frequency = 1/v; },
-        enumerable: true
-    });
+    get sec() {
+        return 1 / this.frequency;
+    }
 
-    this.toString = function() {
-        return this[curUnits] + ' ' + curUnits;
-    };
+    set sec(val) {
+        this.frequency = 1 / val;
+    }
 
-    this.setDisplayUnits = function(units) {
-        curUnits = units;
-    };
+    get hz() {
+        return this.frequency;
+    }
 
-    this.quantity = function() {
-        return {number: this[curUnits], units: curUnits};
-    };
+    set hz(val) {
+        this.frequency = val;
 
-    this.units = ['hz', 'bpm', 'sec'];
+    }
 
-    this.clone = function() {
-        let f = new Frequency();
-        f.hz = frequency;
-        f.setDisplayUnits(curUnits);
-        return f;
-    };
+    static deserialize(hz) {
+        return new Frequency(hz);
+    }
 
-    this.serialize = function() {
-        return frequency;
-    };
-
-    this.constructor.deserialize = function(freq) {
-        let f = new Frequency();
-        f.hz = freq;
-        return f;
-    };
-}
+    toString() {
+        return `${this.hz} hz`;
+    }
+};
 
 Util.JSON.addType('Frequency', Frequency);
