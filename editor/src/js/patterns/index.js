@@ -8,7 +8,7 @@ import { getMappedPoints, convertPointCoords } from 'chl/mapping';
 import { currentModel } from 'chl/init';
 import { CRGB } from 'chl/fastled/color';
 
-import store, { newgid } from 'chl/vue/store';
+import store from 'chl/vue/store';
 
 store.registerModule('pattern', {
     namespaced: true,
