@@ -4,7 +4,6 @@ import Units from 'chl/units';
 
 import OscillatorPlotter from './plotter';
 import Frequency from './util';
-import Vue from 'vue';
 
 let node_types = [];
 

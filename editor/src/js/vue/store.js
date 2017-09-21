@@ -41,7 +41,6 @@ const store = new Vuex.Store({
          * transition easier. They should be gradually replaced with
          * finer-grained objects.
          */
-        patternManager: {},
         next_guid: 0
     },
     mutations: {

@@ -8,7 +8,6 @@ import { remote } from 'electron';
 import Hotkey from 'chl/keybindings';
 import Model from 'chl/model';
 import { renderer, scene, activeScreen } from 'chl/viewport';
-import { worldState } from 'chl/worldstate';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
 import 'chl/patches';
 import Const from 'chl/const';
@@ -137,14 +136,14 @@ function initMenu() {
                     label: 'Undo',
                     accelerator: 'CommandOrControl+Z',
                     click() {
-                        worldState.undo();
+                        //todo undo
                     }
                 },
                 {
                     label: 'Redo',
                     accelerator: 'ComandOrControl+Shift+Z',
                     click() {
-                        worldState.redo();
+                        //todo redo
                     }
                 },
                 { type: 'separator' },
@@ -178,11 +177,7 @@ function Chlorophyll() {
 
     function initModelFromJson(json) {
         let model = new Model(json);
-
-        worldState.init({});
-
         currentModel = model;
-
         return model;
     }
 
