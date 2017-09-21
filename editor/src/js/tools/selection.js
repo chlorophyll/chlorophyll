@@ -4,7 +4,6 @@ import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
 import Util from 'chl/util';
 import Chlorophyll from 'chl/init';
-import LiteGUI from 'chl/litegui';
 
 import store from 'chl/vue/store';
 
@@ -326,7 +325,7 @@ export function PlaneSelection(viewport, model) {
             let dist = Util.distanceToLine(points[2], line, false);
 
             if (dist < Chlorophyll.selectionThreshold) {
-                LiteGUI.showMessage('Points must not be collinear');
+                console.error('Points must not be collinear');
                 points = [];
                 self.cancelSelection();
                 return;

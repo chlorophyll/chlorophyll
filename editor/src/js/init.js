@@ -11,7 +11,6 @@ import { renderer, scene, activeScreen } from 'chl/viewport';
 import { worldState } from 'chl/worldstate';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
 import 'chl/patches';
-import 'chl/widgets/litegui-extensions';
 import Const from 'chl/const';
 
 import 'chl/patterns';
