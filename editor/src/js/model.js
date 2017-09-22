@@ -2,6 +2,16 @@ import Immutable from 'immutable';
 import * as THREE from 'three';
 import 'three-examples/Octree';
 
+export let currentModel = null;
+
+
+export function initModelFromJson(json) {
+    let model = new Model(json);
+    currentModel = model;
+    return model;
+}
+
+
 export function Overlay(model, overlay_color) {
     this.priority = 0;
     this.visible = true;

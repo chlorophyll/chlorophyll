@@ -30,7 +30,7 @@
 <script>
 import { mapState } from 'vuex';
 import store, { newgid } from 'chl/vue/store';
-import { currentModel } from 'chl/init';
+import { currentModel } from 'chl/model';
 import { mappingUtilsMixin } from 'chl/mapping';
 
 import MappingBrowser from '@/components/mapping/browser';

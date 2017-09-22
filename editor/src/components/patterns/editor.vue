@@ -42,7 +42,7 @@
 </template>
 <script>
 import { mapGetters } from 'vuex';
-import { currentModel } from 'chl/init';
+import { currentModel } from 'chl/model';
 import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graphcanvas';

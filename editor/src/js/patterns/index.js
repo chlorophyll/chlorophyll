@@ -5,7 +5,7 @@ import Const from 'chl/const';
 
 import GraphLib, { Graph } from 'chl/graphlib';
 import { getMappedPoints, convertPointCoords } from 'chl/mapping';
-import { currentModel } from 'chl/init';
+import { currentModel } from 'chl/model';
 import { CRGB } from 'chl/fastled/color';
 
 import store from 'chl/vue/store';

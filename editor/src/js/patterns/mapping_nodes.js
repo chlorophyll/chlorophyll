@@ -43,7 +43,7 @@ function make_nodes(mapping_name, coord_types) {
 }
 
 export default function register_mapping_nodes() {
-    for (name in mappingTypes) {
+    for (let name in mappingTypes) {
         let coord_types = mappingTypes[name].coord_types;
         GraphLib.registerNodeTypes(make_nodes(name, coord_types));
     }

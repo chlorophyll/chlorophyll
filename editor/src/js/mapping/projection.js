@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import Units from 'chl/units';
-import { currentModel } from 'chl/init';
+import { currentModel } from 'chl/model';
 
 function projectPoint(plane, idx) {
     let pos = currentModel.getPosition(idx);

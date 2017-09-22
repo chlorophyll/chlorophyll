@@ -6,7 +6,7 @@ import { remote } from 'electron';
 
 // Chlorophyll modules
 import Hotkey from 'chl/keybindings';
-import Model from 'chl/model';
+import { initModelFromJson } from 'chl/model';
 import { renderer, scene, activeScreen } from 'chl/viewport';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
 import 'chl/patches';
@@ -21,11 +21,9 @@ import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 const { app, Menu } = remote;
 
 // Chlorophyll UI manager objects
-let currentModel;
 
 export {
     animManager,
-    currentModel
 };
 
 
@@ -175,11 +173,6 @@ function Chlorophyll() {
     this.backPlane = null;
     this.selectionThreshold = 5; // TODO track in selection tools
 
-    function initModelFromJson(json) {
-        let model = new Model(json);
-        currentModel = model;
-        return model;
-    }
 
     this.init = function() {
         let model = initModelFromJson(chrysanthemum);

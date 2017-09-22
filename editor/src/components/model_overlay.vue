@@ -4,7 +4,7 @@
 <script>
 import { Color } from 'three';
 import Immutable from 'immutable';
-import { currentModel } from 'chl/init';
+import { currentModel } from 'chl/model';
 
 /*
  * Thin wrapper around model Overlays, to allow them to react properly to

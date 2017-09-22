@@ -1,4 +1,4 @@
-import { currentModel } from 'chl/init';
+import { currentModel } from 'chl/model';
 import Units from 'chl/units';
 import * as THREE from 'three';
 
