@@ -221,8 +221,6 @@ export class Graph {
                 this._notifyDisconnect(prev_edge);
             return edge;
         } catch (e) {
-            console.log('beep...');
-            console.log(e);
             // a cycle was created
             this.edges_by_src = old_src;
             this.edges_by_dst = old_dst;
@@ -246,8 +244,8 @@ export class Graph {
     }
 
     disconnect(edge) {
-        _removeEdge(edge);
-        _notifyDisconnect(edge);
+        this._removeEdge(edge);
+        this._notifyDisconnect(edge);
     }
 
     getNodeByInput(dst, dst_slot) {
@@ -333,6 +331,27 @@ export class Graph {
 
     forEachEdge(f) {
         return this.forEachNode((node) => this.forEachEdgeFromNode(node, f));
+    }
+
+    save() {
+        const extract = ({name, type}) => ({name, type});
+        const global_inputs = Array.from(this.global_inputs.map(extract).values());
+        const global_outputs = Array.from(this.global_outputs.map(extract).values());
+
+        let edges = [];
+        this.forEachEdge((edge) => edges.push({...edge}));
+
+        let nodes = [];
+        this.forEachNode((node) => nodes.push(node.save()));
+
+        const data = {
+            global_inputs,
+            global_outputs,
+            edges,
+            nodes,
+        };
+
+        return Object.freeze(data);
     }
 }
 
@@ -528,34 +547,17 @@ export class GraphNode {
             this.outgoing_data[i] = null;
     }
 
-    snapshot() {
-        /*
-        let input_settings = this.inputs.map(function(input) {
-            return {autoconvert: input.autoconvert};
-        });
-        let data = {
-            pos: this.pos,
-            defaults: Util.JSON.normalized(this.properties),
-            input_settings: input_settings,
-            type: this.type,
+    save() {
+        const data = {
             id: this.id,
-            title: this.title,
+            pos: [...this.vm.pos],
+            title: this.vm.title,
+            type: this.path,
+            input_settings: this.vm.inputs.map(({settings}) => ({...settings})),
+            output_settings: this.vm.outputs.map(({settings})=> ({...settings})),
+            defaults: Util.JSON.normalized(this.vm.defaults),
         };
-        return Immutable.fromJS(data);
-        */
-    }
 
-    restore(snapshot) {
-        /*
-        let self = this;
-        this.pos = snapshot.get('pos').toJS();
-        this.properties = Util.JSON.denormalized(snapshot.get('defaults').toJS());
-        snapshot.get('input_settings').forEach(function(val, i) {
-            self.inputs[i].autoconvert = val.autoconvert;
-        });
-        this.type = snapshot.get('type');
-        this.id = snapshot.get('id');
-        this.title = snapshot.get('title');
-        */
+        return Object.freeze(data);
     }
 }

@@ -1,30 +1,43 @@
-import GraphLib, { Graph } from 'chl/graphlib';
+import GraphLib, { Graph, GraphNode } from 'chl/graphlib';
 
 import schemas from 'chl/schemas';
 
-beforeAll(() => {
+class InputNode extends GraphNode {
+    constructor(options) {
+        const inputs = [GraphNode.input('input', 'string')];
+        const outputs = [];
 
-    function InputNode() {
-        this.addInput('input');
+        super(options, inputs, outputs);
+    }
+}
+
+class OutputNode extends GraphNode {
+    constructor(options) {
+        const inputs = [];
+        const outputs = [GraphNode.output('output', 'string')];
+
+        super(options, inputs, outputs);
     }
 
-    function OutputNode() {
-        this.addOutput('output');
-    }
-
-    OutputNode.prototype.onExecute = function() {
+    onExecute() {
         this.setOutputData(0, 'beep');
     }
+}
 
-    function InputOutputNode() {
-        this.addInput('input');
-        this.addOutput('output');
+class InputOutputNode extends GraphNode {
+    constructor(options) {
+        const inputs = [GraphNode.input('input', 'string')];
+        const outputs = [GraphNode.output('output', 'string')];
+
+        super(options, inputs, outputs);
     }
 
-    InputOutputNode.prototype.onExecute = function() {
+    onExecute() {
         this.setOutputData(0, this.getInputData(0));
     }
+}
 
+beforeAll(() => {
     GraphLib.registerNodeType('/output', OutputNode);
     GraphLib.registerNodeType('/input', InputNode);
     GraphLib.registerNodeType('/input-output', InputOutputNode);
@@ -121,12 +134,24 @@ describe('Graph', () => {
         expect(disconnectEvent).toHaveBeenCalled();
     });
 
-    it('should have snapshots that conform to the node schema', () => {
+    it('should not allow cycles', () => {
+        let graph = new Graph();
+
+        let a = graph.addNode('/input-output');
+        let b = graph.addNode('/input-output');
+
+        let edge = graph.connect(a, 0, b, 0);
+
+        expect(graph.connect(b, 0, a, 0)).toEqual(false);
+    });
+
+    it('should have node snapshots that conform to the node schema', () => {
         let graph = new Graph();
         let node = graph.addNode('/input-output');
 
         let validateNode = schemas.getSchema('chlorophyll#/definitions/objects/node');
-        expect(validateNode(node.snapshot().toJS())).toEqual(true);
+        let result = validateNode(node.save());
+        expect(result).toEqual(true);
     });
 
     it('should have snapshots that conform to the graph schema for simple graphs', () => {
@@ -136,7 +161,8 @@ describe('Graph', () => {
         graph.connect(a, 0, b, 0);
 
         let validateGraph = schemas.getSchema('chlorophyll#/definitions/objects/graph');
-        expect(validateGraph(graph.snapshot().toJS())).toEqual(true);
+        let result = validateGraph(graph.save());
+        expect(result).toEqual(true);
 
     });
 });

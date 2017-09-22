@@ -235,10 +235,19 @@
                             "type": "object"
                         }
                     },
+                    "output_settings": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
                     "defaults": {
                         "type": "object",
                         "additionalProperties": {
-                            "$ref": "#/definitions/types/unitValue"
+                            "anyOf": [
+                                { "$ref": "#/definitions/types/unitValue" },
+                                { "type": "null" }
+                            ]
                         }
                     }
                 },
