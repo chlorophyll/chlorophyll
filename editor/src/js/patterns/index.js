@@ -28,7 +28,7 @@ store.registerModule('pattern', {
             pixel_stage.addGlobalInput('color');
             pixel_stage.addGlobalOutput('outcolor');
 
-            pixel_stage.addNode(`mapping/${mapping_type}/${coord_type}`, {title: 'input'});
+            let input_node = pixel_stage.addNode(`mapping/${mapping_type}/${coord_type}`, {title: 'input'});
             pixel_stage.addNode('lowlevel/output/color', {
                 title: 'output',
                 pos: [300, 100]
@@ -39,6 +39,7 @@ store.registerModule('pattern', {
                 name,
                 mapping_type,
                 coord_type, // hmm
+                input_node: input_node.id,
                 stages: {
                     pixel: pixel_stage.id,
                 },
@@ -51,7 +52,25 @@ store.registerModule('pattern', {
         },
         set_current(state, { id }) {
             state.cur_pattern_id = id;
+        },
+
+        set_coord_type(state, { id, mapping_type, coord_type }) {
+            let pattern = state.patterns[id];
+            let graph = GraphLib.graphById(pattern.stages.pixel);
+
+            let old_input = graph.getNodeById(pattern.input_node);
+            graph.removeNode(old_input);
+
+            let path = `mapping/${mapping_type}/${coord_type}`;
+            let input_node = graph.addNode(path, {title: 'input'});
+
+            pattern.input_node = input_node.id;
+            pattern.mapping_type = mapping_type;
+            pattern.coord_type = coord_type;
+
         }
+
+
     },
 
     getters: {
