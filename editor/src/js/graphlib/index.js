@@ -104,9 +104,8 @@ export class Graph {
         const graph = this;
         const title = options.title || Ctor.title || path;
         const pos = options.pos || Const.Graph.DEFAULT_POSITION.concat();
-        const type = path;
 
-        let node = new Ctor({graph, id, title, pos, type});
+        let node = new Ctor({graph, id, title, pos, path});
 
         this.nodes = this.nodes.set(node.id, node);
 
@@ -187,8 +186,8 @@ export class Graph {
     }
 
     connect(src, src_slot, dst, dst_slot) {
-        let src_type = src.vm.outputs[src_slot].type;
-        let dst_type = dst.vm.inputs[dst_slot].type;
+        let src_type = src.output_info[src_slot].type;
+        let dst_type = dst.input_info[dst_slot].type;
 
         if (!this.validConnection(src_type, dst_type))
             return false;
@@ -216,8 +215,8 @@ export class Graph {
         try {
             this.toposort();
             this.emit('edge-added', { edge });
-            src.vm.outputs[src_slot].num_edges += 1;
-            dst.vm.inputs[dst_slot].num_edges += 1;
+            src.vm.outputs[src_slot].state.num_edges += 1;
+            dst.vm.inputs[dst_slot].state.num_edges += 1;
             if (prev_edge)
                 this._notifyDisconnect(prev_edge);
             return edge;
@@ -241,8 +240,8 @@ export class Graph {
     _notifyDisconnect(edge) {
         let src = this.getNodeById(edge.src_id);
         let dst = this.getNodeById(edge.dst_id);
-        src.vm.outputs[edge.src_slot].num_edges -= 1;
-        dst.vm.inputs[edge.dst_slot].num_edges -= 1;
+        src.vm.outputs[edge.src_slot].state.num_edges -= 1;
+        dst.vm.inputs[edge.dst_slot].state.num_edges -= 1;
         this.emit('edge-removed', { edge });
     }
 
@@ -345,12 +344,12 @@ const DEFAULT_CONFIG = {
     removable: true,
 };
 
-function makeNodeVue(graph, id, data) {
+function makeNodeVue(graph, node, data) {
     return new Vue({
         data,
         computed: {
             id() {
-                return id;
+                return node.id;
             },
             rows() {
                 const inslots = this.inputs.length;
@@ -386,18 +385,18 @@ function makeNodeVue(graph, id, data) {
                 return Math.max(this.rows, 1) * Const.Graph.NODE_SLOT_HEIGHT + 5;
             },
             slot_labels() {
-                let inputs = this.inputs.map((info) => {
-                    let text = info.label != null ? info.label : info.name;
-                    let val = this.defaults[info.name];
+                let inputs = this.inputs.map(({ settings }, slot) => {
+                    const name = node.input_info[slot].name;
+                    let text = settings.label !== null ? settings.label : name;
+                    const val = this.defaults[name];
                     if (val !== null) {
                         text += ` (${val})`;
                     }
                     return text;
                 });
 
-                let outputs = this.outputs.map(
-                    (info) => info.label != null ? info.label : info.name
-                );
+                let outputs = this.outputs.map(({ settings }, slot) =>
+                    settings.label !== null ? settings.label : node.output_info[slot].name);
                 return {inputs, outputs};
             },
         },
@@ -417,39 +416,53 @@ function makeNodeVue(graph, id, data) {
 }
 
 export class GraphNode {
+    // `state` is programmatically set stuff that should be reactive
+    // `settings` is user-controllable stuff that should be reactive
+    // other fields are not reactive
     static input(name, type) {
-        return {type, settings: {name, label: null, num_edges: 0, autoconvert: true}};
+        return {
+            name,
+            type,
+            state: {num_edges: 0},
+            settings: {label: null, autoconvert: true}
+        };
     }
 
     static output(name, type) {
-        return {type, settings: {name, label: null, num_edges: 0}};
+        return {
+            name,
+            type,
+            state: {num_edges: 0},
+            settings: {name, label: null}
+        };
     }
 
-    constructor({graph, id, title, pos, type},
+    constructor({graph, id, title, pos, path},
                 inputs, outputs,
                 {config = {}, properties = {}} = {}) {
 
         this.graph = graph;
         this.id = id;
+        this.path = path;
 
-        let input_settings = inputs.map(({ settings }) => settings);
-        let output_settings = outputs.map(({ settings }) => settings);
+        let input_vue = inputs.map(({ state, settings }) => ({state, settings}));
+        let output_vue = outputs.map(({ state, settings }) => ({state, settings}));
 
-        this.input_types = inputs.map((port) => port.type);
-        this.output_types = outputs.map((port) => port.type);
+        this.input_info = inputs.map(({name, type}) => ({name, type}));
+        this.output_info = outputs.map(({name, type}) => ({name, type}));
 
         let defaults = {};
 
-        for (const { name } of input_settings) {
+        for (const { name } of inputs) {
             defaults[name] = properties[name] || null;
         }
         let cfg = {...DEFAULT_CONFIG, ...config};
 
-        this.vm = makeNodeVue(graph, id, {
+        this.vm = makeNodeVue(graph, this, {
                 title,
                 pos,
-                inputs: input_settings,
-                outputs: output_settings,
+                inputs: input_vue,
+                outputs: output_vue,
                 defaults,
                 config: cfg
         });
@@ -458,7 +471,7 @@ export class GraphNode {
     }
 
     defaultForSlot(slot) {
-        const { name } = this.vm.inputs[slot];
+        const { name } = this.input_info[slot];
         let out = this.vm.defaults[name];
         if (out === null)
             out = undefined;
@@ -466,7 +479,7 @@ export class GraphNode {
     }
 
     getOutgoingData(slot) {
-        const type = this.output_types[slot];
+        const { type } = this.output_info[slot];
 
         let outgoing = this.outgoing_data[slot];
 
@@ -479,8 +492,8 @@ export class GraphNode {
     getInputData(slot) {
         let src = this.graph.getNodeByInput(this, slot);
 
-        const { autoconvert } = this.vm.inputs[slot];
-        const type = this.input_types[slot];
+        const { autoconvert } = this.vm.inputs[slot].settings;
+        const { type } = this.input_info[slot];
 
         let data = undefined;
         if (src) {

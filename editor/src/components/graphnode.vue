@@ -133,7 +133,7 @@ export default {
         },
 
         fill_colors() {
-            const get_color = (info) => info.num_edges > 0 ? '#7f7' : '#aaa';
+            const get_color = ({state}) => state.num_edges > 0 ? '#7f7' : '#aaa';
             const inputs = this.node.inputs.map(get_color);
             const outputs = this.node.outputs.map(get_color);
 
