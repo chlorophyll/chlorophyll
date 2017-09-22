@@ -10,21 +10,16 @@
         <template v-for="edge in edges">
             <graph-edge :graph="graph" :edge="edge" />
         </template>
-        <path v-if="cur_src" :d="cur_src.drag_path" stroke="#aaa" fill="transparent" />
+        <path class="connecting-edge" v-if="cur_src" :d="cur_src.drag_path" stroke="#aaa" fill="transparent" />
         <template v-for="node in nodes">
             <graph-node :node="node"
+				  		:cur-src="cur_src"
                         @dst-hover-start="onDstHover"
                         @dst-hover-end="cur_dst = null"
                         @dst-selected="onDstSelected"
                         @src-selected="onSrcSelected"
                         @remove-clicked="onRemoveClicked" />
         </template>
-        <circle v-if="cur_src"
-                :cx="cur_src_pos[0]"
-                :cy="cur_src_pos[1]"
-                r="4"
-                stroke="black"
-                fill="#e8ff75" />
         </g>
     </svg>
     </div>
@@ -159,8 +154,7 @@ export default {
         },
 
         onDstHover(node, slot) {
-            if (!this.cur_dst || this.cur_dst.node != node || this.cur_dst.slot != slot)
-                this.cur_dst = { node, slot };
+			this.cur_dst = { node, slot };
         },
 
         onSrcSelected(node, slot) {
@@ -248,5 +242,9 @@ div {
 
 svg {
     cursor: default;
+}
+
+.connecting-edge {
+	pointer-events: none;
 }
 </style>

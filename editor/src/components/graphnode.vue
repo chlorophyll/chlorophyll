@@ -1,5 +1,5 @@
 <template>
-    <g class="node" :transform="position" @mousedown.stop="startDrag">
+    <g class="node" :class="{connecting: curSrc !== null}" :transform="position" @mousedown.stop="startDrag">
         <g>
         <!-- main box -->
         <rect x="0"
@@ -48,10 +48,13 @@
         </g>
         <!-- input ports -->
         <template v-for="(input, slot) in node.inputs">
+            <g :class="[fill_class.inputs[slot]]" class="input-target"
+               @mouseenter="mouseEnter" @mouseleave="mouseLeave"
+            >
             <circle :cx="node.connectionX(slot, true)"
                     :cy="node.connectionY(slot, true)"
                     r="4"
-                    :fill="fill_colors.inputs[slot]"
+                    class="input port"
                     stroke="black" />
             <circle :cx="node.connectionX(slot, true)"
                     :cy="node.connectionY(slot, true)"
@@ -62,12 +65,14 @@
                     @mouseleave="$emit('dst-hover-end', node, slot)"
                     @click="$emit('dst-selected', node, slot)"
                     />
+            </g>
         </template>
         <template v-for="(output, slot) in node.outputs">
+            <g :class="[fill_class.outputs[slot]]" class="output-target">
             <circle :cx="node.connectionX(slot, false)"
                     :cy="node.connectionY(slot, false)"
                     r="4"
-                    :fill="fill_colors.outputs[slot]"
+                    class="output port"
                     stroke="black" />
             <circle :cx="node.connectionX(slot, false)"
                     :cy="node.connectionY(slot, false)"
@@ -76,6 +81,7 @@
                     fill="transparent"
                     @mousedown.capture.stop="$emit('src-selected', node, slot)"
                     />
+            </g>
         </template>
         </g>
 
@@ -112,7 +118,7 @@ import Const from 'chl/const';
 
 export default {
     name: 'graph-node',
-    props: ['node'],
+    props: ['node', 'curSrc'],
     data() {
         return {
             dragstart: null,
@@ -132,10 +138,14 @@ export default {
             return `translate(${this.node.pos[0]}, ${this.node.pos[1]})`;
         },
 
-        fill_colors() {
-            const get_color = ({state}) => state.num_edges > 0 ? '#7f7' : '#aaa';
-            const inputs = this.node.inputs.map(get_color);
-            const outputs = this.node.outputs.map(get_color);
+        fill_class() {
+            const cls = ({state}) => state.num_edges > 0 ? 'connected' : 'unconnected';
+            const inputs = this.node.inputs.map(cls);
+            const outputs = this.node.outputs.map(cls);
+
+            if (this.curSrc !== null && this.curSrc.node == this.node) {
+                outputs[this.curSrc.slot] = 'cur-src';
+            }
 
             return {inputs, outputs};
         },
@@ -168,16 +178,15 @@ export default {
             this.$parent.$el.removeEventListener('mouseup', this.endDrag);
         },
 
-        dstHoverStart(slot) {
-            this.$emit('input-hover-start', this, slot);
-        },
-
-        dstHoverEnd(slot) {
-            this.$emit('input-hover-end', this, slot);
-        },
-
         dstSelected(slot) {
             this.$emit('output-selected', this, slot);
+        },
+
+        mouseEnter(event) {
+            event.target.classList.add('hover');
+        },
+        mouseLeave(event) {
+            event.target.classList.remove('hover');
         }
 
 
@@ -203,4 +212,21 @@ text {
 .clickable {
     cursor: pointer;
 }
+
+.connected .port {
+    fill: #7f7;
+}
+
+.unconnected .port {
+    fill: #aaa;
+}
+
+.connecting .cur-src .port {
+    fill: #e8ff75;
+}
+
+.connecting .input-target.hover circle.port {
+    fill: #e8ff75 !important;
+}
+
 </style>
