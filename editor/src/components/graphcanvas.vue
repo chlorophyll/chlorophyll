@@ -99,6 +99,15 @@ export default {
             ];
             return this.cur_dst.node.canvasPos(slot_pos);
         },
+
+        bounds() {
+            return this.computeBounds(this.nodes.map((node) => ({
+                x: node.pos[0],
+                y: node.pos[1],
+                width: node.width,
+                height: node.height,
+            })));
+        }
     },
 
     watch: {
@@ -213,7 +222,7 @@ export default {
             let {x, y} = this.coords(event.pageX, event.pageY);
 
             x -= node.vm.width / 2;
-            y += Const.Graph.NODE_TITLE_HEIGHT/2;
+            y -= Const.Graph.NODE_TITLE_HEIGHT/2;
 
             node.setPosition(x, y);
         },
@@ -221,82 +230,122 @@ export default {
         onRemoveClicked(node) {
             this.graph.removeNode(node.id);
         },
-        zoomToFit(bounds, duration) {
-            const paddingPercent = 1.2;
+        zoomToBounds(bounds, duration) {
+            return new Promise((resolve, reject) => {
+                const paddingPercent = 0.2;
 
-            const fullWidth = this.$el.clientWidth,
-                  fullHeight = this.$el.clientHeight;
+                const fullWidth = this.$el.clientWidth,
+                    fullHeight = this.$el.clientHeight;
 
-            let { width, height } = bounds;
-            width *= paddingPercent;
-            height *= paddingPercent;
+                let { width, height, x, y } = bounds;
 
-            const midX = bounds.x + width / 2;
-            const midY = bounds.y + height / 2;
+                let widthPad = width * paddingPercent;
+                let heightPad = height * paddingPercent;
 
-            if (width == 0 || height == 0) return; // nothing to fit
+                width += widthPad;
+                height += heightPad;
+                x -= widthPad/2;
+                y -= heightPad/2;
 
-            const scale = 1 / Math.max(width / fullWidth, height / fullHeight);
-            const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
+                const midX = x + width / 2;
+                const midY = y + height / 2;
 
-            let transform = d3.zoomIdentity
-                .translate(translate[0], translate[1])
-                .scale(scale);
+                if (width == 0 || height == 0) return; // nothing to fit
 
-            d3.select(this.$el)
-              .transition()
-              .duration(duration)
-              .call(zoom.transform, transform);
+                const scale = (1 / Math.max(width / fullWidth, height / fullHeight));
+                const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
+
+                let transform = d3.zoomIdentity
+                    .translate(translate[0], translate[1])
+                    .scale(scale);
+
+                d3.select(this.$el)
+                    .transition()
+                    .duration(duration)
+                    .call(zoom.transform, transform)
+                    .on('end', resolve);
+            });
         },
 
         animateMove(node, endpos, duration) {
-            const interpolate = d3.interpolate(node.pos, endpos);
+            return new Promise((resolve, reject) => {
+                const interpolate = d3.interpolate([...node.pos], endpos);
 
-            let start_ts = null;
+                let start_ts = null;
 
-            const frame = (ts) => {
-                if (!start_ts) start_ts = ts;
+                const frame = (ts) => {
+                    if (!start_ts) start_ts = ts;
 
-                const progress = ts - start_ts;
-                const t = progress / duration;
+                    const progress = ts - start_ts;
+                    const t = progress / duration;
 
-                const te = d3.easeCubic(t);
+                    const te = d3.easeQuad(t);
 
-                const [x, y] = interpolate(te);
+                    const [x, y] = interpolate(te);
 
-                this.$set(node.pos, 0, x);
-                this.$set(node.pos, 1, y);
+                    this.$set(node.pos, 0, x);
+                    this.$set(node.pos, 1, y);
 
-                if (progress < duration) {
-                    window.requestAnimationFrame(frame);
-                }
+                    if (progress < duration) {
+                        window.requestAnimationFrame(frame);
+                    } else {
+                        resolve();
+                    }
+                };
+                window.requestAnimationFrame(frame);
+            });
+        },
+
+        computeBounds(nodelist) {
+            let min_x = null;
+            let min_y = null;
+            let max_x = null;
+            let max_y = null;
+
+            for (let node of nodelist) {
+                const {x: low_x, y: low_y, width, height} = node;
+                const high_x = low_x + width;
+                const high_y = low_y + height;
+
+                if (min_x === null || low_x <  min_x) min_x = low_x;
+                if (min_y === null || low_y <  min_y) min_y = low_y;
+                if (max_x === null || max_x < high_x) max_x = high_x;
+                if (max_y === null || max_y < high_y) max_y = high_y;
+
+            }
+
+            return {
+                x: min_x,
+                y: min_y,
+                width: (max_x - min_x),
+                height: (max_y - min_y)
             };
-            window.requestAnimationFrame(frame);
         },
 
         autolayout() {
             autolayout.layout(this.graph, (kgraph) => {
-                for (let knode of kgraph.children) {
-                    let node_id = parseInt(knode.id.slice(4));
-                    let node = this.nodeset[node_id];
-                    const endpos = [knode.x, knode.y];
-                    this.animateMove(node, endpos, 250);
-                }
-                const bounds = {
-                    width: kgraph.width,
-                    height: kgraph.height,
-                    x: 0,
-                    y: 0
-                };
-                window.setTimeout(() => this.zoomToFit(bounds, 250), 125);
+                let bounds = this.computeBounds(kgraph.children);
+
+                this.zoomToBounds(bounds, Const.Graph.ANIM_TIME).then(() => {
+                    kgraph.children.map((knode) => {
+                        let node_id = parseInt(knode.id.slice(4));
+                        let node = this.nodeset[node_id];
+                        const endpos = [knode.x, knode.y];
+                        return this.animateMove(node, endpos, Const.Graph.ANIM_TIME);
+                    });
+                });
             });
         },
 
         resetZoom() {
             d3.select(this.$el)
               .transition()
-              .duration(250)
+              .duration(Const.Graph.ANIM_TIME)
               .call(zoom.transform, d3.zoomIdentity);
+        },
+
+        zoomToFit() {
+            return this.zoomToBounds(this.bounds, Const.Graph.ANIM_TIME);
         }
     }
 };

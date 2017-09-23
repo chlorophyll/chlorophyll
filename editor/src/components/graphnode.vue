@@ -3,21 +3,21 @@
         <g>
         <!-- main box -->
         <rect x="0"
-              y="0"
+              :y="tHeight"
               :width="width"
-              :height="height"
+              :height="height-tHeight"
               :stroke="node.config.color"
               :fill="node.config.bgcolor" />
         <!-- titlebar -->
         <rect x="0"
-              :y="-tHeight"
+              y="0"
               :width="width"
               :height="tHeight"
               :stroke="node.config.color"
               :fill="node.config.color" />
         <!-- title box -->
         <rect x="3"
-              :y="-tHeight + 3"
+              y="3"
               :width="tHeight - 6"
               :height="tHeight - 6"
               :fill="node.config.boxcolor" />
@@ -25,7 +25,7 @@
         <!-- closebox -->
         <g v-if="node.config.removable"
            class="clickable"
-           :transform="`translate(${this.width-tHeight+4},${-tHeight+4})`"
+           :transform="`translate(${this.width-tHeight+4},4)`"
            @click="$emit('remove-clicked', node)">
 
         <rect x="0"
@@ -87,7 +87,7 @@
 
         <g>
         <!-- title text -->
-        <text x="16" :y="12-tHeight" class="title-text" fill="black">
+        <text x="16" :y="12" class="title-text" fill="black">
         {{ node.title }}
         </text>
         <!-- input text -->

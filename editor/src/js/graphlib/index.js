@@ -400,9 +400,12 @@ function makeNodeVue(graph, node, data) {
                 }
                 return width;
             },
+
             height() {
-                return Math.max(this.rows, 1) * Const.Graph.NODE_SLOT_HEIGHT + 5;
+                let body_height = Math.max(this.rows, 1) * Const.Graph.NODE_SLOT_HEIGHT + 5;
+                return (Const.Graph.NODE_TITLE_HEIGHT + body_height);
             },
+
             slot_labels() {
                 let inputs = this.inputs.map(({ settings }, slot) => {
                     const name = node.input_info[slot].name;
@@ -424,7 +427,7 @@ function makeNodeVue(graph, node, data) {
                 return is_input ? 0 : this.width;
             },
             connectionY(slot, is_input) {
-                 return 10 + slot * Const.Graph.NODE_SLOT_HEIGHT;
+                 return Const.Graph.NODE_TITLE_HEIGHT + 10 + slot * Const.Graph.NODE_SLOT_HEIGHT;
             },
 
             canvasPos(pos) {

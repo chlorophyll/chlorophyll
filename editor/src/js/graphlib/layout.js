@@ -8,10 +8,7 @@ export default function GraphAutoLayout() {
         'borderSpacing': 20,
         'edgeSpacingFactor': 0.2,
         'inLayerSpacingFactor': 2.0,
-        'nodePlace': 'BRANDES_KOEPF',
-        'nodeLayering': 'NETWORK_SIMPLEX',
         'edgeRouting': 'POLYLINE',
-        'crossMin': 'LAYER_SWEEP',
         'direction': 'RIGHT'
     };
 
