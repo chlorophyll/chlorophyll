@@ -13,7 +13,7 @@
         <path class="connecting-edge" v-if="cur_src" :d="cur_src.drag_path" stroke="#aaa" fill="transparent" />
         <template v-for="node in nodes">
             <graph-node :node="node"
-				  		:cur-src="cur_src"
+                        :cur-src="cur_src"
                         @dst-hover-start="onDstHover"
                         @dst-hover-end="cur_dst = null"
                         @dst-selected="onDstSelected"
@@ -157,7 +157,7 @@ export default {
         },
 
         onDstHover(node, slot) {
-			this.cur_dst = { node, slot };
+            this.cur_dst = { node, slot };
         },
 
         onSrcSelected(node, slot) {
@@ -317,6 +317,6 @@ svg {
 }
 
 .connecting-edge {
-	pointer-events: none;
+    pointer-events: none;
 }
 </style>

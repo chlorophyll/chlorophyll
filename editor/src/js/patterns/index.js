@@ -28,7 +28,9 @@ store.registerModule('pattern', {
             pixel_stage.addGlobalInput('color');
             pixel_stage.addGlobalOutput('outcolor');
 
-            let input_node = pixel_stage.addNode(`mapping/${mapping_type}/${coord_type}`, {title: 'input'});
+            let path = `mapping/${mapping_type}/${coord_type}`;
+            let input_node = pixel_stage.addNode(path, {title: 'input'});
+
             pixel_stage.addNode('lowlevel/output/color', {
                 title: 'output',
                 pos: [300, 100]
