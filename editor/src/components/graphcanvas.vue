@@ -36,6 +36,9 @@ import Const from 'chl/const';
 
 let zoom = d3.zoom();
 
+
+const autolayout = new GraphAutoLayout();
+
 export default {
     name: 'graph-canvas',
     components: { GraphNode, GraphEdge },
@@ -218,13 +221,82 @@ export default {
         onRemoveClicked(node) {
             this.graph.removeNode(node.id);
         },
+        zoomToFit(bounds, duration) {
+            const paddingPercent = 1.2;
+
+            const fullWidth = this.$el.clientWidth,
+                  fullHeight = this.$el.clientHeight;
+
+            let { width, height } = bounds;
+            width *= paddingPercent;
+            height *= paddingPercent;
+
+            const midX = bounds.x + width / 2;
+            const midY = bounds.y + height / 2;
+
+            if (width == 0 || height == 0) return; // nothing to fit
+
+            const scale = 1 / Math.max(width / fullWidth, height / fullHeight);
+            const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
+
+            let transform = d3.zoomIdentity
+                .translate(translate[0], translate[1])
+                .scale(scale);
+
+            d3.select(this.$el)
+              .transition()
+              .duration(duration)
+              .call(zoom.transform, transform);
+        },
+
+        animateMove(node, endpos, duration) {
+            const interpolate = d3.interpolate(node.pos, endpos);
+
+            let start_ts = null;
+
+            const frame = (ts) => {
+                if (!start_ts) start_ts = ts;
+
+                const progress = ts - start_ts;
+                const t = progress / duration;
+
+                const te = d3.easeCubic(t);
+
+                const [x, y] = interpolate(te);
+
+                this.$set(node.pos, 0, x);
+                this.$set(node.pos, 1, y);
+
+                if (progress < duration) {
+                    window.requestAnimationFrame(frame);
+                }
+            };
+            window.requestAnimationFrame(frame);
+        },
 
         autolayout() {
-            //todo
+            autolayout.layout(this.graph, (kgraph) => {
+                for (let knode of kgraph.children) {
+                    let node_id = parseInt(knode.id.slice(4));
+                    let node = this.nodeset[node_id];
+                    const endpos = [knode.x, knode.y];
+                    this.animateMove(node, endpos, 250);
+                }
+                const bounds = {
+                    width: kgraph.width,
+                    height: kgraph.height,
+                    x: 0,
+                    y: 0
+                };
+                window.setTimeout(() => this.zoomToFit(bounds, 250), 125);
+            });
         },
 
         resetZoom() {
-            d3.select(this.$el).transition().duration(250).call(zoom.transform, d3.zoomIdentity);
+            d3.select(this.$el)
+              .transition()
+              .duration(250)
+              .call(zoom.transform, d3.zoomIdentity);
         }
     }
 };

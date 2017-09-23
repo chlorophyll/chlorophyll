@@ -152,11 +152,11 @@ export default {
     },
     methods: {
         startDrag(event) {
-            let {pageX, pageY} = event;
+            const {x, y} = this.$parent.coords(event.pageX, event.pageY);
 
             this.dragstart = {
-                startPageX: pageX,
-                startPageY: pageY,
+                x,
+                y,
                 pos: this.node.pos.concat(),
             };
 
@@ -165,9 +165,11 @@ export default {
         },
 
         drag(event) {
-            let {pageX, pageY} = event;
-            let dX = pageX - this.dragstart.startPageX;
-            let dY = pageY - this.dragstart.startPageY;
+            const {x, y} = this.$parent.coords(event.pageX, event.pageY);
+
+            const dX = x - this.dragstart.x;
+            const dY = y - this.dragstart.y;
+
             this.$set(this.node.pos, 0, this.dragstart.pos[0] + dX);
             this.$set(this.node.pos, 1, this.dragstart.pos[1] + dY);
         },

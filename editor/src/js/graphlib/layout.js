@@ -15,10 +15,10 @@ export default function GraphAutoLayout() {
         'direction': 'RIGHT'
     };
 
-    this.layout = function(canvas, callback) {
+    this.layout = function(graph, callback) {
         callback = callback || console.log;
 
-        let kgraph = encodeAsKGraph(canvas);
+        let kgraph = encodeAsKGraph(graph);
 
         klay.layout({
             graph: kgraph,
@@ -27,9 +27,7 @@ export default function GraphAutoLayout() {
         });
     };
 
-    function encodeAsKGraph(canvas) {
-        let graph = canvas.graph;
-
+    function encodeAsKGraph(graph) {
         let portConstraints = 'FIXED_POS';
 
         let portProperties = {
@@ -41,33 +39,42 @@ export default function GraphAutoLayout() {
 
         let knodes = [];
 
-        graph.forEachNode(function(node, id) {
-            let elem = canvas.getNodeElement(node);
+        graph.forEachNode(function(node) {
             function make_port(is_input) {
                 return function(port, slot) {
-                    let [x, y] = elem.connectionPos(slot, true);
-                    let porttype = is_input ? 'input' : 'output';
-                    let label = `node${id}-${porttype}${slot}`;
+                    const x = node.vm.connectionX(slot, is_input);
+                    const y = node.vm.connectionY(slot, is_input);
+                    const porttype = is_input ? 'input' : 'output';
+                    const portSide = is_input ? 'WEST' : 'EAST';
+                    const id = `node${id}-${porttype}${slot}`;
+                    const { width, height } = portProperties;
                     return {
-                        id: label,
-                        width: portProperties.width,
-                        height: portProperties.height,
+                        id,
+                        width,
+                        height,
                         x: x,
-                        y: y
+                        y: y,
+                        properties: {
+                            'de.cau.cs.kieler.portSide': portSide
+                        }
                     };
                 };
             }
-            let inports = node.inputs.map(make_port(true));
-            let outports = node.outputs.map(make_port(false));
+
+            const ports = [
+                ...node.input_info.map(make_port(true)),
+                ...node.output_info.map(make_port(false)),
+            ];
+
+            let {width, height} = node.vm;
+            const id = `node${node.id}`;
 
             let knode = {
-                id: `node${id}`,
-                width: elem.width,
-                height: elem.height,
-                ports: inports.concat(outports),
-                properties: {
-                    'portConstraints': portConstraints
-                }
+                id,
+                width,
+                height,
+                ports,
+                properties: { portConstraints }
             };
             knodes.push(knode);
         });
