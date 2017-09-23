@@ -11,29 +11,35 @@ export function initModelFromJson(json) {
     return model;
 }
 
+const white = new THREE.Color(0xffffff);
+const black = new THREE.Color(0x000000);
 
-export function Overlay(model, overlay_color) {
-    this.priority = 0;
-    this.visible = true;
-    let _color = (overlay_color !== undefined) ? overlay_color
-                                               : new THREE.Color(0xffffff);
-    let _pixels = Immutable.Set();
+export class Overlay {
+    constructor(model, overlay_color = white) {
+        this._model = model;
+        this._color = overlay_color;
+        this._pixels = new Immutable.Set();
+        this.visible = true;
+        this.priority = 0;
+    }
 
-    Object.defineProperty(this, 'color', {
-        get() { return _color; },
-        set(v) {
-            _color = v;
-            model.updateColors();
-        }
-    });
+    get color() {
+        return this._color;
+    }
 
-    Object.defineProperty(this, 'pixels', {
-        get() { return _pixels; },
-        set(v) {
-            _pixels = v;
-            model.updateColors();
-        }
-    });
+    set color(val) {
+        this._color = val;
+        this._model.updateColors();
+    }
+
+    get pixels() {
+        return this._pixels;
+    }
+
+    set pixels(val) {
+        this._pixels = val;
+        this._model.updateColors();
+    }
 }
 
 export default function Model(json) {
@@ -124,8 +130,6 @@ export default function Model(json) {
     };
 
     let setDefaultColors = function() {
-        let black = new THREE.Color();
-        let white = new THREE.Color(0xaaaaaa);
 
         self.forEach(function(strip, i) {
             self.setColor(i, showWithoutOverlays ? white : black);
