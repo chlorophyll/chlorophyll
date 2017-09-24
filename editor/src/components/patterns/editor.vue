@@ -115,7 +115,7 @@ export default {
             if (!this.running)
                 return;
 
-            currentModel.displayOnly = true;
+            currentModel.display_only = true;
 
             let patternFrame = runPattern(this.cur_pattern, this.preview_mapping);
 
@@ -130,7 +130,7 @@ export default {
         },
         stopAnimation() {
             this.running = false;
-            currentModel.displayOnly = false;
+            currentModel.display_only = false;
             if (this.request_id)
                 window.cancelAnimationFrame(this.request_id);
             this.request_id = null;

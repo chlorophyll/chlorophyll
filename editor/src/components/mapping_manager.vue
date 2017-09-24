@@ -95,7 +95,7 @@ export default {
             pixels: all_pixels
         });
 
-        for (let strip = 0; strip < currentModel.numStrips; strip++) {
+        for (let strip = 0; strip < currentModel.num_strips; strip++) {
             let pixels = [];
             currentModel.forEachPixelInStrip(strip, function(pixel) {
                 pixels.push(pixel);
