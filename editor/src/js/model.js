@@ -43,7 +43,7 @@ export class Overlay {
 
     show() {
         if (this.visible) {
-            this.pixels.forEach((px) => this._model.colors[px].set(this.color));
+            this.pixels.forEach((px) => this._model.setColor(px, this.color.toArray()));
         }
     }
 }
@@ -53,9 +53,6 @@ class Model {
         this.overlays = {};
         this.strip_offsets = [0];
         this.strip_models = [];
-
-        this.colors = [];
-        this.positions = [];
 
         this._display_only = false;
 
@@ -75,17 +72,27 @@ class Model {
             transparent: true
         });
         let p_idx = 0;
+
+        this.num_pixels = 0;
+
+        for (const strip of strips) {
+            this.num_pixels += strip.length;
+        }
+        this.colors = new Float32Array(this.num_pixels * 3);
+        this.positions = new Float32Array(this.num_pixels * 3);
+
         for (const strip of strips) {
             let strip_geometry = new THREE.Geometry();
             let first = true;
 
             for (const pixel_pos of strip) {
-                this.positions[p_idx] = new THREE.Vector3().fromArray(pixel_pos);
-                if (!first) {
-                    strip_geometry.vertices.push(this.positions[p_idx-1]);
-                    strip_geometry.vertices.push(this.positions[p_idx]);
+                for (let i = 0; i < 3; i++) {
+                    this.positions[3*p_idx + i] = pixel_pos[i];
                 }
-                this.colors.push(new THREE.Color());
+                if (!first) {
+                    strip_geometry.vertices.push(this.getPosition(p_idx-1));
+                    strip_geometry.vertices.push(this.getPosition(p_idx));
+                }
                 p_idx++;
                 first = false;
             }
@@ -97,11 +104,11 @@ class Model {
         }
         this.num_pixels = p_idx;
 
-        this.geometry = new THREE.Geometry();
-        this.geometry.vertices = this.positions;
+        this.geometry = new THREE.BufferGeometry();
+        this.geometry.addAttribute('position', new THREE.BufferAttribute(this.positions, 3));
+        this.geometry.addAttribute('color', new THREE.BufferAttribute(this.colors, 3));
 
         this.setDefaultColors();
-        this.geometry.colors = this.colors;
 
         this.geometry.computeBoundingSphere();
         this.geometry.computeBoundingBox();
@@ -114,10 +121,13 @@ class Model {
         let avg_dist = 0;
 
         for (let i = 0; i < this.num_pixels; i++) {
-            this.positions[i] = this.positions[i].multiplyScalar(factor);
+            let pos = this.getPosition(i);
+            pos = pos.multiplyScalar(factor);
             if (i > 0) {
-                avg_dist += this.positions[i].distanceTo(this.positions[i-1]);
+                avg_dist += pos.distanceTo(this.getPosition(i-1));
             }
+
+            pos.toArray(this.positions, 3*i);
         }
         avg_dist /= this.num_pixels;
         this.geometry.computeBoundingSphere();
@@ -129,9 +139,9 @@ class Model {
             vertexColors: THREE.VertexColors
         });
         this.particles = new THREE.Points(this.geometry, material);
-        this.octree.add(this.particles, {useVertices: true});
 
         for (let i = 0; i < this.num_pixels; i++) {
+            this.octree.addObjectData(this.particles, this.getPosition(i));
             this.octree.objectsData[i].index = i;
         }
     }
@@ -166,7 +176,7 @@ class Model {
 
     // pixel data
     getPosition(i) {
-        return this.positions[i];
+        return new THREE.Vector3().fromArray(this.positions, 3*i);
     }
 
     pointsWithinRadius(point, radius) {
@@ -227,25 +237,35 @@ class Model {
         if (!this.display_only) {
             this.setColorsFromOverlays();
         }
-        this.geometry.colorsNeedUpdate = true;
+        this.geometry.attributes.color.needsUpdate = true;
+    }
+
+    setColor(i, [r, g, b]) {
+        this.colors[3*i+0] = r;
+        this.colors[3*i+1] = g;
+        this.colors[3*i+2] = b;
     }
 
     getDisplayColor(i) {
         if (this.display_only) {
-            let { r, g, b } = this.colors[i];
-            return [r*255, g*255, b*255];
+            return [
+                this.colors[3*i+0]*255,
+                this.colors[3*i+1]*255,
+                this.colors[3*i+2]*255
+            ];
         }
     }
 
     setDisplayColor(i, r, g, b) {
         if (this.display_only) {
-            this.colors[i].setRGB(r/255, g/255, b/255);
+            this.setColor(i, [r/255, g/255, b/255]);
         }
     }
 
     setDefaultColors() {
         this.forEach((strip, i) => {
-            this.colors[i].set(this.show_without_overlays ? white : black);
+            let c = this.show_without_overlays ? white : black;
+            this.setColor(i, c.toArray());
         });
     }
 
