@@ -183,9 +183,7 @@ export function getMappedPoints(map, coord_type) {
         settings = type_info.precompute(mapping.settings);
     else
         settings = mapping.settings;
-    return group.pixels.map((idx) => {
-        return type_info.mapPoint(settings, idx);
-    });
+    return group.pixels.map((idx) => [idx, type_info.mapPoint(settings, idx)]);
 }
 
 export function convertPointCoords(map_type, coord_type, points) {
@@ -194,12 +192,12 @@ export function convertPointCoords(map_type, coord_type, points) {
 
     const dim = coord_spec.length;
 
-    const converted = points.map(coord_info.convertCoords);
-    const converted_arr = converted.map((pt) => pt.toArray());
+    const converted = points.map(([idx, pos]) => [idx, coord_info.convertCoords(pos)]);
+    const converted_arr = converted.map(([idx, pt]) => [idx, pt.toArray()]);
 
     // Find the largest-valued normalized coordinate along any axis
     let extent = 0;
-    converted_arr.forEach((pt) => {
+    converted_arr.forEach(([idx, pt]) => {
         for (let i = 0; i < dim; i++) {
             if (coord_spec[i].normalized) {
                 if (pt[i] > extent)
@@ -211,13 +209,13 @@ export function convertPointCoords(map_type, coord_type, points) {
     });
 
     const norm_factor = (extent != 0) ? 1 / extent : 1;
-    return converted.map((pt) => {
+    return converted.map(([idx, pt]) => {
         const norm_pt = pt.toArray();
         for (let i = 0; i < dim; i++) {
             if (coord_spec[i].normalized) {
                 norm_pt[i] *= norm_factor;
             }
         }
-        return pt.fromArray(norm_pt);
+        return [idx, pt.fromArray(norm_pt)];
     });
 }

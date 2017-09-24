@@ -98,7 +98,7 @@ export function runPattern(pattern, mapping) {
 
     function computePatternFrame(t) {
         graph.setGlobalInputData('t', t);
-        positions.forEach((pos, idx) => {
+        positions.forEach(([idx, pos]) => {
             let dc = currentModel.getDisplayColor(idx);
             let incolor = new CRGB(dc[0], dc[1], dc[2]);
             graph.setGlobalInputData('coords', pos.toArray());
