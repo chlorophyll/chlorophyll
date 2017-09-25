@@ -93,26 +93,34 @@ store.registerModule('pattern', {
 }
 });
 
-export function makePatternRunner(pattern, mapping) {
-    let graph = GraphLib.graphById(pattern.stages.pixel);
-    let mapped_points = getMappedPoints(mapping, pattern.coord_type);
-    let positions = convertPointCoords(pattern.mapping_type, pattern.coord_type, mapped_points);
+export class PatternRunner {
+    constructor(pattern, mapping) {
+        const { coord_type, mapping_type } = pattern;
+        const mapped_points = getMappedPoints(mapping, coord_type);
 
-    return function(prevbuf, outbuf, t) {
-        graph.setGlobalInputData('t', t);
-        positions.forEach(([idx, pos]) => {
-            let incolor = new CRGB(prevbuf[3*idx+0], prevbuf[3*idx+1], prevbuf[3*idx+2]);
+        this.positions = convertPointCoords(mapping_type, coord_type, mapped_points);
+        this.graph = GraphLib.graphById(pattern.stages.pixel);
+    }
 
-            graph.setGlobalInputData('coords', pos.toArray());
-            graph.setGlobalInputData('color', incolor);
-            graph.runStep();
-            let outcolor = graph.getGlobalOutputData('outcolor');
+    getFrame(prevbuf, outbuf, t) {
+        this.graph.setGlobalInputData('t', t);
+        this.positions.forEach(([idx, pos]) => {
+            let incolor = new CRGB(
+                prevbuf[3*idx+0],
+                prevbuf[3*idx+1],
+                prevbuf[3*idx+2]
+            );
+
+            this.graph.setGlobalInputData('coords', pos.toArray());
+            this.graph.setGlobalInputData('color', incolor);
+            this.graph.runStep();
+            let outcolor = this.graph.getGlobalOutputData('outcolor');
 
             outbuf[3*idx+0] = outcolor.r;
             outbuf[3*idx+1] = outcolor.g;
             outbuf[3*idx+2] = outcolor.b;
         });
-    };
+    }
 }
 
 export const RunState = {
@@ -133,12 +141,12 @@ export let PatternPreview = Vue.component('pattern-preview', {
 
     computed: {
         step() {
-            let getFrame = makePatternRunner(this.pattern, this.mapping);
+            let runner = new PatternRunner(this.pattern, this.mapping);
             let prevbuf = new Uint8Array(3*this.model.num_pixels);
             let curbuf = new Uint8Array(3*this.model.num_pixels);
 
             return () => {
-                getFrame(prevbuf, curbuf, this.time);
+                runner.getFrame(prevbuf, curbuf, this.time);
                 this.model.setFromBuffer(curbuf);
                 [prevbuf, curbuf] = [curbuf, prevbuf];
                 this.time++;
