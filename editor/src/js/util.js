@@ -1,6 +1,11 @@
-import * as THREE from 'three';
+import {
+    Math as ThreeMath,
+    Plane,
+    Spherical,
+    Vector3,
+} from 'three';
 
-let _scratchCanvas = document.createElement('canvas').getContext('2d');
+let _scratchCanvas = null;
 
 let Util = {
     clone: function(obj) {
@@ -58,7 +63,7 @@ let Util = {
              + `C ${mx + lead_len} ${y0} ${mx - lead_len} ${y1} ${x1} ${y1} `;
     },
     rotateTransform: function(angleRad, origin) {
-        return 'rotate('+[THREE.Math.radToDeg(angleRad), origin.x, origin.y].join(',')+')';
+        return 'rotate('+[ThreeMath.radToDeg(angleRad), origin.x, origin.y].join(',')+')';
     },
 
     distanceToLine: function(point, line, clamp) {
@@ -105,7 +110,7 @@ let Util = {
     },
 
     centroid: function(points) {
-        let sum = new THREE.Vector3();
+        let sum = new Vector3();
 
         for (let i = 0; i < points.length; i++) {
             sum.add(points[i]);
@@ -136,7 +141,7 @@ let Util = {
 
         let det_max = Math.max(det_x, det_y, det_z);
 
-        let dir = new THREE.Vector3();
+        let dir = new Vector3();
         if (det_max == det_x) {
             let a = (xz*yz - xy*zz) / det_x;
             let b = (xy*yz - xz*yy) / det_x;
@@ -151,12 +156,12 @@ let Util = {
             dir.set(a, b, 1.0);
         }
         dir.normalize();
-        return new THREE.Plane().setFromNormalAndCoplanarPoint(dir, centroid);
+        return new Plane().setFromNormalAndCoplanarPoint(dir, centroid);
     },
 
     alignWithVector: function(vec, camera) {
         let radius = camera.position.length();
-        let s = new THREE.Spherical().setFromVector3(vec);
+        let s = new Spherical().setFromVector3(vec);
         s.radius = radius;
         s.makeSafe();
         camera.position.setFromSpherical(s);
@@ -204,6 +209,9 @@ let Util = {
         return candidate;
     },
     textWidth: function(text, font) {
+        if (_scratchCanvas === null) {
+            _scratchCanvas = document.createElement('canvas').getContext('2d');
+        }
         _scratchCanvas.font = font;
         return _scratchCanvas.measureText(text).width;
     }

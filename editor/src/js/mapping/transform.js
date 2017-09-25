@@ -1,6 +1,11 @@
 import { currentModel } from 'chl/model';
 import Units from 'chl/units';
-import * as THREE from 'three';
+import {
+    Euler,
+    Quaternion,
+    Vector2,
+    Vector3,
+} from 'three';
 
 /*
  * 3d transform mappings
@@ -15,7 +20,7 @@ import * as THREE from 'three';
 export function scaleToFitPoints(pixels, position) {
     // TODO scale based on preview shape - a sphere is strictly smaller than
     // the others, though, so it's a workable approximation.
-    const center = new THREE.Vector3();
+    const center = new Vector3();
     center.fromArray(position);
 
     let furthest = 0;
@@ -36,7 +41,7 @@ export function scaleToFitPoints(pixels, position) {
 function transformPoint(settings, idx) {
     const pos = currentModel.getPosition(idx);
     const fromOrigin = pos.clone().sub(settings.position);
-    const rot_inv = new THREE.Quaternion();
+    const rot_inv = new Quaternion();
     rot_inv.setFromEuler(settings.rotation).inverse();
     fromOrigin.applyQuaternion(rot_inv);
     fromOrigin.divide(settings.scale);
@@ -46,9 +51,9 @@ function transformPoint(settings, idx) {
 
 function settingsToVectors(settings) {
     return {
-        position: new THREE.Vector3().fromArray(settings.position),
-        rotation: new THREE.Euler().fromArray([...settings.rotation, 'XYZ']),
-        scale: new THREE.Vector3().fromArray(settings.scale),
+        position: new Vector3().fromArray(settings.position),
+        rotation: new Euler().fromArray([...settings.rotation, 'XYZ']),
+        scale: new Vector3().fromArray(settings.scale),
     };
 }
 
@@ -76,8 +81,8 @@ export const coord_types = {
         mapPoint: transformPoint,
         convertCoords(cart) {
             // x, y, z -> r, theta, z
-            let polar = new THREE.Vector2(cart.x, cart.y);
-            return new THREE.Vector3(polar.length(), polar.angle(), cart.z);
+            let polar = new Vector2(cart.x, cart.y);
+            return new Vector3(polar.length(), polar.angle(), cart.z);
         }
     },
 
@@ -94,7 +99,7 @@ export const coord_types = {
             let r = cart.length();
             let theta = (r == 0) ? 0 : Math.acos(cart.z / r);
             let phi = (r == 0) ? 0 : Math.atan2(cart.y, cart.x);
-            return new THREE.Vector3(r, theta, phi);
+            return new Vector3(r, theta, phi);
         }
     },
 };

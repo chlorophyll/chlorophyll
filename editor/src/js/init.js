@@ -1,5 +1,5 @@
 // External dependencies
-import * as THREE from 'three';
+import { Plane, Vector3 } from 'three';
 import Vue from 'vue';
 
 import { remote } from 'electron';
@@ -183,11 +183,11 @@ function Chlorophyll() {
         initSelectionTools(model);
         root.selectionTools = selectionTools;
 
-        let v = new THREE.Vector3();
+        let v = new Vector3();
         activeScreen().camera.getWorldDirection(v);
         let nv = v.clone().negate();
-        self.frontPlane = new THREE.Plane(v, Const.max_clip_plane);
-        self.backPlane = new THREE.Plane(nv, Const.max_clip_plane);
+        self.frontPlane = new Plane(v, Const.max_clip_plane);
+        self.backPlane = new Plane(nv, Const.max_clip_plane);
         renderer.clippingPlanes = [];
 
         model.addToScene(scene);
@@ -196,7 +196,7 @@ function Chlorophyll() {
     this.animate = function() {
         requestAnimationFrame(self.animate);
 
-        let v = new THREE.Vector3();
+        let v = new Vector3();
         activeScreen().camera.getWorldDirection(v);
         self.frontPlane.normal = v;
         self.backPlane.normal = v.clone().negate();
