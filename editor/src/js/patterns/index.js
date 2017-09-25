@@ -14,6 +14,7 @@ store.registerModule('pattern', {
     namespaced: true,
     state: {
         patterns: {},
+        pattern_ordering: [],
         cur_pattern_id: null,
     },
 
@@ -48,6 +49,7 @@ store.registerModule('pattern', {
             };
 
             Vue.set(state.patterns, pattern.id, pattern);
+            state.pattern_ordering.push(pattern.id);
             if (state.cur_pattern_id === null) {
                 state.cur_pattern_id = pattern.id;
             }
@@ -82,7 +84,7 @@ store.registerModule('pattern', {
             return state.patterns[state.cur_pattern_id];
         },
         pattern_list(state) {
-            return Object.values(state.patterns);
+            return state.pattern_ordering.map((id) => state.patterns[id]);
         },
         unique_name(state, getters) {
             let names = getters.pattern_list.map((pattern) => pattern.name);
