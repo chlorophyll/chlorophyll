@@ -3,6 +3,7 @@
     <div class="topwidgets">
         <button
          @click="toggleAnimation"
+         :disabled="animation_disabled"
          class="iconbutton litebutton material-icons">
             {{ run_text }}
         </button>
@@ -48,7 +49,7 @@ import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graphcanvas';
 import register_nodes from 'chl/patterns/registry';
-import { runPattern } from 'chl/patterns';
+import { PatternPreview } from 'chl/patterns';
 import GraphLib from 'chl/graphlib';
 import store from 'chl/vue/store';
 
@@ -74,12 +75,17 @@ function getNodeList() {
     });
     return root.children;
 }
+
+
 export default {
     store,
     components: {Tree, GraphCanvas, SplitPane},
     computed: {
         run_text() {
             return this.running ? 'pause' : 'play_arrow';
+        },
+        animation_disabled() {
+            return this.pattern_preview === null;
         },
         cur_graph() {
             if (this.cur_pattern === null)
@@ -100,6 +106,14 @@ export default {
 
             return this.mapping_list.filter((map) => type == map.type);
         },
+
+        pattern_preview() {
+            if (!this.preview_mapping || !this.cur_pattern) {
+                this.running = false;
+                return null;
+            }
+            return new PatternPreview(currentModel, this.cur_pattern, this.preview_mapping);
+        },
     },
     data() {
         return {
@@ -109,31 +123,38 @@ export default {
             node_list: getNodeList(),
         };
     },
+
+    watch: {
+        pattern_preview(new_preview, old_preview) {
+            if (!this.running)
+                return;
+            old_preview.stop();
+
+            if (new_preview) {
+                new_preview.start();
+            } else {
+                this.running = false;
+            }
+        },
+        running(newval) {
+            if (!this.pattern_preview)
+                return;
+            if (newval) {
+                currentModel.display_only = true;
+                this.pattern_preview.start();
+            } else {
+                this.pattern_preview.stop();
+            }
+        }
+    },
+
     methods: {
         toggleAnimation() {
             this.running = !this.running;
-            if (!this.running)
-                return;
-
-            currentModel.display_only = true;
-
-            let patternFrame = runPattern(this.cur_pattern, this.preview_mapping);
-
-            let animation = () => {
-                patternFrame(this.time);
-                this.time += 1;
-                if (this.running)
-                    this.request_id = window.requestAnimationFrame(animation);
-            };
-
-            this.request_id = window.requestAnimationFrame(animation);
         },
         stopAnimation() {
             this.running = false;
             currentModel.display_only = false;
-            if (this.request_id)
-                window.cancelAnimationFrame(this.request_id);
-            this.request_id = null;
         },
         dragNode(item, event) {
             event.dataTransfer.setData('text/plain', item.path);

@@ -91,24 +91,77 @@ store.registerModule('pattern', {
 }
 });
 
-export function runPattern(pattern, mapping) {
+export function makePatternRunner(pattern, mapping) {
     let graph = GraphLib.graphById(pattern.stages.pixel);
     let mapped_points = getMappedPoints(mapping, pattern.coord_type);
     let positions = convertPointCoords(pattern.mapping_type, pattern.coord_type, mapped_points);
 
-    function computePatternFrame(t) {
+    return function(prevbuf, outbuf, t) {
         graph.setGlobalInputData('t', t);
         positions.forEach(([idx, pos]) => {
-            let dc = currentModel.getDisplayColor(idx);
-            let incolor = new CRGB(dc[0], dc[1], dc[2]);
+            let incolor = new CRGB(prevbuf[3*idx+0], prevbuf[3*idx+1], prevbuf[3*idx+2]);
+
             graph.setGlobalInputData('coords', pos.toArray());
             graph.setGlobalInputData('color', incolor);
             graph.runStep();
             let outcolor = graph.getGlobalOutputData('outcolor');
-            currentModel.setDisplayColor(idx, outcolor.r, outcolor.g, outcolor.b);
+
+            outbuf[3*idx+0] = outcolor.r;
+            outbuf[3*idx+1] = outcolor.g;
+            outbuf[3*idx+2] = outcolor.b;
         });
-        currentModel.updateColors();
+    };
+}
+
+export class PatternPreview {
+    constructor(model, pattern, mapping) {
+        let buf1 = new Uint8Array(3*model.num_pixels);
+        let buf2 = new Uint8Array(3*model.num_pixels);
+
+        this.buffers = [buf1, buf2];
+        this.buf_idx = 0;
+        this.model = model;
+
+        this.getFrame = makePatternRunner(pattern, mapping);
+        this.time = 0;
+
+        this.running = false;
+        this.request_id = null;
     }
 
-    return computePatternFrame;
-};
+    get prevbuf() {
+        return this.buffers[1-this.buf_idx];
+    }
+
+    get curbuf() {
+        return this.buffers[this.buf_idx];
+    }
+
+    step() {
+        this.getFrame(this.prevbuf, this.curbuf, this.time);
+        this.model.setFromBuffer(this.curbuf);
+        this.buf_idx = 1-this.buf_idx;
+        this.time++;
+    }
+
+    run() {
+        this.step();
+        if (this.running)
+            this.request_id = window.requestAnimationFrame(() => this.run());
+    }
+
+    start() {
+        this.running = true;
+        this.run();
+    }
+
+    stop() {
+        this.running = false;
+        if (this.request_id) {
+            window.cancelAnimationFrame(this.request_id);
+        }
+
+        this.request_id = null;
+    }
+
+}

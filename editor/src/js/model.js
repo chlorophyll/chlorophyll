@@ -240,6 +240,19 @@ class Model {
         this.geometry.attributes.color.needsUpdate = true;
     }
 
+    setFromBuffer(colorbuf) {
+        for (let i = 0; i < this.num_pixels*3; i++) {
+            this.colors[i] = colorbuf[i]/255;
+        }
+        this.updateColors();
+    }
+
+    getToBuffer(colorbuf) {
+        for (let i = 0; i < this.num_pixels*3; i++) {
+            colorbuf[i] = this.colors[i]*255;
+        }
+    }
+
     setColor(i, [r, g, b]) {
         this.colors[3*i+0] = r;
         this.colors[3*i+1] = g;
