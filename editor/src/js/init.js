@@ -134,14 +134,14 @@ function initMenu() {
                     label: 'Undo',
                     accelerator: 'CommandOrControl+Z',
                     click() {
-                        //todo undo
+                        // todo undo
                     }
                 },
                 {
                     label: 'Redo',
                     accelerator: 'ComandOrControl+Shift+Z',
                     click() {
-                        //todo redo
+                        // todo redo
                     }
                 },
                 { type: 'separator' },
