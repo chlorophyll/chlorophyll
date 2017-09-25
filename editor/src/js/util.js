@@ -214,6 +214,15 @@ let Util = {
         }
         _scratchCanvas.font = font;
         return _scratchCanvas.measureText(text).width;
+    },
+    colorString(colorcode) {
+        const hex = (n, i) => (n>> (i*8) & 0xff).toString(16).padStart(2, '0');
+
+        let r = hex(colorcode, 2);
+        let g = hex(colorcode, 1);
+        let b = hex(colorcode, 0);
+
+        return '#'+r+g+b;
     }
 
 };

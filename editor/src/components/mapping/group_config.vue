@@ -55,10 +55,7 @@ export default {
             this.$store.commit('mapping/create_mapping', {
                 id,
                 group: this.group.id,
-            });
-            this.$store.commit('mapping/set_mapping_type', {
-                id,
-                type: this.create_mapping_type
+                type: this.create_mapping_type,
             });
             this.$emit('new_mapping', id);
         }

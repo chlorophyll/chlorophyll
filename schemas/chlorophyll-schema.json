@@ -85,15 +85,10 @@
                     "color": {
                         "$ref": "#/definitions/types/color"
                     },
-                    "mappings": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/objects/mapping"
-                        }
-                    }
+					"visible": { "type": "boolean" }
                 },
                 "additionalProperties": false,
-                "required": ["name", "id", "color", "pixels", "mappings"]
+                "required": ["name", "id", "color", "pixels", "visible"]
             },
             "baseMapping": {
                 "type": "object",
@@ -104,54 +99,54 @@
                     "id": {
                         "type": "number"
                     },
-                    "mapped_points": {
-                        "patternProperties": {
-                            "^.*2d$": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/types/vector2"
-                                }
-                            },
-                            "^.*3d$": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/types/vector3"
-                                }
-                            }
-                        },
-                        "additionalProperties": false
+                    "group": {
+                        "type": "number"
                     },
                     "type": {
                         "type": "string"
+                    },
+                    "settings": {
+                        "type": "object"
                     }
                 },
-                "required": ["name", "id", "mapped_ponts", "type"]
+                "required": ["name", "id", "type", "settings"],
+                "additionalProperties": false
             },
             "transformMapping": {
-                "allOf": [{
-                        "$ref": "#/definitions/objects/baseMapping"
-                    },
+                "allOf": [
+                    { "$ref": "#/definitions/objects/baseMapping" },
                     {
                         "properties": {
                             "type": {
                                 "type": "string",
                                 "pattern": "transform"
                             },
-                            "position": {
-                                "$ref": "#/definitions/types/vector3"
-                            },
-                            "rotation": {
-                                "$ref": "#/definitions/types/euler"
-                            },
-                            "scale": {
-                                "$ref": "#/definitions/types/vector3"
-                            },
-                            "autoscale": {
-                                "type": "boolean"
+                            "settings": {
+                                "type": "object",
+                                "properties": {
+									"shape": { "type": "string" },
+                                    "position": {
+                                        "$ref": "#/definitions/types/vector3"
+                                    },
+                                    "rotation": {
+                                        "$ref": "#/definitions/types/vector3"
+                                    },
+                                    "scale": {
+                                        "$ref": "#/definitions/types/vector3"
+                                    },
+                                    "autoscale": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": [
+                                    "position",
+                                    "rotation",
+                                    "scale",
+                                    "autoscale"
+                                ],
+                                "additionalProperties": false
                             }
-                        },
-                        "required": ["position", "rotation", "scale", "autoscale"],
-                        "additionalProperties": false
+                        }
                     }
                 ]
             },
@@ -165,24 +160,23 @@
                                 "type": "string",
                                 "pattern": "projection"
                             },
-                            "mapped_points": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/types/vector2"
-                                }
-                            },
-                            "plane_normal": {
-                                "$ref": "#/definitions/types/euler"
-                            },
-                            "widget_angle": {
-                                "type": "number"
-                            },
-                            "origin": {
-                                "$ref": "#/definitions/types/vector2"
-                            }
-                        },
-                        "required": ["plane_normal", "widget_angle", "origin"],
-                        "additionalProperties": false
+							"settings": {
+								"type": "object",
+								"properties": {
+									"plane_angle": {
+										"$ref": "#/definitions/types/vector2"
+									},
+									"rotation": {
+										"type": "number"
+									},
+									"origin": {
+										"$ref": "#/definitions/types/vector3"
+									}
+								},
+								"required": ["rotation", "plane_angle", "origin"],
+								"additionalProperties": false
+							}
+						}
                     }
                 ]
             },
@@ -346,6 +340,12 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/objects/group"
+                    }
+                },
+                "mappings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/objects/mapping"
                     }
                 },
                 "patterns": {
