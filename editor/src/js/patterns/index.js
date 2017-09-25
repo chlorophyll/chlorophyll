@@ -113,55 +113,78 @@ export function makePatternRunner(pattern, mapping) {
     };
 }
 
-export class PatternPreview {
-    constructor(model, pattern, mapping) {
-        let buf1 = new Uint8Array(3*model.num_pixels);
-        let buf2 = new Uint8Array(3*model.num_pixels);
+export const RunState = {
+    Stopped: 0,
+    Running: 1,
+    Paused: 2,
+};
 
-        this.buffers = [buf1, buf2];
-        this.buf_idx = 0;
-        this.model = model;
+export let PatternPreview = Vue.component('pattern-preview', {
+    props: ['model', 'pattern', 'mapping', 'runstate'],
+    data() {
+        return {
+            buf_idx: 0,
+            time: 0,
+            request_id: null,
+        };
+    },
 
-        this.getFrame = makePatternRunner(pattern, mapping);
-        this.time = 0;
+    computed: {
+        step() {
+            let getFrame = makePatternRunner(this.pattern, this.mapping);
+            let prevbuf = new Uint8Array(3*this.model.num_pixels);
+            let curbuf = new Uint8Array(3*this.model.num_pixels);
 
-        this.running = false;
-        this.request_id = null;
-    }
-
-    get prevbuf() {
-        return this.buffers[1-this.buf_idx];
-    }
-
-    get curbuf() {
-        return this.buffers[this.buf_idx];
-    }
-
-    step() {
-        this.getFrame(this.prevbuf, this.curbuf, this.time);
-        this.model.setFromBuffer(this.curbuf);
-        this.buf_idx = 1-this.buf_idx;
-        this.time++;
-    }
-
-    run() {
-        this.step();
-        if (this.running)
-            this.request_id = window.requestAnimationFrame(() => this.run());
-    }
-
-    start() {
-        this.running = true;
-        this.run();
-    }
-
-    stop() {
-        this.running = false;
-        if (this.request_id) {
-            window.cancelAnimationFrame(this.request_id);
+            return () => {
+                getFrame(prevbuf, curbuf, this.time);
+                this.model.setFromBuffer(curbuf);
+                [prevbuf, curbuf] = [curbuf, prevbuf];
+                this.time++;
+            };
+        },
+        running() {
+            return this.runstate == RunState.Running;
         }
+    },
 
-        this.request_id = null;
+    watch: {
+        runstate(newval) {
+            switch (newval) {
+                case RunState.Stopped:
+                    this.stop();
+                    break;
+                case RunState.Paused:
+                    this.pause();
+                    break;
+                case RunState.Running:
+                    this.start();
+                    break;
+            }
+        }
+    },
+
+    render() {},
+
+    methods: {
+        run() {
+            this.step();
+            if (this.running)
+                this.request_id = window.requestAnimationFrame(() => this.run());
+        },
+        start() {
+            this.model.display_only = true;
+            this.run();
+        },
+        pause() {
+            if (this.request_id !== null) {
+                window.cancelAnimationFrame(this.request_id);
+            }
+            this.request_id = null;
+        },
+        stop() {
+            this.pause();
+            this.model.display_only = false;
+            this.time = 0;
+        }
     }
-
-}
+});

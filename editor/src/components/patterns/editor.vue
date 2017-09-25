@@ -3,7 +3,7 @@
     <div class="topwidgets">
         <button
          @click="toggleAnimation"
-         :disabled="animation_disabled"
+         :disabled="!can_preview"
          class="iconbutton litebutton material-icons">
             {{ run_text }}
         </button>
@@ -40,6 +40,11 @@
         </tree>
         <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
     </split-pane>
+    <pattern-preview v-if="can_preview"
+                     :model="cur_model"
+                     :pattern="cur_pattern"
+                     :mapping="preview_mapping"
+                     :runstate="runstate" />
     </div>
 </template>
 <script>
@@ -49,7 +54,7 @@ import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graphcanvas';
 import register_nodes from 'chl/patterns/registry';
-import { PatternPreview } from 'chl/patterns';
+import { RunState, PatternPreview } from 'chl/patterns';
 import GraphLib from 'chl/graphlib';
 import store from 'chl/vue/store';
 
@@ -79,13 +84,17 @@ function getNodeList() {
 
 export default {
     store,
-    components: {Tree, GraphCanvas, SplitPane},
+    components: {Tree, GraphCanvas, SplitPane, PatternPreview},
     computed: {
         run_text() {
-            return this.running ? 'pause' : 'play_arrow';
+            let running = (this.runstate == RunState.Running);
+            return running ? 'pause' : 'play_arrow';
         },
-        animation_disabled() {
-            return this.pattern_preview === null;
+        can_preview() {
+            return this.preview_mapping !== null && this.cur_pattern !== null;
+        },
+        cur_model() {
+            return currentModel;
         },
         cur_graph() {
             if (this.cur_pattern === null)
@@ -106,46 +115,17 @@ export default {
 
             return this.mapping_list.filter((map) => type == map.type);
         },
-
-        pattern_preview() {
-            if (!this.preview_mapping || !this.cur_pattern) {
-                this.running = false;
-                return null;
-            }
-            return new PatternPreview(currentModel, this.cur_pattern, this.preview_mapping);
-        },
     },
     data() {
         return {
             time: 0,
-            running: false,
             preview_mapping: null,
+            runstate: RunState.Stopped,
             node_list: getNodeList(),
         };
     },
 
     watch: {
-        pattern_preview(new_preview, old_preview) {
-            if (!this.running)
-                return;
-            old_preview.stop();
-
-            if (new_preview) {
-                new_preview.start();
-            } else {
-                this.running = false;
-            }
-        },
-        running(newval) {
-            if (!this.pattern_preview)
-                return;
-            if (newval) {
-                currentModel.display_only = true;
-                this.pattern_preview.start();
-            } else {
-                this.pattern_preview.stop();
-            }
-        },
         mappings(newval) {
             if (newval.length == 1)
                 this.preview_mapping = newval[0].id;
@@ -154,11 +134,14 @@ export default {
 
     methods: {
         toggleAnimation() {
-            this.running = !this.running;
+            if (this.runstate == RunState.Running) {
+                this.runstate = RunState.Paused;
+            } else {
+                this.runstate = RunState.Running;
+            }
         },
         stopAnimation() {
-            this.running = false;
-            currentModel.display_only = false;
+            this.runstate = RunState.Stopped;
         },
         dragNode(item, event) {
             event.dataTransfer.setData('text/plain', item.path);
