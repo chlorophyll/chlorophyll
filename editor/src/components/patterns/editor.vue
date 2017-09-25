@@ -145,6 +145,10 @@ export default {
             } else {
                 this.pattern_preview.stop();
             }
+        },
+        mappings(newval) {
+            if (newval.length == 1)
+                this.preview_mapping = newval[0].id;
         }
     },
 
