@@ -73,6 +73,28 @@ store.registerModule('pattern', {
             pattern.input_node = input_node.id;
             pattern.mapping_type = mapping_type;
             pattern.coord_type = coord_type;
+        },
+
+        delete(state, { id }) {
+            let pattern = state.patterns[id];
+
+            if (pattern === undefined)
+                return;
+
+            Vue.delete(state.patterns, id);
+            state.pattern_ordering.splice(state.pattern_ordering.indexOf(id), 1);
+        },
+
+        restore(state, snapshot) {
+            let new_patterns = {};
+            let new_pattern_ordering = [];
+
+            for (let pattern of snapshot.patterns) {
+                new_patterns[pattern.id] = restorePattern(pattern);
+                new_pattern_ordering.push(pattern.id);
+            }
+            state.patterns = new_patterns;
+            state.pattern_ordering = new_pattern_ordering;
         }
     },
     getters: {
@@ -89,6 +111,16 @@ store.registerModule('pattern', {
 
 export function savePattern(pattern) {
     return Util.clone(pattern);
+}
+
+export function restorePattern(patternsnap) {
+    return Util.clone(patternsnap);
+}
+
+export function saveAllPatterns() {
+    let patterns = store.getters['pattern/pattern_list'].map(savePattern);
+
+    return { patterns };
 }
 
 export class PatternRunner {

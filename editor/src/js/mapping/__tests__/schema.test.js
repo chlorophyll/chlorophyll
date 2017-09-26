@@ -4,7 +4,7 @@ import { SchemaDefs } from 'chl/schemas';
 
 import 'chl/testing';
 
-import { mappingTypes, saveAll, saveGroup, saveMapping } from 'chl/mapping';
+import { mappingTypes, saveAllMappings, saveGroup, saveMapping } from 'chl/mapping';
 
 let num_mapping_types = 0;
 
@@ -43,7 +43,7 @@ describe('Mapping module', () => {
     });
 
     it("correctly restores a saved snapshot", () => {
-        let saved = saveAll();
+        let saved = saveAllMappings();
 
         store.commit('mapping/delete', {id: 1});
         store.commit('mapping/delete', {id: 2});
@@ -59,7 +59,7 @@ describe('Mapping module', () => {
     });
 
     it("correctly removes objects when restoring", () => {
-        let saved = saveAll();
+        let saved = saveAllMappings();
 
         let id = num_mapping_types + 2;
 

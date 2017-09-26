@@ -1,6 +1,6 @@
 import store from 'chl/vue/store';
 import { SchemaDefs } from 'chl/schemas';
-import { savePattern } from 'chl/patterns';
+import { savePattern, saveAllPatterns } from 'chl/patterns';
 
 import 'chl/testing';
 
@@ -16,5 +16,40 @@ describe('Pattern module', () => {
         let pattern = store.state.pattern.patterns[1];
         let saved = savePattern(pattern);
         expect(saved).toMatchSchema(SchemaDefs.object('patternType'));
+    });
+    it('can delete patterns', () => {
+        store.commit('pattern/create', {
+            id: 2,
+            name: 'pattern 2'
+        });
+
+        expect(store.state.pattern.patterns[2]).not.toBeUndefined();
+        expect(store.state.pattern.pattern_ordering.length).toEqual(2);
+
+        store.commit('pattern/delete', { id: 2});
+        expect(store.state.pattern.patterns[2]).toBeUndefined();
+        expect(store.state.pattern.pattern_ordering.length).toEqual(1);
+
+
+    });
+    it('can properly restore patterns', () => {
+        let saved = saveAllPatterns();
+        store.commit('pattern/delete', { id: 1 });
+        expect(store.state.pattern.pattern_ordering.length).toEqual(0);
+        expect(store.state.pattern.patterns[1]).toBeUndefined();
+
+        store.commit('pattern/create', {
+            id: 2,
+            name: 'pattern 2'
+        });
+        expect(store.state.pattern.pattern_ordering.length).toEqual(1);
+        expect(store.state.pattern.patterns[2]).not.toBeUndefined();
+
+        store.commit('pattern/restore', saved);
+
+        expect(store.state.pattern.pattern_ordering.length).toEqual(1);
+        expect(store.state.pattern.patterns[1]).not.toBeUndefined();
+        expect(store.state.pattern.patterns[1].name).toEqual('pattern 1');
+        expect(store.state.pattern.patterns[2]).toBeUndefined();
     });
 });

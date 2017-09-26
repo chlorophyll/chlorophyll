@@ -161,7 +161,7 @@ export function saveMapping(mapping) {
     return Util.clone(mapping);
 }
 
-export function saveAll() {
+export function saveAllMappings() {
     let groups = store.getters['mapping/group_list'].map(saveGroup);
     let mappings = store.getters['mapping/mapping_list'].map(saveMapping);
 
