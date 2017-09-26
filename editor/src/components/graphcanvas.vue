@@ -128,7 +128,7 @@ export default {
                 nodeset[node.id] = node.vm;
             });
             newgraph.forEachEdge((edge) => {
-                nodeset[edge.id] = edge;
+                edgeset[edge.id] = edge;
             });
 
             this.nodeset = nodeset;
