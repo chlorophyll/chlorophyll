@@ -11,9 +11,9 @@ export default schemas;
 
 export const SchemaDefs = {
     object(name) {
-        return `chlorophyll#/definitions/objects/${name}`
+        return `chlorophyll#/definitions/objects/${name}`;
     },
     type(name) {
-        return `chlorophyll#/definitions/types/${name}`
+        return `chlorophyll#/definitions/types/${name}`;
     }
 };

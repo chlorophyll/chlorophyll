@@ -10,7 +10,10 @@ expect.extend({
         let schematext = this.utils.printExpected(schema);
 
         if (pass) {
-            message = () => `expected:\n\t${out}\nto not match schema\n\t${schematext}\n but it did.`;
+            message = () => (
+                `expected:\n\t${out}\n`+
+                `to not match schema\n\t${schematext}\nbut it did.`
+            );
         } else {
             const errors = validate.errors;
             const errtext = schemas.errorsText(errors, { separator: '\n\t' });
@@ -23,8 +26,6 @@ expect.extend({
         return {
             pass,
             message,
-        }
-
+        };
     }
-
 });
