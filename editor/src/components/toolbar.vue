@@ -1,5 +1,5 @@
 <template>
-<div id="toolbar" class="litepanel inspector">
+<div class="panel">
     <model-overlay
         :pixels="active_selection"
         :priority="10"

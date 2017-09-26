@@ -33,7 +33,6 @@ let selectionTools;
 function initSelectionTools(model) {
     let viewport = document.getElementById('viewport');
     selectionTools = [
-        null,
         {
             name: 'camera',
             toolobj: {
