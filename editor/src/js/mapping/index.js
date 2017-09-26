@@ -109,25 +109,66 @@ store.registerModule('mapping', {
                 Vue.delete(state.groups, id);
                 state.group_list.splice(state.group_list.indexOf(id), 1);
             }
+        },
+
+        restore(state, snapshot) {
+            let new_group_list = [];
+            let new_mapping_list = [];
+            let new_mappings = {};
+            let new_groups = {};
+
+            for (let mapping of snapshot.mappings) {
+                new_mappings[mapping.id] = restoreMapping(mapping);
+                new_mapping_list.push(mapping.id);
+            }
+
+            for (let group of snapshot.groups) {
+                new_groups[group.id] = restoreGroup(group);
+                new_group_list.push(group.id);
+            }
+
+            state.groups = new_groups;
+            state.group_list = new_group_list;
+            state.mappings = new_mappings;
+            state.mapping_list = new_mapping_list;
+
         }
     },
     getters: {
         mapping_list(state) {
             return state.mapping_list.map((id) => state.mappings[id]);
+        },
+        group_list(state) {
+            return state.group_list.map((id) => state.groups[id]);
         }
     },
 });
 
 // If necessary, clone/copy/reformat to meet the schema.
 export function saveGroup(group) {
-    return {
-        ...group,
-        color: Util.colorString(group.color),
-    };
+    return Util.clone(group);
+}
+
+export function restoreGroup(groupsnap) {
+    return Util.clone(groupsnap);
+}
+
+export function restoreMapping(mappingsnap) {
+    return Util.clone(mappingsnap);
 }
 
 export function saveMapping(mapping) {
     return Util.clone(mapping);
+}
+
+export function saveAll() {
+    let groups = store.getters['mapping/group_list'].map(saveGroup);
+    let mappings = store.getters['mapping/mapping_list'].map(saveMapping);
+
+    return {
+        groups,
+        mappings
+    };
 }
 
 /*

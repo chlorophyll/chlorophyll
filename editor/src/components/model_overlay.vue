@@ -16,7 +16,7 @@ export default {
     props: {
         priority: Number,
         pixels: Array,
-        color: Number,
+        color: String,
         visible: Boolean,
     },
     data() {

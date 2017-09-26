@@ -39,7 +39,7 @@ export default {
              * A tool is either null to indicate a separator, or an object:
              * { name, toolobj, hotkey (optional), momentary_hotkey (optional) }
              */
-            selection_color: 0xffffff,
+            selection_color: '#ffffff',
         };
     },
     computed: {
