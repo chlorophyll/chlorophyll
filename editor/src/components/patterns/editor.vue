@@ -129,7 +129,11 @@ export default {
         mappings(newval) {
             if (newval.length == 1)
                 this.preview_mapping = newval[0].id;
-        }
+        },
+        cur_pattern(newval, oldval) {
+            if (!newval || !oldval || newval.id != oldval.id)
+                this.runstate = RunState.Stopped;
+        },
     },
 
     methods: {
