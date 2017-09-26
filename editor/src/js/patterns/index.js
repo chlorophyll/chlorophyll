@@ -84,11 +84,7 @@ store.registerModule('pattern', {
         pattern_list(state) {
             return state.pattern_ordering.map((id) => state.patterns[id]);
         },
-        unique_name(state, getters) {
-            let names = getters.pattern_list.map((pattern) => pattern.name);
-            return Util.uniqueName('pattern-', names);
-        }
-}
+    }
 });
 
 export function savePattern(pattern) {
