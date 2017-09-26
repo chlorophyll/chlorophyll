@@ -1,6 +1,6 @@
 import GraphLib, { Graph, GraphNode } from 'chl/graphlib';
 
-import schemas from 'chl/schemas';
+import 'chl/testing';
 
 class InputNode extends GraphNode {
     constructor(options) {
@@ -148,10 +148,7 @@ describe('Graph', () => {
     it('should have node snapshots that conform to the node schema', () => {
         let graph = new Graph();
         let node = graph.addNode('/input-output');
-
-        let validateNode = schemas.getSchema('chlorophyll#/definitions/objects/node');
-        let result = validateNode(node.save());
-        expect(result).toEqual(true);
+        expect(node.save()).toMatchSchema('chlorophyll#/definitions/objects/node');
     });
 
     it('should have snapshots that conform to the graph schema for simple graphs', () => {
@@ -160,9 +157,7 @@ describe('Graph', () => {
         let b = graph.addNode('/input-output');
         graph.connect(a, 0, b, 0);
 
-        let validateGraph = schemas.getSchema('chlorophyll#/definitions/objects/graph');
-        let result = validateGraph(graph.save());
-        expect(result).toEqual(true);
+        expect(graph.save()).toMatchSchema('chlorophyll#/definitions/objects/graph');
 
     });
 });
