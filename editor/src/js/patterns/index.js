@@ -9,6 +9,10 @@ import { CRGB } from 'chl/fastled/color';
 
 import store from 'chl/vue/store';
 
+import register_nodes from 'chl/patterns/registry';
+
+register_nodes();
+
 store.registerModule('pattern', {
     namespaced: true,
     state: {
@@ -29,7 +33,7 @@ store.registerModule('pattern', {
             pixel_stage.addGlobalOutput('outcolor');
 
             let path = `mapping/${mapping_type}/${coord_type}`;
-            let input_node = pixel_stage.addNode(path, {title: 'input'});
+            pixel_stage.addNode(path, {title: 'input', ref: 'input_node'});
 
             pixel_stage.addNode('lowlevel/output/color', {
                 title: 'output',
@@ -41,7 +45,6 @@ store.registerModule('pattern', {
                 name,
                 mapping_type,
                 coord_type, // hmm
-                input_node: input_node.id,
                 stages: {
                     pixel: pixel_stage.id,
                 },
@@ -61,21 +64,17 @@ store.registerModule('pattern', {
             let pattern = state.patterns[id];
             let graph = GraphLib.graphById(pattern.stages.pixel);
 
-            let old_input = graph.getNodeById(pattern.input_node);
+            let old_input = graph.getNodeByRef('input_node');
             graph.removeNode(old_input);
 
             let path = `mapping/${mapping_type}/${coord_type}`;
-            let input_node = graph.addNode(path, {title: 'input'});
+            let input_node = graph.addNode(path, {title: 'input', ref: 'input_node'});
 
             pattern.input_node = input_node.id;
             pattern.mapping_type = mapping_type;
             pattern.coord_type = coord_type;
-
         }
-
-
     },
-
     getters: {
         cur_pattern(state) {
             if (state.cur_pattern_id === null)
@@ -91,6 +90,10 @@ store.registerModule('pattern', {
         }
 }
 });
+
+export function savePattern(pattern) {
+    return Util.clone(pattern);
+}
 
 export class PatternRunner {
     constructor(pattern, mapping) {

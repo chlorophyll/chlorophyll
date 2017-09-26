@@ -33,10 +33,10 @@ export const GraphLib = {
 export default GraphLib;
 
 export class Graph {
-    constructor() {
+    constructor(id=null) {
         Util.EventDispatcher.call(this);
 
-        this.id = newgid();
+        this.id = id !== null ? id : newgid();
         graphs.set(this.id, this);
 
         this.emit = function(name, detail) {
@@ -49,10 +49,20 @@ export class Graph {
         this.global_inputs = new Immutable.Map();
         this.global_outputs = new Immutable.Map();
 
+        this.refs = new Map();
+
         this.nodes = new Immutable.Map();
 
         this.edges_by_src = new Immutable.Map();
         this.edges_by_dst = new Immutable.Map();
+    }
+
+    getNodeByRef(name) {
+        const id = this.refs.get(name);
+        if (id === undefined)
+            return undefined;
+
+        return this.getNodeById(id);
     }
 
     addGlobalInput(name, type) {
@@ -100,14 +110,20 @@ export class Graph {
             throw Error('unknown node type' + path);
         }
 
-        const id = newgid();
+        const id = options.id !== undefined ? options.id : newgid();
         const graph = this;
         const title = options.title || Ctor.title || path;
         const pos = options.pos || Const.Graph.DEFAULT_POSITION.concat();
+        const ref = options.ref;
+
 
         let node = new Ctor({graph, id, title, pos, path});
 
         this.nodes = this.nodes.set(node.id, node);
+
+        if (ref !== undefined) {
+            this.refs.set(ref, id);
+        }
 
         this.emit('node-added', { node });
 
@@ -122,6 +138,7 @@ export class Graph {
             node = node_or_id;
         }
         this.nodes = this.nodes.delete(node.id);
+        this.refs.delete(node.id);
 
         this.forEachEdgeToNode(node, (edge) => this.disconnect(edge));
         this.forEachEdgeFromNode(node, (edge) => this.disconnect(edge));
@@ -185,6 +202,28 @@ export class Graph {
         this.nodes = Immutable.OrderedMap(ordered);
     }
 
+    _insertEdge(edge) {
+        const {src_id, src_slot, dst_id, dst_slot} = edge;
+
+        this.edges_by_src = this.edges_by_src.updateIn(
+            [src_id, src_slot],
+            Immutable.Set(),
+            (edgelist) => edgelist.add(edge));
+        let prev_edge = this.edges_by_dst.getIn([dst_id, dst_slot]);
+
+        this.edges_by_dst = this.edges_by_dst.setIn([dst_id, dst_slot], edge);
+        return prev_edge;
+    }
+
+    _notifyConnect(edge) {
+        let src = this.getNodeById(edge.src_id);
+        let dst = this.getNodeById(edge.dst_id);
+
+        src.vm.outputs[edge.src_slot].state.num_edges += 1;
+        dst.vm.inputs[edge.dst_slot].state.num_edges += 1;
+        this.emit('edge-added', { edge });
+    }
+
     connect(src, src_slot, dst, dst_slot) {
         let src_type = src.output_info[src_slot].type;
         let dst_type = dst.input_info[dst_slot].type;
@@ -203,20 +242,14 @@ export class Graph {
         let old_src = this.edges_by_src;
         let old_dst = this.edges_by_dst;
 
-        this.edges_by_src = this.edges_by_src.updateIn([src.id, src_slot],
-            Immutable.Set(), (edgelist) => edgelist.add(edge));
-
-        let prev_edge = this.edges_by_dst.getIn([dst.id, dst_slot]);
+        let prev_edge = this._insertEdge(edge);
 
         if (prev_edge)
             this._removeEdge(prev_edge);
 
-        this.edges_by_dst = this.edges_by_dst.setIn([dst.id, dst_slot], edge);
         try {
             this.toposort();
-            this.emit('edge-added', { edge });
-            src.vm.outputs[src_slot].state.num_edges += 1;
-            dst.vm.inputs[dst_slot].state.num_edges += 1;
+            this._notifyConnect(edge);
             if (prev_edge)
                 this._notifyDisconnect(prev_edge);
             return edge;
@@ -344,14 +377,52 @@ export class Graph {
         let nodes = [];
         this.forEachNode((node) => nodes.push(node.save()));
 
+        let refs = Array.from(this.refs.entries());
+
         const data = {
+            id: this.id,
             global_inputs,
             global_outputs,
+            refs,
             edges,
             nodes,
         };
 
         return Object.freeze(data);
+    }
+
+    static load(snapshot) {
+        let graph = new Graph(snapshot.id);
+
+        for (let {name, type} of snapshot.global_inputs) {
+            graph.addGlobalInput(name, type);
+        }
+
+        for (let {name, type} of snapshot.global_outputs) {
+            graph.addGlobalOutput(name, type);
+        }
+
+        for (let [name, id] of snapshot.refs) {
+            graph.refs.set(name, id);
+        }
+
+        for (let nodesnap of snapshot.nodes) {
+            const { id, title, pos, type } = nodesnap;
+            let node = graph.addNode(type, {
+                id,
+                title,
+                pos,
+                type,
+            });
+            node.load_settings(nodesnap);
+        }
+
+        for (let edge of snapshot.edges) {
+            graph._insertEdge(edge);
+            graph._notifyConnect(edge);
+        }
+
+        return graph;
     }
 }
 
@@ -562,5 +633,15 @@ export class GraphNode {
         };
 
         return Object.freeze(data);
+    }
+
+    load_settings(nodesnap) {
+        for (let i = 0; i < this.vm.inputs.length; i++) {
+            this.vm.inputs[i].settings = nodesnap.input_settings[i].settings;
+        }
+        for (let i = 0; i < this.vm.outputs.length; i++) {
+            this.vm.outputs[i].settings = nodesnap.output_settings[i].settings;
+        }
+        this.vm.defaults = Util.JSON.denormalized(nodesnap.defaults);
     }
 }

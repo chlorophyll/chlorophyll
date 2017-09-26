@@ -145,6 +145,15 @@ describe('Graph', () => {
         expect(graph.connect(b, 0, a, 0)).toEqual(false);
     });
 
+    it('should correctly track node refs', () => {
+        let graph = new Graph();
+
+        let a = graph.addNode('/input-output', {ref: 'a'});
+        let b = graph.addNode('/input-output');
+
+        expect(graph.getNodeByRef('a')).toBe(a);
+    });
+
     it('should have node snapshots that conform to the node schema', () => {
         let graph = new Graph();
         let node = graph.addNode('/input-output');
@@ -153,11 +162,33 @@ describe('Graph', () => {
 
     it('should have snapshots that conform to the graph schema for simple graphs', () => {
         let graph = new Graph();
+        let a = graph.addNode('/input-output', {ref: 'a'});
+        let b = graph.addNode('/input-output');
+        graph.connect(a, 0, b, 0);
+        expect(graph.save()).toMatchSchema('chlorophyll#/definitions/objects/graph');
+    });
+
+    it('should correctly load saved snapshots', () => {
+        let graph = new Graph();
         let a = graph.addNode('/input-output');
         let b = graph.addNode('/input-output');
         graph.connect(a, 0, b, 0);
 
-        expect(graph.save()).toMatchSchema('chlorophyll#/definitions/objects/graph');
+        let saved = graph.save();
+        let newgraph = Graph.load(saved);
 
+        expect(newgraph.id).toEqual(graph.id);
+        let newa = newgraph.getNodeById(a.id);
+        let newb = newgraph.getNodeById(b.id);
+
+        expect(newgraph.numEdgesFromNode(newa)).toEqual(1);
+        expect(newgraph.numEdgesToNode(newb)).toEqual(1);
+
+        newgraph.forEachEdgeFromNode(newa, (edge) => {
+            expect(edge.src_id).toEqual(newa.id);
+            expect(edge.src_slot).toEqual(0);
+            expect(edge.dst_id).toEqual(newb.id);
+            expect(edge.dst_slot).toEqual(0);
+        });
     });
 });

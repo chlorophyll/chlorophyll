@@ -192,6 +192,9 @@
             "graphData": {
                 "type": "object",
                 "properties": {
+                    "id": {
+                        "type": "number"
+                    },
                     "name": {
                         "type": "string"
                     },
@@ -273,6 +276,9 @@
             "graph": {
                 "type": "object",
                 "properties": {
+                    "id": {
+                        "type": "number"
+                    },
                     "global_inputs": {
                         "type": "array",
                         "items": {
@@ -291,6 +297,14 @@
                             "$ref": "#/definitions/objects/node"
                         }
                     },
+                    "refs": {
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2
+                        }
+                    },
                     "edges": {
                         "type": "array",
                         "items": {
@@ -298,7 +312,7 @@
                         }
                     }
                 },
-                "required": ["global_inputs", "global_outputs", "nodes", "edges"],
+                "required": ["id", "global_inputs", "global_outputs", "nodes", "refs", "edges"],
                 "additionalProperties": false
             },
             "patternType": {
@@ -310,10 +324,16 @@
                     "id": {
                         "type": "number"
                     },
+                    "mapping_type": {
+                        "type": "string"
+                    },
+                    "coord_type": {
+                        "type": "string"
+                    },
                     "stages": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/objects/graph"
+                        "type": "object",
+                        "properties": {
+                            "pixel": { "type": "number"}
                         }
                     }
                 },
@@ -353,6 +373,12 @@
                     "items": {
                         "$ref": "#/definitions/objects/patternType"
                     }
+                },
+                "graphs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/objects/graph"
+                    }
                 }
             },
             "additionalProperties": false,
@@ -362,7 +388,8 @@
                 "model_file",
                 "active_selection",
                 "groups",
-                "patterns"
+                "patterns",
+                "graphs"
             ]
         }
     }
