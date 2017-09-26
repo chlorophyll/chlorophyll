@@ -2,7 +2,9 @@ import store from 'chl/vue/store';
 
 import 'chl/testing';
 
-import { mappingTypes, saveGroup, saveMapping } from 'chl/mapping';
+import { mappingTypes, saveAll, saveGroup, saveMapping } from 'chl/mapping';
+
+let num_mapping_types = 0;
 
 beforeAll(() => {
     store.commit('mapping/create_group', {
@@ -12,11 +14,13 @@ beforeAll(() => {
 
     let id = 2;
     for (let type in mappingTypes) {
+        num_mapping_types++;
         store.commit('mapping/create_mapping', {
             id,
             type,
             group: 1,
         });
+        id++;
     }
 });
 
@@ -34,6 +38,44 @@ describe('Mapping module', () => {
             const mapping_saved = saveMapping(mapping);
             expect(mapping_saved).toMatchSchema('chlorophyll#/definitions/objects/mapping');
         }
+    });
+
+    it("correctly restores a saved snapshot", () => {
+        let saved = saveAll();
+
+        store.commit('mapping/delete', {id: 1});
+        store.commit('mapping/delete', {id: 2});
+        store.commit('mapping/delete', {id: 3});
+
+        expect(store.state.mapping.mapping_list.length).toEqual(0);
+        expect(store.state.mapping.group_list.length).toEqual(0);
+
+        store.commit('mapping/restore', saved);
+
+        expect(store.state.mapping.mapping_list.length).toEqual(num_mapping_types);
+        expect(store.state.mapping.group_list.length).toEqual(1);
+    });
+
+    it("correctly removes objects when restoring", () => {
+        let saved = saveAll();
+
+        let id = num_mapping_types + 2;
+
+        store.commit('mapping/create_mapping', {
+            id,
+            type: 'projection',
+            group: 1,
+        });
+
+        expect(store.state.mapping.mappings[id]).not.toBeUndefined();
+        expect(store.state.mapping.mapping_list.length).toEqual(num_mapping_types+1);
+
+        store.commit('mapping/restore', saved);
+        expect(store.state.mapping.mappings[id]).toBeUndefined();
+
+        expect(store.state.mapping.mapping_list.length).toEqual(num_mapping_types);
+        expect(store.state.mapping.group_list.length).toEqual(1);
+
     });
 
 });
