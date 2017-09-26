@@ -331,3 +331,14 @@ Util.EventDispatcher = function() {
 };
 
 export default Util;
+
+export function UniqueNameMixin(objtype, getter) {
+    return {
+        methods: {
+            [`unique${objtype}Name`]() {
+                let namelist = this.$store.getters[getter].map((obj) => obj.name);
+                return Util.uniqueName(objtype+' ', namelist);
+            }
+        }
+    };
+}

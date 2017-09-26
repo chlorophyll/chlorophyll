@@ -32,6 +32,7 @@ import { mapState } from 'vuex';
 import store, { newgid } from 'chl/vue/store';
 import { currentModel } from 'chl/model';
 import { mappingUtilsMixin } from 'chl/mapping';
+import { UniqueNameMixin } from 'chl/util';
 
 import MappingBrowser from '@/components/mapping/browser';
 import MappingConfig from '@/components/mapping/mapping_config';
@@ -45,7 +46,7 @@ import SplitPane from '@/components/widgets/split';
 export default {
     name: 'mapping-manager',
     store,
-    mixins: [mappingUtilsMixin],
+    mixins: [mappingUtilsMixin, UniqueNameMixin('Group', 'mapping/group_list')],
     components: {
         MappingBrowser,
         MappingConfig,
@@ -73,10 +74,11 @@ export default {
         newGroupFromSelection() {
             if (this.$store.state.selection.active.length == 0)
                 return;
-
+            const name = this.uniqueGroupName();
             const id = newgid();
             this.$store.commit('mapping/create_group', {
                 id,
+                name,
                 pixels: this.$store.state.selection.active
             });
             this.$store.commit('selection/clear');

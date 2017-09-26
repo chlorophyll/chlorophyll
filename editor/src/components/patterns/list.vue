@@ -1,7 +1,7 @@
 <template>
     <div>
     <ul>
-        <li v-for="pattern in patterns"
+        <li v-for="pattern in pattern_list"
             :class="{ current : cur_pattern === pattern }"
             @click="set_current(pattern)">
             {{ pattern.name }}
@@ -28,13 +28,13 @@ import store, { newgid } from 'chl/vue/store';
 
 import { mappingTypes } from 'chl/mapping';
 
+import { UniqueNameMixin } from 'chl/util';
+
 export default {
     name: 'pattern-list',
     store,
+    mixins: [UniqueNameMixin('Pattern', 'pattern/pattern_list')],
     computed: {
-        patterns() {
-            return this.$store.state.pattern.patterns;
-        },
         cur_coord_type: {
             get() {
                 const { mapping_type, coord_type } = this.cur_pattern;
@@ -49,13 +49,13 @@ export default {
         },
         ...mapGetters('pattern', [
             'cur_pattern',
-            'unique_name',
+            'pattern_list',
         ]),
     },
     methods: {
         new_pattern() {
             let id = newgid();
-            let name = this.unique_name;
+            let name = this.uniquePatternName();
             this.$store.commit('pattern/create', { id, name });
         },
         ...mapMutations('pattern', [

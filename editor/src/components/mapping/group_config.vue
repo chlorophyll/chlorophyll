@@ -26,11 +26,12 @@
 <script>
 import { newgid } from 'chl/vue/store';
 import { mappingUtilsMixin } from 'chl/mapping';
+import { UniqueNameMixin } from 'chl/util';
 
 export default {
     name: 'group-config',
     props: ['group'],
-    mixins: [mappingUtilsMixin],
+    mixins: [mappingUtilsMixin, UniqueNameMixin('Mapping', 'mapping/mapping_list')],
     data() {
         return {
             create_mapping_type: 'projection',
@@ -52,8 +53,10 @@ export default {
     methods: {
         newMapping(group) {
             const id = newgid();
+            const name = this.uniqueMappingName();
             this.$store.commit('mapping/create_mapping', {
                 id,
+                name,
                 group: this.group.id,
                 type: this.create_mapping_type,
             });
