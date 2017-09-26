@@ -1,4 +1,5 @@
 import store from 'chl/vue/store';
+import { SchemaDefs } from 'chl/schemas';
 import { savePattern } from 'chl/patterns';
 
 import 'chl/testing';
@@ -14,6 +15,6 @@ describe('Pattern module', () => {
     it('has patterns that meet the schema', () => {
         let pattern = store.state.pattern.patterns[1];
         let saved = savePattern(pattern);
-        expect(saved).toMatchSchema('chlorophyll#/definitions/objects/patternType');
+        expect(saved).toMatchSchema(SchemaDefs.object('patternType'));
     });
 });

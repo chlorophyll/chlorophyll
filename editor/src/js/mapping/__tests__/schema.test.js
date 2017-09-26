@@ -1,5 +1,7 @@
 import store from 'chl/vue/store';
 
+import { SchemaDefs } from 'chl/schemas';
+
 import 'chl/testing';
 
 import { mappingTypes, saveAll, saveGroup, saveMapping } from 'chl/mapping';
@@ -29,14 +31,14 @@ describe('Mapping module', () => {
     it('saves groups according to the schema', () => {
         const group = store.state.mapping.groups[1];
         const group_saved = saveGroup(group);
-        expect(group_saved).toMatchSchema('chlorophyll#/definitions/objects/group');
+        expect(group_saved).toMatchSchema(SchemaDefs.object('group'));
     });
 
     it('saves every map type according to the schema', () => {
         for (let id of store.state.mapping.mapping_list) {
             const mapping = store.state.mapping.mappings[id];
             const mapping_saved = saveMapping(mapping);
-            expect(mapping_saved).toMatchSchema('chlorophyll#/definitions/objects/mapping');
+            expect(mapping_saved).toMatchSchema(SchemaDefs.object('mapping'));
         }
     });
 

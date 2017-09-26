@@ -8,3 +8,12 @@ let schemas = new Ajv({allErrors: true});
 schemas.addSchema(file);
 
 export default schemas;
+
+export const SchemaDefs = {
+    object(name) {
+        return `chlorophyll#/definitions/objects/${name}`
+    },
+    type(name) {
+        return `chlorophyll#/definitions/types/${name}`
+    }
+};

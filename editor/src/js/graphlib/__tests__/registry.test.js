@@ -1,4 +1,5 @@
 import GraphLib, { Graph } from 'chl/graphlib';
+import { SchemaDefs } from 'chl/schemas';
 import register_nodes from 'chl/patterns/registry';
 import 'chl/testing';
 
@@ -12,7 +13,7 @@ describe('GraphLib', () => {
 
         nodeTypes.forEach((ctor, path) => {
             let node = graph.addNode(path);
-            expect(node.save()).toMatchSchema('chlorophyll#/definitions/objects/node');
+            expect(node.save()).toMatchSchema(SchemaDefs.object('node'));
         });
     });
 });

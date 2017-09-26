@@ -1,4 +1,7 @@
 import GraphLib, { Graph, GraphNode } from 'chl/graphlib';
+
+import { SchemaDefs } from 'chl/schemas';
+
 import Units from 'chl/units';
 
 import 'chl/testing';
@@ -174,7 +177,7 @@ describe('Graph', () => {
     it('should have node snapshots that conform to the node schema', () => {
         let graph = new Graph();
         let node = graph.addNode('/input-output');
-        expect(node.save()).toMatchSchema('chlorophyll#/definitions/objects/node');
+        expect(node.save()).toMatchSchema(SchemaDefs.object('node'));
     });
 
     it('should have snapshots that conform to the graph schema for simple graphs', () => {
@@ -182,18 +185,18 @@ describe('Graph', () => {
         let a = graph.addNode('/input-output', {ref: 'a'});
         let b = graph.addNode('/input-output');
         graph.connect(a, 0, b, 0);
-        expect(graph.save()).toMatchSchema('chlorophyll#/definitions/objects/graph');
+        expect(graph.save()).toMatchSchema(SchemaDefs.object('graph'));
     });
 
     it('should properly serialize nodes with units', () => {
         let graph = new Graph();
         let node = graph.addNode('/typed');
 
-        expect(node.save()).toMatchSchema('chlorophyll#/definitions/objects/node');
+        expect(node.save()).toMatchSchema(SchemaDefs.object('node'));
 
         node.vm.defaults['input'] = new Units.Percentage(0.5);
 
-        expect(node.save()).toMatchSchema('chlorophyll#/definitions/objects/node');
+        expect(node.save()).toMatchSchema(SchemaDefs.object('node'));
     });
 
     it('should correctly restore saved snapshots', () => {
