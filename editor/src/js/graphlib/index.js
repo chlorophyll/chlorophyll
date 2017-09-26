@@ -391,7 +391,7 @@ export class Graph {
         return Object.freeze(data);
     }
 
-    static load(snapshot) {
+    static restore(snapshot) {
         let graph = new Graph(snapshot.id);
 
         for (let {name, type} of snapshot.global_inputs) {
@@ -414,13 +414,14 @@ export class Graph {
                 pos,
                 type,
             });
-            node.load_settings(nodesnap);
+            node.restore_settings(nodesnap);
         }
 
         for (let edge of snapshot.edges) {
             graph._insertEdge(edge);
             graph._notifyConnect(edge);
         }
+        graph.toposort();
 
         return graph;
     }
@@ -635,7 +636,7 @@ export class GraphNode {
         return Object.freeze(data);
     }
 
-    load_settings(nodesnap) {
+    restore_settings(nodesnap) {
         for (let i = 0; i < this.vm.inputs.length; i++) {
             this.vm.inputs[i].settings = nodesnap.input_settings[i].settings;
         }

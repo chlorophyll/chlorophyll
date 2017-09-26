@@ -1,6 +1,9 @@
 import GraphLib, { Graph, GraphNode } from 'chl/graphlib';
+import Units from 'chl/units';
 
 import 'chl/testing';
+
+let node_types = [];
 
 class InputNode extends GraphNode {
     constructor(options) {
@@ -10,6 +13,20 @@ class InputNode extends GraphNode {
         super(options, inputs, outputs);
     }
 }
+node_types.push(['/input', InputNode]);
+
+class TypedNode extends GraphNode {
+    constructor(options) {
+        const inputs = [GraphNode.input('input', Units.Percentage)];
+        const outputs = [GraphNode.output('output', Units.Percentage)];
+        super(options, inputs, outputs);
+    }
+
+    onExecute() {
+        this.setOutputData(0, this.getInputData(0));
+    }
+}
+node_types.push(['/typed', TypedNode]);
 
 class OutputNode extends GraphNode {
     constructor(options) {
@@ -23,6 +40,7 @@ class OutputNode extends GraphNode {
         this.setOutputData(0, 'beep');
     }
 }
+node_types.push(['/output', OutputNode]);
 
 class InputOutputNode extends GraphNode {
     constructor(options) {
@@ -36,20 +54,19 @@ class InputOutputNode extends GraphNode {
         this.setOutputData(0, this.getInputData(0));
     }
 }
+node_types.push(['/input-output', InputOutputNode]);
 
 beforeAll(() => {
-    GraphLib.registerNodeType('/output', OutputNode);
-    GraphLib.registerNodeType('/input', InputNode);
-    GraphLib.registerNodeType('/input-output', InputOutputNode);
+    GraphLib.registerNodeTypes(node_types);
 
 });
 
 describe('GraphLib', () => {
     it('should register nodes in order', () => {
         let nodeTypes = GraphLib.getNodeTypes().keySeq().toJS();
-        expect(nodeTypes).toHaveLength(3);
+        expect(nodeTypes).toHaveLength(node_types.length);
         expect(nodeTypes).toEqual(
-            expect.arrayContaining(['/input', '/output', '/input-output'])
+            expect.arrayContaining(node_types.map(([path, ctor]) => path))
         );
     });
 });
@@ -168,21 +185,39 @@ describe('Graph', () => {
         expect(graph.save()).toMatchSchema('chlorophyll#/definitions/objects/graph');
     });
 
-    it('should correctly load saved snapshots', () => {
+    it('should properly serialize nodes with units', () => {
+        let graph = new Graph();
+        let node = graph.addNode('/typed');
+
+        expect(node.save()).toMatchSchema('chlorophyll#/definitions/objects/node');
+
+        node.vm.defaults['input'] = new Units.Percentage(0.5);
+
+        expect(node.save()).toMatchSchema('chlorophyll#/definitions/objects/node');
+    });
+
+    it('should correctly restore saved snapshots', () => {
         let graph = new Graph();
         let a = graph.addNode('/input-output');
         let b = graph.addNode('/input-output');
+        let c = graph.addNode('/typed');
         graph.connect(a, 0, b, 0);
 
+        a.vm.defaults['input'] = 'foo';
+        c.vm.defaults['input'] = new Units.Percentage(0.5);
+
         let saved = graph.save();
-        let newgraph = Graph.load(saved);
+        let newgraph = Graph.restore(saved);
 
         expect(newgraph.id).toEqual(graph.id);
         let newa = newgraph.getNodeById(a.id);
         let newb = newgraph.getNodeById(b.id);
+        let newc = newgraph.getNodeById(c.id);
 
         expect(newgraph.numEdgesFromNode(newa)).toEqual(1);
         expect(newgraph.numEdgesToNode(newb)).toEqual(1);
+        expect(newa.vm.defaults['input']).toEqual('foo');
+        expect(newc.vm.defaults['input']).toEqual(new Units.Percentage(0.5));
 
         newgraph.forEachEdgeFromNode(newa, (edge) => {
             expect(edge.src_id).toEqual(newa.id);
@@ -191,4 +226,26 @@ describe('Graph', () => {
             expect(edge.dst_slot).toEqual(0);
         });
     });
+
+    it('should fail to restore snapshots that have cycles', () => {
+        let graph = new Graph();
+        let a = graph.addNode('/input-output');
+        let b = graph.addNode('/input-output');
+        graph.connect(a, 0, b, 0);
+
+        let saved = graph.save();
+
+        // tamper with the graph c.c
+        let id = saved.edges[0].id+1;
+        saved.edges.push({
+            id,
+            src_id: b.id,
+            src_slot: 0,
+            dst_id: a.id,
+            dst_slot: 0,
+        });
+
+        expect(() => Graph.restore(saved)).toThrow();
+    });
+
 });
