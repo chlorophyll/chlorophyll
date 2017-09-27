@@ -20,7 +20,14 @@ const selectionStore = {
     }
 };
 
-registerSaveField('next_guid', () => store.state.next_guid);
+registerSaveField('next_guid', {
+    save() {
+        return store.state.next_guid;
+    },
+    restore(next_guid) {
+        store.commit('set_next_guid', { next_guid });
+    }
+});
 
 const store = new Vuex.Store({
     modules: {
@@ -63,6 +70,9 @@ const store = new Vuex.Store({
         guid_increment(state) {
             state.next_guid++;
         },
+        set_next_guid(state, { next_guid }) {
+            state.next_guid = next_guid;
+        }
     }
 });
 

@@ -1,12 +1,16 @@
 import * as fs from 'fs';
 import { remote } from 'electron';
 
+import schemas, { SchemaDefs } from 'chl/schemas';
+
+let validateSchema = schemas.getSchema(SchemaDefs.definition('chlorophyllSavefile'));
+
 let _saveFields = null;
 
-export function registerSaveField(field, fn) {
+export function registerSaveField(field, { save, restore }) {
     if (_saveFields === null)
         _saveFields = new Map();
-    _saveFields.set(field, fn);
+    _saveFields.set(field, { save, restore });
 }
 
 export function getSaveField(field) {
@@ -15,8 +19,8 @@ export function getSaveField(field) {
 
 export function createSaveObject() {
     let out = {};
-    for ([field, fn] of _saveFields) {
-        out[field] = fn();
+    for ([field, { save }] of _saveFields) {
+        out[field] = save();
     }
     return out;
 }
@@ -32,5 +36,37 @@ export function writeSavefile(path) {
         if (err !== null) {
             remote.dialog.showErrorBox('Error saving file', err.message);
         }
+    });
+}
+
+function restoreSaveObject() {
+    for ([field, { restore }] of _saveFields) {
+        restore(obj[field]);
+    }
+}
+
+export function readSavefile(path) {
+    fs.readFile(path, (err, data) => {
+        if (err !== null) {
+            remote.dialog.showErrorBox('Error opening file', err.message);
+            return;
+        }
+        let obj;
+        const msg = `${path} is not a valid Chlorophyll project file.`;
+        try {
+            obj = JSON.parse(out);
+        } catch (exc) {
+            remote.dialog.showErrorBox('Error opening file', msg);
+            return;
+        }
+
+        let result = validateSchema(obj);
+
+        if (!result) {
+            remote.dialog.showErrorBox('Error opening file', msg);
+            return;
+        }
+
+        restoreSaveObject(object);
     });
 }

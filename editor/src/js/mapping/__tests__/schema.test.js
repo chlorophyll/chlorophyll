@@ -27,8 +27,8 @@ beforeAll(() => {
 });
 
 function saveAllMappings() {
-    let groups = getSaveField('groups')();
-    let mappings = getSaveField('mappings')();
+    let groups = getSaveField('groups').save();
+    let mappings = getSaveField('mappings').save();
     return { groups, mappings };
 }
 
@@ -58,7 +58,8 @@ describe('Mapping module', () => {
         expect(store.state.mapping.mapping_list.length).toEqual(0);
         expect(store.state.mapping.group_list.length).toEqual(0);
 
-        store.commit('mapping/restore', saved);
+        store.commit('mapping/restore_mappings', saved);
+        store.commit('mapping/restore_groups', saved);
 
         expect(store.state.mapping.mapping_list.length).toEqual(num_mapping_types);
         expect(store.state.mapping.group_list.length).toEqual(1);
@@ -78,7 +79,8 @@ describe('Mapping module', () => {
         expect(store.state.mapping.mappings[id]).not.toBeUndefined();
         expect(store.state.mapping.mapping_list.length).toEqual(num_mapping_types+1);
 
-        store.commit('mapping/restore', saved);
+        store.commit('mapping/restore_mappings', saved);
+        store.commit('mapping/restore_groups', saved);
         expect(store.state.mapping.mappings[id]).toBeUndefined();
 
         expect(store.state.mapping.mapping_list.length).toEqual(num_mapping_types);

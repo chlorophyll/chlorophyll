@@ -4,26 +4,63 @@ import keyboardJS from 'keyboardjs';
 import Const from 'chl/const';
 import store from 'chl/vue/store';
 import Util from 'chl/util';
-import Chlorophyll from 'chl/init';
 
 import Hotkey from 'chl/keybindings';
 
 export let scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
 
-export let renderer = new THREE.WebGLRenderer({antialias: true});
-renderer.setClearColor(scene.fog.color);
-renderer.setPixelRatio(window.devicePixelRatio);
+export let renderer = null;
+
+let frontPlane = null;
+let backPlane = null;
+
+export let activeScreen = () => store.getters['viewport/activeScreen'];
+
+
+export function initClippingPlanes() {
+    let v = new THREE.Vector3();
+    activeScreen().camera.getWorldDirection(v);
+    let nv = v.clone().negate();
+    frontPlane = new THREE.Plane(v, Const.max_clip_plane);
+    backPlane = new THREE.Plane(nv, Const.max_clip_plane);
+    renderer.clippingPlanes = [];
+}
+
+function updateClippingPlanes(camera) {
+    let v = new THREE.Vector3();
+    camera.getWorldDirection(v);
+    frontPlane.normal = v;
+    backPlane.normal = v.clone().negate();
+}
 
 export function isClipped(v) {
-    if (Chlorophyll.frontPlane.distanceToPoint(v) < 0)
+    if (frontPlane.distanceToPoint(v) < 0)
         return true;
 
-    if (Chlorophyll.backPlane.distanceToPoint(v) < 0)
+    if (backPlane.distanceToPoint(v) < 0)
         return true;
     return false;
 }
 
+export function initRenderer() {
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setClearColor(scene.fog.color);
+    renderer.setPixelRatio(window.devicePixelRatio);
+}
+
+export function renderViewport() {
+    activeScreen().update();
+    activeScreen().render();
+}
+
+export function getPointAt(model, x, y) {
+    return activeScreen().getPointAt(model, x, y);
+}
+
+export function screenCoords(v) {
+    return activeScreen().screenCoords(v);
+}
 
 class Screen {
     constructor(camera, active) {
@@ -64,6 +101,11 @@ class Screen {
         } else {
             this.controls.enabled = false;
         }
+    }
+
+    update() {
+        this.controls.update();
+        updateClippingPlanes(this.camera);
     }
 
     render() {
@@ -186,4 +228,3 @@ store.registerModule('viewport', {
     },
 });
 
-export let activeScreen = () => store.getters['viewport/activeScreen'];

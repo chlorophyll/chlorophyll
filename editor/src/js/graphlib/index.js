@@ -32,8 +32,23 @@ export const GraphLib = {
     }
 };
 
-registerSaveField('graphs', () => {
-    return Array.from(graphs.values()).map((graph) => graph.save());
+registerSaveField('graphs', {
+    save() {
+        return Array.from(graphs.values()).map((graph) => graph.save());
+    },
+    restore(graphset) {
+        oldgraphs = graphs;
+
+        graphs = new Map();
+
+        for (snapshot of graphset) {
+            Graph.restore(snapshot);
+        }
+
+        for (graph of oldgraphs.values()) {
+            graph.emit('restore');
+        }
+    }
 });
 
 export default GraphLib;
@@ -46,10 +61,7 @@ export class Graph {
         graphs.set(this.id, this);
 
         this.emit = function(name, detail) {
-            this.dispatchEvent(new CustomEvent(name, {
-                detail: detail
-            }));
-            this.dispatchEvent(new CustomEvent('graph-changed'));
+            this.dispatchEvent(new CustomEvent(name, { detail }));
         };
 
         this.global_inputs = new Immutable.Map();

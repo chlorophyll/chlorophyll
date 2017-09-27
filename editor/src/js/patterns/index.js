@@ -123,8 +123,13 @@ export function saveAllPatterns() {
     return { patterns };
 }
 
-registerSaveField('patterns', () => {
-    return store.getters['pattern/pattern_list'].map(savePattern);
+registerSaveField('patterns', {
+    save() {
+        return store.getters['pattern/pattern_list'].map(savePattern);
+    },
+    restore(patterns) {
+        store.commit('pattern/restore', { patterns });
+    }
 });
 
 export class PatternRunner {

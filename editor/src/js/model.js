@@ -1,22 +1,23 @@
 import Immutable from 'immutable';
 import * as THREE from 'three';
 import 'three-examples/Octree';
-
+import { scene } from 'chl/viewport';
 import { registerSaveField } from 'chl/savefile';
 
 export let currentModel = null;
 
-
-export function initModelFromJson(json) {
-    let model = new Model(json);
+export function setCurrentModel(model) {
+    if (currentModel) {
+        currentModel.removeFromScene(scene);
+    }
+    model.addToScene(scene);
     currentModel = model;
-    return model;
 }
 
 const white = new THREE.Color(0xffffff);
 const black = new THREE.Color(0x000000);
 
-export class Overlay {
+class Overlay {
     constructor(model, overlay_color = white, priority = 0) {
         this._model = model;
         this._color = overlay_color;
@@ -50,7 +51,7 @@ export class Overlay {
     }
 }
 
-class Model {
+export class Model {
     constructor(json) {
         this.overlays = {};
         this.strip_offsets = [0];
@@ -170,11 +171,20 @@ class Model {
         this.updateColors();
     }
 
-    addToScene(scene) {
-        scene.add(this.particles);
+    addToScene(sc) {
+        sc.add(this.particles);
         for (let model of this.strip_models) {
-            scene.add(model);
+            sc.add(model);
         }
+    }
+
+    removeFromScene(sc) {
+        sc.remove(this.particles);
+        for (let model of this.strip_models) {
+            sc.remove(model);
+        }
+
+
     }
 
     // pixel data
@@ -288,12 +298,13 @@ class Model {
     save() {
         return this.model_info;
     }
-
-    static load(blob) {
-        return new Model(blob);
-    }
 }
 
-registerSaveField('model', () => {
-    return currentModel.save();
+registerSaveField('model', {
+    save() {
+        return currentModel.save();
+    },
+    restore(model_json) {
+        setCurrentModel(new Model(model_json));
+    }
 });

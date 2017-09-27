@@ -4,7 +4,7 @@ import 'chl/graphlib';
 
 import { createSaveObject } from 'chl/savefile';
 import { mappingTypes } from 'chl/mapping';
-import { initModelFromJson } from 'chl/model';
+import { Model, setCurrentModel } from 'chl/model';
 import { SchemaDefs } from 'chl/schemas';
 
 import store from 'chl/vue/store';
@@ -32,7 +32,8 @@ const model_json = JSON.stringify({
 
 describe('savefile', () => {
     beforeAll(() => {
-        initModelFromJson(model_json);
+        let model = new Model(model_json);
+        setCurrentModel(model);
 
         store.commit('pattern/create', {
             id: 0,

@@ -1,22 +1,19 @@
 // External dependencies
-import { Plane, Vector3 } from 'three';
 import Vue from 'vue';
 
 import { remote } from 'electron';
 
 // Chlorophyll modules
 import Hotkey from 'chl/keybindings';
-import { initModelFromJson } from 'chl/model';
-import { renderer, scene, activeScreen } from 'chl/viewport';
+import { Model, setCurrentModel } from 'chl/model';
+import { activeScreen, initRenderer, initClippingPlanes, renderViewport } from 'chl/viewport';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
 import { writeSavefile } from 'chl/savefile';
-import 'chl/patches';
-import Const from 'chl/const';
 
+import 'chl/patches';
 import 'chl/patterns';
 
 import rootComponent from '@/components/root';
-
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
 const { app, Menu, dialog } = remote;
@@ -132,7 +129,7 @@ function initMenu() {
             submenu: [
                 {
                     label: 'Save As...',
-                    acelerator: 'CommandOrControl+Shift+S',
+                    accelerator: 'CommandOrControl+Shift+S',
                     click() {
                         dialog.showSaveDialog({
                             filters: [
@@ -191,35 +188,25 @@ function Chlorophyll() {
 
 
     this.init = function() {
-        let model = initModelFromJson(chrysanthemum);
+        initRenderer();
+        let model = new Model(chrysanthemum);
+        setCurrentModel(model);
         initMenu();
 
         let root = new Vue(rootComponent);
         root.$mount('#app');
+        initClippingPlanes();
         initSelectionTools(model);
         root.selectionTools = selectionTools;
 
-        let v = new Vector3();
-        activeScreen().camera.getWorldDirection(v);
-        let nv = v.clone().negate();
-        self.frontPlane = new Plane(v, Const.max_clip_plane);
-        self.backPlane = new Plane(nv, Const.max_clip_plane);
-        renderer.clippingPlanes = [];
 
-        model.addToScene(scene);
     };
 
     this.animate = function() {
-        requestAnimationFrame(self.animate);
-
-        let v = new Vector3();
-        activeScreen().camera.getWorldDirection(v);
-        self.frontPlane.normal = v;
-        self.backPlane.normal = v.clone().negate();
-
-        activeScreen().controls.update();
-        activeScreen().render();
+        window.requestAnimationFrame(self.animate);
+        renderViewport();
     };
 }
 
 export default new Chlorophyll();
+
