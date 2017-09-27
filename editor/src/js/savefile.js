@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import { remote } from 'electron';
+
 let _saveFields = null;
 
 export function registerSaveField(field, fn) {
@@ -16,4 +19,18 @@ export function createSaveObject() {
         out[field] = fn();
     }
     return out;
+}
+
+export function writeSavefile(path) {
+    let out = createSaveObject();
+
+    let contents = JSON.stringify(out);
+
+    console.log(`Trying to write file ${path}`);
+
+    fs.writeFile(path, contents, (err) => {
+        if (err !== null) {
+            remote.dialog.showErrorBox('Error saving file', err.message);
+        }
+    });
 }

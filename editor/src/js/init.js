@@ -9,6 +9,7 @@ import Hotkey from 'chl/keybindings';
 import { initModelFromJson } from 'chl/model';
 import { renderer, scene, activeScreen } from 'chl/viewport';
 import { MarqueeSelection, LineSelection, PlaneSelection } from 'chl/tools/selection';
+import { writeSavefile } from 'chl/savefile';
 import 'chl/patches';
 import Const from 'chl/const';
 
@@ -18,7 +19,7 @@ import rootComponent from '@/components/root';
 
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
-const { app, Menu } = remote;
+const { app, Menu, dialog } = remote;
 
 // Chlorophyll UI manager objects
 
@@ -126,6 +127,22 @@ function initMenu() {
 
     const menuTemplate = [
         ...appMenu,
+        {
+            label: 'File',
+            submenu: [
+                {
+                    label: 'Save As...',
+                    acelerator: 'CommandOrControl+Shift+S',
+                    click() {
+                        dialog.showSaveDialog({
+                            filters: [
+                                { name: 'Chlorophyll project file', extensions: ['chl'] }
+                            ]
+                        }, writeSavefile);
+                    }
+                }
+            ],
+        },
         {
             label: 'Edit',
             submenu: [
