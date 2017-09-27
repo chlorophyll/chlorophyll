@@ -6,6 +6,7 @@ import Const from 'chl/const';
 import GraphLib, { Graph } from 'chl/graphlib';
 import { getMappedPoints, convertPointCoords } from 'chl/mapping';
 import { CRGB } from 'chl/fastled/color';
+import { registerSaveField } from 'chl/savefile';
 
 import store from 'chl/vue/store';
 
@@ -119,9 +120,12 @@ export function restorePattern(patternsnap) {
 
 export function saveAllPatterns() {
     let patterns = store.getters['pattern/pattern_list'].map(savePattern);
-
     return { patterns };
 }
+
+registerSaveField('patterns', () => {
+    return store.getters['pattern/pattern_list'].map(savePattern);
+});
 
 export class PatternRunner {
     constructor(pattern, mapping) {

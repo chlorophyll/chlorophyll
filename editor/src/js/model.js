@@ -2,6 +2,8 @@ import Immutable from 'immutable';
 import * as THREE from 'three';
 import 'three-examples/Octree';
 
+import { registerSaveField } from 'chl/savefile';
+
 export let currentModel = null;
 
 
@@ -62,8 +64,9 @@ class Model {
             objectsThreshold: 8,
         });
 
-        const model_info = JSON.parse(json);
-        const { strips } = model_info;
+        this.model_info = JSON.parse(json);
+
+        const { strips } = this.model_info;
 
         const strip_material = new THREE.LineBasicMaterial({
             color: 0xffffff,
@@ -282,4 +285,15 @@ class Model {
         });
     }
 
+    save() {
+        return this.model_info;
+    }
+
+    static load(blob) {
+        return new Model(blob);
+    }
 }
+
+registerSaveField('model', () => {
+    return currentModel.save();
+});

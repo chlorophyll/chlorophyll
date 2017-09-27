@@ -3,6 +3,8 @@ import Vue from 'vue';
 import Util from 'chl/util';
 import Const from 'chl/const';
 
+import { registerSaveField } from 'chl/savefile';
+
 import { newgid } from 'chl/vue/store';
 
 let node_types = Immutable.OrderedMap();
@@ -29,6 +31,10 @@ export const GraphLib = {
         return graphs.get(id);
     }
 };
+
+registerSaveField('graphs', () => {
+    return Array.from(graphs.values()).map((graph) => graph.save());
+});
 
 export default GraphLib;
 

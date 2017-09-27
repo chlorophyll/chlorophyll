@@ -10,10 +10,13 @@ schemas.addSchema(file);
 export default schemas;
 
 export const SchemaDefs = {
+    definition(name) {
+        return `chlorophyll#/definitions/${name}`;
+    },
     object(name) {
-        return `chlorophyll#/definitions/objects/${name}`;
+        return SchemaDefs.definition(`objects/${name}`);
     },
     type(name) {
-        return `chlorophyll#/definitions/types/${name}`;
+        return SchemaDefs.definition(`types/${name}`);
     }
 };

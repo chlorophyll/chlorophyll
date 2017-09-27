@@ -46,6 +46,20 @@
                     "type": "number"
                 }
             },
+            "coord": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 4
+            },
+            "coordList": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/types/coord"
+                }
+            },
             "unit": {
                 "type": "object",
                 "properties": {
@@ -339,22 +353,33 @@
                 },
                 "required": ["name", "id", "stages"],
                 "additionalProperties": false
+            },
+            "model": {
+                "type": "object",
+                "properties": {
+                    "mapper": {
+                        "type": "string"
+                    },
+                    "num_pixels": {
+                        "type": "number"
+                    },
+                    "strips": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/types/coordList"
+                        }
+                    }
+                }
             }
         },
-        "chlorophyllState": {
+        "chlorophyllSavefile": {
             "type": "object",
             "properties": {
-                "last_id": {
+                "next_guid": {
                     "type": "number"
                 },
-                "project_name": {
-                    "type": "string"
-                },
-                "model_file": {
-                    "type": "string"
-                },
-                "active_selection": {
-                    "$ref": "#/definitions/types/pixelArray"
+                "model": {
+                    "$ref": "#/definitions/objects/model"
                 },
                 "groups": {
                     "type": "array",
@@ -381,12 +406,9 @@
                     }
                 }
             },
-            "additionalProperties": false,
             "required": [
-                "last_id",
-                "project_name",
-                "model_file",
-                "active_selection",
+                "next_guid",
+                "model",
                 "groups",
                 "patterns",
                 "graphs"

@@ -3,6 +3,8 @@ import Vue from 'vue';
 import store from 'chl/vue/store';
 import ColorPool from 'chl/colors';
 
+import { registerSaveField } from 'chl/savefile';
+
 import Util from 'chl/util';
 
 import * as Projection from './projection';
@@ -161,15 +163,14 @@ export function saveMapping(mapping) {
     return Util.clone(mapping);
 }
 
-export function saveAllMappings() {
-    let groups = store.getters['mapping/group_list'].map(saveGroup);
-    let mappings = store.getters['mapping/mapping_list'].map(saveMapping);
+registerSaveField('mappings', () => {
+    return store.getters['mapping/mapping_list'].map(saveMapping);
+});
 
-    return {
-        groups,
-        mappings
-    };
-}
+registerSaveField('groups', () => {
+    return store.getters['mapping/group_list'].map(saveGroup);
+});
+
 
 /*
  * Utility mixin for Vue components that need to reference groups & mappings

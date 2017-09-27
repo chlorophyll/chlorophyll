@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
+import { registerSaveField } from 'chl/savefile';
+
 Vue.use(Vuex);
 
 const selectionStore = {
@@ -17,6 +19,8 @@ const selectionStore = {
         }
     }
 };
+
+registerSaveField('next_guid', () => store.state.next_guid);
 
 const store = new Vuex.Store({
     modules: {

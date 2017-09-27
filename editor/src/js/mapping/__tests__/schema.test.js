@@ -1,10 +1,10 @@
 import store from 'chl/vue/store';
 
 import { SchemaDefs } from 'chl/schemas';
+import { getSaveField } from 'js/savefile';
+import { mappingTypes, saveGroup, saveMapping } from 'chl/mapping';
 
 import 'chl/testing';
-
-import { mappingTypes, saveAllMappings, saveGroup, saveMapping } from 'chl/mapping';
 
 let num_mapping_types = 0;
 
@@ -25,6 +25,12 @@ beforeAll(() => {
         id++;
     }
 });
+
+function saveAllMappings() {
+    let groups = getSaveField('groups')();
+    let mappings = getSaveField('mappings')();
+    return { groups, mappings };
+}
 
 describe('Mapping module', () => {
 
