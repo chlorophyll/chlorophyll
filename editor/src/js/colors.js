@@ -1,5 +1,12 @@
-function ColorPool() {
-    this.colors = [
+/* TODO make this not repeat colors
+    this.unusedColors = colors;
+
+    this.get = function() {};
+    this.recycle = function() {};
+
+*/
+const ColorPool = {
+    colors: [
         '#24c6ff',
         '#ffa21a',
         '#774cfa',
@@ -25,19 +32,15 @@ function ColorPool() {
         '#7c6000',
         '#ff8eb4',
         '#854875',
-    ];
+    ],
+    idx: 0,
+    random() {
+        this.idx = (this.idx + 1) % this.colors.length;
+        return this.colors[this.idx];
+    },
+    reset() {
+        this.idx = 0;
+    }
+};
 
-    /* TODO make this not repeat colors
-    this.unusedColors = colors;
-
-    this.get = function() {};
-    this.recycle = function() {};
-
-    */
-    let i = 0;
-    this.random = function() {
-        i = (i + 1) % (this.colors.length);
-        return this.colors[i];
-    };
-}
-export default new ColorPool();
+export default ColorPool;

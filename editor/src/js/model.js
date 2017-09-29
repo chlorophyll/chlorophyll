@@ -36,6 +36,7 @@ export function importNewModel(json) {
     store.commit('pixels/clear_groups');
     store.commit('mapping/clear_mappings');
     store.commit('pattern/clear_patterns');
+    ColorPool.reset();
 
     let model = new Model(json);
     setCurrentModel(model);
