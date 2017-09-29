@@ -12,6 +12,7 @@ import ColorPool from 'chl/colors';
 export let currentModel = null;
 
 export function setCurrentModel(model) {
+    store.commit('pixels/clear_active_selection');
     currentModel = model;
 }
 
@@ -22,7 +23,7 @@ function createStripGroup(strip) {
         pixels.push(pixel);
     });
 
-    store.dispatch('pixels/create_group', {
+    createGroup({
         id,
         name: `Strip ${strip+1}`,
         pixels: pixels,
@@ -32,6 +33,7 @@ function createStripGroup(strip) {
 
 export function importNewModel(json) {
     store.commit('pixels/clear_groups');
+
     let model = new Model(json);
     setCurrentModel(model);
 
@@ -41,7 +43,8 @@ export function importNewModel(json) {
     });
 
     let id = newgid();
-    store.dispatch('pixels/create_group', {
+
+    createGroup({
         id,
         name: 'All pixels',
         pixels: all_pixels,
@@ -61,12 +64,21 @@ store.registerModule('pixels', {
     state: {
         groups: {},
         group_list: [],
+        active_selection: [],
     },
 
     mutations: {
         clear_groups(state) {
             state.groups = {};
             state.group_list = [];
+        },
+
+        clear_active_selection(state) {
+            state.active_selection = [];
+        },
+
+        set_active_selection(state, pixels) {
+            state.active_selection = pixels;
         },
 
         add_group(state, { id, name, color, pixels }) {
@@ -100,29 +112,19 @@ store.registerModule('pixels', {
         set_visible(state, { id, visible }) {
             state.groups[id].visible = visible;
         },
-    },
-    actions: {
-        restore({ commit }, groups) {
-            commit('clear_groups');
+
+        restore(state, groups) {
+            let new_groups = {};
+            let new_group_list = [];
+
             for (let group of groups) {
-                commit('add_group', group);
+                new_groups[group.id] = restoreGroup(group);
+                new_group_list.push(group.id);
             }
-        },
-        create_group(context, { id, pixels, color, name }) {
-            const { commit, getters } = context;
 
-            name = name || Util.uniqueName('Group ', getters.group_list);
-            color = color || ColorPool.random();
-
-            const group = {
-                id,
-                name,
-                color,
-                pixels,
-            };
-
-            commit('add_group', group);
-        },
+            state.groups = new_groups;
+            state.group_list = new_group_list;
+        }
     },
     getters: {
         group_list(state) {
@@ -130,6 +132,22 @@ store.registerModule('pixels', {
         },
     }
 });
+
+export function createGroup({ id, name, color, pixels }) {
+    color = color || ColorPool.random();
+    name = name || Util.uniqueName('Group ', store.getters['pixels/group_list']);
+
+    store.commit('pixels/add_group', {
+        id,
+        name,
+        color,
+        pixels
+    });
+}
+
+export function restoreGroup(group) {
+    return Util.clone(group);
+}
 
 export function saveGroup(group) {
     let { id, name, pixels, color, visible } = group;
@@ -147,7 +165,7 @@ registerSaveField('groups', {
         return store.getters['pixels/group_list'].map(saveGroup);
     },
     restore(groups) {
-        store.dispatch('pixels/restore', groups);
+        store.commit('pixels/restore', groups);
     }
 });
 
@@ -155,7 +173,6 @@ export const colorDisplay = new Vue({
     store,
     data: {
         selection_threshold: 5,
-        active_selection: [],
         in_progress_selection: [],
     },
     computed: {
@@ -173,7 +190,7 @@ export const colorDisplay = new Vue({
             // TODO set up some consistent thing for these so we don't need
             // to loop for every special case
 
-            for (const pixel of this.active_selection)  {
+            for (const pixel of this.$store.state.pixels.active_selection)  {
                 out[pixel] = white;
             }
 
@@ -185,17 +202,14 @@ export const colorDisplay = new Vue({
     },
     watch: {
         pixel_colors() {
-            if (this.model)
-                this.model.updateColors();
+            if (currentModel !== null)
+                currentModel.updateColors();
         }
     }
 });
 
 export class Model {
     constructor(json, parse=true) {
-        this.color_overlay = colorDisplay;
-        colorDisplay.model = this;
-
         this.strip_offsets = [0];
         this.strip_models = [];
 
@@ -354,7 +368,7 @@ export class Model {
     }
 
     setColorsFromOverlays() {
-        let pixel_colors = this.color_overlay.pixel_colors;
+        let pixel_colors = colorDisplay.pixel_colors;
         let base_color = this.show_without_overlays ? white : black;
 
         for (let i = 0; i < this.num_pixels; i++) {

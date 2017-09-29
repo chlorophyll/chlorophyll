@@ -9,6 +9,7 @@
                 </mapping-browser>
                 <div class="browser-button-container widget wcontent full">
                     <button class="litebutton single"
+                            :disabled="!can_create_group"
                             @click="newGroupFromSelection()">
                         New group from selection
                     </button>
@@ -63,21 +64,24 @@ export default {
         selected_group() {
             return this.getGroup(this.selected_id);
         },
+        can_create_group() {
+            return this.active_selection.length > 0;
+        },
         ...mapState({
+            active_selection: (state) => state.pixels.active_selection,
             group_list: (state) => state.pixels.group_list,
             mapping_list: (state) => state.mapping.mapping_list,
         })
     },
     methods: {
         newGroupFromSelection() {
-            if (this.$store.state.selection.active.length == 0)
+            if (!this.can_create_group)
                 return;
+
             const id = newgid();
-            this.$store.dispatch('pixels/create_group', {
-                id,
-                pixels: this.$store.state.selection.active
-            });
-            this.$store.commit('selection/clear');
+
+            createGroup({id, pixels: [...this.active_selection]});
+            this.$store.commit('pixels/clear_active_selection');
             this.selected_id = id;
         },
     },

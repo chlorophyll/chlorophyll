@@ -92,9 +92,10 @@ export function setCoordType(id, mapping_type, coord_type) {
     store.commit('pattern/set_coord_type', { id, mapping_type, coord_type });
 }
 
-export function createPattern(id, name, {set_current=true} = {}) {
+export function createPattern(id, {name, set_current=true} = {}) {
     const mapping_type = Const.default_map_type;
     const coord_type = Const.default_coord_type;
+    name = name || Util.uniqueName('Pattern ', store.getters['pattern/pattern_list']);
 
     let pixel_stage = new Graph();
 

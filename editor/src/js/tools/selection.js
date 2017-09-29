@@ -1,4 +1,5 @@
 import keyboardJS from 'keyboardjs';
+
 import Hotkey from 'chl/keybindings';
 import store from 'chl/vue/store';
 
@@ -52,25 +53,26 @@ export function SelectionToolMixin(name) {
                     if (this.in_progress) {
                         this.cancelSelection();
                     } else if (this.enabled) {
-                        colorDisplay.active_selection = [];
+                        this.$store.commit('pixels/clear_active_selection');
                     }
                 },
                 startSelection(event) {
                     if (event.altKey) {
                         this.selection_state = SelectionState.Subtracting;
+                        this.initial_selection = [...this.$store.state.pixels.active_selection];
                     } else if (event.shiftKey) {
                         this.selection_state = SelectionState.Adding;
+                        this.initial_selection = [...this.$store.state.pixels.active_selection];
                     } else {
                         this.selection_state = SelectionState.Creating;
                         // Start with an empty selection if we're not adding or subtracting
                         // from an existing one.
-                        colorDisplay.active_selection = [];
+                        this.initial_selection = [];
                     }
                     this.in_progress = true;
 
-                    this.initial_selection = [...colorDisplay.active_selection];
                     colorDisplay.in_progress_selection = this.initial_selection;
-                    colorDisplay.active_selection = [];
+                    this.$store.commit('pixels/clear_active_selection');
                 },
 
                 handlePixel(selection, pixel) {
@@ -88,7 +90,8 @@ export function SelectionToolMixin(name) {
                 commitSelection(selection=null) {
                     selection = selection || colorDisplay.in_progress_selection;
                     this.in_progress = false;
-                    colorDisplay.active_selection = [...selection];
+                    this.$store.commit('pixels/set_active_selection', [...selection]);
+
                     colorDisplay.in_progress_selection = [];
                     this.initial_selection = null;
                     this.reset();

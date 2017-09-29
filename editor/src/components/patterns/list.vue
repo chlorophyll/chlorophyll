@@ -35,7 +35,6 @@ import { UniqueNameMixin } from 'chl/util';
 export default {
     name: 'pattern-list',
     store,
-    mixins: [UniqueNameMixin('Pattern', 'pattern/pattern_list')],
     computed: {
         cur_coord_type: {
             get() {
@@ -57,9 +56,7 @@ export default {
     methods: {
         setCoordType: setCoordType,
         newPattern() {
-            let name = this.uniquePatternName();
-            let id = newgid();
-            createPattern(id, name, { set_current: true });
+            createPattern(id, { set_current: true });
         },
         ...mapMutations('pattern', [
             'set_current',
