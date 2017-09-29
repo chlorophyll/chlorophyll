@@ -1,8 +1,8 @@
 import { remote } from 'electron';
 
-import { writeSavefile, readSavefile, importModelFile } from 'chl/savefile/io';
+import { showSaveAsDialog, showOpenDialog, showImportDialog } from 'chl/savefile/io';
 
-const { app, Menu, dialog } = remote;
+const { app, Menu } = remote;
 
 export default function initMenu() {
 
@@ -49,44 +49,17 @@ export default function initMenu() {
                 {
                     label: 'Import New Model...',
                     accelerator: 'CommandOrControl+Shift+N',
-                    click() {
-                        dialog.showOpenDialog({
-                            filters: [
-                                { name: 'Model file', extensions: ['ledmap', 'json'] }
-                            ]
-                        }, (filenames) => {
-                            if (filenames === undefined)
-                                return;
-                            importModelFile(filenames[0]);
-                        });
-                    }
+                    click: showImportDialog,
                 },
                 {
                     label: 'Save As...',
                     accelerator: 'CommandOrControl+Shift+S',
-                    click() {
-                        dialog.showSaveDialog({
-                            filters: [
-                                { name: 'Chlorophyll project file', extensions: ['chl'] }
-                            ]
-                        }, writeSavefile);
-                    }
+                    click: showSaveAsDialog,
                 },
                 {
                     label: 'Open...',
                     accelerator: 'CommandOrControl+O',
-                    click() {
-                        dialog.showOpenDialog({
-                            filters: [
-                                { name: 'Chlorophyll project file', extensions: ['chl'] }
-                            ],
-                            multiSelections: false,
-                        }, (filenames) => {
-                            if (filenames === undefined)
-                                return;
-                            readSavefile(filenames[0]);
-                        });
-                    }
+                    click: showOpenDialog,
                 }
             ],
         },

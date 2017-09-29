@@ -18,7 +18,7 @@ let backPlane = null;
 export let activeScreen = () => store.getters['viewport/activeScreen'];
 
 
-export function initClippingPlanes() {
+function initClippingPlanes() {
     let v = new THREE.Vector3();
     activeScreen().camera.getWorldDirection(v);
     let nv = v.clone().negate();
@@ -50,6 +50,8 @@ export function initRenderer() {
 }
 
 export function renderViewport() {
+    if (!store.state.has_current_model)
+        return;
     activeScreen().update();
     activeScreen().render();
 }
@@ -203,6 +205,7 @@ store.registerModule('viewport', {
             state.height = height;
             renderer.setSize(width, height);
             state.activeScreenName = 'perspective';
+            initClippingPlanes();
         },
         set_size(state, { width, height }) {
             state.width = width;

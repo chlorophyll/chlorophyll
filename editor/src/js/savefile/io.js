@@ -73,8 +73,7 @@ function restoreSave(path, version, content) {
     restoreSaveObject(obj);
 }
 
-export function readSavefile(path) {
-
+function readSavefile(path) {
     let extract = tar.extract();
     let content = '';
     let version = undefined;
@@ -106,7 +105,7 @@ export function readSavefile(path) {
     fs.createReadStream(path).pipe(extract);
 }
 
-export function importModelFile(path) {
+function importModelFile(path) {
     fs.readFile(path, (err, data) => {
         if (err) {
             remote.dialog.showErrorBox('Error importing model', err.message);
@@ -131,5 +130,38 @@ export function importModelFile(path) {
         }
 
         importNewModel(obj);
+    });
+}
+
+export function showOpenDialog() {
+    remote.dialog.showOpenDialog({
+        filters: [
+            { name: 'Chlorophyll project file', extensions: ['chl'] }
+        ],
+        multiSelections: false,
+    }, (filenames) => {
+        if (filenames === undefined)
+            return;
+        readSavefile(filenames[0]);
+    });
+}
+
+export function showSaveAsDialog() {
+    remote.dialog.showSaveDialog({
+        filters: [
+            { name: 'Chlorophyll project file', extensions: ['chl'] }
+        ]
+    }, writeSavefile);
+}
+
+export function showImportDialog() {
+    remote.dialog.showOpenDialog({
+        filters: [
+            { name: 'Model file', extensions: ['ledmap', 'json'] }
+        ]
+    }, (filenames) => {
+        if (filenames === undefined)
+            return;
+        importModelFile(filenames[0]);
     });
 }

@@ -52,7 +52,8 @@ const store = new Vuex.Store({
          * transition easier. They should be gradually replaced with
          * finer-grained objects.
          */
-        next_guid: 0
+        next_guid: 0,
+        has_current_model: false,
     },
     mutations: {
         guid_increment(state) {
@@ -60,7 +61,10 @@ const store = new Vuex.Store({
         },
         set_next_guid(state, { next_guid }) {
             state.next_guid = next_guid;
-        }
+        },
+        update_model(state, val) {
+            state.has_current_model = val;
+        },
     }
 });
 

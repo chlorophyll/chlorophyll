@@ -13,8 +13,7 @@ import initMenu from 'chl/menu';
 
 import RootComponent from '@/components/root';
 
-import { importNewModel } from 'chl/model';
-import { initRenderer, initClippingPlanes, renderViewport } from 'chl/viewport';
+import { initRenderer, renderViewport } from 'chl/viewport';
 
 import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 
@@ -24,7 +23,6 @@ Vue.config.productionTip = false;
 initMenu();
 initRenderer();
 new Vue(RootComponent).$mount('#app');
-initClippingPlanes();
 
 function animate() {
     renderViewport();
