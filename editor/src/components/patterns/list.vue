@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from 'vuex';
+import { mapGetters, mapMutations } from 'vuex';
 import store, { newgid } from 'chl/vue/store';
 
 import { createPattern, setCoordType } from 'chl/patterns';

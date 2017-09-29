@@ -1,6 +1,6 @@
 import 'chl/testing';
 import { model_json } from 'chl/testing/fixtures';
-import { saveGroup } from 'chl/model';
+import { Model, saveGroup } from 'chl/model';
 import { SchemaDefs } from 'chl/schemas';
 
 import store from 'chl/vue/store';
@@ -19,4 +19,11 @@ describe('Model', () => {
         const group_saved = saveGroup(group);
         expect(group_saved).toMatchSchema(SchemaDefs.object('group'));
     });
+
+    it('saves the model according to the schema', () => {
+        let model = new Model(model_json);
+        let model_saved = model.save();
+        expect(model_saved).toMatchSchema(SchemaDefs.object('model'));
+    });
+
 });

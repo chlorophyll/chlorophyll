@@ -6,6 +6,7 @@
 
 <script>
 import keyboardJS from 'keyboardjs';
+
 export default {
     name: 'toolbox',
     data() {

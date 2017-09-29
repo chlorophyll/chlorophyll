@@ -8,12 +8,8 @@ import Vue from 'vue';
 
 import 'chl/patches';
 import 'chl/menu';
-// these are currently imported for the act of registering the store; that
-// should be refactored
-import 'chl/patterns';
-import 'chl/mapping';
-import 'chl/viewport';
-import 'chl/model';
+
+import 'chl/vue/register';
 
 import RootComponent from '@/components/root';
 

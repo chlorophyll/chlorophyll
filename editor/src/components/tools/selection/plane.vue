@@ -9,6 +9,7 @@ import Util from 'chl/util';
 import { activeScreen } from 'chl/viewport';
 import { SelectionToolMixin } from 'chl/tools/selection';
 import { currentModel, colorDisplay } from 'chl/model';
+
 export default {
     mixins: [...SelectionToolMixin('plane-selection')],
     data() {

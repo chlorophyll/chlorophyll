@@ -8,7 +8,7 @@ import { getMappedPoints, convertPointCoords } from 'chl/mapping';
 import { CRGB } from 'chl/fastled/color';
 import { registerSaveField } from 'chl/savefile';
 
-import store, { newgid } from 'chl/vue/store';
+import store from 'chl/vue/store';
 
 import register_nodes from 'chl/patterns/registry';
 
@@ -32,9 +32,8 @@ store.registerModule('pattern', {
             state.cur_pattern_id = id;
         },
 
-        set_coord_type(state, { id, input_id, mapping_type, coord_type }) {
+        set_coord_type(state, { id, mapping_type, coord_type }) {
             const pattern = state.patterns[id];
-            pattern.input_node = input_id;
             pattern.mapping_type = mapping_type;
             pattern.coord_type = coord_type;
         },
@@ -85,22 +84,19 @@ export function setCoordType(id, mapping_type, coord_type) {
     graph.removeNode(old_input);
 
     const path = `mapping/${mapping_type}/${coord_type}`;
-    const input_id = newgid();
-    const input_node = graph.addNode(path, {
-        id: input_id,
+    graph.addNode(path, {
         title: 'input',
         ref: 'input_node'
     });
 
-    store.commit('pattern/set_coord_type', { id, input_id, mapping_type, coord_type });
+    store.commit('pattern/set_coord_type', { id, mapping_type, coord_type });
 }
 
 export function createPattern(id, name, {set_current=true} = {}) {
     const mapping_type = Const.default_map_type;
     const coord_type = Const.default_coord_type;
 
-    const graphid = newgid();
-    let pixel_stage = new Graph(graphid);
+    let pixel_stage = new Graph();
 
     pixel_stage.addGlobalInput('coords');
     pixel_stage.addGlobalInput('t');
@@ -108,12 +104,9 @@ export function createPattern(id, name, {set_current=true} = {}) {
     pixel_stage.addGlobalOutput('outcolor');
 
     let path = `mapping/${mapping_type}/${coord_type}`;
-    const input_id = newgid();
     pixel_stage.addNode(path, {title: 'input', ref: 'input_node'});
 
-    const output_id = newgid();
     pixel_stage.addNode('lowlevel/output/color', {
-        id: output_id,
         title: 'output',
         pos: [300, 100]
     });
