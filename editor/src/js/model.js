@@ -206,6 +206,10 @@ export const colorDisplay = new Vue({
             if (currentModel !== null)
                 currentModel.updateColors();
         }
+    },
+    methods: {
+        newModel() {
+        }
     }
 });
 

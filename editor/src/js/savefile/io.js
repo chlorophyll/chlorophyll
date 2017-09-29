@@ -8,6 +8,7 @@ import schemas, { SchemaDefs } from 'chl/schemas';
 import { importNewModel } from 'chl/model';
 
 import { createSaveObject, restoreSaveObject } from 'chl/savefile';
+import { pushRecentFile } from 'chl/savefile/recent';
 
 let validateSchema = schemas.getSchema(SchemaDefs.definition('chlorophyllSavefile'));
 let validateModel = schemas.getSchema(SchemaDefs.object('model'));
@@ -27,7 +28,7 @@ export function writeSavefile(path) {
 
     let fstream = fs.createWriteStream(path);
     fstream.on('close', () => {
-        console.info('done');
+        pushRecentFile(path);
     });
 
     fstream.on('error', (err) => {
@@ -73,7 +74,7 @@ function restoreSave(path, version, content) {
     restoreSaveObject(obj);
 }
 
-function readSavefile(path) {
+export function readSavefile(path) {
     let extract = tar.extract();
     let content = '';
     let version = undefined;
@@ -96,6 +97,7 @@ function readSavefile(path) {
     extract.on('finish', () => {
         try {
             restoreSave(path, version, content);
+            pushRecentFile(path);
         } catch (err) {
             extract.emit('error', err);
             console.error(err);

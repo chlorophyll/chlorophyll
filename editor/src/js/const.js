@@ -8,6 +8,7 @@ const Const = {
     toolbar_size: 75,
     group_smallbutton_width: 40,
     max_name_len: 40,
+    num_recent_files: 10,
     // Mapping type to choose when an arbitrary one is needed
     default_map_type: 'projection',
     default_coord_type: 'cartesian2d',

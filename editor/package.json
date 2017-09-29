@@ -48,6 +48,7 @@
     "ajv": "^5.2.2",
     "concat-stream": "^1.6.0",
     "d3": "^4.9.1",
+    "electron-config": "^1.0.0",
     "immutable": "^3.8.1",
     "jquery": "^3.2.1",
     "jscolor-picker": "^2.0.4",
