@@ -7,8 +7,8 @@ import Util from 'chl/util';
 
 import Hotkey from 'chl/keybindings';
 
-export let scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
+import { currentModel } from 'chl/model';
+
 
 export let renderer = null;
 
@@ -45,7 +45,7 @@ export function isClipped(v) {
 
 export function initRenderer() {
     renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.setClearColor(scene.fog.color);
+    renderer.setClearColor(new THREE.Color(0x000000));
     renderer.setPixelRatio(window.devicePixelRatio);
 }
 
@@ -54,8 +54,8 @@ export function renderViewport() {
     activeScreen().render();
 }
 
-export function getPointAt(model, x, y) {
-    return activeScreen().getPointAt(model, x, y);
+export function getPointAt(x, y) {
+    return activeScreen().getPointAt(currentModel, x, y);
 }
 
 export function screenCoords(v) {
@@ -109,7 +109,8 @@ class Screen {
     }
 
     render() {
-        renderer.render(scene, this.camera);
+        if (currentModel)
+            renderer.render(currentModel.scene, this.camera);
     }
 
     screenCoords(position) {
@@ -120,7 +121,7 @@ class Screen {
         return Util.normalizedCoords(this.camera, renderer, position);
     }
 
-    getPointAt(model, x, y) {
+    getPointAt(x, y) {
         const { width, height } = store.state.viewport;
         let mouse3D = new THREE.Vector3(
              (x /  width) * 2 - 1,
@@ -129,7 +130,7 @@ class Screen {
         let raycaster = new THREE.Raycaster();
         raycaster.params.Points.threshold = 10;
         raycaster.setFromCamera(mouse3D, this.camera);
-        let intersects = raycaster.intersectObject(model.particles);
+        let intersects = raycaster.intersectObject(currentModel.particles);
         let chosen = undefined;
         for (let i = 0; i < intersects.length; i++) {
             if (!isClipped(intersects[i].point)) {

@@ -39,7 +39,7 @@ export function writeSavefile(path) {
     });
 }
 
-function restoreSaveObject() {
+function restoreSaveObject(obj) {
     for ([field, { restore }] of _saveFields) {
         restore(obj[field]);
     }
@@ -54,9 +54,10 @@ export function readSavefile(path) {
         let obj;
         const msg = `${path} is not a valid Chlorophyll project file.`;
         try {
-            obj = JSON.parse(out);
+            obj = JSON.parse(data);
         } catch (exc) {
             remote.dialog.showErrorBox('Error opening file', msg);
+            console.error(exc);
             return;
         }
 
@@ -64,9 +65,10 @@ export function readSavefile(path) {
 
         if (!result) {
             remote.dialog.showErrorBox('Error opening file', msg);
+            console.error(validateSchema.errors);
             return;
         }
 
-        restoreSaveObject(object);
+        restoreSaveObject(obj);
     });
 }

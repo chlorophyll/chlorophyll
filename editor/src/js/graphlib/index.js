@@ -37,15 +37,15 @@ registerSaveField('graphs', {
         return Array.from(graphs.values()).map((graph) => graph.save());
     },
     restore(graphset) {
-        oldgraphs = graphs;
+        let oldgraphs = graphs;
 
         graphs = new Map();
 
-        for (snapshot of graphset) {
+        for (let snapshot of graphset) {
             Graph.restore(snapshot);
         }
 
-        for (graph of oldgraphs.values()) {
+        for (let graph of oldgraphs.values()) {
             graph.emit('restore');
         }
     }
@@ -545,7 +545,7 @@ export class GraphNode {
             name,
             type,
             state: {num_edges: 0},
-            settings: {name, label: null}
+            settings: {label: null}
         };
     }
 
@@ -656,10 +656,10 @@ export class GraphNode {
 
     restore_settings(nodesnap) {
         for (let i = 0; i < this.vm.inputs.length; i++) {
-            this.vm.inputs[i].settings = nodesnap.input_settings[i].settings;
+            this.vm.inputs[i].settings = nodesnap.input_settings[i];
         }
         for (let i = 0; i < this.vm.outputs.length; i++) {
-            this.vm.outputs[i].settings = nodesnap.output_settings[i].settings;
+            this.vm.outputs[i].settings = nodesnap.output_settings[i];
         }
         this.vm.defaults = Util.JSON.denormalized(nodesnap.defaults);
     }

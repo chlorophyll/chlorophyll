@@ -38,7 +38,6 @@
 </div></template>
 
 <script>
-import { groupManager, patternManager } from 'chl/init';
 import Animation from 'chl/sequencer/animation';
 import store, { newgid } from 'chl/vue/store';
 
@@ -79,6 +78,7 @@ export default {
             let anim = new Animation(id);
             this.animations[id] = anim;
         },
+        /*
         // TODO these should eventually be computed properties from global store
         listMappings() {
             return groupManager.listMappings();
@@ -104,6 +104,7 @@ export default {
                 pattern: null
             });
         }
+        */
     }
 };
 /*

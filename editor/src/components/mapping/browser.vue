@@ -11,12 +11,6 @@
       </template>
     </tree-view>
   </div>
-  <model-overlay v-for="gid in groups" :key="gid"
-     :pixels="getGroup(gid).pixels"
-     :color="getGroup(gid).color"
-     :visible="getGroup(gid).visible"
-     :priority="1">
-  </model-overlay>
 </div>
 </template>
 
@@ -24,11 +18,10 @@
 import { mappingUtilsMixin } from 'chl/mapping';
 
 import TreeView from '@/components/widgets/tree/index';
-import ModelOverlay from '@/components/model_overlay';
 
 export default {
     name: 'mapping-browser',
-    components: { TreeView, ModelOverlay },
+    components: { TreeView },
     mixins: [mappingUtilsMixin],
     props: ['groups', 'mappings', 'selected'],
     computed: {

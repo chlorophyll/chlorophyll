@@ -5,14 +5,22 @@ const Hotkey = {
     widget_snap_angles: 'shift',
     undo: 'mod + z',
     redo: 'mod + shift + z',
-    tool_camera: 'c',
-    tool_camera_momentary: 'shift',
-    tool_select_marquee: 'm',
-    tool_select_line: 'l',
-    tool_select_plane: 'p',
+    camera: 'c',
+    momentary_camera: 'v',
+    select_marquee: 'm',
+    select_line: 'l',
+    select_plane: 'p',
     cancel_selection: 'esc',
 };
 export default Hotkey;
+
+export const HotkeyMixin = {
+    computed: {
+        Hotkey() {
+            return Hotkey;
+        }
+    },
+};
 
 /*
  * Slightly modified version of the default keyboard.js locale to handle
@@ -165,8 +173,10 @@ keyboardJS.setLocale('us-chlorophyll', function(locale, platform, userAgent) {
 
   if (/Mac|iPod|iPhone|iPad/.test(platform)) {
       locale.bindMacro('command', ['mod']);
+      locale.bindMacro('command', ['CommandOrControl']);
   } else {
       locale.bindMacro('ctrl', ['mod']);
+      locale.bindMacro('ctrl', ['CommandOrControl']);
   }
 
   // kill keys

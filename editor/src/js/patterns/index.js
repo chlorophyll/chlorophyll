@@ -8,7 +8,7 @@ import { getMappedPoints, convertPointCoords } from 'chl/mapping';
 import { CRGB } from 'chl/fastled/color';
 import { registerSaveField } from 'chl/savefile';
 
-import store from 'chl/vue/store';
+import store, { newgid } from 'chl/vue/store';
 
 import register_nodes from 'chl/patterns/registry';
 
@@ -23,55 +23,18 @@ store.registerModule('pattern', {
     },
 
     mutations: {
-        create(state, { id, name }) {
-            let mapping_type = Const.default_map_type;
-            let coord_type = Const.default_coord_type;
-            let pixel_stage = new Graph();
-
-            pixel_stage.addGlobalInput('coords');
-            pixel_stage.addGlobalInput('t');
-            pixel_stage.addGlobalInput('color');
-            pixel_stage.addGlobalOutput('outcolor');
-
-            let path = `mapping/${mapping_type}/${coord_type}`;
-            pixel_stage.addNode(path, {title: 'input', ref: 'input_node'});
-
-            pixel_stage.addNode('lowlevel/output/color', {
-                title: 'output',
-                pos: [300, 100]
-            });
-
-            let pattern = {
-                id,
-                name,
-                mapping_type,
-                coord_type, // hmm
-                stages: {
-                    pixel: pixel_stage.id,
-                },
-            };
-
+        add(state, pattern) {
             Vue.set(state.patterns, pattern.id, pattern);
             state.pattern_ordering.push(pattern.id);
-            if (state.cur_pattern_id === null) {
-                state.cur_pattern_id = pattern.id;
-            }
         },
+
         set_current(state, { id }) {
             state.cur_pattern_id = id;
         },
 
-        set_coord_type(state, { id, mapping_type, coord_type }) {
-            let pattern = state.patterns[id];
-            let graph = GraphLib.graphById(pattern.stages.pixel);
-
-            let old_input = graph.getNodeByRef('input_node');
-            graph.removeNode(old_input);
-
-            let path = `mapping/${mapping_type}/${coord_type}`;
-            let input_node = graph.addNode(path, {title: 'input', ref: 'input_node'});
-
-            pattern.input_node = input_node.id;
+        set_coord_type(state, { id, input_id, mapping_type, coord_type }) {
+            const pattern = state.patterns[id];
+            pattern.input_node = input_id;
             pattern.mapping_type = mapping_type;
             pattern.coord_type = coord_type;
         },
@@ -96,6 +59,7 @@ store.registerModule('pattern', {
             }
             state.patterns = new_patterns;
             state.pattern_ordering = new_pattern_ordering;
+            state.cur_pattern_id = null;
         }
     },
     getters: {
@@ -107,8 +71,67 @@ store.registerModule('pattern', {
         pattern_list(state) {
             return state.pattern_ordering.map((id) => state.patterns[id]);
         },
+    },
+    actions: {
     }
 });
+
+export function setCoordType(id, mapping_type, coord_type) {
+    const pattern = store.state.pattern.patterns[id];
+
+    const graph = GraphLib.graphById(pattern.stages.pixel);
+
+    const old_input = graph.getNodeByRef('input_node');
+    graph.removeNode(old_input);
+
+    const path = `mapping/${mapping_type}/${coord_type}`;
+    const input_id = newgid();
+    const input_node = graph.addNode(path, {
+        id: input_id,
+        title: 'input',
+        ref: 'input_node'
+    });
+
+    store.commit('pattern/set_coord_type', { id, input_id, mapping_type, coord_type });
+}
+
+export function createPattern(id, name, {set_current=true} = {}) {
+    const mapping_type = Const.default_map_type;
+    const coord_type = Const.default_coord_type;
+
+    const graphid = newgid();
+    let pixel_stage = new Graph(graphid);
+
+    pixel_stage.addGlobalInput('coords');
+    pixel_stage.addGlobalInput('t');
+    pixel_stage.addGlobalInput('color');
+    pixel_stage.addGlobalOutput('outcolor');
+
+    let path = `mapping/${mapping_type}/${coord_type}`;
+    const input_id = newgid();
+    pixel_stage.addNode(path, {title: 'input', ref: 'input_node'});
+
+    const output_id = newgid();
+    pixel_stage.addNode('lowlevel/output/color', {
+        id: output_id,
+        title: 'output',
+        pos: [300, 100]
+    });
+
+    const pattern = {
+        id,
+        name,
+        mapping_type,
+        coord_type, // hmm
+        stages: {
+            pixel: pixel_stage.id,
+        },
+    };
+    store.commit('pattern/add', pattern);
+    if (set_current) {
+        store.commit('pattern/set_current', pattern);
+    }
+}
 
 export function savePattern(pattern) {
     return Util.clone(pattern);

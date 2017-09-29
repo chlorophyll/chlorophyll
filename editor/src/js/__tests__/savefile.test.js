@@ -1,6 +1,8 @@
 import 'chl/testing';
-import 'chl/patterns';
+import { createPattern } from 'chl/patterns';
 import 'chl/graphlib';
+
+import { model_json } from 'chl/testing/fixtures';
 
 import { createSaveObject } from 'chl/savefile';
 import { mappingTypes } from 'chl/mapping';
@@ -10,38 +12,17 @@ import { SchemaDefs } from 'chl/schemas';
 import store from 'chl/vue/store';
 
 
-const model_json = JSON.stringify({
-    'strips': [
-        [
-            [1,1,1],
-            [1,1,2],
-            [1,1,3],
-        ],
-        [
-            [2,1,1],
-            [2,1,2],
-            [2,1,3],
-        ],
-        [
-            [3,1,1],
-            [3,1,2],
-            [3,1,3],
-        ],
-    ]
-});
 
 describe('savefile', () => {
     beforeAll(() => {
         let model = new Model(model_json);
         setCurrentModel(model);
 
-        store.commit('pattern/create', {
-            id: 0,
-            name: 'pattern 1'
-        });
+        createPattern(0, 'pattern 1');
+
         id++;
 
-        store.commit('mapping/create_group', {
+        let group = store.dispatch('pixels/create_group', {
             id: 1,
             pixels: [1,2,3],
         });
@@ -55,6 +36,8 @@ describe('savefile', () => {
             });
             id++;
         }
+
+        return group;
     });
 
     it('creates a save file conforming to the schema', () => {

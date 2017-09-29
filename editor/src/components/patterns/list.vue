@@ -7,7 +7,7 @@
             {{ pattern.name }}
         </li>
     </ul>
-    <button @click="new_pattern">New Pattern</button>
+    <button @click="newPattern">New Pattern</button>
     <template v-if="cur_pattern !== null">
     <hr />
     Current pattern: {{ cur_pattern.name }}
@@ -23,8 +23,10 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex';
+import { mapGetters, mapMutations, mapActions } from 'vuex';
 import store, { newgid } from 'chl/vue/store';
+
+import { createPattern, setCoordType } from 'chl/patterns';
 
 import { mappingTypes } from 'chl/mapping';
 
@@ -41,7 +43,7 @@ export default {
                 return { mapping_type, coord_type };
             },
             set(map_info) {
-                this.set_coord_type({id: this.cur_pattern.id, ...map_info});
+                this.setCoordType({id: this.cur_pattern.id, ...map_info});
             }
         },
         available_coord_types() {
@@ -53,14 +55,14 @@ export default {
         ]),
     },
     methods: {
-        new_pattern() {
-            let id = newgid();
+        setCoordType: setCoordType,
+        newPattern() {
             let name = this.uniquePatternName();
-            this.$store.commit('pattern/create', { id, name });
+            let id = newgid();
+            createPattern(id, name, { set_current: true });
         },
         ...mapMutations('pattern', [
             'set_current',
-            'set_coord_type',
         ])
     }
 };

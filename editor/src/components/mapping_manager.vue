@@ -30,7 +30,6 @@
 <script>
 import { mapState } from 'vuex';
 import store, { newgid } from 'chl/vue/store';
-import { currentModel } from 'chl/model';
 import { mappingUtilsMixin } from 'chl/mapping';
 import { UniqueNameMixin } from 'chl/util';
 
@@ -46,7 +45,7 @@ import SplitPane from '@/components/widgets/split';
 export default {
     name: 'mapping-manager',
     store,
-    mixins: [mappingUtilsMixin, UniqueNameMixin('Group', 'mapping/group_list')],
+    mixins: [mappingUtilsMixin],
     components: {
         MappingBrowser,
         MappingConfig,
@@ -65,50 +64,24 @@ export default {
         selected_group() {
             return this.getGroup(this.selected_id);
         },
-        ...mapState('mapping', {
-            group_list: (state) => state.group_list,
-            mapping_list: (state) => state.mapping_list,
+        ...mapState({
+            group_list: (state) => state.pixels.group_list,
+            mapping_list: (state) => state.mapping.mapping_list,
         })
     },
     methods: {
         newGroupFromSelection() {
             if (this.$store.state.selection.active.length == 0)
                 return;
-            const name = this.uniqueGroupName();
             const id = newgid();
-            this.$store.commit('mapping/create_group', {
+            this.$store.dispatch('pixels/create_group', {
                 id,
-                name,
                 pixels: this.$store.state.selection.active
             });
             this.$store.commit('selection/clear');
             this.selected_id = id;
         },
     },
-    mounted() {
-        // Populate all pixels and inital strip groups
-        let all_pixels = [];
-        currentModel.forEach(function(_, pixel) {
-            all_pixels.push(pixel);
-        });
-        this.$store.commit('mapping/create_group', {
-            id: newgid(),
-            name: 'All Pixels',
-            pixels: all_pixels
-        });
-
-        for (let strip = 0; strip < currentModel.num_strips; strip++) {
-            let pixels = [];
-            currentModel.forEachPixelInStrip(strip, function(pixel) {
-                pixels.push(pixel);
-            });
-            this.$store.commit('mapping/create_group', {
-                id: newgid(),
-                name: `Strip ${strip + 1}`,
-                pixels: pixels
-            });
-        }
-    }
 };
 </script>
 

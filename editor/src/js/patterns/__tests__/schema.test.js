@@ -1,14 +1,11 @@
 import store from 'chl/vue/store';
 import { SchemaDefs } from 'chl/schemas';
-import { savePattern, saveAllPatterns } from 'chl/patterns';
+import { createPattern, savePattern, saveAllPatterns } from 'chl/patterns';
 
 import 'chl/testing';
 
 beforeAll(() => {
-    store.commit('pattern/create', {
-        id: 1,
-        name: 'pattern 1'
-    });
+    createPattern(1, 'pattern 1');
 });
 
 describe('Pattern module', () => {
@@ -18,19 +15,13 @@ describe('Pattern module', () => {
         expect(saved).toMatchSchema(SchemaDefs.object('patternType'));
     });
     it('can delete patterns', () => {
-        store.commit('pattern/create', {
-            id: 2,
-            name: 'pattern 2'
-        });
-
+        createPattern(2, 'pattern 2');
         expect(store.state.pattern.patterns[2]).not.toBeUndefined();
         expect(store.state.pattern.pattern_ordering.length).toEqual(2);
 
         store.commit('pattern/delete', { id: 2});
         expect(store.state.pattern.patterns[2]).toBeUndefined();
         expect(store.state.pattern.pattern_ordering.length).toEqual(1);
-
-
     });
     it('can properly restore patterns', () => {
         let saved = saveAllPatterns();
@@ -38,10 +29,7 @@ describe('Pattern module', () => {
         expect(store.state.pattern.pattern_ordering.length).toEqual(0);
         expect(store.state.pattern.patterns[1]).toBeUndefined();
 
-        store.commit('pattern/create', {
-            id: 2,
-            name: 'pattern 2'
-        });
+        createPattern(2, 'pattern 2');
         expect(store.state.pattern.pattern_ordering.length).toEqual(1);
         expect(store.state.pattern.patterns[2]).not.toBeUndefined();
 

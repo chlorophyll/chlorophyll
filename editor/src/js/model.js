@@ -1,63 +1,206 @@
-import Immutable from 'immutable';
+import Vue from 'vue';
 import * as THREE from 'three';
 import 'three-examples/Octree';
-import { scene } from 'chl/viewport';
 import { registerSaveField } from 'chl/savefile';
+
+import Const from 'chl/const';
+import store, { newgid } from 'chl/vue/store';
+
+import Util from 'chl/util';
+import ColorPool from 'chl/colors';
 
 export let currentModel = null;
 
 export function setCurrentModel(model) {
-    if (currentModel) {
-        currentModel.removeFromScene(scene);
-    }
-    model.addToScene(scene);
     currentModel = model;
+}
+
+function createStripGroup(strip) {
+    let pixels = [];
+    let id = newgid();
+    currentModel.forEachPixelInStrip(strip, function(pixel) {
+        pixels.push(pixel);
+    });
+
+    store.dispatch('pixels/create_group', {
+        id,
+        name: `Strip ${strip+1}`,
+        pixels: pixels,
+    });
+
+}
+
+export function importNewModel(json) {
+    store.commit('pixels/clear_groups');
+    let model = new Model(json);
+    setCurrentModel(model);
+
+    let all_pixels = [];
+    currentModel.forEach(function(_, pixel) {
+        all_pixels.push(pixel);
+    });
+
+    let id = newgid();
+    store.dispatch('pixels/create_group', {
+        id,
+        name: 'All pixels',
+        pixels: all_pixels,
+    });
+
+    for (let strip = 0; strip < currentModel.num_strips; strip++) {
+        createStripGroup(strip);
+    }
+    return model;
 }
 
 const white = new THREE.Color(0xffffff);
 const black = new THREE.Color(0x000000);
 
-class Overlay {
-    constructor(model, overlay_color = white, priority = 0) {
-        this._model = model;
-        this._color = overlay_color;
-        this._pixels = new Immutable.Set();
-        this.visible = true;
-        this.priority = priority;
-    }
+store.registerModule('pixels', {
+    namespaced: true,
+    state: {
+        groups: {},
+        group_list: [],
+    },
 
-    get color() {
-        return this._color;
-    }
+    mutations: {
+        clear_groups(state) {
+            state.groups = {};
+            state.group_list = [];
+        },
 
-    set color(val) {
-        this._color = val;
-        this._model.updateColors();
-    }
+        add_group(state, { id, name, color, pixels }) {
+            Vue.set(state.groups, id, {
+                id,
+                name,
+                pixels,
+                color,
+                visible: true,
+            });
+            state.group_list.push(id);
+        },
 
-    get pixels() {
-        return this._pixels;
-    }
+        delete_group(state, { id }) {
+            Vue.delete(state.groups, id);
+            state.group_list.splice(state.group_list.indexOf(id), 1);
+        },
 
-    set pixels(val) {
-        this._pixels = val;
-        this._model.updateColors();
-    }
+        set_name(state, { id, name }) {
+            state.groups[id].name = name;
+        },
 
-    show() {
-        if (this.visible) {
-            this.pixels.forEach((px) => this._model.setColor(px, this.color.toArray()));
-        }
+        set_color(state, { id, color }) {
+            state.groups[id].color = color;
+        },
+
+        set_pixels(state, { id, pixels }) {
+            state.groups[id].pixels = pixels;
+        },
+
+        set_visible(state, { id, visible }) {
+            state.groups[id].visible = visible;
+        },
+    },
+    actions: {
+        restore({ commit }, groups) {
+            commit('clear_groups');
+            for (let group of groups) {
+                commit('add_group', group);
+            }
+        },
+        create_group(context, { id, pixels, color, name }) {
+            const { commit, getters } = context;
+
+            name = name || Util.uniqueName('Group ', getters.group_list);
+            color = color || ColorPool.random();
+
+            const group = {
+                id,
+                name,
+                color,
+                pixels,
+            };
+
+            commit('add_group', group);
+        },
+    },
+    getters: {
+        group_list(state) {
+            return state.group_list.map((id) => state.groups[id]);
+        },
     }
+});
+
+export function saveGroup(group) {
+    let { id, name, pixels, color, visible } = group;
+    return {
+        id,
+        name,
+        pixels: [...pixels],
+        color,
+        visible,
+    };
 }
 
+registerSaveField('groups', {
+    save() {
+        return store.getters['pixels/group_list'].map(saveGroup);
+    },
+    restore(groups) {
+        store.dispatch('pixels/restore', groups);
+    }
+});
+
+export const colorDisplay = new Vue({
+    store,
+    data: {
+        selection_threshold: 5,
+        active_selection: [],
+        in_progress_selection: [],
+    },
+    computed: {
+        pixel_colors() {
+            const groups = this.$store.getters['pixels/group_list'];
+
+            let out = {};
+            for (let group of groups) {
+                if (!group.visible)
+                    continue;
+                for (let pixel of group.pixels) {
+                    out[pixel] = new THREE.Color(group.color);
+                }
+            }
+            // TODO set up some consistent thing for these so we don't need
+            // to loop for every special case
+
+            for (const pixel of this.active_selection)  {
+                out[pixel] = white;
+            }
+
+            for (let pixel of this.in_progress_selection) {
+                out[pixel] = white;
+            }
+            return out;
+        }
+    },
+    watch: {
+        pixel_colors() {
+            if (this.model)
+                this.model.updateColors();
+        }
+    }
+});
+
 export class Model {
-    constructor(json) {
-        this.overlays = {};
+    constructor(json, parse=true) {
+        this.color_overlay = colorDisplay;
+        colorDisplay.model = this;
+
         this.strip_offsets = [0];
         this.strip_models = [];
 
         this._display_only = false;
+        this.show_without_overlays = true;
 
         this.octree = new THREE.Octree({
             undeferred: true,
@@ -65,7 +208,11 @@ export class Model {
             objectsThreshold: 8,
         });
 
-        this.model_info = JSON.parse(json);
+        if (parse) {
+            this.model_info = JSON.parse(json);
+        } else {
+            this.model_info = json;
+        }
 
         const { strips } = this.model_info;
 
@@ -79,11 +226,14 @@ export class Model {
 
         this.num_pixels = 0;
 
+        this.all_overlays = new Map();
+
         for (const strip of strips) {
             this.num_pixels += strip.length;
         }
         this.colors = new Float32Array(this.num_pixels * 3);
         this.positions = new Float32Array(this.num_pixels * 3);
+
 
         for (const strip of strips) {
             let strip_geometry = new THREE.Geometry();
@@ -112,7 +262,7 @@ export class Model {
         this.geometry.addAttribute('position', new THREE.BufferAttribute(this.positions, 3));
         this.geometry.addAttribute('color', new THREE.BufferAttribute(this.colors, 3));
 
-        this.setDefaultColors();
+        this.updateColors();
 
         this.geometry.computeBoundingSphere();
         this.geometry.computeBoundingBox();
@@ -144,6 +294,13 @@ export class Model {
         });
         this.particles = new THREE.Points(this.geometry, material);
 
+        this.scene = new THREE.Scene();
+        this.scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
+        this.scene.add(this.particles);
+        for (let model of this.strip_models) {
+            this.scene.add(model);
+        }
+
         for (let i = 0; i < this.num_pixels; i++) {
             this.octree.addObjectData(this.particles, this.getPosition(i));
             this.octree.objectsData[i].index = i;
@@ -167,24 +324,7 @@ export class Model {
 
     set display_only(val) {
         this._display_only = val;
-        this.setDefaultColors();
         this.updateColors();
-    }
-
-    addToScene(sc) {
-        sc.add(this.particles);
-        for (let model of this.strip_models) {
-            sc.add(model);
-        }
-    }
-
-    removeFromScene(sc) {
-        sc.remove(this.particles);
-        for (let model of this.strip_models) {
-            sc.remove(model);
-        }
-
-
     }
 
     // pixel data
@@ -213,35 +353,13 @@ export class Model {
         }
     }
 
-    // overlay functions
-    createOverlay(priority, color) {
-        const overlay = new Overlay(this, color, priority);
-
-        if (!this.overlays[priority])
-            this.overlays[priority] = [];
-
-        this.overlays[priority].push(overlay);
-
-        return overlay;
-    }
-
-    removeOverlay(overlay) {
-        let pri = overlay.priority;
-        let index = this.overlays[pri].indexOf(overlay);
-
-        if (index == -1)
-            return;
-
-        this.overlays[pri].splice(index, 1);
-        this.updateColors();
-    }
-
     setColorsFromOverlays() {
-        this.setDefaultColors();
-        for (let pri in this.overlays) {
-            for (let overlay of this.overlays[pri]) {
-                overlay.show();
-            }
+        let pixel_colors = this.color_overlay.pixel_colors;
+        let base_color = this.show_without_overlays ? white : black;
+
+        for (let i = 0; i < this.num_pixels; i++) {
+            const color = pixel_colors[i] || base_color;
+            color.toArray(this.colors, 3*i);
         }
     }
 
@@ -288,13 +406,6 @@ export class Model {
         }
     }
 
-    setDefaultColors() {
-        this.forEach((strip, i) => {
-            let c = this.show_without_overlays ? white : black;
-            this.setColor(i, c.toArray());
-        });
-    }
-
     save() {
         return this.model_info;
     }
@@ -305,6 +416,6 @@ registerSaveField('model', {
         return currentModel.save();
     },
     restore(model_json) {
-        setCurrentModel(new Model(model_json));
+        setCurrentModel(new Model(model_json, false));
     }
 });

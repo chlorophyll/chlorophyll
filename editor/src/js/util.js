@@ -197,13 +197,14 @@ let Util = {
         };
     },
 
-    uniqueName: function(prefix, nameseq) {
+    uniqueName: function(prefix, objlist) {
+        const names = objlist.map(({name}) => name);
         let candidate;
         let taken = true;
-        let suffix = nameseq.length || nameseq.size || 0;
+        let suffix = names.length;
         while (taken) {
             candidate = prefix + suffix;
-            taken = nameseq.indexOf(candidate) !== -1;
+            taken = names.indexOf(candidate) !== -1;
             suffix++;
         }
         return candidate;
@@ -223,8 +224,7 @@ let Util = {
         let b = hex(colorcode, 0);
 
         return '#'+r+g+b;
-    }
-
+    },
 };
 
 Util.JSON = {
@@ -342,3 +342,4 @@ export function UniqueNameMixin(objtype, getter) {
         }
     };
 }
+

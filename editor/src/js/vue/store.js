@@ -55,18 +55,6 @@ const store = new Vuex.Store({
         next_guid: 0
     },
     mutations: {
-        /*
-         * Initialize the global state with the provided object.
-         * Any properties must be declared above for Vue to track them.
-         *
-         * Used to set initial values for fields after the root Vue instance
-         * has been created, and also temporarily to make vuex and worldState
-         * play nicely together until the latter is axed.
-         */
-        init(state, payload) {
-            state = {...state, ...payload};
-        },
-
         guid_increment(state) {
             state.next_guid++;
         },
@@ -77,7 +65,9 @@ const store = new Vuex.Store({
 });
 
 export default store;
-export function newgid() {
-    store.commit('guid_increment');
-    return store.state.next_guid;
+export function newgid(context={}) {
+    const commit = context.commit || store.commit;
+    const rootState = context.rootState || store.state;
+    commit('guid_increment', null, { root: true });
+    return rootState.next_guid;
 }

@@ -51,27 +51,10 @@ store.registerModule('mapping', {
          * Keep both an id->object map and an array of all active IDs, to
          * keep ordering consistent when querying lists etc.
          */
-        groups: {},
-        group_list: [],
         mappings: {},
         mapping_list: [],
     },
     mutations: {
-        create_group(state, params) {
-            const defaults = {
-                id: params.id,
-                name: `Group ${params.id}`,
-                color: ColorPool.random(),
-                pixels: [],
-                visible: true
-            };
-            Vue.set(state.groups, params.id, {...defaults, ...params});
-            state.group_list.push(params.id);
-        },
-        update_group(state, {id, props}) {
-            const group = state.groups[id];
-            Vue.set(state.groups, id, {...group, ...props});
-        },
         create_mapping(state, params) {
             const defaults = {
                 id: params.id,
@@ -107,27 +90,13 @@ store.registerModule('mapping', {
             if (state.mappings[id] !== undefined) {
                 Vue.delete(state.mappings, id);
                 state.mapping_list.splice(state.mapping_list.indexOf(id), 1);
-            } else if (state.groups[id] !== undefined) {
-                Vue.delete(state.groups, id);
-                state.group_list.splice(state.group_list.indexOf(id), 1);
             }
         },
-
-        restore_groups(state, snapshot) {
-            let new_group_list = [];
-            let new_groups = {};
-            for (let group of snapshot.groups) {
-                new_groups[group.id] = restoreGroup(group);
-                new_group_list.push(group.id);
-            }
-            state.groups = new_groups;
-            state.group_list = new_group_list;
-        },
-        restore_mappings(state, snapshot) {
+        restore(state, mappings) {
             let new_mapping_list = [];
             let new_mappings = {};
 
-            for (let mapping of snapshot.mappings) {
+            for (let mapping of mappings) {
                 new_mappings[mapping.id] = restoreMapping(mapping);
                 new_mapping_list.push(mapping.id);
             }
@@ -139,21 +108,10 @@ store.registerModule('mapping', {
         mapping_list(state) {
             return state.mapping_list.map((id) => state.mappings[id]);
         },
-        group_list(state) {
-            return state.group_list.map((id) => state.groups[id]);
-        }
     },
 });
 
 // If necessary, clone/copy/reformat to meet the schema.
-export function saveGroup(group) {
-    return Util.clone(group);
-}
-
-export function restoreGroup(groupsnap) {
-    return Util.clone(groupsnap);
-}
-
 export function restoreMapping(mappingsnap) {
     return Util.clone(mappingsnap);
 }
@@ -167,19 +125,9 @@ registerSaveField('mappings', {
         return store.getters['mapping/mapping_list'].map(saveMapping);
     },
     restore(mappings) {
-        store.commit('mapping/restore_mappings', { mappings });
+        store.commit('mapping/restore', mappings);
     }
 });
-
-registerSaveField('groups', {
-    save() {
-        return store.getters['mapping/group_list'].map(saveGroup);
-    },
-    restore(groups) {
-        store.commit('mapping/restore_groups', { groups });
-    }
-});
-
 
 /*
  * Utility mixin for Vue components that need to reference groups & mappings
@@ -200,8 +148,8 @@ export const mappingUtilsMixin = {
             return mappingTypes[type].display_name;
         },
         getGroup(id) {
-            if (id in this.$store.state.mapping.groups) {
-                return this.$store.state.mapping.groups[id];
+            if (id in this.$store.state.pixels.groups) {
+                return this.$store.state.pixels.groups[id];
             } else {
                 return null;
             }
@@ -229,7 +177,7 @@ export function getMappedPoints(map, coord_type) {
         mapping = map;
 
     const type_info = coordInfo(mapping.type, coord_type);
-    const group = store.state.mapping.groups[mapping.group];
+    const group = store.state.pixels.groups[mapping.group];
 
     let settings;
     if (type_info.precompute)
