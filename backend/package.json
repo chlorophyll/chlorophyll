@@ -1,0 +1,27 @@
+{
+  "name": "chlorophyll-backend",
+  "version": "1.0.0",
+  "description": "chlorophyll server and pixelpushing infrastructure",
+  "main": "index.js",
+  "repository": "https://github.com/rpearl/chlorophyll/",
+  "private": true,
+  "contributors": [
+    "Ryan Pearl <rpearl@endofunctor.org>",
+    "Chris Williamson <c.williamso@gmail.com>"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^8.0.1",
+    "babel-plugin-module-resolver": "^2.7.1",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-stage-0": "^6.24.1",
+    "nodemon": "^1.12.1"
+  },
+  "scripts": {
+    "execute": "babel-node --presets env,stage-0 src/index.js",
+    "build": "babel src -d dist --presets env,stage-0",
+    "serve": "node dist/index.js",
+    "lint": "eslint --ext .js -f ./node_modules/eslint-friendly-formatter src"
+  }
+}
