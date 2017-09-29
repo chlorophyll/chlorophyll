@@ -43,9 +43,9 @@ export default {
                 return this.group.name;
             },
             set(val) {
-                this.$store.commit('mapping/update_group', {
+                this.$store.commit('pixels/set_name', {
                     id: this.group.id,
-                    props: { name: val }
+                    name: val
                 });
             }
         }

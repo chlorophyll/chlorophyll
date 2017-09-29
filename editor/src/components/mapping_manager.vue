@@ -32,6 +32,7 @@
 import { mapState } from 'vuex';
 import store, { newgid } from 'chl/vue/store';
 import { mappingUtilsMixin } from 'chl/mapping';
+import { createGroup } from 'chl/model';
 
 import MappingBrowser from '@/components/mapping/browser';
 import MappingConfig from '@/components/mapping/mapping_config';
