@@ -209,7 +209,7 @@ export const colorDisplay = new Vue({
 });
 
 export class Model {
-    constructor(json, parse=true) {
+    constructor(json) {
         this.strip_offsets = [0];
         this.strip_models = [];
 
@@ -222,11 +222,7 @@ export class Model {
             objectsThreshold: 8,
         });
 
-        if (parse) {
-            this.model_info = JSON.parse(json);
-        } else {
-            this.model_info = json;
-        }
+        this.model_info = json;
 
         const { strips } = this.model_info;
 
@@ -430,6 +426,6 @@ registerSaveField('model', {
         return currentModel.save();
     },
     restore(model_json) {
-        setCurrentModel(new Model(model_json, false));
+        setCurrentModel(new Model(model_json));
     }
 });

@@ -5,11 +5,11 @@ import '@/style/material-icons.css';
 import '@/style/controlpanel.scss';
 
 import Vue from 'vue';
-
 import 'chl/patches';
-import 'chl/menu';
-
 import 'chl/vue/register';
+
+import initMenu from 'chl/menu';
+
 
 import RootComponent from '@/components/root';
 
@@ -21,9 +21,8 @@ import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
 
 Vue.config.productionTip = false;
-
+initMenu();
 initRenderer();
-importNewModel(chrysanthemum);
 new Vue(RootComponent).$mount('#app');
 initClippingPlanes();
 

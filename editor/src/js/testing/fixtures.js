@@ -1,4 +1,4 @@
-export const model_json = JSON.stringify({
+export const model_json = {
     'strips': [
         [
             [1, 1, 1],
@@ -16,4 +16,4 @@ export const model_json = JSON.stringify({
             [3, 1, 3],
         ],
     ]
-});
+};

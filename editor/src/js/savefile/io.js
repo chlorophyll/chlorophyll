@@ -3,32 +3,16 @@ import * as tar from 'tar-stream';
 import * as concatStream from 'concat-stream';
 
 import { remote } from 'electron';
-
 import schemas, { SchemaDefs } from 'chl/schemas';
 
+import { importNewModel } from 'chl/model';
+
+import { createSaveObject, restoreSaveObject } from 'chl/savefile';
+
 let validateSchema = schemas.getSchema(SchemaDefs.definition('chlorophyllSavefile'));
+let validateModel = schemas.getSchema(SchemaDefs.object('model'));
 
 const SAVE_VERSION = '1';
-
-let _saveFields = null;
-
-export function registerSaveField(field, { save, restore }) {
-    if (_saveFields === null)
-        _saveFields = new Map();
-    _saveFields.set(field, { save, restore });
-}
-
-export function getSaveField(field) {
-    return _saveFields.get(field);
-}
-
-export function createSaveObject() {
-    let out = {};
-    for ([field, { save }] of _saveFields) {
-        out[field] = save();
-    }
-    return out;
-}
 
 export function writeSavefile(path) {
     let out = createSaveObject();
@@ -51,12 +35,6 @@ export function writeSavefile(path) {
     });
 
     pack.pipe(fstream);
-}
-
-function restoreSaveObject(obj) {
-    for ([field, { restore }] of _saveFields) {
-        restore(obj[field]);
-    }
 }
 
 function stringStream(next, cb) {
@@ -126,4 +104,32 @@ export function readSavefile(path) {
     });
 
     fs.createReadStream(path).pipe(extract);
+}
+
+export function importModelFile(path) {
+    fs.readFile(path, (err, data) => {
+        if (err) {
+            remote.dialog.showErrorBox('Error importing model', err.message);
+            return;
+        }
+
+        const msg = `${path} is not a valid model file.`;
+        let obj;
+
+        try {
+            obj = JSON.parse(data);
+        } catch (exc) {
+            remote.dialog.showErrorBox('Error importing model', msg);
+        }
+
+        let result = validateModel(obj);
+
+        if (!result) {
+            console.error(validateModel.errors);
+            remote.dialog.showErrorBox('Error importing model', msg);
+            return;
+        }
+
+        importNewModel(obj);
+    });
 }
