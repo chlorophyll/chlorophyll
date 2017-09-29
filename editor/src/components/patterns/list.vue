@@ -56,6 +56,7 @@ export default {
     methods: {
         setCoordType: setCoordType,
         newPattern() {
+            const id = newgid();
             createPattern(id, { set_current: true });
         },
         ...mapMutations('pattern', [

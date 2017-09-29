@@ -27,7 +27,11 @@ store.registerModule('pattern', {
             Vue.set(state.patterns, pattern.id, pattern);
             state.pattern_ordering.push(pattern.id);
         },
-
+        clear_patterns(state) {
+            state.patterns = {};
+            state.pattern_ordering = [];
+            state.cur_pattern_id = null;
+        },
         set_current(state, { id }) {
             state.cur_pattern_id = id;
         },
@@ -46,6 +50,9 @@ store.registerModule('pattern', {
 
             Vue.delete(state.patterns, id);
             state.pattern_ordering.splice(state.pattern_ordering.indexOf(id), 1);
+            if (state.cur_pattern_id == id) {
+                state.cur_pattern_id = null;
+            }
         },
 
         restore(state, snapshot) {

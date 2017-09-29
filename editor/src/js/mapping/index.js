@@ -54,6 +54,10 @@ store.registerModule('mapping', {
         mapping_list: [],
     },
     mutations: {
+        clear_mappings(state) {
+            state.mappings = {};
+            state.mapping_list = [];
+        },
         create_mapping(state, params) {
             const defaults = {
                 id: params.id,
