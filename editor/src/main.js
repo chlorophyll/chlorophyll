@@ -15,8 +15,6 @@ import RootComponent from '@/components/root';
 
 import { initRenderer, renderViewport } from 'chl/viewport';
 
-import chrysanthemum from 'models/chrysanthemum'; // TODO proper loader
-
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
 
 Vue.config.productionTip = false;
