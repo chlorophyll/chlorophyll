@@ -7,6 +7,8 @@ import schemas, { SchemaDefs } from 'chl/schemas';
 
 import { importNewModel } from 'chl/model';
 
+import store from 'chl/vue/store';
+
 import { createSaveObject, restoreSaveObject } from 'chl/savefile';
 import { pushRecentFile } from 'chl/savefile/recent';
 
@@ -29,6 +31,7 @@ export function writeSavefile(path) {
     let fstream = fs.createWriteStream(path);
     fstream.on('close', () => {
         pushRecentFile(path);
+        store.commit('set_current_save_path', path);
     });
 
     fstream.on('error', (err) => {
@@ -98,6 +101,7 @@ export function readSavefile(path) {
         try {
             restoreSave(path, version, content);
             pushRecentFile(path);
+            store.commit('set_current_save_path', path);
         } catch (err) {
             extract.emit('error', err);
             console.error(err);
@@ -132,6 +136,7 @@ function importModelFile(path) {
         }
 
         importNewModel(obj);
+        store.commit('set_current_save_path', null);
     });
 }
 
@@ -166,4 +171,12 @@ export function showImportDialog() {
             return;
         importModelFile(filenames[0]);
     });
+}
+
+export function saveCurrentProject() {
+    if (store.state.current_save_path !== null) {
+        writeSavefile(store.state.current_save_path);
+    } else {
+        showSaveAsDialog();
+    }
 }

@@ -1,6 +1,6 @@
 import { remote } from 'electron';
 
-import { showSaveAsDialog, showOpenDialog, showImportDialog } from 'chl/savefile/io';
+import { saveCurrentProject, showSaveAsDialog, showOpenDialog, showImportDialog } from 'chl/savefile/io';
 
 const { app, Menu } = remote;
 
@@ -52,15 +52,23 @@ export default function initMenu() {
                     click: showImportDialog,
                 },
                 {
+                    label: 'Open...',
+                    accelerator: 'CommandOrControl+O',
+                    click: showOpenDialog,
+                },
+                {
+                    type: 'separator'
+                },
+                {
+                    label: 'Save',
+                    accelerator: 'CommandOrControl+S',
+                    click: saveCurrentProject,
+                },
+                {
                     label: 'Save As...',
                     accelerator: 'CommandOrControl+Shift+S',
                     click: showSaveAsDialog,
                 },
-                {
-                    label: 'Open...',
-                    accelerator: 'CommandOrControl+O',
-                    click: showOpenDialog,
-                }
             ],
         },
         {

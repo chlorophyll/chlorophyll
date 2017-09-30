@@ -54,6 +54,7 @@ const store = new Vuex.Store({
          */
         next_guid: 0,
         has_current_model: false,
+        current_save_path: null,
     },
     mutations: {
         guid_increment(state) {
@@ -65,6 +66,9 @@ const store = new Vuex.Store({
         update_model(state, val) {
             state.has_current_model = val;
         },
+        set_current_save_path(state, path) {
+            state.current_save_path = path;
+        }
     }
 });
 
