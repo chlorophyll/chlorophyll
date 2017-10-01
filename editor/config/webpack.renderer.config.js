@@ -141,7 +141,8 @@ let rendererConfig = {
     path: path.join(__dirname, '../dist/electron')
   },
   resolve: {
-    extensions: ['.js', '.vue', '.json', '.css', '.node']
+    extensions: ['.js', '.vue', '.json', '.css', '.node'],
+    symlinks: false,
   },
   target: 'electron-renderer'
 }
