@@ -5,6 +5,8 @@ import {
     Vector3,
 } from 'three';
 
+import { addSerializableType } from '@/common/util/serialization';
+
 let _scratchCanvas = null;
 
 let Util = {
@@ -227,69 +229,7 @@ let Util = {
     },
 };
 
-Util.JSON = {
-    tags: {},
-    addType: function(tag, constructor) {
-        this.tags[tag] = constructor;
-
-        constructor.toJSON = function() {
-            return {'_tag': tag};
-        };
-
-        constructor.prototype.toJSON = function() {
-            return {'_tag': tag, value: this.serialize()};
-        };
-    },
-
-    normalized: function(obj) {
-        return JSON.parse(JSON.stringify(obj));
-    },
-
-    reviver: function(key, val) {
-        if (val instanceof Object && val._tag) {
-            if (val.value !== undefined) {
-                return Util.JSON.tags[val._tag].deserialize(val.value);
-            } else {
-                return Util.JSON.tags[val._tag];
-            }
-        } else {
-            return val;
-        }
-    },
-
-    denormalized: function(obj) {
-        if (null == obj || 'object' != typeof obj) return obj;
-        let ret = {};
-        if (obj instanceof Array) {
-            ret = obj.map(Util.JSON.denormalized);
-        } else {
-            for (let key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    let val = obj[key];
-
-                    if (val instanceof Object)
-                        val = Util.JSON.denormalized(val);
-
-                    let result = Util.JSON.reviver(key, val);
-
-                    ret[key] = result;
-                }
-            }
-        }
-        return ret;
-    },
-
-    dump: function(obj) {
-        return JSON.stringify(obj);
-    },
-
-    load: function(s) {
-        let out = JSON.parse(s, Util.JSON.reviver);
-        return out;
-    }
-};
-
-Util.JSON.addType('Range', Util.Range);
+addSerializableType('Range', Util.Range);
 
 Util.EventDispatcher = function() {
     this.addEventListener = function(type, callback) {

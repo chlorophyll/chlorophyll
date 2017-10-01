@@ -1,6 +1,7 @@
 import Immutable from 'immutable';
-import Util from 'chl/util';
 import Const from 'chl/const';
+
+import * as Serialization from 'common/util/serialization';
 
 let node_types = Immutable.OrderedMap();
 let graphs = new Map();
@@ -569,7 +570,7 @@ export class GraphNodeBase {
             type: this.path,
             input_settings: this.vm.inputs.map(({settings}) => ({...settings})),
             output_settings: this.vm.outputs.map(({settings})=> ({...settings})),
-            defaults: Util.JSON.normalized(this.vm.defaults),
+            defaults: Serialization.save(this.vm.defaults),
         };
 
         return Object.freeze(data);
@@ -582,6 +583,6 @@ export class GraphNodeBase {
         for (let i = 0; i < this.vm.outputs.length; i++) {
             this.vm.outputs[i].settings = nodesnap.output_settings[i];
         }
-        this.vm.defaults = Util.JSON.denormalized(nodesnap.defaults);
+        this.vm.defaults = Serialization.restore(nodesnap.defaults);
     }
 }

@@ -1,4 +1,4 @@
-import Util from 'chl/util';
+import { addSerializableType } from '@/common/util/serialization';
 
 export default class Frequency {
     constructor(hz) {
@@ -43,4 +43,4 @@ export default class Frequency {
     }
 };
 
-Util.JSON.addType('Frequency', Frequency);
+addSerializableType('Frequency', Frequency);

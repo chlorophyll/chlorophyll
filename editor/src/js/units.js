@@ -1,5 +1,7 @@
 import Util from 'chl/util';
 
+import { addSerializableType } from '@/common/util/serialization';
+
 function binop(oper) {
     return function(a, b) {
 
@@ -35,7 +37,7 @@ let Units = new Proxy(_Units, {
         Value.deserialize = function(property) {
             return new Value(property);
         };
-        Util.JSON.addType(prop, Value);
+        addSerializableType(prop, Value);
 
         Value.isUnit = true;
         Value.prototype.isUnit = true;
