@@ -39,10 +39,6 @@ import MappingConfig from '@/components/mapping/mapping_config';
 import GroupConfig from '@/components/mapping/group_config';
 import SplitPane from '@/components/widgets/split';
 
-/*
- * TODO: Once tree and splitter components pulled in, this will contain the
- * top group/mapping browser component and the bottom config component.
- */
 export default {
     name: 'mapping-manager',
     store,

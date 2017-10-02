@@ -20,7 +20,7 @@ export default {
     },
     data() {
         return {
-            gutter: 2,
+            gutter: 4,
             split: 50,
             dragging: false
         };
@@ -129,7 +129,7 @@ div {
 }
 
 .gutter {
-    background-color: #222;
+    background-color: #333;
 }
 
 .gutter.horizontal {

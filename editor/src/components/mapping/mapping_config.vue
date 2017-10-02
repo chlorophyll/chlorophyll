@@ -1,23 +1,23 @@
 <template>
-  <div id="mapping-config" class="litepanel inspector">
-    <div class="panel-header">
+  <div id="mapping-config" class="panel">
+    <div class="header">
         {{ mappingDisplayName(type) }} Mapping settings
     </div>
-    <div class="widget full">
-      <span class="wname">name</span>
-      <input type="text" class="text string" v-model.lazy.trim="name">
+    <div class="control-row">
+      <label>name</label>
+      <input type="text" v-model.lazy.trim="name" class="control">
     </div>
-    <div class="widget full">
-      <span class="wname">type</span>
-      <select v-model="type" class="inputfield inputcombo full">
+    <div class="control-row">
+      <label>type</label>
+      <select v-model="type" class="control">
         <option v-for="(dispname, type) in mapping_types"
                 v-bind:value="type">
           {{ dispname }}
         </option>
       </select>
     </div>
-    <div class="widget wcontent full">
-      <button class="litebutton single" @click="configure">
+    <div class="control-row">
+      <button @click="configure" class="control">
         Configure Mapping
       </button>
     </div>
@@ -102,8 +102,4 @@ export default {
 </script>
 
 <style>
-/* Hack around litegui badness */
-.inputcombo {
-    color: #5AF;
-}
 </style>
