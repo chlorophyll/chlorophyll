@@ -24,7 +24,7 @@ import * as THREE from 'three';
 
 import Util from 'chl/util';
 import store from 'chl/vue/store';
-import { getCameraProjection } from 'chl/mapping/projection';
+import { getCameraProjection } from '@/common/mapping/projection';
 
 import VectorInput from '@/components/widgets/vector_input';
 import ViewportAxes from '@/components/widgets/viewport_axes';

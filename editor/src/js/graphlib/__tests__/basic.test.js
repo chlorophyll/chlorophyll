@@ -66,7 +66,7 @@ beforeAll(() => {
 
 describe('GraphLib', () => {
     it('should register nodes in order', () => {
-        let nodeTypes = GraphLib.getNodeTypes().keySeq().toJS();
+        let nodeTypes = [...GraphLib.getNodeTypes().keys()];
         expect(nodeTypes).toHaveLength(node_types.length);
         expect(nodeTypes).toEqual(
             expect.arrayContaining(node_types.map(([path, ctor]) => path))

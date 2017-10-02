@@ -2,7 +2,8 @@ import store from 'chl/vue/store';
 
 import { SchemaDefs } from 'chl/schemas';
 import { getSaveField } from 'js/savefile';
-import { mappingTypes, saveMapping } from 'chl/mapping';
+import { mappingTypes } from '@/common/mapping';
+import { saveMapping } from 'chl/mapping';
 
 import 'chl/testing';
 

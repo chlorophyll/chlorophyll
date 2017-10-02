@@ -5,7 +5,7 @@ import { createPattern, savePattern, saveAllPatterns } from 'chl/patterns';
 import 'chl/testing';
 
 beforeAll(() => {
-    createPattern(1, 'pattern 1');
+    createPattern(1, { name: 'pattern 1' });
 });
 
 describe('Pattern module', () => {

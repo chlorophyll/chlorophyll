@@ -14,7 +14,7 @@
         </button>
         <label for="preview-map-list">Preview map</label>
         <span class="inputcombo">
-        <select id="preview-map-list" v-model="preview_mapping">
+        <select id="preview-map-list" v-model="preview_map_id">
             <template v-for="mapping in mappings">
                 <option :value="mapping.id">{{ mapping.name }}</option>
             </template>
@@ -49,6 +49,7 @@
 </template>
 <script>
 import { mapGetters } from 'vuex';
+import { mappingUtilsMixin } from 'chl/mapping';
 import { currentModel } from 'chl/model';
 import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
@@ -85,6 +86,7 @@ function getNodeList() {
 export default {
     store,
     components: {Tree, GraphCanvas, SplitPane, PatternPreview},
+    mixins: [mappingUtilsMixin],
     computed: {
         run_text() {
             let running = (this.runstate == RunState.Running);
@@ -115,11 +117,14 @@ export default {
 
             return this.mapping_list.filter((map) => type == map.type);
         },
+        preview_mapping() {
+            return this.preview_map_id !== null ? this.getMapping(this.preview_map_id) : null;
+        }
     },
     data() {
         return {
             time: 0,
-            preview_mapping: null,
+            preview_map_id: null,
             runstate: RunState.Stopped,
             node_list: getNodeList(),
         };
@@ -128,7 +133,7 @@ export default {
     watch: {
         mappings(newval) {
             if (newval.length == 1)
-                this.preview_mapping = newval[0].id;
+                this.preview_map_id = newval[0].id;
         },
         cur_pattern(newval, oldval) {
             if (!newval || !oldval || newval.id != oldval.id)

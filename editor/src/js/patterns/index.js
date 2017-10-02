@@ -4,7 +4,7 @@ import Util from 'chl/util';
 import Const from 'chl/const';
 
 import GraphLib, { Graph } from 'chl/graphlib';
-import { getMappedPoints, convertPointCoords } from 'chl/mapping';
+import { getMappedPoints, convertPointCoords } from '@/common/mapping';
 import { CRGB } from 'chl/fastled/color';
 import { registerSaveField } from 'chl/savefile';
 

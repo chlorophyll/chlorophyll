@@ -1,15 +1,18 @@
 import 'chl/testing';
-import { createPattern } from 'chl/patterns';
 import 'chl/graphlib';
+import 'chl/mapping';
+
+import store from 'chl/vue/store';
+
+import { createPattern } from 'chl/patterns';
 
 import { model_json } from 'chl/testing/fixtures';
 
 import { createSaveObject } from 'chl/savefile';
-import { mappingTypes } from 'chl/mapping';
-import { Model, setCurrentModel } from 'chl/model';
+import { mappingTypes } from '@/common/mapping';
+import { Model, createGroup, setCurrentModel } from 'chl/model';
 import { SchemaDefs } from 'chl/schemas';
 
-import store from 'chl/vue/store';
 
 
 
@@ -22,13 +25,14 @@ describe('savefile', () => {
 
         id++;
 
-        let group = store.dispatch('pixels/create_group', {
+        createGroup({
             id: 1,
             pixels: [1,2,3],
         });
 
         let id = 2;
         for (let type in mappingTypes) {
+
             store.commit('mapping/create_mapping', {
                 id,
                 type,
@@ -36,8 +40,6 @@ describe('savefile', () => {
             });
             id++;
         }
-
-        return group;
     });
 
     it('creates a save file conforming to the schema', () => {
@@ -45,15 +47,5 @@ describe('savefile', () => {
         expect(save).toMatchSchema(SchemaDefs.definition('chlorophyllSavefile'));
     });
 
-    //afterAll(() => {
-    //    store.commit('pattern/delete', { id: 0 });
-    //    store.commit('mapping/delete', { id: 1 });
-
-    //    let id = 2;
-    //    for (let type in mappingTypes) {
-    //        store.commit('mapping/delete', { id });
-    //        id++;
-    //    }
-    //});
 });
 

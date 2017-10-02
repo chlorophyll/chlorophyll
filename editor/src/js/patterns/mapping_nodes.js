@@ -1,4 +1,4 @@
-import { mappingTypes } from 'chl/mapping';
+import { mappingTypes } from '@/common/mapping';
 
 import GraphLib, { GraphNode } from 'chl/graphlib';
 

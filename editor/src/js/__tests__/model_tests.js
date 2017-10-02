@@ -1,13 +1,13 @@
 import 'chl/testing';
 import { model_json } from 'chl/testing/fixtures';
-import { Model, saveGroup } from 'chl/model';
+import { Model, createGroup, saveGroup } from 'chl/model';
 import { SchemaDefs } from 'chl/schemas';
 
 import store from 'chl/vue/store';
 
 
 beforeAll(() => {
-    return store.dispatch('pixels/create_group', {
+    createGroup({
         id: 1,
         pixels: [1, 2, 3],
     });
