@@ -15,26 +15,10 @@ import keyboardJS from 'keyboardjs';
         }
     };
 
-    function wrapHandler(handler) {
-        if (handler) {
-            return function(event) {
-                if (!stopCallback(event.target))
-                    handler(event);
-            };
-        } else {
-            return null;
-        }
+    const old_pressKey = keyboardJS.Keyboard.prototype.pressKey;
+    keyboardJS.Keyboard.prototype.pressKey = function(keycode, event) {
+        if (!stopCallback(event.target))
+            old_pressKey.call(this, keycode, event);
     }
-
-    let oldBind = keyboardJS.Keyboard.prototype.bind;
-    keyboardJS.Keyboard.prototype.bind = function(keyComboStr, pressHandler,
-            releaseHandler, preventRepeatByDefault) {
-        // Wrap press/release functions to prevent them from executing if a
-        // text input is selected.
-        oldBind.call(this, keyComboStr,
-                wrapHandler(pressHandler),
-                wrapHandler(releaseHandler),
-                preventRepeatByDefault);
-    };
 
 })();
