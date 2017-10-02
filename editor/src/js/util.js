@@ -77,6 +77,14 @@ let Util = {
         return ret;
     },
 
+    offset(element) {
+        const rect = element.getBoundingClientRect();
+        return {
+            top: rect.top + document.body.scrollTop,
+            left: rect.left + document.body.scrollLeft
+        };
+    },
+
     relativeCoords: function relativeCoords(element, pageX, pageY) {
         let de = document.documentElement;
         let box = element.getBoundingClientRect();

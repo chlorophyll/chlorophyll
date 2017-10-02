@@ -51,11 +51,11 @@
     "electron-config": "^1.0.0",
     "immutable": "^3.8.1",
     "jquery": "^3.2.1",
-    "jscolor-picker": "^2.0.4",
     "keyboardjs": "^2.3.4",
     "klayjs": "^0.4.1",
     "tar-stream": "^1.5.4",
     "three": "^0.85.2",
+    "tinycolor2": "^1.4.1",
     "vue": "^2.4.2",
     "vue-electron": "^1.0.6",
     "vuex": "^2.3.1"

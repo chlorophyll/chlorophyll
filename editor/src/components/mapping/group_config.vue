@@ -5,6 +5,10 @@
       <span class="wname">name</span>
       <input type="text" class="text string" v-model.lazy.trim="name">
     </div>
+    <div class="widget full">
+      <span class="wname">color</span>
+      <color-picker v-model="color" />
+    </div>
     <div class="panel-header">Add mapping for group</div>
     <div class="widget wcontent full">
       <select v-model="create_mapping_type" class="inputfield full inputcombo">
@@ -28,10 +32,13 @@ import { newgid } from 'chl/vue/store';
 import { mappingUtilsMixin } from 'chl/mapping';
 import { UniqueNameMixin } from 'chl/util';
 
+import ColorPicker from '@/components/widgets/colorpicker';
+
 export default {
     name: 'group-config',
     props: ['group'],
     mixins: [mappingUtilsMixin, UniqueNameMixin('Mapping', 'mapping/mapping_list')],
+    components: { ColorPicker },
     data() {
         return {
             create_mapping_type: 'projection',
@@ -46,6 +53,17 @@ export default {
                 this.$store.commit('pixels/set_name', {
                     id: this.group.id,
                     name: val
+                });
+            }
+        },
+        color: {
+            get() {
+                return this.group.color;
+            },
+            set(color) {
+                this.$store.commit('pixels/set_color', {
+                    id: this.group.id,
+                    color,
                 });
             }
         }

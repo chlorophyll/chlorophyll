@@ -11,6 +11,7 @@ const Hotkey = {
     select_line: 'l',
     select_plane: 'p',
     cancel_selection: 'esc',
+    cancel: 'esc',
 };
 export default Hotkey;
 
