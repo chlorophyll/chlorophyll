@@ -1,7 +1,8 @@
-import Util from 'chl/util';
-
 import { addSerializableType } from '@/common/util/serialization';
 
+function mapValue(value, fromLow, fromHigh, toLow, toHigh) {
+    return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
+}
 function binop(oper) {
     return function(a, b) {
 
@@ -49,7 +50,7 @@ let Units = new Proxy(_Units, {
             if (Value == constructor)
                 return new Value(this.val);
 
-            return new Constructor(Util.map(
+            return new Constructor(mapValue(
                 this.val,
                 Value.low, Value.high,
                 Constructor.low, Constructor.high
