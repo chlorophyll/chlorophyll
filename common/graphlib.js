@@ -224,6 +224,14 @@ export class GraphBase {
         let prev_edge = this.edges_by_dst.getIn([dst_id, dst_slot]);
 
         this.edges_by_dst = this.edges_by_dst.setIn([dst_id, dst_slot], edge);
+
+        if (prev_edge) {
+            this.edges_by_src = this.edges_by_src.updateIn(
+                [src_id, src_slot],
+                Immutable.Set(), (edgelist) => edgelist.delete(prev_edge)
+            );
+        }
+
         return prev_edge;
     }
 
@@ -256,9 +264,6 @@ export class GraphBase {
 
         let prev_edge = this._insertEdge(edge);
 
-        if (prev_edge)
-            this._removeEdge(prev_edge);
-
         try {
             this.toposort();
             this._notifyConnect(edge);
@@ -273,13 +278,6 @@ export class GraphBase {
         }
     }
 
-    _removeEdge(edge) {
-        this.edges_by_src = this.edges_by_src.updateIn([edge.src_id, edge.src_slot],
-            Immutable.Set(), (edgelist) => edgelist.delete(edge));
-
-        this.edges_by_dst = this.edges_by_dst.deleteIn([edge.dst_id, edge.dst_slot]);
-    }
-
     _notifyDisconnect(edge) {
         let src = this.getNodeById(edge.src_id);
         let dst = this.getNodeById(edge.dst_id);
@@ -289,7 +287,11 @@ export class GraphBase {
     }
 
     disconnect(edge) {
-        this._removeEdge(edge);
+        this.edges_by_src = this.edges_by_src.updateIn(
+            [edge.src_id, edge.src_slot],
+            Immutable.Set(), (edgelist) => edgelist.delete(edge)
+        );
+        this.edges_by_dst = this.edges_by_dst.deleteIn([edge.dst_id, edge.dst_slot]);
         this._notifyDisconnect(edge);
     }
 
