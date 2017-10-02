@@ -49,7 +49,7 @@ let rendererConfig = {
       },
       {
         test: /\.scss$/,
-        loaders: ['style-loader', 'css-loader', 'sass-loader']
+        loaders: ['style-loader', 'css-loader', 'resolve-url-loader', 'sass-loader']
       },
       {
         test: /\.html$/,
@@ -76,8 +76,8 @@ let rendererConfig = {
             options: {
               extractCSS: process.env.NODE_ENV === 'production',
               loaders: {
-                sass: 'vue-style-loader!css-loader!sass-loader?indentedSyntax=1',
-                scss: 'vue-style-loader!css-loader!sass-loader'
+                sass: 'vue-style-loader!css-loader!resolve-url-loader!sass-loader?indentedSyntax=1',
+                scss: 'vue-style-loader!css-loader!resolve-url-loader!sass-loader'
               }
             },
           }
@@ -143,6 +143,13 @@ let rendererConfig = {
   resolve: {
     extensions: ['.js', '.vue', '.json', '.css', '.node'],
     symlinks: false,
+    alias: {
+      '@': path.join(__dirname, '../src'),
+      'chl': path.join(__dirname, '../src/js'),
+      'three-examples': path.join(__dirname, '../node_modules/three/examples/js'),
+      'models': path.join(__dirname, '../static/models'),
+      'vue$': 'vue/dist/vue.esm.js'
+    },
   },
   target: 'electron-renderer'
 }
