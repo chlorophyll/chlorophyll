@@ -2,7 +2,7 @@ import GraphLib, { Graph, GraphNode } from 'chl/graphlib';
 
 import { SchemaDefs } from 'chl/schemas';
 
-import Units from 'chl/units';
+import Units from '@/common/units';
 
 import 'chl/testing';
 

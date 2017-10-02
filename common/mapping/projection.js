@@ -7,7 +7,7 @@ import {
     Vector3,
 } from 'three';
 
-import Units from 'chl/units';
+import Units from '@/common/units';
 
 function projectPoint(plane, pos) {
     let fromOrigin = pos.clone().sub(plane.origin);

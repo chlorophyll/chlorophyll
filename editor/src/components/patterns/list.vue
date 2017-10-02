@@ -28,7 +28,7 @@ import store, { newgid } from 'chl/vue/store';
 
 import { createPattern, setCoordType } from 'chl/patterns';
 
-import { mappingTypes } from 'chl/mapping';
+import { mappingTypes } from '@/common/mapping';
 
 import { UniqueNameMixin } from 'chl/util';
 

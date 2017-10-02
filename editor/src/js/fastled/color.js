@@ -1,5 +1,5 @@
 import GraphLib, { GraphNode } from 'chl/graphlib';
-import Units from 'chl/units';
+import Units from '@/common/units';
 import { Math8 } from 'chl/fastled/math8';
 
 let node_types = [];
