@@ -9,6 +9,8 @@ import store, { newgid } from 'chl/vue/store';
 import Util from 'chl/util';
 import ColorPool from 'chl/colors';
 
+import ModelBase from '@/common/model';
+
 export let currentModel = null;
 
 export function setCurrentModel(model) {
@@ -216,10 +218,9 @@ export const colorDisplay = new Vue({
     }
 });
 
-export class Model {
+export class Model extends ModelBase {
     constructor(json) {
-        this.strip_offsets = [0];
-        this.strip_models = [];
+        super(json);
 
         this._display_only = false;
         this.show_without_overlays = true;
@@ -230,9 +231,6 @@ export class Model {
             objectsThreshold: 8,
         });
 
-        this.model_info = json;
-
-        const { strips } = this.model_info;
 
         const strip_material = new THREE.LineBasicMaterial({
             color: 0xffffff,
@@ -240,41 +238,23 @@ export class Model {
             opacity: 0.50,
             transparent: true
         });
-        let p_idx = 0;
 
-        this.num_pixels = 0;
-
-        this.all_overlays = new Map();
-
-        for (const strip of strips) {
-            this.num_pixels += strip.length;
-        }
         this.colors = new Float32Array(this.num_pixels * 3);
-        this.positions = new Float32Array(this.num_pixels * 3);
 
-
-        for (const strip of strips) {
+        for (let strip = 0; strip < this.num_strips; strip++) {
             let strip_geometry = new THREE.Geometry();
-            let first = true;
-
-            for (const pixel_pos of strip) {
-                for (let i = 0; i < 3; i++) {
-                    this.positions[3*p_idx + i] = pixel_pos[i];
+            let prev = undefined;
+            this.forEachPixelInStrip(strip, (idx) => {
+                if (prev !== undefined) {
+                    strip_geometry.vertices.push(this.getPosition(prev));
+                    strip_geometry.vertices.push(this.getPosition(idx));
                 }
-                if (!first) {
-                    strip_geometry.vertices.push(this.getPosition(p_idx-1));
-                    strip_geometry.vertices.push(this.getPosition(p_idx));
-                }
-                p_idx++;
-                first = false;
-            }
-
+                prev = idx;
+            });
             let strip_model = new THREE.LineSegments(strip_geometry, strip_material);
             strip_model.visible = false;
             this.strip_models.push(strip_model);
-            this.strip_offsets.push(p_idx);
         }
-        this.num_pixels = p_idx;
 
         this.geometry = new THREE.BufferGeometry();
         this.geometry.addAttribute('position', new THREE.BufferAttribute(this.positions, 3));
@@ -285,27 +265,24 @@ export class Model {
         this.geometry.computeBoundingSphere();
         this.geometry.computeBoundingBox();
 
-        const modelsize = this.geometry.boundingBox.getSize();
-        const max = Math.max(modelsize.x, modelsize.y, modelsize.z);
+        const {x, y, z} = this.geometry.boundingBox.getSize();
+        const max = Math.max(x, y, z);
 
         const factor = 750 / max;
 
         let avg_dist = 0;
-
         for (let i = 0; i < this.num_pixels; i++) {
             let pos = this.getPosition(i);
             pos = pos.multiplyScalar(factor);
             if (i > 0) {
                 avg_dist += pos.distanceTo(this.getPosition(i-1));
             }
-
             pos.toArray(this.positions, 3*i);
         }
         avg_dist /= this.num_pixels;
-        this.geometry.computeBoundingSphere();
-        this.geometry.computeBoundingBox();
 
         const pixelsize = THREE.Math.clamp(avg_dist / 3, 5, 15);
+
         const material = new THREE.PointsMaterial({
             size: pixelsize,
             vertexColors: THREE.VertexColors
@@ -325,10 +302,6 @@ export class Model {
         }
     }
 
-    get num_strips() {
-        return this.strip_offsets.length-1;
-    }
-
     // ui
     setStripVisiblity(val) {
         for (let model of this.strip_models) {
@@ -345,30 +318,8 @@ export class Model {
         this.updateColors();
     }
 
-    // pixel data
-    getPosition(i) {
-        return new THREE.Vector3().fromArray(this.positions, 3*i);
-    }
-
     pointsWithinRadius(point, radius) {
         return this.octree.search(point, radius);
-    }
-
-    forEach(func) {
-        let strip = 0;
-        for (let i = 0; i < this.num_pixels; i++) {
-            if (i >= this.strip_offsets[strip+1])
-                strip++;
-            func(strip, i);
-        }
-    }
-
-    forEachPixelInStrip(strip, func) {
-        const strip_start = this.strip_offsets[strip];
-        const strip_end = this.strip_offsets[strip+1];
-        for (let i = strip_start; i < strip_end; i++) {
-            func(i);
-        }
     }
 
     setColorsFromOverlays() {
@@ -396,36 +347,22 @@ export class Model {
         this.updateColors();
     }
 
-    getToBuffer(colorbuf) {
-        for (let i = 0; i < this.num_pixels*3; i++) {
-            colorbuf[i] = this.colors[i]*255;
-        }
-    }
-
     setColor(i, [r, g, b]) {
         this.colors[3*i+0] = r;
         this.colors[3*i+1] = g;
         this.colors[3*i+2] = b;
     }
 
-    getDisplayColor(i) {
-        if (this.display_only) {
-            return [
-                this.colors[3*i+0]*255,
-                this.colors[3*i+1]*255,
-                this.colors[3*i+2]*255
-            ];
-        }
-    }
-
-    setDisplayColor(i, r, g, b) {
-        if (this.display_only) {
-            this.setColor(i, [r/255, g/255, b/255]);
-        }
-    }
-
     save() {
         return this.model_info;
+    }
+
+    getGroupPixels(id) {
+        let group = store.state.pixels.groups[id];
+        if (group === undefined)
+            return undefined;
+
+        return group.pixels.map((idx) => [idx, this.getPosition(idx)]);
     }
 }
 

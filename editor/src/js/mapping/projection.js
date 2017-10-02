@@ -8,10 +8,8 @@ import {
 } from 'three';
 
 import Units from 'chl/units';
-import { currentModel } from 'chl/model';
 
-function projectPoint(plane, idx) {
-    let pos = currentModel.getPosition(idx);
+function projectPoint(plane, pos) {
     let fromOrigin = pos.clone().sub(plane.origin);
     return new Vector2(plane.xaxis.dot(fromOrigin),
                        plane.yaxis.dot(fromOrigin));

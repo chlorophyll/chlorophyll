@@ -1,4 +1,3 @@
-import { currentModel } from 'chl/model';
 import Units from 'chl/units';
 import {
     Euler,
@@ -17,15 +16,15 @@ import {
  * cartesian, cylindrical, or spherical coordinates.
  */
 
-export function scaleToFitPoints(pixels, position) {
+export function scaleToFitPoints(pixel_positions, position) {
     // TODO scale based on preview shape - a sphere is strictly smaller than
     // the others, though, so it's a workable approximation.
     const center = new Vector3();
     center.fromArray(position);
 
     let furthest = 0;
-    pixels.forEach((i) => {
-        let dist = center.distanceToSquared(currentModel.getPosition(i));
+    pixel_positions.forEach((pos) => {
+        let dist = center.distanceToSquared(pos);
         if (dist > furthest)
             furthest = dist;
     });
@@ -38,8 +37,7 @@ export function scaleToFitPoints(pixels, position) {
  * Manipulate a point to be positioned correctly for the mapping.
  * Returns new coordinates for the point in local cartesian space.
  */
-function transformPoint(settings, idx) {
-    const pos = currentModel.getPosition(idx);
+function transformPoint(settings, pos) {
     const fromOrigin = pos.clone().sub(settings.position);
     const rot_inv = new Quaternion();
     rot_inv.setFromEuler(settings.rotation).inverse();

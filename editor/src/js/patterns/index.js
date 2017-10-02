@@ -8,6 +8,8 @@ import { getMappedPoints, convertPointCoords } from 'chl/mapping';
 import { CRGB } from 'chl/fastled/color';
 import { registerSaveField } from 'chl/savefile';
 
+import { currentModel } from 'chl/model';
+
 import store from 'chl/vue/store';
 
 import register_nodes from 'chl/patterns/registry';
@@ -159,7 +161,7 @@ registerSaveField('patterns', {
 export class PatternRunner {
     constructor(pattern, mapping) {
         const { coord_type, mapping_type } = pattern;
-        const mapped_points = getMappedPoints(mapping, coord_type);
+        const mapped_points = getMappedPoints(currentModel, mapping, coord_type);
 
         this.positions = convertPointCoords(mapping_type, coord_type, mapped_points);
         this.graph = GraphLib.graphById(pattern.stages.pixel);

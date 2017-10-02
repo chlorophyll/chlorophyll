@@ -171,7 +171,7 @@ export const mappingUtilsMixin = {
 };
 
 
-export function getMappedPoints(map, coord_type) {
+export function getMappedPoints(model, map, coord_type) {
     // Accept an id or the mapping object itself
     let mapping;
     if (typeof(map) == 'number')
@@ -180,14 +180,15 @@ export function getMappedPoints(map, coord_type) {
         mapping = map;
 
     const type_info = coordInfo(mapping.type, coord_type);
-    const group = store.state.pixels.groups[mapping.group];
+
+    const pixels = model.getGroupPixels(mapping.group);
 
     let settings;
     if (type_info.precompute)
         settings = type_info.precompute(mapping.settings);
     else
         settings = mapping.settings;
-    return group.pixels.map((idx) => [idx, type_info.mapPoint(settings, idx)]);
+    return pixels.map(([idx, pos]) => [idx, type_info.mapPoint(settings, pos)]);
 }
 
 export function convertPointCoords(map_type, coord_type, points) {
