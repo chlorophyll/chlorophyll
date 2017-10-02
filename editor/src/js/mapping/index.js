@@ -2,7 +2,7 @@ import Vue from 'vue';
 
 import store from 'chl/vue/store';
 import Util from 'chl/util';
-import { mappingTypes } from '@/common/mapping';
+import { mappingTypes, restoreMapping, restoreMappings } from '@/common/mapping';
 import { registerSaveField } from 'chl/savefile';
 
 /*
@@ -61,15 +61,7 @@ store.registerModule('mapping', {
             }
         },
         restore(state, mappings) {
-            let new_mapping_list = [];
-            let new_mappings = {};
-
-            for (let mapping of mappings) {
-                new_mappings[mapping.id] = restoreMapping(mapping);
-                new_mapping_list.push(mapping.id);
-            }
-            state.mappings = new_mappings;
-            state.mapping_list = new_mapping_list;
+            restoreMappings(state, mappings);
         }
     },
     getters: {
@@ -79,10 +71,6 @@ store.registerModule('mapping', {
     },
 });
 
-// If necessary, clone/copy/reformat to meet the schema.
-export function restoreMapping(mappingsnap) {
-    return Util.clone(mappingsnap);
-}
 
 export function saveMapping(mapping) {
     return Util.clone(mapping);
