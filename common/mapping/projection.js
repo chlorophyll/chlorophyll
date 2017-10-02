@@ -80,7 +80,11 @@ export function getProjectedAxes(settings) {
     // facing direction of the projection plane.
     const plane_normal = new Vector3(0, 0, -1);
 
-    quat.setFromEuler(settings.plane_angle);
+    let [ex, ey] = settings.plane_angle;
+
+    let euler = new Euler(ex, ey, 0, 'XYZ');
+
+    quat.setFromEuler(euler);
     plane_normal.applyQuaternion(quat);
 
     const yaxis = up.applyQuaternion(quat);

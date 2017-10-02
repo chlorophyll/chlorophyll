@@ -159,9 +159,9 @@ registerSaveField('patterns', {
 });
 
 export class PatternRunner {
-    constructor(pattern, mapping) {
+    constructor(model, pattern, mapping) {
         const { coord_type, mapping_type } = pattern;
-        const mapped_points = getMappedPoints(currentModel, mapping, coord_type);
+        const mapped_points = getMappedPoints(model, mapping, coord_type);
 
         this.positions = convertPointCoords(mapping_type, coord_type, mapped_points);
         this.graph = GraphLib.graphById(pattern.stages.pixel);
@@ -206,7 +206,7 @@ export let PatternPreview = Vue.component('pattern-preview', {
 
     computed: {
         step() {
-            let runner = new PatternRunner(this.pattern, this.mapping);
+            let runner = new PatternRunner(this.model, this.pattern, this.mapping);
             let prevbuf = new Uint8Array(3*this.model.num_pixels);
             let curbuf = new Uint8Array(3*this.model.num_pixels);
 
