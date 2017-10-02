@@ -41,8 +41,8 @@ export default {
                 const { mapping_type, coord_type } = this.cur_pattern;
                 return { mapping_type, coord_type };
             },
-            set(map_info) {
-                this.setCoordType({id: this.cur_pattern.id, ...map_info});
+            set({ mapping_type, coord_type}) {
+                this.setCoordType(this.cur_pattern.id, mapping_type, coord_type);
             }
         },
         available_coord_types() {
