@@ -1,12 +1,20 @@
 import Vue from 'vue';
 import Util from 'chl/util';
-import Const from 'chl/const';
 
 import { GraphLib, GraphBase, GraphNodeBase } from '@/common/graphlib';
 import { registerSaveField } from 'chl/savefile';
 import { newgid } from 'chl/vue/store';
 
 export default GraphLib;
+
+export const GraphConstants = {
+    NODE_SLOT_HEIGHT: 15,
+    DEFAULT_POSITION: [100, 100],
+    NODE_TITLE_HEIGHT: 16,
+    NODE_WIDTH: 140,
+    NODE_MIN_WIDTH: 50,
+    ANIM_TIME: 300,
+};
 
 
 export class Graph extends GraphBase {
@@ -30,6 +38,11 @@ export class Graph extends GraphBase {
     addNode(path, options={}) {
         if (options.id === undefined)
             options.id = newgid();
+
+        if (options.pos === undefined) {
+            options.pos = GraphConstants.DEFAULT_POSITION.concat();
+        }
+
         return super.addNode(path, options);
     }
 
@@ -53,7 +66,7 @@ function makeNodeVue(graph, node, data) {
                 return Math.max(inslots, outslots);
             },
             width() {
-                let width = Math.max(Util.textWidth(this.title), Const.Graph.NODE_WIDTH);
+                let width = Math.max(Util.textWidth(this.title), GraphConstants.NODE_WIDTH);
 
                 for (let i = 0; i < this.rows; i++) {
                     let input_width = 0;
@@ -68,7 +81,7 @@ function makeNodeVue(graph, node, data) {
                     }
 
                     const row_width = Math.min(
-                        Const.Graph.NODE_MIN_WIDTH,
+                        GraphConstants.NODE_MIN_WIDTH,
                         input_width + output_width + 10
                     );
                     if (row_width > width) {
@@ -79,8 +92,8 @@ function makeNodeVue(graph, node, data) {
             },
 
             height() {
-                let body_height = Math.max(this.rows, 1) * Const.Graph.NODE_SLOT_HEIGHT + 5;
-                return (Const.Graph.NODE_TITLE_HEIGHT + body_height);
+                let body_height = Math.max(this.rows, 1) * GraphConstants.NODE_SLOT_HEIGHT + 5;
+                return (GraphConstants.NODE_TITLE_HEIGHT + body_height);
             },
 
             slot_labels() {
@@ -104,7 +117,7 @@ function makeNodeVue(graph, node, data) {
                 return is_input ? 0 : this.width;
             },
             connectionY(slot, is_input) {
-                 return Const.Graph.NODE_TITLE_HEIGHT + 10 + slot * Const.Graph.NODE_SLOT_HEIGHT;
+                 return GraphConstants.NODE_TITLE_HEIGHT + 10 + slot * GraphConstants.NODE_SLOT_HEIGHT;
             },
 
             canvasPos(pos) {

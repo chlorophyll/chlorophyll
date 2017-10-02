@@ -114,7 +114,7 @@
 </template>
 
 <script>
-import Const from 'chl/const';
+import { GraphConstants } from 'chl/graphlib';
 
 export default {
     name: 'graph-node',
@@ -132,7 +132,7 @@ export default {
             return this.node.height;
         },
         tHeight() {
-            return Const.Graph.NODE_TITLE_HEIGHT;
+            return GraphConstants.NODE_TITLE_HEIGHT;
         },
         position() {
             return `translate(${this.node.pos[0]}, ${this.node.pos[1]})`;

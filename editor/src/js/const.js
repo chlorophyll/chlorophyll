@@ -17,14 +17,6 @@ const Const = {
     fog_start: 1000,
     max_clip_plane: 1000,
 
-    Graph: {
-        NODE_SLOT_HEIGHT: 15,
-        DEFAULT_POSITION: [100, 100],
-        NODE_TITLE_HEIGHT: 16,
-        NODE_WIDTH: 140,
-        NODE_MIN_WIDTH: 50,
-        ANIM_TIME: 300,
-    }
 };
 export default Const;
 

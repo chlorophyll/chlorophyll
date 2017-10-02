@@ -32,7 +32,7 @@ import GraphEdge from '@/components/graphedge';
 import GraphAutoLayout from 'chl/graphlib/layout';
 
 import Util from 'chl/util';
-import Const from 'chl/const';
+import { GraphConstants } from 'chl/graphlib';
 
 let zoom = d3.zoom();
 
@@ -222,7 +222,7 @@ export default {
             let {x, y} = this.coords(event.pageX, event.pageY);
 
             x -= node.vm.width / 2;
-            y -= Const.Graph.NODE_TITLE_HEIGHT/2;
+            y -= GraphConstants.NODE_TITLE_HEIGHT/2;
 
             node.setPosition(x, y);
         },
@@ -326,12 +326,12 @@ export default {
             autolayout.layout(this.graph, (kgraph) => {
                 let bounds = this.computeBounds(kgraph.children);
 
-                this.zoomToBounds(bounds, Const.Graph.ANIM_TIME).then(() => {
+                this.zoomToBounds(bounds, GraphConstants.ANIM_TIME).then(() => {
                     kgraph.children.map((knode) => {
                         let node_id = parseInt(knode.id.slice(4));
                         let node = this.nodeset[node_id];
                         const endpos = [knode.x, knode.y];
-                        return this.animateMove(node, endpos, Const.Graph.ANIM_TIME);
+                        return this.animateMove(node, endpos, GraphConstants.ANIM_TIME);
                     });
                 });
             });
@@ -340,12 +340,12 @@ export default {
         resetZoom() {
             d3.select(this.$el)
               .transition()
-              .duration(Const.Graph.ANIM_TIME)
+              .duration(GraphConstants.ANIM_TIME)
               .call(zoom.transform, d3.zoomIdentity);
         },
 
         zoomToFit() {
-            return this.zoomToBounds(this.bounds, Const.Graph.ANIM_TIME);
+            return this.zoomToBounds(this.bounds, GraphConstants.ANIM_TIME);
         }
     }
 };

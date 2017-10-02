@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import Const from 'chl/const';
+import { GraphConstants } from 'chl/graphlib';
 import Util from 'chl/util';
 
 export default {
@@ -109,7 +109,7 @@ export default {
     methods: {
         box(node) {
             return [
-                ...node.canvasPos([0, -Const.Graph.NODE_TITLE_HEIGHT]),
+                ...node.canvasPos([0, -GraphConstants.NODE_TITLE_HEIGHT]),
                 ...node.canvasPos([node.width, node.height]),
             ];
         },
@@ -125,7 +125,7 @@ export default {
                 v_gap = node_box[1] - other_box[3];
                 rel_slot = slot + 1;
             }
-            let vert_off = rel_slot * Math.min(Const.Graph.NODE_SLOT_HEIGHT / 2,
+            let vert_off = rel_slot * Math.min(GraphConstants.NODE_SLOT_HEIGHT / 2,
                 v_gap / (num_slots + 1));
 
             return on_top ? node_box[3] + vert_off : node_box[1] - vert_off;

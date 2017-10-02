@@ -1,9 +1,8 @@
 import Immutable from 'immutable';
-import Const from 'chl/const';
 
 import * as Serialization from 'common/util/serialization';
 
-let node_types = Immutable.OrderedMap();
+let node_types = new Map();
 let graphs = new Map();
 
 export const GraphLib = {
@@ -11,7 +10,7 @@ export const GraphLib = {
         if (!GraphNodeBase.isPrototypeOf(constructor))
             throw new Error('All registered node types must inherit from GraphNode');
 
-        node_types = node_types.set(path, constructor);
+        node_types.set(path, constructor);
         constructor.type = path;
     },
     registerNodeTypes(node_list) {
@@ -120,16 +119,14 @@ export class GraphBase {
             throw Error('unknown node type' + path);
         }
 
+        const { id, pos, ref } = options;
+
         const graph = this;
-        const id = options.id;
         const title = options.title || Ctor.title || path;
-        const pos = options.pos || Const.Graph.DEFAULT_POSITION.concat();
-        const ref = options.ref;
 
         if (id === undefined) {
             throw new Error('nodes require an id');
         }
-
 
         let node = new Ctor({graph, id, title, pos, path});
 
