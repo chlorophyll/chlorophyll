@@ -8,6 +8,7 @@
         </li>
     </ul>
     <button @click="newPattern">New Pattern</button>
+    <button @click="copyPattern">Copy Pattern</button>
     <template v-if="cur_pattern !== null">
     <hr />
     Current pattern: {{ cur_pattern.name }}
@@ -26,7 +27,7 @@
 import { mapGetters, mapMutations } from 'vuex';
 import store, { newgid } from 'chl/vue/store';
 
-import { createPattern, setCoordType } from 'chl/patterns';
+import { createPattern, copyPattern, setCoordType } from 'chl/patterns';
 
 import { mappingTypes } from '@/common/mapping';
 
@@ -58,6 +59,9 @@ export default {
         newPattern() {
             const id = newgid();
             createPattern(id, { set_current: true });
+        },
+        copyPattern() {
+            copyPattern(this.cur_pattern, { set_current: true });
         },
         ...mapMutations('pattern', [
             'set_current',

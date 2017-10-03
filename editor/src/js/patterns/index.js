@@ -10,7 +10,7 @@ import { registerSaveField } from 'chl/savefile';
 
 import { currentModel } from 'chl/model';
 
-import store from 'chl/vue/store';
+import store, { newgid } from 'chl/vue/store';
 
 import register_nodes from 'chl/patterns/registry';
 
@@ -147,6 +147,28 @@ export function restorePattern(patternsnap) {
 export function saveAllPatterns() {
     let patterns = store.getters['pattern/pattern_list'].map(savePattern);
     return { patterns };
+}
+
+export function copyPattern(pattern, { set_current=true } = {}) {
+    let { mapping_type, coord_type } = pattern;
+    let pixel_stage = GraphLib.graphById(pattern.stages.pixel).copy();
+    let id = newgid();
+    let name = Util.copyName(pattern.name);
+
+    const copied = {
+        id,
+        name,
+        mapping_type,
+        coord_type,
+        stages: {
+            pixel: pixel_stage.id,
+        },
+    };
+
+    store.commit('pattern/add', copied);
+    if (set_current) {
+        store.commit('pattern/set_current', copied);
+    }
 }
 
 registerSaveField('patterns', {

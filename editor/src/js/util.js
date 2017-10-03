@@ -235,6 +235,16 @@ let Util = {
 
         return '#'+r+g+b;
     },
+    copyName(name) {
+        const re = / \(copy (\d+)\)$/;
+        const result = re.exec(name);
+        if (!result) {
+            return `${name} (copy 1)`;
+        }
+        const copydigits = parseInt(result[1])+1;
+        const prefix = name.substring(0, result.index);
+        return `${prefix} (copy ${copydigits})`;
+    }
 };
 
 addSerializableType('Range', Util.Range);

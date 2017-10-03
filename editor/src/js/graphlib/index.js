@@ -51,6 +51,45 @@ export class Graph extends GraphBase {
         graph.load_snapshot(snapshot);
         return graph;
     }
+
+    copy() {
+        let child = new Graph();
+
+        for (let {name, type} of this.global_inputs.values()) {
+            console.log([name, type]);
+            child.addGlobalInput(name, type);
+        }
+        for (let {name, type} of this.global_outputs.values()) {
+            child.addGlobalOutput(name, type);
+        }
+
+        let nodemap = new Map(); // parent id => child id
+
+        this.forEachNode((node) => {
+            let cnode = child.addNode(node.path, {
+                pos: [...node.vm.pos],
+                title: node.vm.title,
+            });
+            nodemap.set(node.id, cnode.id);
+        });
+
+        this.forEachEdge((edge) => {
+            const child_edge = {
+                id: newgid(),
+                src_id: nodemap.get(edge.src_id),
+                src_slot: edge.src_slot,
+                dst_id: nodemap.get(edge.dst_id),
+                dst_slot: edge.dst_slot
+            };
+            child._insertEdge(child_edge);
+            child._notifyConnect(child_edge);
+        });
+
+        for (let [ref, id] of this.refs) {
+            child.refs.set(ref, nodemap.get(id));
+        }
+        return child;
+    }
 }
 
 function makeNodeVue(graph, node, data) {

@@ -52,8 +52,8 @@ export class GraphBase {
         this.id = id;
         graphs.set(this.id, this);
 
-        this.global_inputs = new Immutable.Map();
-        this.global_outputs = new Immutable.Map();
+        this.global_inputs = new Map();
+        this.global_outputs = new Map();
 
         this.refs = new Map();
 
@@ -75,14 +75,12 @@ export class GraphBase {
     }
 
     addGlobalInput(name, type) {
-        this.global_inputs = this.global_inputs.set(name,
-            { name, type, data: null }
-        );
+        this.global_inputs.set(name, { name, type, data: null });
         this.emit('global-input-added', { name, type });
     }
 
     removeGlobalInput(name) {
-        this.global_inputs = this.global_inputs.delete(name);
+        this.global_inputs.delete(name);
         this.emit('global-input-removed', { name });
     }
 
@@ -95,14 +93,12 @@ export class GraphBase {
     }
 
     addGlobalOutput(name, type) {
-        this.global_outputs = this.global_outputs.set(name,
-            { name, type, data: null }
-        );
+        this.global_outputs.set(name, { name, type, data: null });
         this.emit('global-output-added', { name, type });
     }
 
     removeGlobalInput(name) {
-        this.global_outputs = this.global_outputs.delete(name);
+        this.global_outputs.delete(name);
         this.emit('global-output-removed', { name });
     }
     setGlobalOutputData(name, data) {
@@ -227,7 +223,7 @@ export class GraphBase {
 
         if (prev_edge) {
             this.edges_by_src = this.edges_by_src.updateIn(
-                [src_id, src_slot],
+                [prev_edge.src_id, prev_edge.src_slot],
                 Immutable.Set(), (edgelist) => edgelist.delete(prev_edge)
             );
         }
@@ -244,7 +240,7 @@ export class GraphBase {
         this.emit('edge-added', { edge });
     }
 
-    connect(id, src, src_slot, dst, dst_slot) {
+    connect(id, src, src_slot, dst, dst_slot, no_toposort=false) {
         let src_type = src.output_info[src_slot].type;
         let dst_type = dst.input_info[dst_slot].type;
 
@@ -382,8 +378,8 @@ export class GraphBase {
 
     save() {
         const extract = ({name, type}) => ({name, type});
-        const global_inputs = Array.from(this.global_inputs.map(extract).values());
-        const global_outputs = Array.from(this.global_outputs.map(extract).values());
+        const global_inputs = Array.from(this.global_inputs.values()).map(extract);
+        const global_outputs = Array.from(this.global_outputs.values()).map(extract);
 
         let edges = [];
         this.forEachEdge((edge) => edges.push({...edge}));
