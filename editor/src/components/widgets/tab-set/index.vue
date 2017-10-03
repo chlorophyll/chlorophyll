@@ -1,15 +1,15 @@
 <template>
 <div class="tab-container">
-    <ul class="tab-list">
-        <li v-for="tab in tabs"
-            :class="{'active': current === tab}"
-            @click="selectTab(tab)">
-            {{ tab.title }}
-        </li>
-    </ul>
+  <div class="tab-bar">
+      <button v-for="tab in tabs"
+          :class="{'active': current === tab}"
+          @click="selectTab(tab)">
+          {{ tab.title }}
+      </button>
     <div class="tab-content">
         <slot />
     </div>
+  </div>
 </div>
 </template>
 <script>
@@ -55,6 +55,11 @@ export default {
     flex-direction: column;
     height: 100%;
 }
+
+.tab-bar {
+  height: 4em;
+}
+
 .tab-list {
     list-style-type: none;
     border-bottom: 2px solid #666;
