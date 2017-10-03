@@ -1,4 +1,3 @@
-import '@/style/litegui.css';
 import '@/style/chlorophyll.css';
 import '@/style/material-icons.css';
 import '@/style/controlpanel.scss';
