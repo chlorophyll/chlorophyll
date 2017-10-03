@@ -7,6 +7,11 @@
         <div class="item ltreeitem"
              @click="select(props.item.id)">
           {{ props.item.label }}
+          <span v-if="props.item.type == 'group'">
+              <colorpicker-inline
+                :value="props.item.color"
+                @input="(val) => setColor(props.item.id, val)" />
+          </span>
         </div>
       </template>
     </tree-view>
@@ -16,12 +21,15 @@
 
 <script>
 import { mappingUtilsMixin } from 'chl/mapping';
+import store from 'chl/vue/store';
 
 import TreeView from '@/components/widgets/tree/index';
+import ColorpickerInline from '@/components/widgets/colorpicker/inline';
 
 export default {
+    store,
     name: 'mapping-browser',
-    components: { TreeView },
+    components: { TreeView, ColorpickerInline },
     mixins: [mappingUtilsMixin],
     props: ['groups', 'mappings', 'selected'],
     computed: {
@@ -38,6 +46,7 @@ export default {
                     if (mapping.group == gid) {
                         children.push({
                             label: mapping.name,
+                            type: 'mapping',
                             children: [],
                             selected: (this.selected == mid),
                             id: mid,
@@ -46,9 +55,11 @@ export default {
                 }
                 items.push({
                     label: group.name,
+                    type: 'group',
                     children,
                     selected: (this.selected == gid),
                     id: gid,
+                    color: group.color,
                 });
             }
             return items;
@@ -58,6 +69,9 @@ export default {
         select(id) {
             this.$emit('update:selected', id);
         },
+        setColor(id, color) {
+            this.$store.commit('pixels/set_color', { id, color });
+        }
     }
 };
 </script>
