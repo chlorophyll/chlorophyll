@@ -34,9 +34,6 @@ div {
     display: inline-block;
     width: 0.8em;
     height: 0.8em;
-    float: right;
-    margin-right: 2em;
-    margin-top: 0.3em;
 }
 
 </style>

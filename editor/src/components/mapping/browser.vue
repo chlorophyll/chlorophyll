@@ -7,7 +7,10 @@
         <div class="item ltreeitem"
              @click="select(props.item.id)">
           {{ props.item.label }}
-          <span v-if="props.item.type == 'group'">
+          <span v-if="props.item.type == 'group'" class="inline-controls">
+              <div class="visibility-button" @click.stop="toggleVisibility(props.item)">
+                  <span class="material-icons">{{ visibilityText(props.item) }}</span>
+              </div>
               <colorpicker-inline
                 :value="props.item.color"
                 @input="(val) => setColor(props.item.id, val)" />
@@ -60,17 +63,25 @@ export default {
                     selected: (this.selected == gid),
                     id: gid,
                     color: group.color,
+                    visible: group.visible,
                 });
             }
             return items;
         }
     },
     methods: {
+        visibilityText({visible}) {
+            return visible ? 'visibility' : 'visibility_off';
+        },
         select(id) {
             this.$emit('update:selected', id);
         },
         setColor(id, color) {
             this.$store.commit('pixels/set_color', { id, color });
+        },
+        toggleVisibility({id, visible}) {
+            visible = !visible;
+            this.$store.commit('pixels/set_visible', { id, visible });
         }
     }
 };
@@ -85,5 +96,17 @@ export default {
     height: 100%;
     background: #181818;
     overflow-y: auto;
+}
+
+.inline-controls {
+    float: right;
+    padding-right: 1em;
+}
+
+.visibility-button {
+    display: inline-block;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-right: 0.5em;
 }
 </style>
