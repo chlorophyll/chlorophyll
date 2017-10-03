@@ -1,28 +1,25 @@
 <template>
-  <div id="group-config" class="litepanel inspector">
-    <div class="panel-header">Group settings: {{ name }} </div>
-    <div class="widget full">
-      <span class="wname">name</span>
-      <input type="text" class="text string" v-model.lazy.trim="name">
+  <div id="group-config" class="panel">
+    <div class="header">Group settings: {{ name }} </div>
+    <div class="control-row">
+      <label>name</label>
+      <input type="text" v-model.lazy.trim="name">
     </div>
-    <div class="widget full">
-      <span class="wname">color</span>
-      <colorpicker-input v-model="color" />
+    <div class="control-row">
+      <label>color</label>
+      <colorpicker-input v-model="color" class="control" />
     </div>
-    <div class="panel-header">Add mapping for group</div>
-    <div class="widget wcontent full">
-      <select v-model="create_mapping_type" class="inputfield full inputcombo">
+    <div class="header">Add mapping for group</div>
+    <div class="control-row">
+      <button @click="newMapping" class="smol material-icons">add</button>
+      <select v-model="create_mapping_type" class="fill">
         <option v-for="(dispname, type) in mapping_types"
                 v-bind:value="type">
           {{ dispname }}
         </option>
       </select>
     </div>
-    <div class="widget wcontent full">
-      <button class="litebutton single material-icons"
-              @click="newMapping">
-        +
-      </button>
+    <div class="control-row">
     </div>
   </div>
 </template>
@@ -86,4 +83,3 @@ export default {
 
 <style scoped>
 </style>
-
