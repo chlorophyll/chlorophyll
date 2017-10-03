@@ -8,7 +8,7 @@
         </li>
     </ul>
     <button @click="newPattern">New Pattern</button>
-    <button @click="copyPattern">Copy Pattern</button>
+    <button :disabled="cur_pattern === null" @click="copyPattern">Copy Pattern</button>
     <template v-if="cur_pattern !== null">
     <hr />
     Current pattern: {{ cur_pattern.name }}
