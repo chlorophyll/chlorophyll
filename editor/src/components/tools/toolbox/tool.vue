@@ -1,7 +1,7 @@
 <template>
     <span>
         <div class="control">
-            <button :class="{ highlighted: enabled }" @click="selected">
+            <button class="fill" :class="{ highlighted: enabled }" @click="selected">
                 {{ label }}
             </button>
         </div>
