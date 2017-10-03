@@ -1,7 +1,5 @@
 <template>
-    <span>
-    <input ref="input" :value="value" :style="input_style" readonly="true" @click="active=true"/>
-    <div ref="overlay" v-show="active" class="overlay" @click="active=false">
+<div ref="overlay" v-show="active" class="overlay" @click="$emit('blur')">
     <div ref="popup" class="popup" @click.stop>
         <div ref="satval" class="satval" :style="hue_bg" @mousedown="satValDrag">
             <div class="satvalpicker" :style="satval_pos">
@@ -12,9 +10,7 @@
             <div class="huepicker" :style="hue_pos"/>
         </div>
     </div>
-    </div>
-    </div>
-    </span>
+</div>
 </template>
 
 <script>
@@ -25,28 +21,21 @@ import Util from 'chl/util';
 import * as tinycolor from 'tinycolor2';
 
 export default {
-    props: ['value'],
-    name: 'color-picker',
+    props: ['value', 'active'],
+    name: 'colorpicker-popup',
     data() {
         return {
-            active: false,
             color: tinycolor(this.value).toHsv(),
         };
     },
     mounted() {
-        const {top, left} = Util.offset(this.$el);
+        const {top, left} = Util.offset(this.$parent.$el);
         const popup = this.$refs.popup;
         popup.style.position = 'absolute';
         popup.style.top = `calc(${top}px + 1.5em)`;
         popup.style.left = `${left-100}px`;
     },
     computed: {
-        input_style() {
-            return {
-                backgroundColor: this.value,
-                color: tinycolor.mostReadable(this.value, ['black', 'white']),
-            };
-        },
         satval_pos() {
             return {
                 left: `${this.color.s*100}%`,
@@ -72,7 +61,6 @@ export default {
         active(newval) {
             if (newval) {
                 this.color = tinycolor(this.value).toHsv();
-                this.$refs.input.blur();
                 keyboardJS.bind(Hotkey.cancel, this.deactivate);
             } else {
                 keyboardJS.unbind(Hotkey.cancel, this.deactivate);
@@ -130,7 +118,7 @@ export default {
         },
 
         deactivate() {
-            this.active = false;
+            this.$emit('blur');
         },
 
         captureClick() {
@@ -146,10 +134,6 @@ export default {
 </script>
 
 <style scoped>
-span {
-    position: relative;
-}
-
 .overlay {
     position: fixed;
     z-index: 100;

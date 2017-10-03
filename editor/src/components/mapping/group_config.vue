@@ -7,7 +7,7 @@
     </div>
     <div class="widget full">
       <span class="wname">color</span>
-      <color-picker v-model="color" />
+      <colorpicker-input v-model="color" />
     </div>
     <div class="panel-header">Add mapping for group</div>
     <div class="widget wcontent full">
@@ -32,13 +32,13 @@ import { newgid } from 'chl/vue/store';
 import { mappingUtilsMixin } from 'chl/mapping';
 import { UniqueNameMixin } from 'chl/util';
 
-import ColorPicker from '@/components/widgets/colorpicker';
+import ColorpickerInput from '@/components/widgets/colorpicker';
 
 export default {
     name: 'group-config',
     props: ['group'],
     mixins: [mappingUtilsMixin, UniqueNameMixin('Mapping', 'mapping/mapping_list')],
-    components: { ColorPicker },
+    components: { ColorpickerInput },
     data() {
         return {
             create_mapping_type: 'projection',
