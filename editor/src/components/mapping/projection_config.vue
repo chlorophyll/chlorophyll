@@ -1,5 +1,5 @@
 <template>
-<div class="litepanel inspector">
+<div class="panel">
     <vector-input title="Plane Angle"
                   min="-180" max="180"
                   :value="value.plane_angle"

@@ -1,14 +1,14 @@
 <template>
-    <div id="mapping-manager" class="litepanel inspector">
+    <div id="mapping-manager" class="panel">
         <split-pane direction="vertical" :initial-split="[200,null]">
-            <div slot="first" class="browser-container litepanel">
+            <div slot="first" class="browser-container">
                 <mapping-browser
                     :mappings="mapping_list"
                     :groups="group_list"
                     :selected.sync="selected_id">
                 </mapping-browser>
-                <div class="browser-button-container widget wcontent full">
-                    <button class="litebutton single"
+                <div class="control-row browser-button-container">
+                    <button class="fill"
                             :disabled="!can_create_group"
                             @click="newGroupFromSelection()">
                         New group from selection

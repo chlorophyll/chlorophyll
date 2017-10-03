@@ -5,6 +5,5 @@ static/models/*
 src/renderer/js/fastled/fastled*.js
 src/renderer/js/fastled/src/*
 patches.js
-litegui*
 *.test.js
 .cache-loader/*

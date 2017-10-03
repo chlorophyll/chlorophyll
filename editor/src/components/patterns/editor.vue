@@ -1,15 +1,16 @@
 <template>
-    <div class="root">
-    <div class="topwidgets">
+  <div class="root">
+    <div class="panel">
+    <div class="control-row">
         <button
          @click="toggleAnimation"
          :disabled="!can_preview"
-         class="iconbutton litebutton material-icons">
+         class="square material-icons">
             {{ run_text }}
         </button>
         <button
          @click="stopAnimation"
-         class="iconbutton litebutton material-icons">
+         class="square material-icons">
             stop
         </button>
         <label for="preview-map-list">Preview map</label>
@@ -44,7 +45,8 @@
                      :pattern="cur_pattern"
                      :mapping="preview_mapping"
                      :runstate="runstate" />
-    </div>
+  </div>
+  </div>
 </template>
 <script>
 import { mapGetters } from 'vuex';

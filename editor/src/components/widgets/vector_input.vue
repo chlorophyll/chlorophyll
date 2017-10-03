@@ -1,23 +1,17 @@
 <template>
-  <div class="widget full">
-    <span class="wname">{{ title }}</span>
-    <div class="info_content wcontent">
-      <div class="dragger"
-           v-bind:style="dragger_style"
-           v-for="(val, idx) in vector">
-        <span class="inputfield full">
-            <input class="text number full"
-                   :value="val"
-                   :disabled="disabled"
-                   @change="updateValue(idx, $event.target.value);
-                            $emit('change', vector);">
-            <div class="drag_widget"
-                 v-if="!disabled"
-                 @mousedown="startDrag(idx, $event)">
-            </div>
-        </span>
-      </div>
-    </div>
+  <div class="control-row">
+    <label>{{ title }}</label>
+    <span class="control medium"
+          v-for="(val, idx) in vector">
+        <input :value="val"
+               :disabled="disabled"
+               @change="updateValue(idx, $event.target.value);
+                        $emit('change', vector);">
+        <div class="drag_widget"
+             v-if="!disabled"
+             @mousedown="startDrag(idx, $event)">
+        </div>
+    </span>
   </div>
 </template>
 
@@ -31,10 +25,6 @@ export default {
     data() {
         return {
             vector: this.value,
-            dragger_style: {
-                'width': `calc(${Math.floor(100 / this.value.length)}% - 2px)`,
-                'margin-left': '0px'
-            }
         };
     },
     computed: {
