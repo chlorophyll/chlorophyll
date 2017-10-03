@@ -181,9 +181,9 @@ registerSaveField('patterns', {
 });
 
 export class PatternRunner {
-    constructor(model, pattern, mapping) {
+    constructor(pattern, mapping) {
         const { coord_type, mapping_type } = pattern;
-        const mapped_points = getMappedPoints(model, mapping, coord_type);
+        const mapped_points = getMappedPoints(currentModel, mapping, coord_type);
 
         this.positions = convertPointCoords(mapping_type, coord_type, mapped_points);
         this.graph = GraphLib.graphById(pattern.stages.pixel);
@@ -217,7 +217,7 @@ export const RunState = {
 };
 
 export let PatternPreview = Vue.component('pattern-preview', {
-    props: ['model', 'pattern', 'mapping', 'runstate'],
+    props: ['pattern', 'mapping', 'runstate'],
     data() {
         return {
             buf_idx: 0,
@@ -228,13 +228,13 @@ export let PatternPreview = Vue.component('pattern-preview', {
 
     computed: {
         step() {
-            let runner = new PatternRunner(this.model, this.pattern, this.mapping);
-            let prevbuf = new Uint8Array(3*this.model.num_pixels);
-            let curbuf = new Uint8Array(3*this.model.num_pixels);
+            let runner = new PatternRunner(this.pattern, this.mapping);
+            let prevbuf = new Uint8Array(3*currentModel.num_pixels);
+            let curbuf = new Uint8Array(3*currentModel.num_pixels);
 
             return () => {
                 runner.getFrame(prevbuf, curbuf, this.time);
-                this.model.setFromBuffer(curbuf);
+                currentModel.setFromBuffer(curbuf);
                 [prevbuf, curbuf] = [curbuf, prevbuf];
                 this.time++;
             };
@@ -269,7 +269,7 @@ export let PatternPreview = Vue.component('pattern-preview', {
                 this.request_id = window.requestAnimationFrame(() => this.run());
         },
         start() {
-            this.model.display_only = true;
+            currentModel.display_only = true;
             this.run();
         },
         pause() {
@@ -280,7 +280,7 @@ export let PatternPreview = Vue.component('pattern-preview', {
         },
         stop() {
             this.pause();
-            this.model.display_only = false;
+            currentModel.display_only = false;
             this.time = 0;
         }
     }

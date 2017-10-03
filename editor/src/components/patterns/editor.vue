@@ -41,7 +41,6 @@
         <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
     </split-pane>
     <pattern-preview v-if="can_preview"
-                     :model="cur_model"
                      :pattern="cur_pattern"
                      :mapping="preview_mapping"
                      :runstate="runstate" />
@@ -50,7 +49,6 @@
 <script>
 import { mapGetters } from 'vuex';
 import { mappingUtilsMixin } from 'chl/mapping';
-import { currentModel } from 'chl/model';
 import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graphcanvas';
@@ -94,9 +92,6 @@ export default {
         },
         can_preview() {
             return this.preview_mapping !== null && this.cur_pattern !== null;
-        },
-        cur_model() {
-            return currentModel;
         },
         cur_graph() {
             if (this.cur_pattern === null)
