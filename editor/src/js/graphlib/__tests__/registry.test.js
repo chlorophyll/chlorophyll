@@ -1,6 +1,6 @@
 import GraphLib, { Graph } from 'chl/graphlib';
 import { SchemaDefs } from 'chl/schemas';
-import register_nodes from 'chl/patterns/registry';
+import register_nodes from '@/common/nodes/registry';
 import 'chl/testing';
 
 beforeAll(() => register_nodes());

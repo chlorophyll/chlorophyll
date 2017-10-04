@@ -41,6 +41,6 @@ class TimeInput extends GraphNode {
 
 TimeInput.title = 'TimeInput';
 
-export default function register_util_nodes() {
+export default function register_pixel_stage_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };

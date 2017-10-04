@@ -153,25 +153,6 @@ let Util = {
         delete elem.saved_background;
     },
 
-    Range: function(min, max, lower, upper) {
-        this.min = min;
-        this.max = max;
-        this.lower = lower;
-        this.upper = upper;
-
-        this.toString = function() {
-            return `${this.lower.toFixed(2)} - ${this.upper.toFixed(2)}`;
-        };
-
-        this.serialize = function() {
-            return {min: this.min, max: this.max, lower: this.lower, upper: this.upper};
-        };
-
-        this.constructor.deserialize = function(obj) {
-            return new Util.Range(obj.min, obj.max, obj.lower, obj.upper);
-        };
-    },
-
     uniqueName: function(prefix, objlist) {
         const names = objlist.map(({name}) => name);
         let candidate;
@@ -211,8 +192,6 @@ let Util = {
         return `${prefix} (copy ${copydigits})`;
     }
 };
-
-addSerializableType('Range', Util.Range);
 
 Util.EventDispatcher = function() {
     this.addEventListener = function(type, callback) {

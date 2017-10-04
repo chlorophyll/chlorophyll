@@ -5,14 +5,14 @@ import Const from 'chl/const';
 
 import GraphLib, { Graph } from 'chl/graphlib';
 import { getMappedPoints, convertPointCoords } from '@/common/mapping';
-import { CRGB } from 'chl/fastled/color';
+import { CRGB } from '@/common/nodes/fastled/color';
 import { registerSaveField } from 'chl/savefile';
 
 import { currentModel } from 'chl/model';
 
 import store, { newgid } from 'chl/vue/store';
 
-import register_nodes from 'chl/patterns/registry';
+import register_nodes from '@/common/nodes/registry';
 
 register_nodes();
 

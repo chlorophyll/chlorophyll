@@ -117,6 +117,7 @@
       "vue"
     ],
     "moduleNameMapper": {
+      "^@/common/(.+)": "<rootDir>/../common/$1",
       "^@/(.+)": "<rootDir>/src/$1",
       "^chl/(.+)": "<rootDir>/src/js/$1"
     },
