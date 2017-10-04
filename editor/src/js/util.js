@@ -10,41 +10,6 @@ import { addSerializableType } from '@/common/util/serialization';
 let _scratchCanvas = null;
 
 let Util = {
-    clone: function(obj) {
-        // Handle the 3 simple types, and null or undefined
-        if (null == obj || 'object' != typeof obj) return obj;
-
-        // Handle Date
-        if (obj instanceof Date) {
-            let copy = new Date();
-            copy.setTime(obj.getTime());
-            return copy;
-        }
-
-        // Handle Array
-        if (obj instanceof Array) {
-            let copy = [];
-            for (let i = 0, len = obj.length; i < len; i++) {
-                copy[i] = Util.clone(obj[i]);
-            }
-            return copy;
-        }
-
-        if (obj.clone) {
-            return obj.clone();
-        }
-
-        // Handle Object
-        if (obj instanceof Object) {
-            let copy = {};
-            for (let attr in obj) {
-                if (obj.hasOwnProperty(attr)) copy[attr] = Util.clone(obj[attr]);
-            }
-            return copy;
-        }
-
-        throw new Error('Unable to copy obj! Its type isn\'t supported.');
-    },
     map: function(value, fromLow, fromHigh, toLow, toHigh) {
         return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
     },

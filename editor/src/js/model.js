@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import * as THREE from 'three';
 import 'three-examples/Octree';
+import clone from 'clone';
+
 import { registerSaveField } from 'chl/savefile';
 
 import Const from 'chl/const';
@@ -153,7 +155,7 @@ export function createGroup({ id, name, color, pixels }) {
 }
 
 export function restoreGroup(group) {
-    return Util.clone(group);
+    return clone(group);
 }
 
 export function saveGroup(group) {

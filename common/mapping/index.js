@@ -1,7 +1,9 @@
+import clone from 'clone';
 import * as Projection from './projection';
 import * as Transform from './transform';
 
 import Util from 'chl/util';
+
 
 function coordInfo(map_type, coord_type) {
     return mappingTypes[map_type].coord_types[coord_type];
@@ -48,7 +50,7 @@ export function restoreMappings(state, mappings) {
 
 
 export function restoreMapping(mappingsnap) {
-    return Util.clone(mappingsnap);
+    return clone(mappingsnap);
 }
 
 export function getMappedPoints(model, mapping, coord_type) {

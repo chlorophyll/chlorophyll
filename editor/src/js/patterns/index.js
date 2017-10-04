@@ -1,5 +1,5 @@
 import Vue from 'vue';
-
+import clone from 'clone';
 import Util from 'chl/util';
 import Const from 'chl/const';
 
@@ -137,11 +137,11 @@ export function createPattern(id, {name, set_current=true} = {}) {
 }
 
 export function savePattern(pattern) {
-    return Util.clone(pattern);
+    return clone(pattern);
 }
 
 export function restorePattern(patternsnap) {
-    return Util.clone(patternsnap);
+    return clone(patternsnap);
 }
 
 export function saveAllPatterns() {

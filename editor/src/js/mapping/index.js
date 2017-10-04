@@ -1,7 +1,8 @@
 import Vue from 'vue';
 
+import clone from 'clone';
+
 import store from 'chl/vue/store';
-import Util from 'chl/util';
 import { mappingTypes, restoreMapping, restoreMappings } from '@/common/mapping';
 import { registerSaveField } from 'chl/savefile';
 
@@ -73,7 +74,7 @@ store.registerModule('mapping', {
 
 
 export function saveMapping(mapping) {
-    return Util.clone(mapping);
+    return clone(mapping);
 }
 
 registerSaveField('mappings', {
@@ -118,7 +119,7 @@ export const mappingUtilsMixin = {
             }
         },
         copyMappingSettings(mapping) {
-            return Util.clone(mapping.settings);
+            return clone(mapping.settings);
         },
     }
 };
