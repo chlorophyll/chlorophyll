@@ -5,8 +5,6 @@ import {
     Vector3,
 } from 'three';
 
-import { addSerializableType } from '@/common/util/serialization';
-
 let _scratchCanvas = null;
 
 let Util = {

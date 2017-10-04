@@ -14,6 +14,7 @@ import { currentModel } from 'chl/model';
 import { registerSaveField } from 'chl/savefile';
 
 import register_nodes from '@/common/nodes/registry';
+
 register_nodes();
 
 store.registerModule('pattern', {

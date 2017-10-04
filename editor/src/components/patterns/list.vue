@@ -31,8 +31,6 @@ import { createPattern, copyPattern, setCoordType } from 'chl/patterns';
 
 import { mappingTypes } from '@/common/mapping';
 
-import { UniqueNameMixin } from 'chl/util';
-
 export default {
     name: 'pattern-list',
     store,

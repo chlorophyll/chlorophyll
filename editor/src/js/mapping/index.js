@@ -3,7 +3,7 @@ import Vue from 'vue';
 import clone from 'clone';
 
 import store from 'chl/vue/store';
-import { mappingTypes, restoreMapping, restoreAllMappings } from '@/common/mapping';
+import { mappingTypes, restoreAllMappings } from '@/common/mapping';
 import { registerSaveField } from 'chl/savefile';
 
 /*
