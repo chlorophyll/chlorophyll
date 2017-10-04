@@ -3,7 +3,7 @@ import Vue from 'vue';
 import clone from 'clone';
 
 import store from 'chl/vue/store';
-import { mappingTypes, restoreMapping, restoreMappings } from '@/common/mapping';
+import { mappingTypes, restoreMapping, restoreAllMappings } from '@/common/mapping';
 import { registerSaveField } from 'chl/savefile';
 
 /*
@@ -62,7 +62,9 @@ store.registerModule('mapping', {
             }
         },
         restore(state, mappings) {
-            restoreMappings(state, mappings);
+            const { new_mappings, new_mapping_list } = restoreAllMappings(mappings);
+            state.mappings = new_mappings;
+            state.mapping_list = new_mapping_list;
         }
     },
     getters: {
@@ -77,9 +79,13 @@ export function saveMapping(mapping) {
     return clone(mapping);
 }
 
+export function saveAllMappings() {
+    return store.getters['mapping/mapping_list'].map(saveMapping);
+}
+
 registerSaveField('mappings', {
     save() {
-        return store.getters['mapping/mapping_list'].map(saveMapping);
+        return saveAllMappings();
     },
     restore(mappings) {
         store.commit('mapping/restore', mappings);

@@ -58,13 +58,7 @@ store.registerModule('pattern', {
         },
 
         restore(state, snapshot) {
-            let new_patterns = {};
-            let new_pattern_ordering = [];
-
-            for (let pattern of snapshot.patterns) {
-                new_patterns[pattern.id] = restorePattern(pattern);
-                new_pattern_ordering.push(pattern.id);
-            }
+            const { new_patterns, new_pattern_ordering } = restoreAllPatterns(snapshot);
             state.patterns = new_patterns;
             state.pattern_ordering = new_pattern_ordering;
             state.cur_pattern_id = null;
@@ -146,7 +140,18 @@ export function restorePattern(patternsnap) {
 
 export function saveAllPatterns() {
     let patterns = store.getters['pattern/pattern_list'].map(savePattern);
-    return { patterns };
+    return patterns;
+}
+
+export function restoreAllPatterns(snapshot) {
+    let new_patterns = {};
+    let new_pattern_ordering = [];
+
+    for (let pattern of snapshot) {
+        new_patterns[pattern.id] = restorePattern(pattern);
+        new_pattern_ordering.push(pattern.id);
+    }
+    return { new_patterns, new_pattern_ordering };
 }
 
 export function copyPattern(pattern, { set_current=true } = {}) {
@@ -173,10 +178,10 @@ export function copyPattern(pattern, { set_current=true } = {}) {
 
 registerSaveField('patterns', {
     save() {
-        return store.getters['pattern/pattern_list'].map(savePattern);
+        return saveAllPatterns();
     },
     restore(patterns) {
-        store.commit('pattern/restore', { patterns });
+        store.commit('pattern/restore', patterns);
     }
 });
 

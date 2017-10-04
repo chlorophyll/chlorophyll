@@ -36,16 +36,15 @@ export const mappingTypes = {
     },
 };
 
-export function restoreMappings(state, mappings) {
+export function restoreAllMappings(snapshot) {
     let new_mapping_list = [];
     let new_mappings = {};
 
-    for (let mapping of mappings) {
+    for (let mapping of snapshot) {
         new_mappings[mapping.id] = restoreMapping(mapping);
         new_mapping_list.push(mapping.id);
     }
-    state.mappings = new_mappings;
-    state.mapping_list = new_mapping_list;
+    return { new_mappings, new_mapping_list };
 }
 
 
