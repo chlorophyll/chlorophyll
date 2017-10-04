@@ -7,7 +7,7 @@ let graphs = new Map();
 
 export const GraphLib = {
     registerNodeType(path, constructor) {
-        if (!GraphNodeBase.isPrototypeOf(constructor))
+        if (!GraphNode.isPrototypeOf(constructor))
             throw new Error('All registered node types must inherit from GraphNode');
 
         node_types.set(path, constructor);
@@ -108,23 +108,19 @@ export class GraphBase {
         return this.global_outputs.get(name).data;
     }
 
-    addNode(path, options = {}) {
+    addNode(path, id, vm_factory, options = {}) {
         let Ctor = node_types.get(path);
 
         if (!Ctor) {
-            throw Error('unknown node type' + path);
+            throw new Error('unknown node type' + path);
         }
 
-        const { id, pos, ref } = options;
+        const { pos, ref } = options;
 
         const graph = this;
         const title = options.title || Ctor.title || path;
 
-        if (id === undefined) {
-            throw new Error('nodes require an id');
-        }
-
-        let node = new Ctor({graph, id, title, pos, path});
+        let node = new Ctor({graph, id, title, pos, path, vm_factory});
 
         this.nodes = this.nodes.set(node.id, node);
 
@@ -435,7 +431,6 @@ export class GraphBase {
     }
 }
 
-
 const DEFAULT_CONFIG = {
     color: '#999',
     bgcolor: '#444',
@@ -443,7 +438,7 @@ const DEFAULT_CONFIG = {
     removable: true,
 };
 
-export class GraphNodeBase {
+export class GraphNode {
     // `state` is programmatically set stuff that should be reactive
     // `settings` is user-controllable stuff that should be reactive
     // other fields are not reactive
@@ -465,8 +460,8 @@ export class GraphNodeBase {
         };
     }
 
-    constructor({graph, id, title, pos, path},
-                vm_factory, inputs, outputs,
+    constructor({graph, id, title, pos, path, vm_factory},
+                inputs, outputs,
                 {config = {}, properties = {}} = {}) {
 
         this.graph = graph;

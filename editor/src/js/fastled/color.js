@@ -1,6 +1,6 @@
-import GraphLib, { GraphNode } from 'chl/graphlib';
+import GraphLib, { GraphNode } from '@/common/graphlib';
 import Units from '@/common/units';
-import { Math8 } from 'chl/fastled/math8';
+import { Math8 } from './math8';
 
 let node_types = [];
 

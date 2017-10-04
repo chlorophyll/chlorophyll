@@ -1,4 +1,5 @@
-import GraphLib, { Graph, GraphNode } from 'chl/graphlib';
+import GraphLib, { GraphNode } from '@/common/graphlib';
+import { Graph } from 'chl/graphlib';
 
 import { SchemaDefs } from 'chl/schemas';
 

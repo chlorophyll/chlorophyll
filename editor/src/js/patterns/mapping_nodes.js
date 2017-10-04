@@ -1,6 +1,6 @@
 import { mappingTypes } from '@/common/mapping';
 
-import GraphLib, { GraphNode } from 'chl/graphlib';
+import GraphLib, { GraphNode } from '@/common/graphlib';
 
 
 function make_nodes(mapping_name, coord_types) {

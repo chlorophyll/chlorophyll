@@ -36,14 +36,15 @@ export class Graph extends GraphBase {
     }
 
     addNode(path, options={}) {
-        if (options.id === undefined)
-            options.id = newgid();
+        let { id } = options;
+        if (id === undefined)
+            id = newgid();
 
         if (options.pos === undefined) {
             options.pos = GraphConstants.DEFAULT_POSITION.concat();
         }
 
-        return super.addNode(path, options);
+        return super.addNode(path, id, makeNodeVue, options);
     }
 
     static restore(snapshot) {
@@ -164,12 +165,6 @@ function makeNodeVue(graph, node, data) {
             },
         }
     });
-}
-
-export class GraphNode extends GraphNodeBase {
-    constructor(graph_info, inputs, outputs, options) {
-        super(graph_info, makeNodeVue, inputs, outputs, options);
-    }
 }
 
 registerSaveField('graphs', {

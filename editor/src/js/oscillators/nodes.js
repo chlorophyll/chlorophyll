@@ -1,5 +1,5 @@
 import Util from 'chl/util';
-import GraphLib, { GraphNode } from 'chl/graphlib';
+import GraphLib, { GraphNode } from '@/common/graphlib';
 import Units from '@/common/units';
 
 import OscillatorPlotter from './plotter';
