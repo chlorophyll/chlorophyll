@@ -56,7 +56,6 @@ export class Graph extends GraphBase {
         let child = new Graph();
 
         for (let {name, type} of this.global_inputs.values()) {
-            console.log([name, type]);
             child.addGlobalInput(name, type);
         }
         for (let {name, type} of this.global_outputs.values()) {
