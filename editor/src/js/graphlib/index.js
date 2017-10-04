@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Util from 'chl/util';
 
-import { GraphLib, GraphBase, GraphNodeBase } from '@/common/graphlib';
+import { GraphLib, GraphBase } from '@/common/graphlib';
 import { registerSaveField } from 'chl/savefile';
 import { newgid } from 'chl/vue/store';
 
