@@ -58,6 +58,14 @@ store.registerModule('pattern', {
             }
         },
 
+        set_name(state, { id, name }) {
+            let pattern = state.patterns[id];
+            if (pattern === undefined)
+                return;
+
+            pattern.name = name;
+        },
+
         restore(state, snapshot) {
             const { new_patterns, new_pattern_ordering } = restoreAllPatterns(snapshot);
             state.patterns = new_patterns;

@@ -11,7 +11,7 @@
     <button :disabled="cur_pattern === null" @click="copyPattern">Copy Pattern</button>
     <template v-if="cur_pattern !== null">
     <hr />
-    Current pattern: {{ cur_pattern.name }}
+    Current pattern: <input type="text" v-model.lazy.trim="cur_name" />
     <select v-model="cur_coord_type">
         <template v-for="(map_type_info, mapping_type) in available_coord_types">
             <template v-for="(info, coord_type) in map_type_info.coord_types">
@@ -42,6 +42,14 @@ export default {
             },
             set({ mapping_type, coord_type}) {
                 this.setCoordType(this.cur_pattern.id, mapping_type, coord_type);
+            }
+        },
+        cur_name: {
+            get() {
+                return this.cur_pattern.name;
+            },
+            set(name) {
+                this.$store.commit('pattern/set_name', { id: this.cur_pattern.id, name });
             }
         },
         available_coord_types() {
