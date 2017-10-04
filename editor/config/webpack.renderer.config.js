@@ -48,7 +48,7 @@ let rendererConfig = {
         })
       },
       {
-        test: /\.scss$/,
+        test: /\.s[ac]ss$/,
         loaders: ['style-loader', 'css-loader', 'resolve-url-loader', 'sass-loader']
       },
       {
@@ -141,13 +141,14 @@ let rendererConfig = {
     path: path.join(__dirname, '../dist/electron')
   },
   resolve: {
-    extensions: ['.js', '.vue', '.json', '.css', '.node'],
+    extensions: ['.js', '.vue', '.json', '.css', '.scss', '.node'],
     symlinks: false,
     alias: {
       '@': path.join(__dirname, '../src'),
       'chl': path.join(__dirname, '../src/js'),
       'three-examples': path.join(__dirname, '../node_modules/three/examples/js'),
       'models': path.join(__dirname, '../static/models'),
+      'style': path.join(__dirname, '../src/style'),
       'vue$': 'vue/dist/vue.esm.js'
     },
   },
