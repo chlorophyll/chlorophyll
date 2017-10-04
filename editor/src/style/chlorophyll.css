@@ -1,9 +1,13 @@
 html, body {
+  height: 100vh;
+  width: 100vw;
   overflow: hidden;
   font-family: sans-serif;
 }
 
 body {
+  height: 100vh;
+  width: 100vw;
   color: #ddd;
   margin: 0;
   background-color: black;
@@ -12,6 +16,10 @@ body {
 a {
 	color: #dc8;
 	text-decoration: none;
+}
+
+div {
+    box-sizing: border-box;
 }
 
 a:hover {
