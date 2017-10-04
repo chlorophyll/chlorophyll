@@ -155,7 +155,8 @@ function makeNodeVue(graph, node, data) {
                 return is_input ? 0 : this.width;
             },
             connectionY(slot, is_input) {
-                 return GraphConstants.NODE_TITLE_HEIGHT + 10 + slot * GraphConstants.NODE_SLOT_HEIGHT;
+                return (GraphConstants.NODE_TITLE_HEIGHT + 10 +
+                        slot * GraphConstants.NODE_SLOT_HEIGHT);
             },
 
             canvasPos(pos) {
