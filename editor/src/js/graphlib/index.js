@@ -5,8 +5,6 @@ import { GraphLib, GraphBase, GraphNodeBase } from '@/common/graphlib';
 import { registerSaveField } from 'chl/savefile';
 import { newgid } from 'chl/vue/store';
 
-export default GraphLib;
-
 export const GraphConstants = {
     NODE_SLOT_HEIGHT: 15,
     DEFAULT_POSITION: [100, 100],

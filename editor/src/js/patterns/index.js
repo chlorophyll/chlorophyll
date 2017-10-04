@@ -1,19 +1,19 @@
 import Vue from 'vue';
 import clone from 'clone';
+
 import Util from 'chl/util';
 import Const from 'chl/const';
 
-import GraphLib, { Graph } from 'chl/graphlib';
-import { getMappedPoints, convertPointCoords } from '@/common/mapping';
-import { CRGB } from '@/common/nodes/fastled/color';
-import { registerSaveField } from 'chl/savefile';
-
-import { currentModel } from 'chl/model';
+import GraphLib from '@/common/graphlib';
 
 import store, { newgid } from 'chl/vue/store';
 
-import register_nodes from '@/common/nodes/registry';
+import { Graph } from 'chl/graphlib';
+import { restoreAllPatterns, PatternRunner } from '@/common/patterns';
+import { currentModel } from 'chl/model';
+import { registerSaveField } from 'chl/savefile';
 
+import register_nodes from '@/common/nodes/registry';
 register_nodes();
 
 store.registerModule('pattern', {
@@ -134,24 +134,10 @@ export function savePattern(pattern) {
     return clone(pattern);
 }
 
-export function restorePattern(patternsnap) {
-    return clone(patternsnap);
-}
 
 export function saveAllPatterns() {
     let patterns = store.getters['pattern/pattern_list'].map(savePattern);
     return patterns;
-}
-
-export function restoreAllPatterns(snapshot) {
-    let new_patterns = {};
-    let new_pattern_ordering = [];
-
-    for (let pattern of snapshot) {
-        new_patterns[pattern.id] = restorePattern(pattern);
-        new_pattern_ordering.push(pattern.id);
-    }
-    return { new_patterns, new_pattern_ordering };
 }
 
 export function copyPattern(pattern, { set_current=true } = {}) {
@@ -185,36 +171,6 @@ registerSaveField('patterns', {
     }
 });
 
-export class PatternRunner {
-    constructor(pattern, mapping) {
-        const { coord_type, mapping_type } = pattern;
-        const mapped_points = getMappedPoints(currentModel, mapping, coord_type);
-
-        this.positions = convertPointCoords(mapping_type, coord_type, mapped_points);
-        this.graph = GraphLib.graphById(pattern.stages.pixel);
-    }
-
-    getFrame(prevbuf, outbuf, t) {
-        this.graph.setGlobalInputData('t', t);
-        this.positions.forEach(([idx, pos]) => {
-            let incolor = new CRGB(
-                prevbuf[3*idx+0],
-                prevbuf[3*idx+1],
-                prevbuf[3*idx+2]
-            );
-
-            this.graph.setGlobalInputData('coords', pos.toArray());
-            this.graph.setGlobalInputData('color', incolor);
-            this.graph.runStep();
-            let outcolor = this.graph.getGlobalOutputData('outcolor');
-
-            outbuf[3*idx+0] = outcolor.r;
-            outbuf[3*idx+1] = outcolor.g;
-            outbuf[3*idx+2] = outcolor.b;
-        });
-    }
-}
-
 export const RunState = {
     Stopped: 0,
     Running: 1,
@@ -233,7 +189,7 @@ export let PatternPreview = Vue.component('pattern-preview', {
 
     computed: {
         step() {
-            let runner = new PatternRunner(this.pattern, this.mapping);
+            let runner = new PatternRunner(currentModel, this.pattern, this.mapping);
             let prevbuf = new Uint8Array(3*currentModel.num_pixels);
             let curbuf = new Uint8Array(3*currentModel.num_pixels);
 
