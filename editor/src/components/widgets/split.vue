@@ -83,6 +83,7 @@ export default {
 @import "~@/style/aesthetic.scss";
 
 .split {
+    position: absolute;
     display: flex;
     align-items: stretch;
     width: 100%;
