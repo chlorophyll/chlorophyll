@@ -8,6 +8,17 @@
   color: #999;
   overflow: hide;
 
+  /*
+   * For panels embedded in other UI elements, e.g. a toolbar,
+   * without needing a wrapper div to constrain the height.
+   */
+  &.inline {
+    height: auto;
+    border-top: 2px solid;
+    border-bottom: 2px solid;
+    border-color: #333;
+  }
+
   .header {
     padding: 0.3em;
     background: #444;

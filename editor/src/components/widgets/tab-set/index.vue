@@ -1,14 +1,16 @@
 <template>
 <div class="tab-container">
   <div class="tab-bar">
+    <div v-for="tab in tabs" class="tab-button-container">
       <button v-for="tab in tabs"
           :class="{'active': current === tab}"
           @click="selectTab(tab)">
           {{ tab.title }}
       </button>
-    <div class="tab-content">
-        <slot />
     </div>
+  </div>
+  <div class="tab-content">
+      <slot />
   </div>
 </div>
 </template>
@@ -48,53 +50,45 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .tab-container {
-    background-color: #222;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.tab-bar {
-  height: 4em;
-}
-
-.tab-list {
-    list-style-type: none;
-    border-bottom: 2px solid #666;
-    margin: 0;
-    padding: 0;
-    padding-left: 2px;
-    flex: 0 1 24px;
-}
-
-.tab-list li {
-    display: inline-block;
-    min-width: 50px;
-    min-height: 20px;
-    height: calc(100% - 2px);
-    margin-right: 2px;
-    margin-top: 2px;
-    vertical-align: top;
-    padding: 4px 8px 2px 4px;
-    border-radius: 3px 3px 0 0;
-}
-
-.tab-list li.active {
-    color: #eee;
-    background-color: #777;
-    border-bottom: 0;
-}
-
-.tab-list li:hover:not(.active) {
-    background-color: #555;
-    color: #ddd;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: 100%;
+  width: 100%;
 }
 
 .tab-content {
-    flex: 1 1 auto;
-    display: flex;
+  /* 
+   * NOTE: webkit requires width, flex-grow, and flex-basis to be specified
+   * in order for percentage-height to work on children
+   */
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: fill;
+  position: relative;
+  height: 100%;
+}
+
+.tab-bar {
+  flex: initial;
+  height: 1.5em;
+  
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.tab-button-container {
+  flex: auto;
+  max-width: 10em;
+
+  button {
+    height: 100%;
+    width: 100%;
+  }
 }
 
 </style>

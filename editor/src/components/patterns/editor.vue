@@ -1,51 +1,51 @@
 <template>
-  <div class="root">
-    <div class="panel">
-    <div class="control-row">
-        <button
-         @click="toggleAnimation"
-         :disabled="!can_preview"
-         class="square material-icons">
-            {{ run_text }}
-        </button>
-        <button
-         @click="stopAnimation"
-         class="square material-icons">
-            stop
-        </button>
-        <label for="preview-map-list">Preview map</label>
-        <span class="inputcombo">
-        <select id="preview-map-list" v-model="preview_map_id">
-            <template v-for="mapping in mappings">
-                <option :value="mapping.id">{{ mapping.name }}</option>
-            </template>
-        </select>
-        </span>
-        <button @click="autolayout">Autolayout</button>
-        <button @click="resetZoom">Reset zoom</button>
-        <button @click="zoomToFit">Zoom to fit</button>
+<div id="pattern-composer">
+    <div class="panel inline" id="top-controls">
+      <div class="control-row">
+          <button @click="toggleAnimation"
+                  :disabled="!can_preview"
+                  class="square highlighted material-icons">
+              {{ run_text }}
+          </button>
+          <button @click="stopAnimation"
+                  class="square material-icons">
+              stop
+          </button>
+          <label for="preview-map-list">Preview map</label>
+          <span class="inputcombo">
+          <select id="preview-map-list" v-model="preview_map_id">
+              <template v-for="mapping in mappings">
+                  <option :value="mapping.id">{{ mapping.name }}</option>
+              </template>
+          </select>
+          </span>
+          <button @click="autolayout">Autolayout</button>
+          <button @click="resetZoom">Reset zoom</button>
+          <button @click="zoomToFit">Zoom to fit</button>
+      </div>
     </div>
-    <split-pane class="mainview" direction="horizontal" :initial-split="[210, null]">
-        <tree slot="first" :items="node_list">
-        <template scope="props">
-            <div class="item"
-                draggable="true"
-                v-if="props.leaf"
-                @dragstart="dragNode(props.item, $event)">
-                {{ props.item.label }}
-            </div>
-            <div v-else class="item">
-                {{ props.item.label }}
-            </div>
-        </template>
-        </tree>
-        <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
-    </split-pane>
+    <div class="panel" id="mainview">
+      <split-pane direction="horizontal" :initial-split="[210, null]">
+          <tree slot="first" :items="node_list">
+            <template scope="props">
+                <div class="item"
+                    draggable="true"
+                    v-if="props.leaf"
+                    @dragstart="dragNode(props.item, $event)">
+                    {{ props.item.label }}
+                </div>
+                <div v-else class="item">
+                    {{ props.item.label }}
+                </div>
+            </template>
+          </tree>
+          <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
+      </split-pane>
+    </div>
     <pattern-preview v-if="can_preview"
                      :pattern="cur_pattern"
                      :mapping="preview_mapping"
                      :runstate="runstate" />
-  </div>
   </div>
 </template>
 <script>
@@ -166,36 +166,27 @@ export default {
 };
 </script>
 <style scoped>
-.root {
+#pattern-composer {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     height: 100%;
+    width: 100%;
     position: relative;
     user-select: none;
 }
-.mainview {
-    flex: 1 1 auto;
+
+#top-controls {
+    flex: initial;
 }
-.topwidgets {
-    flex: 0 1 auto;
-    padding-top: 4px;
-    padding-bottom: 4px;
+
+#mainview {
+    flex: auto;
+    display: block;
+    position: relative;
+    height: 100%;
 }
-.iconbutton {
-    width: 30px;
-}
-.inputcombo {
-	border-bottom: 1px solid #666;
-	border-top: 1px solid #111;
-	border-radius: 4px;
-    display: inline-block;
-}
-.inputcombo select {
-    background-color: #222;
-    border: 0;
-    color: #5af;
-    width: 10em;
-}
+
 .item {
     cursor: pointer;
     padding: 0;
