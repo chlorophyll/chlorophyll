@@ -13,3 +13,4 @@ editor/.cache-loader/
 thumbs.db
 !.gitkeep
 Session.vim
+backend/dist
