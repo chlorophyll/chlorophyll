@@ -2056,10 +2056,9 @@ pify@^2.0.0, pify@^2.3.0:
 
 "pixelpusherjs@github:rpearl/pixelpusherjs":
   version "0.1.0"
-  resolved "https://codeload.github.com/rpearl/pixelpusherjs/tar.gz/08196970f9bf9db70abd9263f3cb4dbab54d0a21"
+  resolved "https://codeload.github.com/rpearl/pixelpusherjs/tar.gz/d3c0366c96dfbd09ac1bb07efc8a6a27248fe9d2"
   dependencies:
-    ref-array "^1.2.0"
-    ref-struct "^1.1.0"
+    struct "^0.0.12"
 
 prepend-http@^1.0.1:
   version "1.0.4"
@@ -2436,6 +2435,10 @@ strip-eof@^1.0.0:
 strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
+
+struct@^0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/struct/-/struct-0.0.12.tgz#8330af872664e9a5bd678664524857c50908038a"
 
 supports-color@^2.0.0:
   version "2.0.0"

@@ -1,45 +1,59 @@
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import Units from '@/common/units';
+import FastLED from './fastled';
+
 import { Math8 } from './math8';
 
 let node_types = [];
 
-let hsv2rgb = function(hue, sat, val) {
-    let h = 360*(hue/255), s = sat/255, v = val/255;
-    let rgb, i, data = [];
-    h = h % 360;
-    if (h == 0) h = 1;
+
+export const ColorSpaces = {
+    Preview: function(hue, sat, val) {
+        let h = 360*(hue/255), s = sat/255, v = val/255;
+        let rgb, i, data = [];
+        h = h % 360;
+        if (h == 0) h = 1;
 
 
-    if (s === 0) {
-        rgb = [v, v, v];
-    } else {
-        h = h / 60;
-        i = Math.floor(h);
-        data = [v*(1-s), v*(1-s*(h-i)), v*(1-s*(1-(h-i)))];
-        switch (i) {
-            case 0:
-                rgb = [v, data[2], data[0]];
-                break;
-            case 1:
-                rgb = [data[1], v, data[0]];
-                break;
-            case 2:
-                rgb = [data[0], v, data[2]];
-                break;
-            case 3:
-                rgb = [data[0], data[1], v];
-                break;
-            case 4:
-                rgb = [data[2], data[0], v];
-                break;
-            default:
-                rgb = [v, data[0], data[1]];
-                break;
+        if (s === 0) {
+            rgb = [v, v, v];
+        } else {
+            h = h / 60;
+            i = Math.floor(h);
+            data = [v*(1-s), v*(1-s*(h-i)), v*(1-s*(1-(h-i)))];
+            switch (i) {
+                case 0:
+                    rgb = [v, data[2], data[0]];
+                    break;
+                case 1:
+                    rgb = [data[1], v, data[0]];
+                    break;
+                case 2:
+                    rgb = [data[0], v, data[2]];
+                    break;
+                case 3:
+                    rgb = [data[0], data[1], v];
+                    break;
+                case 4:
+                    rgb = [data[2], data[0], v];
+                    break;
+                default:
+                    rgb = [v, data[0], data[1]];
+                    break;
+            }
         }
-    }
-    return rgb[0]*255 << 16 | rgb[1]*255 << 8 | rgb[2]*255;
+        return rgb[0]*255 << 16 | rgb[1]*255 << 8 | rgb[2]*255;
+    },
+    FastLED: FastLED.cwrap('hsv2rgb_rainbow', 'number', ['number', 'number', 'number']),
+    hsv2rgb: undefined,
 };
+
+ColorSpaces.hsv2rgb = ColorSpaces.FastLED;
+
+export function setColorSpace(key) {
+    ColorSpaces.hsv2rgb = ColorSpaces[key];
+}
+
 
 export function CHSV(h, s, v) {
     this.h = h;
@@ -121,16 +135,16 @@ make_node(CRGB, 'construct',
 make_node(CRGB, 'fromHSV',
     [['hue', Units.UInt8], ['sat', Units.UInt8], ['val', Units.UInt8]],
     function(hue, sat, val) {
-        return CRGB.fromColorCode(hsv2rgb(hue, sat, val));
+        return CRGB.fromColorCode(ColorSpaces.hsv2rgb(hue, sat, val));
     }
 );
 
 make_node(CRGB, 'fromHue', [['hue', Units.UInt8]], function(hue) {
-    return CRGB.fromColorCode(hsv2rgb(hue, 255, 255));
+    return CRGB.fromColorCode(ColorSpaces.hsv2rgb(hue, 255, 255));
 });
 
 make_node(CRGB.prototype, 'setHue', [['hue', Units.UInt8]],  function(hue) {
-    let ccode = hsv2rgb(hue, 255, 255);
+    let ccode = ColorSpaces.hsv2rgb(hue, 255, 255);
     this.setColorCode(ccode);
     return this;
 });

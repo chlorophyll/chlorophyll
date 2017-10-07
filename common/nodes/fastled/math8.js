@@ -6,11 +6,7 @@ let node_types = [];
 
 (function() {
     let make_node = function(name, ret, args) {
-        let argtypes = [];
-
-        for (let arg of args) {
-            argtypes.push(arg[1]);
-        }
+        let argtypes = args.map(([_, type]) => type);
 
         let func = FastLED.cwrap(name, ret, argtypes);
 
