@@ -1,4 +1,5 @@
 import { Vector3 } from 'three';
+import clone from 'clone';
 
 export default class ModelBase {
     constructor(json) {
@@ -53,5 +54,20 @@ export default class ModelBase {
             func(i);
         }
     }
+}
 
+export function restoreGroup(group) {
+    return clone(group);
+}
+
+export function restoreAllGroups(groups) {
+    let new_groups = {};
+    let new_group_list = [];
+
+    for (let group of groups) {
+        new_groups[group.id] = restoreGroup(group);
+        new_group_list.push(group.id);
+    }
+
+    return {new_groups, new_group_list};
 }

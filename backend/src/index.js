@@ -1,7 +1,81 @@
-import * as fs from 'fs';
+require("babel-register");
+
+import { argv } from 'yargs';
+
+import { readSavefile } from './restore';
+
+import register_nodes from '@/common/nodes/registry';
+import { PatternRunner } from '@/common/patterns';
+
+import PixelPusherRegistry from 'pixelpusherjs';
+
+register_nodes();
+
+function runPattern(controller, model, pattern, mapping) {
+    console.log('trying to run pattern');
+    console.log(model.strip_offsets);
+    let patternRunner = new PatternRunner(model, pattern, mapping);
+    let time = 0;
+
+    let curbuf = new Buffer(model.num_pixels*3);
+    let prevbuf = new Buffer(model.num_pixels*3);
+
+    let frame = () => {
+        [prevbuf, curbuf] = [curbuf, prevbuf];
+        patternRunner.getFrame(prevbuf, curbuf, time);
+        time++;
+        if (time % 60 == 0) {
+            console.log('beep');
+        }
+        let stripbufs = model.getStripBuffers(curbuf);
+        for (let strip = 0; strip < stripbufs.length; strip++) {
+            controller.setStrip(strip, stripbufs[strip]);
+        }
+        controller.sync();
+    }
+
+    setInterval(frame, 1000/60);
+}
 
 function main() {
-    let [,, filename, ...rest] = process.argv;
+    let registry = new PixelPusherRegistry();
+
+
+    readSavefile(argv.filename).then((state) => {
+        let pattern = undefined;
+        let mapping = undefined;
+
+        for (let id in state.patterns) {
+            let obj = state.patterns[id];
+            if(obj.name == argv.pattern) {
+                pattern = obj;
+                break;
+            }
+        }
+
+        if (pattern === undefined) {
+            console.log(`Unknown pattern ${argv.pattern}`);
+            return;
+        }
+
+        for (let id in state.mappings) {
+            let obj = state.mappings[id];
+            if (obj.name == argv.mapping) {
+                mapping = obj;
+                break;
+            }
+        }
+
+        if (mapping === undefined) {
+            console.log(`Unknown mapping ${argv.mapping}`);
+            return;
+        }
+        registry.on('discovered',
+            (controller) => runPattern(controller, state.model, pattern, mapping));
+        registry.start();
+    }).catch((err) => {
+        console.log(err);
+    });
 }
 
 main();
