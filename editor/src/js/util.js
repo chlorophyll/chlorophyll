@@ -151,6 +151,16 @@ let Util = {
         delete elem.saved_background;
     },
 
+    roundTo(n, digits) {
+        if (digits === undefined) {
+            digits = 0;
+        }
+
+        const multiplier = Math.pow(10, digits);
+        const parsed = parseFloat((n * multiplier).toFixed(11));
+        return Math.round(parsed) / multiplier;
+    },
+
     uniqueName: function(prefix, objlist) {
         const names = objlist.map(({name}) => name);
         let candidate;

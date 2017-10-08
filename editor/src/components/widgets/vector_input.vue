@@ -1,22 +1,23 @@
 <template>
   <div class="control-row">
     <label>{{ title }}</label>
-    <span class="control medium"
-          v-for="(val, idx) in vector">
-        <input :value="val"
+    <template v-for="(val, idx) in vector">
+        <input type="text" size="2" class="control"
+               :value="val"
                :disabled="disabled"
                @change="updateValue(idx, $event.target.value);
                         $emit('change', vector);">
-        <div class="drag_widget"
+        <div class="drag-widget"
              v-if="!disabled"
              @mousedown="startDrag(idx, $event)">
         </div>
-    </span>
+    </template>
   </div>
 </template>
 
 <script>
 import Vue from 'vue';
+import Util from 'chl/util';
 
 const RANGE_NPIXELS = 400;
 export default {
@@ -25,6 +26,8 @@ export default {
     data() {
         return {
             vector: this.value,
+            // TODO make a prop
+            precision: 3,
         };
     },
     computed: {
@@ -34,16 +37,20 @@ export default {
     },
     watch: {
         value(new_value) {
-            this.vector = new_value;
+            this.vector = new_value.map((x) => Util.roundTo(x, this.precision));
         },
     },
     methods: {
         updateValue(i, val) {
+            if (typeof val !== 'number')
+              val = parseInt(val);
+
             if (typeof this.min !== 'undefined' && val <= this.min) {
                 val = this.min;
             } else if (typeof this.max !== 'undefined' && val >= this.max) {
                 val = this.max;
             }
+            val = Util.roundTo(val, this.precision);
             Vue.set(this.vector, i, val);
             this.$emit('input', this.vector);
         },
@@ -75,8 +82,5 @@ export default {
 };
 </script>
 
-<style scoped>
-.wname {
-    display: inline;
-}
+<style>
 </style>

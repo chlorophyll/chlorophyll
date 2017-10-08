@@ -97,6 +97,7 @@ export default {
 <style scoped>
 .dialog-box {
     position: fixed;
+    width: 100%;
     height: auto;
     min-width: 100px;
     min-height: 50px;
