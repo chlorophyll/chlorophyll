@@ -2,7 +2,8 @@
   <div class="control-row">
     <label>{{ title }}</label>
     <template v-for="(val, idx) in vector">
-        <input type="text" size="2" class="control"
+      <div class="control">
+        <input type="text" size="2" class="fill"
                :value="val"
                :disabled="disabled"
                @change="updateValue(idx, $event.target.value);
@@ -11,6 +12,7 @@
              v-if="!disabled"
              @mousedown="startDrag(idx, $event)">
         </div>
+      </div>
     </template>
   </div>
 </template>
