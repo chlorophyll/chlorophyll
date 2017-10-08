@@ -2,9 +2,8 @@
 <div class="tab-container">
   <div class="tab-bar">
     <div v-for="tab in tabs" class="tab-button-container">
-      <button v-for="tab in tabs"
-          :class="{'active': current === tab}"
-          @click="selectTab(tab)">
+      <button :class="{'active': current === tab}"
+              @click="selectTab(tab)">
           {{ tab.title }}
       </button>
     </div>
@@ -50,7 +49,7 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .tab-container {
   display: flex;
   flex-direction: column;
@@ -83,7 +82,6 @@ export default {
 
 .tab-button-container {
   flex: auto;
-  max-width: 10em;
 
   button {
     height: 100%;

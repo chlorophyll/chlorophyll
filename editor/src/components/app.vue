@@ -27,6 +27,7 @@
                     :initial-split="[null, Const.sidebar_size]">
             <tab-set slot="first">
                 <tab title="Pattern Editor"><pattern-editor /></tab>
+                <tab title="Another tab">lololololol</tab>
             </tab-set>
             <div slot="second"><pattern-list /></div>
         </split-pane>

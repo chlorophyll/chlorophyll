@@ -1,10 +1,20 @@
 @import "./aesthetic.scss";
 
+/*
+ * Global style tweaks
+ */
+button:focus {
+  outline: 0;
+}
+
+/*
+ * Control panels and inputs
+ */
 .panel {
   font-size: 13px;
   width: 100%;
   height: 100%;
-  background-color: #222;
+  background-color: $panel-bg;
   color: #999;
   overflow: hide;
 
@@ -14,8 +24,8 @@
    */
   &.inline {
     height: auto;
-    border-top: 2px solid;
-    border-bottom: 2px solid;
+    border-top: 1px solid;
+    border-bottom: 1px solid;
     border-color: #333;
   }
 
@@ -79,7 +89,7 @@
     margin: 1px 1px 1px 1px;
 
     color: $control-text;
-    text-shadow: 0 -1px rgba(0,0,0,0.69);
+    text-shadow: $control-text-shadow;
     background-color: $control-bg;
     box-shadow: inset 0 1px $control-shadow;
     border: 1px solid $control-border;
@@ -95,9 +105,8 @@
     }
 
     &:focus {
-      border: 1px solid $control-border-select;
-      box-shadow: inset 0 1px rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
-      outline: 0;
+      // border: 1px solid $control-border-select;
+      // box-shadow: inset 0 1px rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
     }
 
     &:active {
@@ -166,13 +175,22 @@
 
   input {
     color: #55AAFF;
-    background-color: #222;
+    background-color: #111;
 
     border-top: 1px solid #000;
     border-bottom: 1px solid #888;
     border-radius: 3px;
 
     -webkit-user-select: text;
+  }
+
+  .drag_widget {
+    display: inline-block;
+    width: 0.5em;
+    min-width: 6px;
+    vertical-align: top;
+    margin: 0 2px;
+    cursor: n-resize;
   }
 
   .separator {
@@ -183,11 +201,31 @@
   }
 }
 
-.drag_widget {
-	display: inline-block;
-	width: 0.5em;
-	min-width: 6px;
-	vertical-align: top;
-	margin: 0 2px;
-	cursor: n-resize;
+.tab-bar {
+  $active-tab-color: lighten($control-bg-dark, 10%);
+
+  padding-top: 2px;
+  border-bottom: 2px solid $active-tab-color;
+  background-color: $panel-bg;
+
+  .tab-button-container {
+    margin-left: 2px;
+    margin-right: 2px;
+    max-width: 8em;
+
+    button {
+      color: darken($control-text, 15%);
+      text-shadow: $control-text-shadow;
+      background-color: $control-bg-dark;
+      box-shadow: inset 0 1px darken($control-shadow, 5%);
+      border: 1px solid $control-border;
+      border-bottom: 0;
+      border-radius: 5px 5px 0px 0px;
+
+      &.active {
+        color: lighten($control-text, 10%);
+        background-color: $active-tab-color;
+      }
+    }
+  }
 }
