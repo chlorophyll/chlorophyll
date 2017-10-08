@@ -7,11 +7,18 @@ button:focus {
   outline: 0;
 }
 
+.header, .tree, label {
+  user-select: none;
+  &:hover {
+    cursor: default;
+  }
+}
+
 /*
  * Control panels and inputs
  */
 .panel {
-  font-size: 13px;
+  font-size: 12px;
   width: 100%;
   height: 100%;
   background-color: $panel-bg;
@@ -27,13 +34,35 @@ button:focus {
     border-top: 1px solid;
     border-bottom: 1px solid;
     border-color: #333;
+
+    label {
+      flex: initial;
+      width: fit-content;
+      min-width: 0;
+      padding-left: 2em;
+    }
   }
 
   .header {
+    font-size: 9pt;
+    letter-spacing: 0.03rem;
     padding: 0.3em;
     background: #444;
     color: #bbb;
   }
+
+  label {
+    display: inline-block;
+    width: 30%;
+    max-width: 10em;
+    min-width: 5em;
+    flex: 1 0 0;
+
+    padding-top: 0.4rem;
+    text-align: right;
+    padding-right: 0.5em;
+  }
+
 
   .control-row {
     width: 100%;
@@ -52,7 +81,7 @@ button:focus {
   }
 
   /*
-   * Input sizes
+   * Shortcuts for different input sizes
    */
   .square {
     width: 2em;
@@ -69,17 +98,6 @@ button:focus {
   }
   .fill {
     flex: auto;
-  }
-
-  label {
-    display: inline-block;
-    width: 30%;
-    max-width: 10em;
-    min-width: 5em;
-    flex: 1 0 0;
-
-    text-align: right;
-    padding-right: 0.5em;
   }
 
   button {
@@ -127,7 +145,7 @@ button:focus {
         background-color: #4ca1e4;
       }
     }
-	}
+  }
 
   select {
     -webkit-appearance: none;
@@ -139,7 +157,7 @@ button:focus {
     padding: 0 0.4rem;
     padding-right: 1.5rem;
     margin: 1px 1px 1px 1px;
-    min-width: 3.4rem;
+    min-width: 5rem;
     line-height: 1rem;
 
     font-size: 12px;
@@ -174,15 +192,33 @@ button:focus {
   }
 
   input {
-    color: #55AAFF;
-    background-color: #111;
+    line-height: 1.313rem;
+    font-size: 12px;
+    letter-spacing: 0;
+    padding: 0 0.563rem;
+    border: 1px solid #333434;
+    border-radius: 4px;
+    background-color: #454646;
+    box-shadow: inset 0 1px rgba(0,0,0,0.05);
+    color: #c6c8c8;
+    vertical-align: top;
 
-    border-top: 1px solid #000;
-    border-bottom: 1px solid #888;
-    border-radius: 3px;
+    &:focus {
+      background-color: #595b5b;
+      color: #fff;
+      border: 1px solid #0036ff;
+      box-shadow: 0 0 0 2px #6fb5f1;
+    }
 
-    -webkit-user-select: text;
+    &:disabled::-webkit-input-placeholder {
+      color: #fff;
+    }
+
+    &:invalid {
+      border: 1px solid #ec514e;
+    }
   }
+
 
   .drag_widget {
     display: inline-block;

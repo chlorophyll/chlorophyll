@@ -41,7 +41,7 @@ export default {
         },
         width: {
             type: String,
-            default: '300px',
+            default: '350px',
         },
         pos: {
             type: Object,
@@ -100,8 +100,9 @@ export default {
     height: auto;
     min-width: 100px;
     min-height: 50px;
-    overflow: auto;
+    overflow: show;
     display: block;
+    z-index: 100;
 
     border: 1px solid #202020;
 }

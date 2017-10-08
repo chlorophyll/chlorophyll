@@ -13,7 +13,8 @@
           </button>
           <label for="preview-map-list">Preview map</label>
           <span class="inputcombo">
-          <select id="preview-map-list" v-model="preview_map_id">
+          <select class="control" id="preview-map-list"
+                  v-model="preview_map_id">
               <template v-for="mapping in mappings">
                   <option :value="mapping.id">{{ mapping.name }}</option>
               </template>

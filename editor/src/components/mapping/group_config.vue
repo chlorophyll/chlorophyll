@@ -3,7 +3,8 @@
     <div class="header">Group settings: {{ name }} </div>
     <div class="control-row">
       <label>name</label>
-      <input type="text" v-model.lazy.trim="name">
+      <input type="text" class="control"
+             v-model.lazy.trim="name">
     </div>
     <div class="control-row">
       <label>color</label>
@@ -12,14 +13,12 @@
     <div class="header">Add mapping for group</div>
     <div class="control-row">
       <button @click="newMapping" class="smol material-icons">add</button>
-      <select v-model="create_mapping_type" class="fill">
+      <select v-model="create_mapping_type" class="control fill">
         <option v-for="(dispname, type) in mapping_types"
                 v-bind:value="type">
           {{ dispname }}
         </option>
       </select>
-    </div>
-    <div class="control-row">
     </div>
   </div>
 </template>
