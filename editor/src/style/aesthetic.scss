@@ -1,24 +1,31 @@
 /*
  * Defined consistent colors, spacings, etc.
  */
-$panel-text:  #999;
-$panel-bg:    #222;
+$panel-text:  #a9a9a9;
+$panel-bg:    #2e2e2e;
+
+$highlight: #288edf;
+$accent: darken(desaturate($highlight, 30%), 15%);
+$accent-text: lighten($panel-text, 10%);
+
+$bg-dark: darken($panel-bg, 5%);
+$shadow-dark: darken($bg-dark, 5%);
 
 $control-text:        #c6c8c8;
 $control-text-shadow: 0 -1px rgba(0,0,0,0.69);
-$control-bg:          #595b5b;
-$control-bg-dark:     #3f4041;
-$control-bg-light:    #626465;
-$control-shadow:      #737373;
+$control-bg:          #4f4f4f;
+$control-bg-dark:     darken($control-bg, 10%);
+$control-bg-light:    lighten($control-bg, 10%);
+$control-shadow:      lighten($control-bg, 15%);
 
-$control-border:        #333434;
-$control-border-select: #0036ff;
+$control-border:        darken($control-bg, 10%);
+$control-border-select: darken($control-bg, 25%);
 
-$control-highlight:        #288edf;
+$control-highlight:        $highlight;
 $control-highlight-border: #134f7f;
 
 $input-bg:  #454646;
 $input-text: #c6c8c8;
 
-$control-height:  24px;
-$split-gutter-size:    4px;
+$control-height:   24px;
+$split-gutter-size: 2px;

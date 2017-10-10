@@ -29,7 +29,7 @@
                 <tab title="Pattern Editor"><pattern-editor /></tab>
                 <tab title="Another tab">lololololol</tab>
             </tab-set>
-            <div slot="second"><pattern-list /></div>
+            <pattern-list slot="second" />
         </split-pane>
     </split-pane>
 </template>

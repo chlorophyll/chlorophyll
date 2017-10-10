@@ -6,20 +6,20 @@
             <slot :item="item" :leaf="!hasChildren" />
         </div>
 
-        <tree-view v-show="open" v-if="hasChildren" :items="item.children">
+        <tree-view-list v-show="open" v-if="hasChildren" :items="item.children">
             <template scope="props">
                 <slot :item="props.item" :leaf="props.leaf" />
             </template>
-        </tree-view>
+        </tree-view-list>
     </li>
 </template>
 
 <script>
-import TreeView from './index';
+import TreeViewList from './list';
 
 export default {
     name: 'tree-item',
-    components: { TreeView },
+    components: { TreeViewList },
     props: {
         item: Object
     },
@@ -60,13 +60,7 @@ export default {
 </script>
 <style scoped>
 
-.item {
-    padding-left: 1.5em;
-    margin-top: 2px;
-    margin-bottom: 2px;
-    user-select: none;
-}
-
+/*
 .label {
     padding-left: 100%;
     margin-left: -100%;
@@ -81,15 +75,10 @@ div.label.selected {
     background-color: #444;
 }
 
-.item.withChildren {
-    cursor: pointer;
-}
+*/
+
 
 .icon {
-    display: block;
-    float: left;
-    color: #79a;
-    vertical-align: middle;
 }
 
 </style>

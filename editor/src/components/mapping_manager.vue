@@ -2,7 +2,7 @@
     <div id="mapping-manager" class="panel">
         <split-pane direction="vertical" :initial-split="[200,null]">
             <div slot="first" class="browser-container">
-                <mapping-browser
+                <mapping-browser class="browser"
                     :mappings="mapping_list"
                     :groups="group_list"
                     :selected.sync="selected_id">
@@ -87,14 +87,18 @@ export default {
 
 <style scoped>
 .browser-container {
-    position: relative;
+    display: flex;
+    flex-direction: column;
     height: 100%;
-    padding-bottom: 45px;
+}
+
+.browser-container .browser {
+    flex: 1;
+    overflow-y: scroll;
 }
 
 .browser-button-container {
-    position: absolute;
-    bottom: 0;
+    align-content: flex-end;
 }
 
 </style>

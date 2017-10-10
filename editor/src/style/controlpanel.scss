@@ -14,6 +14,9 @@ button:focus {
   }
 }
 
+
+
+
 /*
  * Control panels and inputs
  */
@@ -24,6 +27,40 @@ button:focus {
   background-color: $panel-bg;
   color: #999;
   overflow: hide;
+
+  section h1 {
+    font-size: 10pt;
+    font-weight: normal;
+    text-shadow: $control-text-shadow;
+    letter-spacing: 0.03rem;
+    padding: 0.5em 0.3em;
+    margin: 0;
+    display: block;
+  }
+
+  .controls {
+    margin: auto 3px;
+    padding-top: 5px;
+    padding-left: 2px;
+    box-shadow: inset 1px 1px 1px darken($control-border, 15%);
+    border-radius: 2px;
+    border-bottom: 1px solid $control-border;
+    border-right: 1px solid $control-border;
+    background-color: $control-bg;
+
+    .control-row {
+      border-top: 1px solid $control-bg-light;
+      border-bottom: 1px solid $control-bg-dark;
+
+      &:first-child {
+        border-top: 0px;
+      }
+
+      &:last-child {
+        border-bottom: 0px;
+      }
+    }
+  }
 
   /*
    * For panels embedded in other UI elements, e.g. a toolbar,
@@ -41,14 +78,6 @@ button:focus {
       min-width: 0;
       padding-left: 2em;
     }
-  }
-
-  .header {
-    font-size: 9pt;
-    letter-spacing: 0.03rem;
-    padding: 0.3em;
-    background: #444;
-    color: #bbb;
   }
 
   label {
@@ -71,7 +100,8 @@ button:focus {
     flex-direction: row;
 
     padding: 0.3em;
-    border: 1px solid #181818;
+    // border-top: 1px solid #181818;
+    // border-bottom: 1px solid #181818;
   }
 
   .control {
@@ -218,6 +248,82 @@ button:focus {
 
     &:invalid {
       border: 1px solid #ec514e;
+    }
+  }
+
+  .panel-inset {
+    margin: auto 3px;
+    padding-left: 2px;
+    box-shadow: inset 2px 2px 2px $shadow-dark;
+    border-radius: 2px;
+    border-bottom: 1px solid $shadow-dark;
+    border-right: 1px solid $shadow-dark;
+    background-color: $bg-dark;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+
+  .flat-list {
+    @extend .panel-inset;
+
+    ul {
+      margin: 0;
+      list-style: none;
+      padding-left: 0;
+    }
+
+    li {
+      padding-left: 1.5em;
+      line-height: 1.5em;
+      border-bottom: 1px solid darken($bg-dark, 5%);
+    }
+
+    .selected {
+      background-color: $accent;
+      color: $accent-text;
+    }
+  }
+
+  .tree-container {
+    @extend .panel-inset;
+
+    height: 100%;
+    overflow-y: auto;
+
+    ul {
+      margin: 0;
+      list-style: none;
+      padding-left: 0;
+      margin-left: 0;
+    }
+
+    .item {
+      padding-left: 1.5em;
+      line-height: 1.5em;
+      user-select: none;
+
+      &.withChildren > .label {
+        cursor: pointer;
+      }
+    }
+
+    .label {
+      padding-left: 100%;
+      margin-left: -100%;
+      border-bottom: 1px solid darken($bg-dark, 5%);
+    }
+
+    .label.selected {
+      background-color: $accent;
+      color: $accent-text;
+    }
+
+    .icon {
+      display: block;
+      float: left;
+      color: #79a;
+      vertical-align: middle;
+      color: lighten($accent, 20%);
     }
   }
 

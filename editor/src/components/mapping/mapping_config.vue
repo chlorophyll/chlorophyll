@@ -1,8 +1,10 @@
 <template>
   <div id="mapping-config" class="panel">
-    <div class="header">
+    <section>
+    <h1>
         {{ mappingDisplayName(type) }} Mapping settings
-    </div>
+    </h1>
+    <div class="controls">
     <div class="control-row">
       <label>name</label>
       <input type="text" v-model.lazy.trim="name" class="control">
@@ -21,6 +23,8 @@
         Configure Mapping
       </button>
     </div>
+    </div>
+    </section>
     <dialog-box v-if="configuring"
                 title="Configure mapping"
                 width="300px"
