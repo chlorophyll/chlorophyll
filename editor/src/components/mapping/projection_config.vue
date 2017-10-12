@@ -14,6 +14,13 @@
                   :value="[value.rotation]"
                   @input="([angle]) => updateProjection({ angle })">
     </vector-input>
+    <div class="control-row">
+        <label>Rotation</label>
+        <numeric-input title="Rotation"
+                      :min="0" :max="6.28"
+                      :value="value.rotation"
+                      @input="(angle) => updateProjection({ angle })" />
+    </div>
     <viewport-axes :value="proj_widget" @input="updateProjection" />
 </div>
 </template>
@@ -27,6 +34,7 @@ import store from 'chl/vue/store';
 import { getCameraProjection } from '@/common/mapping/projection';
 
 import VectorInput from '@/components/widgets/vector_input';
+import NumericInput from '@/components/widgets/numeric_input';
 import ViewportAxes from '@/components/widgets/viewport_axes';
 // the 'actual data' this component edits is
 // origin, plane angle, rotation
@@ -39,7 +47,7 @@ export default {
     store,
     name: 'projection-config',
     props: ['value'],
-    components: { VectorInput, ViewportAxes },
+    components: { VectorInput, NumericInput, ViewportAxes },
     data() {
         return {
             max_angle: 2 * Math.PI
