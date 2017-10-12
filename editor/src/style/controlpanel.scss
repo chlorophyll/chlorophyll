@@ -15,7 +15,23 @@ button:focus {
 }
 
 
+.dialog-box {
+  border: 1px solid $panel-dark;
+  box-shadow: inset 1px 1px $panel-light;
+  border-radius: $inset-radius;
+  padding: 0px 2px;
+  background-color: $panel-bg;
+  overflow: hidden;
 
+  .title {
+    margin: 1px -1px;
+    background-color: darken($panel-light, 7.5%);
+    font-size: 10pt;
+    padding: 0.3em 0.3em;
+    letter-spacing: 0.03rem;
+    text-shadow: $control-text-shadow;
+  }
+}
 
 /*
  * Control panels and inputs
@@ -25,7 +41,7 @@ button:focus {
   width: 100%;
   height: 100%;
   background-color: $panel-bg;
-  color: #999;
+  color: $panel-text;
   overflow: hide;
 
   section h1 {
@@ -164,12 +180,12 @@ button:focus {
     }
 
     &.highlighted {
-      border: 1px solid $control-highlight-border;;
+      border: 1px solid $control-highlight-border;
       background-color: $control-highlight;
-      box-shadow: inset 0 1px rgba(255,255,255,0.36);
-      color: #fff;
+      box-shadow: inset 0 1px $base-blue-4;
+      color: lighten($control-text, 10%);
       font-weight: 500;
-      text-shadow: 0 -1px rgba(0,0,0,0.36);
+      text-shadow: 0 -1px $control-highlight-border;
 
       &:hover {
         background-color: #4ca1e4;

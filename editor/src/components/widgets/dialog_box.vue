@@ -106,8 +106,6 @@ export default {
     overflow: show;
     display: block;
     z-index: 100;
-
-    border: 1px solid #202020;
 }
 
 .content {
