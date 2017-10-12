@@ -27,7 +27,8 @@
     </div>
     <div class="panel" id="mainview">
       <split-pane direction="horizontal" :initial-split="[210, null]">
-          <tree slot="first" :items="node_list">
+          <div slot="first" class="node-browser">
+          <tree :items="node_list" class="tree">
             <template scope="props">
                 <div class="item"
                     draggable="true"
@@ -40,6 +41,7 @@
                 </div>
             </template>
           </tree>
+          </div>
           <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
       </split-pane>
     </div>
@@ -192,5 +194,14 @@ export default {
     cursor: pointer;
     padding: 0;
     margin: 0;
+}
+
+.node-browser {
+    height: 100%;
+    display: flex;
+}
+
+.node-browser .tree {
+    flex: 1;
 }
 </style>

@@ -94,7 +94,6 @@ export default {
 
 .browser-container .browser {
     flex: 1;
-    overflow-y: scroll;
 }
 
 .browser-button-container {

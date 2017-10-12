@@ -298,8 +298,6 @@ button:focus {
 
   .tree-container {
     @extend .panel-inset;
-
-    height: 100%;
     overflow-y: auto;
 
     ul {

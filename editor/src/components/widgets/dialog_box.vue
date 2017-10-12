@@ -1,20 +1,22 @@
 <template>
 <div v-show="show"
-     class="dialog-box panel"
+     class="dialog-box"
      v-bind:style="{ left: `${x}px`, top: `${y}px`, width }">
-    <div class="header drag-handle" @mousedown="startDrag">
+    <div class="title drag-handle" @mousedown="startDrag">
         {{ title }}
     </div>
+    <div class="panel">
     <div class="content">
         <slot></slot>
     </div>
     <div class="panel-footer">
-        <button v-if="ok_btn" @click="close(true)">
+        <button v-if="ok_btn" class="highlighted" @click="close(true)">
             OK
         </button>
         <button v-if="cancel_btn" @click="close(false)">
             Cancel
         </button>
+    </div>
     </div>
 </div>
 </template>

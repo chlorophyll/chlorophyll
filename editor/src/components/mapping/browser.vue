@@ -1,7 +1,7 @@
 <template>
 <div id="mapping-browser">
   <div class="panel-header">Mapping Browser</div>
-    <tree-view :items="treeItems">
+    <tree-view class="tree-view" :items="treeItems">
       <template scope="props">
         <div class="item ltreeitem"
              @click="select(props.item.id)">
@@ -87,13 +87,9 @@ export default {
 
 <style scoped>
 #mapping-browser {
+    display: flex;
+    flex-direction: column;
     height: 100%;
-}
-
-.tree-container {
-    height: 100%;
-    background: #181818;
-    overflow-y: auto;
 }
 
 .inline-controls {
@@ -106,5 +102,13 @@ export default {
     cursor: pointer;
     vertical-align: middle;
     margin-right: 0.5em;
+}
+
+#mapping-browser .panel-header {
+    flex: 0 0 auto;
+}
+
+#mapping-browser .tree-view {
+    flex: 1;
 }
 </style>
