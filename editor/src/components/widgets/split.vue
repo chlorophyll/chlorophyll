@@ -99,7 +99,6 @@ export default {
 
 .split-gutter {
     flex: initial;
-    background-color: #333;
     &.horizontal {
         cursor: col-resize;
         width: $split-gutter-size;
@@ -107,9 +106,6 @@ export default {
     &.vertical {
         cursor: row-resize;
         height: $split-gutter-size;
-    }
-    &.dragging, &:hover {
-        background-color: #888;
     }
 }
 

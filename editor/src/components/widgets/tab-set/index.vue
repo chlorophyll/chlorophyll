@@ -72,7 +72,6 @@ export default {
 
 .tab-bar {
   flex: initial;
-  height: 1.5em;
   
   display: flex;
   flex-direction: row;

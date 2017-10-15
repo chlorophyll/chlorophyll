@@ -36,7 +36,7 @@ $control-light:      lighten($control-base, 10%);
 
 $control-border:        $control-dark;
 $control-border-select: $control-dark;
-$control-border-radius: 3px;
+$control-border-radius: 4px;
 
 $control-highlight:        $base-blue-3;
 $control-highlight-border: $base-blue-1;
@@ -48,4 +48,4 @@ $input-text: $control-text;
 $inset-radius: 4px;
 
 $control-height:   24px;
-$split-gutter-size: 2px;
+$split-gutter-size: 3px;

@@ -40,8 +40,7 @@ button:focus {
 
   .controls {
     margin: auto 3px;
-    padding-top: 5px;
-    padding-left: 2px;
+    padding: 5px 0px 4px 2px;
     box-shadow: inset 1px 1px 1px darken($control-group-dark, 15%);
     border-radius: $inset-radius;
     border-bottom: 1px solid $control-group-dark;
@@ -363,12 +362,17 @@ button:focus {
   }
 }
 
+/*
+ * Layout / container management elements
+ */
 .tab-bar {
-  $active-tab-color: lighten($control-dark, 10%);
+  $active-tab-color: $control-base;
 
+  height: 1.8rem;
   padding-top: 2px;
+
   border-bottom: 2px solid $active-tab-color;
-  background-color: $panel-bg;
+  background-color: $bg-dark;
 
   .tab-button-container {
     margin-left: 2px;
@@ -376,7 +380,7 @@ button:focus {
     max-width: 8em;
 
     button {
-      color: darken($control-text, 15%);
+      color: darken($control-text, 5%);
       text-shadow: $control-text-shadow;
       background-color: lighten($control-dark, 5%);
       box-shadow: inset 0 1px darken($control-light, 5%);
@@ -389,5 +393,16 @@ button:focus {
         background-color: $active-tab-color;
       }
     }
+  }
+}
+
+.split-gutter {
+  background-color: darken($panel-bg, 1%);
+
+  &:hover {
+    background-color: lighten($panel-bg, 10%);
+  }
+  &.dragging {
+    background-color: $accent;
   }
 }

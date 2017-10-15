@@ -1,12 +1,10 @@
 <template>
-    <span>
-        <div class="control">
-            <button class="fill" :class="{ highlighted: enabled }" @click="selected">
-                {{ label }}
-            </button>
-        </div>
+    <div class="control">
+        <button class="fill" :class="{ highlighted: enabled }" @click="selected">
+            {{ label }}
+        </button>
         <slot />
-    </span>
+    </div>
 </template>
 
 <script>
@@ -57,3 +55,15 @@ export default {
 
 };
 </script>
+
+<style scoped>
+button {
+  width: 100%;
+  margin: 0px;
+}
+
+.control {
+  width: 100%;
+  margin: 2px;
+}
+</style>
