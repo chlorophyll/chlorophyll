@@ -1,5 +1,7 @@
 <template>
-    <g class="node" :class="{connecting: curSrc !== null}" :transform="position" @mousedown.stop="startDrag">
+    <g class="node"
+       :class="{connecting: curSrc !== null}"
+       :transform="position" @dblclick="onDblClick">
         <g>
         <!-- main box -->
         <rect x="0"
@@ -11,10 +13,11 @@
         <!-- titlebar -->
         <rect x="0"
               y="0"
+              class="titlebar"
               :width="width"
               :height="tHeight"
               :stroke="node.config.color"
-              :fill="node.config.color" />
+              :fill="node.config.color" @mousedown.stop="startDrag" />
         <!-- title box -->
         <rect x="3"
               y="3"
@@ -181,7 +184,7 @@ export default {
         },
 
         dstSelected(slot) {
-            this.$emit('output-selected', this, slot);
+            this.$emit('output-selected', this.node, slot);
         },
 
         mouseEnter(event) {
@@ -189,15 +192,20 @@ export default {
         },
         mouseLeave(event) {
             event.target.classList.remove('hover');
+        },
+        onDblClick() {
+            this.$emit('node-dblclicked', this.node);
         }
-
-
     }
 };
 </script>
 
 <style scoped>
 .node {
+    user-select: none;
+}
+
+.titlebar {
     cursor: move;
 }
 
@@ -209,6 +217,7 @@ text {
 .title-text {
     font-size: 11px;
     font-weight: bold;
+    pointer-events: none;
 }
 
 .clickable {

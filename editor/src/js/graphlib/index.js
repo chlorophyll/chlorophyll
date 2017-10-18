@@ -14,6 +14,26 @@ export const GraphConstants = {
     ANIM_TIME: 300,
 };
 
+export const NodeConfigMixin = {
+    props: ['node', 'slotnum'],
+    computed: {
+        name() {
+            return this.node.slot_names.inputs[this.slotnum];
+        },
+        type() {
+            return this.node.input_types[this.slotnum];
+        },
+        value: {
+            get() {
+                return this.node.defaults[this.name];
+            },
+            set(val) {
+                this.node.defaults[this.name] = val;
+            }
+        }
+    }
+};
+
 
 export class Graph extends GraphBase {
     constructor(id=null) {
@@ -133,13 +153,20 @@ function makeNodeVue(graph, node, data) {
                 return (GraphConstants.NODE_TITLE_HEIGHT + body_height);
             },
 
+            slot_names() {
+                let inputs = node.input_info.map(({name}) => name);
+                let outputs = node.output_info.map(({name}) => name);
+
+                return { inputs, outputs };
+            },
+
             slot_labels() {
                 let inputs = this.inputs.map(({ settings }, slot) => {
                     const name = node.input_info[slot].name;
                     let text = settings.label !== null ? settings.label : name;
                     const val = this.defaults[name];
                     if (val !== null) {
-                        text += ` (${val})`;
+                        text += ` (${val.toString()})`;
                     }
                     return text;
                 });
@@ -147,6 +174,10 @@ function makeNodeVue(graph, node, data) {
                 let outputs = this.outputs.map(({ settings }, slot) =>
                     settings.label !== null ? settings.label : node.output_info[slot].name);
                 return {inputs, outputs};
+            },
+
+            input_types() {
+                return this.inputs.map(({ settings }, slot) => node.input_info[slot].type);
             },
         },
         methods: {

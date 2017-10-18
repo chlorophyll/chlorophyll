@@ -39,10 +39,13 @@ export default {
     },
     computed: {
         range() {
+            if (this.min === undefined || this.max === undefined) {
+                return undefined;
+            }
             return this.max - this.min;
         },
         display_value() {
-            return Util.roundTo(this.value, this.precision);
+            return this.value === null ? null : Util.roundTo(this.value, this.precision);
         },
     },
     methods: {
@@ -70,7 +73,9 @@ export default {
 
             const delta_y = event.clientY - this.drag_y;
             this.drag_y = event.clientY;
-            let newval = this.display_value - (delta_y * this.range / RANGE_NPIXELS);
+            const range = this.range === undefined ? 1 : this.range;
+            let curval = this.display_value||0;
+            let newval = curval - (delta_y * range / RANGE_NPIXELS);
             this.updateValue(newval);
         },
         endDrag() {

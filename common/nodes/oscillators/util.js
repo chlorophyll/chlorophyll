@@ -3,6 +3,7 @@ import { addSerializableType } from '@/common/util/serialization';
 export default class Frequency {
     constructor(hz) {
         this.frequency = hz;
+        this.display_qty = 'hz';
     }
 
     serialize() {
@@ -31,15 +32,27 @@ export default class Frequency {
 
     set hz(val) {
         this.frequency = val;
-
     }
 
     static deserialize(hz) {
         return new Frequency(hz);
     }
 
+    get quantities() {
+        return ['hz', 'sec', 'bpm'];
+    }
+
+    valueOf() {
+        return this[this.display_qty];
+    }
+
+    setCurrent(val) {
+        this[this.display_qty] = val;
+    }
+
     toString() {
-        return `${this.hz} hz`;
+        const val = this.valueOf();
+        return `${val} ${this.display_qty}`;
     }
 };
 

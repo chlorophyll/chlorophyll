@@ -1,5 +1,8 @@
 <template>
     <div>
+    <template v-for="node in configuring">
+        <node-config :node="node" @close="endConfigure(node)" />
+    </template>
     <svg ref="canvas" width="100%" height="100%" @dragover="nodeDragged" @drop="nodeDropped">
         <pattern id="grid-pattern" width="10" height="10" patternUnits="userSpaceOnUse">
         <path d="M 10 0 L 0 0 0 10" fill="none" stroke="black" stroke-width="0.5" v-once />
@@ -18,6 +21,7 @@
                         @dst-hover-end="cur_dst = null"
                         @dst-selected="onDstSelected"
                         @src-selected="onSrcSelected"
+                        @node-dblclicked="configureNode"
                         @remove-clicked="onRemoveClicked" />
         </template>
         </g>
@@ -30,6 +34,7 @@ import * as d3 from 'd3';
 import GraphNode from '@/components/graphnode';
 import GraphEdge from '@/components/graphedge';
 import GraphAutoLayout from 'chl/graphlib/layout';
+import NodeConfig from '@/components/graph/node_config';
 
 import Util from 'chl/util';
 import { GraphConstants } from 'chl/graphlib';
@@ -41,7 +46,7 @@ const autolayout = new GraphAutoLayout();
 
 export default {
     name: 'graph-canvas',
-    components: { GraphNode, GraphEdge },
+    components: { GraphNode, GraphEdge, NodeConfig },
     props: {
         graph: { type: Object, default: null },
     },
@@ -50,6 +55,7 @@ export default {
         return {
             nodeset: {},
             edgeset: {},
+            nodes_configuring: [],
             cur_dst: null,
             cur_src: null,
         };
@@ -69,12 +75,15 @@ export default {
                 d3.select(this.$refs.maingroup).attr('transform', d3.event.transform);
             });
 
-        d3.select(this.$el).call(zoom);
+        d3.select(this.$refs.canvas).call(zoom);
     },
 
     computed: {
         nodes() {
             return Object.values(this.nodeset);
+        },
+        configuring() {
+            return this.nodes_configuring.map((id) => this.nodeset[id]);
         },
         edges() {
             return Object.values(this.edgeset);
@@ -133,6 +142,7 @@ export default {
 
             this.nodeset = nodeset;
             this.edgeset = edgeset;
+            this.nodes_configuring = [];
         }
     },
 
@@ -346,6 +356,14 @@ export default {
 
         zoomToFit() {
             return this.zoomToBounds(this.bounds, GraphConstants.ANIM_TIME);
+        },
+
+        configureNode(node) {
+            this.nodes_configuring.push(node.id);
+        },
+
+        endConfigure(node) {
+            this.nodes_configuring.splice(this.nodes_configuring.indexOf(node.id), 1);
         }
     }
 };

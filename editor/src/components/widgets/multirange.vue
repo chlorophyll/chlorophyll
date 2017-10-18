@@ -1,11 +1,11 @@
 <template>
-    <div>
+    <div class="multirange">
         <input type="range"
-               ref="s1" class="s1" :value="val1"
+               ref="s1" class="s1" :value="current[0]"
                :min="min" :max="max" :step="step"
                @input="update" />
         <input type="range"
-               ref="s2" :value="val2" class="s2"
+               ref="s2" :value="current[1]" class="s2"
                :min="min" :max="max" :step="step"
                @input="update" />
     </div>
@@ -15,7 +15,7 @@
 export default {
     name: 'multirange',
     props: {
-        value: String,
+        value: Array,
         min: {
             type: Number,
             default: 0,
@@ -29,13 +29,10 @@ export default {
             default: 1,
         }
     },
-    computed: {
-        val1() {
-            return parseInt(this.value.split(',')[0]);
-        },
-        val2() {
-            return parseInt(this.value.split(',')[1]);
-        },
+    data() {
+        return {
+            current: this.value
+        };
     },
     methods: {
         update() {
@@ -43,14 +40,14 @@ export default {
             let v2 = this.$refs.s2.value;
             let valueLow = Math.min(v1, v2);
             let valueHigh = Math.max(v1, v2);
-            this.$emit('input', { valueLow, valueHigh });
+            this.$emit('input', [valueLow, valueHigh] );
         }
     }
 };
 </script>
 
 <style scoped>
-span {
+div {
     position: relative;
 }
 
@@ -65,7 +62,12 @@ input {
     position: absolute;
 }
 
-input::-webkit-slider-thumb {
+input.s1::-webkit-slider-thumb {
+    position: relative;
+    z-index: 1;
+}
+
+input.s2::-webkit-slider-thumb {
     position: relative;
     z-index: 2;
 }

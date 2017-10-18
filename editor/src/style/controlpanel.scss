@@ -266,115 +266,149 @@ button:focus {
     }
   }
 
-  .panel-inset {
-    margin: auto 3px;
-    padding-left: 2px;
-    border-radius: $inset-radius;
-    border-bottom: 1px solid $shadow-dark;
-    border-right: 1px solid $shadow-dark;
-    background-color: $bg-dark;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    position: relative;
+  input[type=range] {
+    -webkit-appearance: none;
+    border: none;
+    outline: none;
+    width: calc(100%-10px);
+    margin-top: 0.6rem;
+    margin-left: 5px;
+    margin-right: 5px;
 
-    &:before {
-      content: "";
-      pointer-events: none;
-      box-shadow: inset 2px 2px 1px $shadow-dark;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+    &:focus {
+      box-shadow: none;
+      border: none;
+    }
+
+    &::-webkit-slider-runnable-track {
+      height: 5px;
+    width: 100%;
+      background-color: $input-border;
+      -webkit-appearance: none;
+    }
+
+    &::-webkit-slider-thumb {
+      height: 15px;
+      width: 10px;
+      border-radius: 0px;
+      margin-top: -5px;
+      background: $control-highlight;
+      border: 1px solid $input-border;
+      box-shadow: inset 0 1px $base-blue-4, 0.6px 0.6px 3px $input-bg;
+      cursor: pointer;
+      -webkit-appearance: none;
     }
   }
 
-  .flat-list {
-    @extend .panel-inset;
-    overflow-y: auto;
-    height: 100%;
+    .panel-inset {
+      margin: auto 3px;
+      padding-left: 2px;
+      border-radius: $inset-radius;
+      border-bottom: 1px solid $shadow-dark;
+      border-right: 1px solid $shadow-dark;
+      background-color: $bg-dark;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      position: relative;
 
-    ul {
-      margin: 0;
-      list-style: none;
-      padding-left: 0;
+      &:before {
+        content: "";
+        pointer-events: none;
+        box-shadow: inset 2px 2px 1px $shadow-dark;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
     }
 
-    li {
-      padding-left: 1.5em;
-      line-height: 1.5em;
-      border-bottom: 1px solid darken($bg-dark, 5%);
+    .flat-list {
+      @extend .panel-inset;
+      overflow-y: auto;
+      height: 100%;
 
-      &.selected {
+      ul {
+        margin: 0;
+        list-style: none;
+        padding-left: 0;
+      }
+
+      li {
+        padding-left: 1.5em;
+        line-height: 1.5em;
+        border-bottom: 1px solid darken($bg-dark, 5%);
+
+        &.selected {
+          background-color: $accent;
+          color: $accent-text;
+        }
+      }
+    }
+
+    .tree-container {
+      @extend .panel-inset;
+      overflow-y: auto;
+
+      ul {
+        margin: 0;
+        list-style: none;
+        padding-left: 0;
+        margin-left: 0;
+      }
+
+      .item {
+        padding-left: 1.5em;
+        line-height: 1.5em;
+        user-select: none;
+
+        &.withChildren > .label {
+          cursor: pointer;
+        }
+      }
+
+      .label {
+        padding-left: 100%;
+        margin-left: -100%;
+        border-bottom: 1px solid darken($bg-dark, 5%);
+      }
+
+      .label.selected {
         background-color: $accent;
         color: $accent-text;
       }
-    }
-  }
 
-  .tree-container {
-    @extend .panel-inset;
-    overflow-y: auto;
-
-    ul {
-      margin: 0;
-      list-style: none;
-      padding-left: 0;
-      margin-left: 0;
-    }
-
-    .item {
-      padding-left: 1.5em;
-      line-height: 1.5em;
-      user-select: none;
-
-      &.withChildren > .label {
-        cursor: pointer;
+      .icon {
+        display: block;
+        float: left;
+        vertical-align: middle;
+        color: $base-blue-4;
       }
     }
 
-    .label {
-      padding-left: 100%;
-      margin-left: -100%;
-      border-bottom: 1px solid darken($bg-dark, 5%);
+
+    .drag-widget {
+      flex: initial;
+      display: inline-block;
+
+      width: 1em;
+      min-width: 6px;
+      vertical-align: top;
+      margin: 0 2px;
+
+      cursor: n-resize;
+      background-image: url('~@/assets/dragger.png');
+      background-position: center;
+      background-repeat: no-repeat;
     }
 
-    .label.selected {
-      background-color: $accent;
-      color: $accent-text;
-    }
-
-    .icon {
-      display: block;
-      float: left;
-      vertical-align: middle;
-      color: $base-blue-4;
+    .separator, hr {
+      width: -webkit-calc(100% - 10px);
+      border-top: 1px solid $panel-dark;
+      border-bottom: 1px solid $panel-light;
+      margin: 5px 0 5px 5px;
     }
   }
-
-
-  .drag-widget {
-    flex: initial;
-    display: inline-block;
-
-    width: 1em;
-    min-width: 6px;
-    vertical-align: top;
-    margin: 0 2px;
-
-    cursor: n-resize;
-    background-image: url('~@/assets/dragger.png');
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-
-  .separator, hr {
-    width: -webkit-calc(100% - 10px);
-    border-top: 1px solid $panel-dark;
-    border-bottom: 1px solid $panel-light;
-    margin: 5px 0 5px 5px;
-  }
-}
 
 /*
  * Layout / container management elements
