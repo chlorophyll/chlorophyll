@@ -1,21 +1,23 @@
 <template>
   <div class="panel" id="pattern-list">
-    <div class="panel-header">Patterns</div>
-    <div class="content">
-      <div class="flat-list" id="pattern-browser">
-        <ul>
-          <li v-for="pattern in pattern_list"
-              :class="{ selected : cur_pattern === pattern }"
-              @click="set_current(pattern)">
-            {{ pattern.name }}
-          </li>
-        </ul>
+    <split-pane direction="vertical" :initial-split="[130,null]" class="content">
+      <div slot="first" id="pattern-browser-container">
+        <div class="panel-header">Patterns</div>
+        <div class="flat-list" id="pattern-browser">
+          <ul>
+            <li v-for="pattern in pattern_list"
+                :class="{ selected : cur_pattern === pattern }"
+                @click="set_current(pattern)">
+              {{ pattern.name }}
+            </li>
+          </ul>
+        </div>
+        <div class="control-row" id="pattern-browser-buttons">
+          <button @click="newPattern">New Pattern</button>
+          <button :disabled="cur_pattern === null" @click="copyPattern">Copy Pattern</button>
+        </div>
       </div>
-      <div class="control-row">
-        <button @click="newPattern">New Pattern</button>
-        <button :disabled="cur_pattern === null" @click="copyPattern">Copy Pattern</button>
-      </div>
-      <div id="cur-pattern" v-if="cur_pattern !== null">
+      <div slot="second" v-if="cur_pattern !== null">
         <section>
           <h1>{{ cur_name }} Settings</h1>
           <div class="controls">
@@ -35,7 +37,7 @@
           </div>
         </section>
       </div>
-    </div>
+    </split-pane>
   </div>
 </template>
 
@@ -47,9 +49,12 @@ import { createPattern, copyPattern, setCoordType } from 'chl/patterns';
 
 import { mappingTypes } from '@/common/mapping';
 
+import SplitPane from '@/components/widgets/split';
+
 export default {
     name: 'pattern-list',
     store,
+    components: { SplitPane },
     computed: {
         cur_coord_type: {
             get() {
@@ -92,19 +97,21 @@ export default {
 };
 </script>
 <style scoped>
-#pattern-list {
-    position: relative;
+#pattern-browser-container {
+    display: flex;
+    flex-direction: column;
     height: 100%;
 }
 
+#pattern-browser .panel-header {
+    flex: 0 0 auto;
+}
+
 #pattern-browser {
-  min-height: 7em;
-
+    flex: 1;
 }
 
-.content {
-  display: flex;
-  flex-direction: column;
+#pattern-browser-buttons {
+    align-content: flex-end;
 }
-
 </style>
