@@ -1,22 +1,133 @@
+@import "./aesthetic.scss";
+
+/*
+ * Global style tweaks
+ */
+button:focus {
+  outline: 0;
+}
+
+.header, .tree, label {
+  user-select: none;
+  &:hover {
+    cursor: default;
+  }
+}
+
+
+
+
+/*
+ * Control panels and inputs
+ */
 .panel {
+  font-size: 12px;
   width: 100%;
   height: 100%;
-  background-color: #222;
+  background-color: $panel-bg;
   color: #999;
   overflow: hide;
 
-  .control {
-    width: 100%;
+  section h1 {
+    font-size: 10pt;
+    font-weight: normal;
+    text-shadow: $control-text-shadow;
+    letter-spacing: 0.03rem;
+    padding: 0.5em 0.3em;
+    margin: 0;
     display: block;
+  }
+
+  .controls {
+    margin: auto 3px;
+    padding: 5px 0px 4px 2px;
+    box-shadow: inset 1px 1px 1px darken($control-group-dark, 15%);
+    border-radius: $inset-radius;
+    border-bottom: 1px solid $control-group-dark;
+    border-right: 1px solid $control-group-dark;
+    background-color: $control-group-base;
+
+    .control-row {
+      border-top: 1px solid $control-group-light;
+      border-bottom: 1px solid $control-group-dark;
+
+      &:first-child {
+        border-top: 0px;
+      }
+
+      &:last-child {
+        border-bottom: 0px;
+      }
+    }
+  }
+
+  /*
+   * For panels embedded in other UI elements, e.g. a toolbar,
+   * without needing a wrapper div to constrain the height.
+   */
+  &.inline {
+    height: auto;
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+    border-color: #333;
+
+    label {
+      flex: initial;
+      width: fit-content;
+      min-width: 0;
+      padding-left: 2em;
+    }
   }
 
   label {
     display: inline-block;
-    float: left;
-    clear: left;
-    width: 30%;
-    max-width: 10em;
-    min-width: 5em;
+    width: fit-content;
+    max-width: 10rem;
+    min-width: 4rem;
+    flex: initial;
+
+    padding-top: 0.4rem;
+    text-align: right;
+    padding-right: 0.5em;
+  }
+
+
+  .control-row {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+
+    padding: 0.3em;
+    // border-top: 1px solid #181818;
+    // border-bottom: 1px solid #181818;
+  }
+
+  .control {
+    flex: auto;
+    display: flex;
+    height: $control-height;
+    margin-right: 0.5em;
+  }
+
+  /*
+   * Shortcuts for different input sizes
+   */
+  .square {
+    width: 2em;
+    padding: 0;
+  }
+  .smol {
+    flex: 1 4 auto;
+  }
+  .medium {
+    flex: 2 2 50px;
+  }
+  .wide {
+    flex: 4 1 auto;
+  }
+  .fill {
+    flex: auto;
   }
 
   button {
@@ -24,38 +135,37 @@
 
     padding: 0 0.563rem;
     margin: 1px 1px 1px 1px;
-    width: -webkit-calc(100% - 2px);
 
-    color: #c6c8c8;
-    text-shadow: 0 -1px rgba(0,0,0,0.69);
-    background-color: #595b5b;
-    box-shadow: inset 0 1px #737373;
-    border: 1px solid #333434;
-    border-radius: 2px;
+    color: $control-text;
+    text-shadow: $control-text-shadow;
+    background-color: $control-base;
+    box-shadow: inset 0 1px $control-light;
+    border: 1px solid $control-border;
+    border-radius: $control-border-radius;
 
     line-height: 1.313rem;
     letter-spacing: 0;
     vertical-align: top;
+    text-align: center;
 
     &:hover {
-      background-color: #626465;
+      background-color: $control-light;
     }
 
     &:focus {
-      border: 1px solid #0036ff;
-      box-shadow: inset 0 1px rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
-      outline: 0;
+      // border: 1px solid $control-border-select;
+      // box-shadow: inset 0 1px rgba(255,255,255,0.36), 0 0 0 2px #6fb5f1;
     }
 
     &:active {
-      border: 1px solid #333434;
-      background-color: #3f4041;
+      border: 1px solid $control-border;
+      background-color: $control-dark;
       box-shadow: inset 0 1px rgba(0,0,0,0.05);
     }
 
     &.highlighted {
-      border: 1px solid #134f7f;
-      background-color: #288edf;
+      border: 1px solid $control-highlight-border;;
+      background-color: $control-highlight;
       box-shadow: inset 0 1px rgba(255,255,255,0.36);
       color: #fff;
       font-weight: 500;
@@ -67,33 +177,232 @@
     }
   }
 
-  .separator {
+  select {
+    -webkit-appearance: none;
+    user-select: none;
+    cursor: pointer;
+
+    text-indent: 1px;
+    text-overflow: '';
+    padding: 0 0.4rem;
+    padding-right: 1.5rem;
+    margin: 1px 1px 1px 1px;
+    min-width: 5rem;
+    line-height: 1rem;
+
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0;
+    vertical-align: top;
+
+    color: $control-text;
+    text-shadow: $control-text-shadow;
+    background-color: $control-base;
+    background-image: url('~@/assets/dropdown.svg');
+    background-repeat: no-repeat;
+    background-position: center right;
+    box-shadow: inset 0 1px $control-light;
+    border: 1px solid $control-dark;
+    border-radius: $control-border-radius;
+
+    &:hover {
+      background-color: hsla(200, 2%, 39%, 1);
+    }
+
+    &:active {
+      background-color: hsla(210, 2%, 25%, 1);
+      box-shadow: inset 0 1px hsla(0, 0%, 0%, .05);
+    }
+
+    &:focus {
+      border: 1px solid hsla(227, 100%, 50%, 1);
+      box-shadow: 0 0 0 2px hsla(208, 82%, 69%, 1);
+      outline: 0;
+    }
+  }
+
+  input {
+    line-height: 1.313rem;
+    font-size: 12px;
+    letter-spacing: 0;
+    padding: 0 0.563rem;
+    border: 1px solid $input-border;
+    border-radius: $control-border-radius;
+    background-color: $input-bg;
+    box-shadow: inset 0 1px rgba(0,0,0,0.05);
+    color: $input-text;
+    vertical-align: top;
+
+    &:focus {
+      background-color: lighten($input-bg, 10%);
+      color: lighten($input-text, 10%);
+      border: 1px solid $base-blue-2;
+      box-shadow: 0 0 0 2px $base-blue-4;
+    }
+
+    &:disabled {
+      background-color: darken($input-bg, 5%);
+      color: darken($input-text, 10%);
+    }
+
+    &:invalid {
+      border: 1px solid #ec514e;
+    }
+  }
+
+  .panel-inset {
+    margin: auto 3px;
+    padding-left: 2px;
+    border-radius: $inset-radius;
+    border-bottom: 1px solid $shadow-dark;
+    border-right: 1px solid $shadow-dark;
+    background-color: $bg-dark;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    position: relative;
+
+    &:before {
+      content: "";
+      pointer-events: none;
+      box-shadow: inset 2px 2px 1px $shadow-dark;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .flat-list {
+    @extend .panel-inset;
+    overflow-y: auto;
+    height: 100%;
+
+    ul {
+      margin: 0;
+      list-style: none;
+      padding-left: 0;
+    }
+
+    li {
+      padding-left: 1.5em;
+      line-height: 1.5em;
+      border-bottom: 1px solid darken($bg-dark, 5%);
+
+      &.selected {
+        background-color: $accent;
+        color: $accent-text;
+      }
+    }
+  }
+
+  .tree-container {
+    @extend .panel-inset;
+
+    height: 100%;
+    overflow-y: auto;
+
+    ul {
+      margin: 0;
+      list-style: none;
+      padding-left: 0;
+      margin-left: 0;
+    }
+
+    .item {
+      padding-left: 1.5em;
+      line-height: 1.5em;
+      user-select: none;
+
+      &.withChildren > .label {
+        cursor: pointer;
+      }
+    }
+
+    .label {
+      padding-left: 100%;
+      margin-left: -100%;
+      border-bottom: 1px solid darken($bg-dark, 5%);
+    }
+
+    .label.selected {
+      background-color: $accent;
+      color: $accent-text;
+    }
+
+    .icon {
+      display: block;
+      float: left;
+      vertical-align: middle;
+      color: $base-blue-4;
+    }
+  }
+
+
+  .drag-widget {
+    flex: initial;
+    display: inline-block;
+
+    width: 1em;
+    min-width: 6px;
+    vertical-align: top;
+    margin: 0 2px;
+
+    cursor: n-resize;
+    background-image: url('~@/assets/dragger.png');
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .separator, hr {
     width: -webkit-calc(100% - 10px);
-    border-top: 1px solid #111;
-    border-bottom: 1px solid #555;
+    border-top: 1px solid $panel-dark;
+    border-bottom: 1px solid $panel-light;
     margin: 5px 0 5px 5px;
   }
 }
 
-.panel 
+/*
+ * Layout / container management elements
+ */
+.tab-bar {
+  $active-tab-color: $control-base;
 
-.panel .control input {
-	color: #55AAFF;
-	background-color: #222;
+  height: 1.8rem;
+  padding-top: 2px;
 
-	border-top: 1px solid #000;
-	border-bottom: 1px solid #888;
-	border-radius: 3px;
+  border-bottom: 2px solid $active-tab-color;
+  background-color: $bg-dark;
 
-	-webkit-user-select: text;  
+  .tab-button-container {
+    margin-left: 2px;
+    margin-right: 2px;
+    max-width: 8em;
+
+    button {
+      color: darken($control-text, 5%);
+      text-shadow: $control-text-shadow;
+      background-color: lighten($control-dark, 5%);
+      box-shadow: inset 0 1px darken($control-light, 5%);
+      border: 1px solid $control-border;
+      border-bottom: 0;
+      border-radius: 5px 5px 0px 0px;
+
+      &.active {
+        color: lighten($control-text, 10%);
+        background-color: $active-tab-color;
+      }
+    }
+  }
 }
 
-.drag_widget {
-	display: inline-block;
-	width: 0.5em;
-	min-width: 6px;
-	vertical-align: top;
-	margin: 0 2px;
-	cursor: n-resize;
-}
+.split-gutter {
+  background-color: darken($panel-bg, 1%);
 
+  &:hover {
+    background-color: lighten($panel-bg, 10%);
+  }
+  &.dragging {
+    background-color: $accent;
+  }
+}

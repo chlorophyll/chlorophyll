@@ -1,14 +1,14 @@
 <template>
-    <div id="mapping-manager" class="litepanel inspector">
+    <div id="mapping-manager" class="panel">
         <split-pane direction="vertical" :initial-split="[200,null]">
-            <div slot="first" class="browser-container litepanel">
-                <mapping-browser
+            <div slot="first" class="browser-container">
+                <mapping-browser class="browser"
                     :mappings="mapping_list"
                     :groups="group_list"
                     :selected.sync="selected_id">
                 </mapping-browser>
-                <div class="browser-button-container widget wcontent full">
-                    <button class="litebutton single"
+                <div class="control-row browser-button-container">
+                    <button class="fill"
                             :disabled="!can_create_group"
                             @click="newGroupFromSelection()">
                         New group from selection
@@ -39,10 +39,6 @@ import MappingConfig from '@/components/mapping/mapping_config';
 import GroupConfig from '@/components/mapping/group_config';
 import SplitPane from '@/components/widgets/split';
 
-/*
- * TODO: Once tree and splitter components pulled in, this will contain the
- * top group/mapping browser component and the bottom config component.
- */
 export default {
     name: 'mapping-manager',
     store,
@@ -91,14 +87,18 @@ export default {
 
 <style scoped>
 .browser-container {
-    position: relative;
+    display: flex;
+    flex-direction: column;
     height: 100%;
-    padding-bottom: 45px;
+}
+
+.browser-container .browser {
+    flex: 1;
+    overflow-y: scroll;
 }
 
 .browser-button-container {
-    position: absolute;
-    bottom: 0;
+    align-content: flex-end;
 }
 
 </style>

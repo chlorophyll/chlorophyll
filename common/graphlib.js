@@ -7,7 +7,7 @@ let graphs = new Map();
 
 export const GraphLib = {
     registerNodeType(path, constructor) {
-        if (!GraphNodeBase.isPrototypeOf(constructor))
+        if (!GraphNode.isPrototypeOf(constructor))
             throw new Error('All registered node types must inherit from GraphNode');
 
         node_types.set(path, constructor);
@@ -52,8 +52,8 @@ export class GraphBase {
         this.id = id;
         graphs.set(this.id, this);
 
-        this.global_inputs = new Immutable.Map();
-        this.global_outputs = new Immutable.Map();
+        this.global_inputs = new Map();
+        this.global_outputs = new Map();
 
         this.refs = new Map();
 
@@ -75,14 +75,12 @@ export class GraphBase {
     }
 
     addGlobalInput(name, type) {
-        this.global_inputs = this.global_inputs.set(name,
-            { name, type, data: null }
-        );
+        this.global_inputs.set(name, { name, type, data: null });
         this.emit('global-input-added', { name, type });
     }
 
     removeGlobalInput(name) {
-        this.global_inputs = this.global_inputs.delete(name);
+        this.global_inputs.delete(name);
         this.emit('global-input-removed', { name });
     }
 
@@ -95,14 +93,12 @@ export class GraphBase {
     }
 
     addGlobalOutput(name, type) {
-        this.global_outputs = this.global_outputs.set(name,
-            { name, type, data: null }
-        );
+        this.global_outputs.set(name, { name, type, data: null });
         this.emit('global-output-added', { name, type });
     }
 
     removeGlobalInput(name) {
-        this.global_outputs = this.global_outputs.delete(name);
+        this.global_outputs.delete(name);
         this.emit('global-output-removed', { name });
     }
     setGlobalOutputData(name, data) {
@@ -112,23 +108,19 @@ export class GraphBase {
         return this.global_outputs.get(name).data;
     }
 
-    addNode(path, options = {}) {
+    addNode(path, id, vm_factory, options = {}) {
         let Ctor = node_types.get(path);
 
         if (!Ctor) {
-            throw Error('unknown node type' + path);
+            throw new Error('unknown node type' + path);
         }
 
-        const { id, pos, ref } = options;
+        const { pos, ref } = options;
 
         const graph = this;
         const title = options.title || Ctor.title || path;
 
-        if (id === undefined) {
-            throw new Error('nodes require an id');
-        }
-
-        let node = new Ctor({graph, id, title, pos, path});
+        let node = new Ctor({graph, id, title, pos, path, vm_factory});
 
         this.nodes = this.nodes.set(node.id, node);
 
@@ -227,7 +219,7 @@ export class GraphBase {
 
         if (prev_edge) {
             this.edges_by_src = this.edges_by_src.updateIn(
-                [src_id, src_slot],
+                [prev_edge.src_id, prev_edge.src_slot],
                 Immutable.Set(), (edgelist) => edgelist.delete(prev_edge)
             );
         }
@@ -244,7 +236,7 @@ export class GraphBase {
         this.emit('edge-added', { edge });
     }
 
-    connect(id, src, src_slot, dst, dst_slot) {
+    connect(id, src, src_slot, dst, dst_slot, no_toposort=false) {
         let src_type = src.output_info[src_slot].type;
         let dst_type = dst.input_info[dst_slot].type;
 
@@ -382,8 +374,8 @@ export class GraphBase {
 
     save() {
         const extract = ({name, type}) => ({name, type});
-        const global_inputs = Array.from(this.global_inputs.map(extract).values());
-        const global_outputs = Array.from(this.global_outputs.map(extract).values());
+        const global_inputs = Array.from(this.global_inputs.values()).map(extract);
+        const global_outputs = Array.from(this.global_outputs.values()).map(extract);
 
         let edges = [];
         this.forEachEdge((edge) => edges.push({...edge}));
@@ -439,7 +431,6 @@ export class GraphBase {
     }
 }
 
-
 const DEFAULT_CONFIG = {
     color: '#999',
     bgcolor: '#444',
@@ -447,7 +438,7 @@ const DEFAULT_CONFIG = {
     removable: true,
 };
 
-export class GraphNodeBase {
+export class GraphNode {
     // `state` is programmatically set stuff that should be reactive
     // `settings` is user-controllable stuff that should be reactive
     // other fields are not reactive
@@ -469,8 +460,8 @@ export class GraphNodeBase {
         };
     }
 
-    constructor({graph, id, title, pos, path},
-                vm_factory, inputs, outputs,
+    constructor({graph, id, title, pos, path, vm_factory},
+                inputs, outputs,
                 {config = {}, properties = {}} = {}) {
 
         this.graph = graph;

@@ -1,28 +1,25 @@
 <template>
-  <div class="widget full">
-    <span class="wname">{{ title }}</span>
-    <div class="info_content wcontent">
-      <div class="dragger"
-           v-bind:style="dragger_style"
-           v-for="(val, idx) in vector">
-        <span class="inputfield full">
-            <input class="text number full"
-                   :value="val"
-                   :disabled="disabled"
-                   @change="updateValue(idx, $event.target.value);
-                            $emit('change', vector);">
-            <div class="drag_widget"
-                 v-if="!disabled"
-                 @mousedown="startDrag(idx, $event)">
-            </div>
-        </span>
+  <div class="control-row">
+    <label>{{ title }}</label>
+    <template v-for="(val, idx) in vector">
+      <div class="control">
+        <input type="text" size="2" class="fill"
+               :value="val"
+               :disabled="disabled"
+               @change="updateValue(idx, $event.target.value);
+                        $emit('change', vector);">
+        <div class="drag-widget"
+             v-if="!disabled"
+             @mousedown="startDrag(idx, $event)">
+        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
 <script>
 import Vue from 'vue';
+import Util from 'chl/util';
 
 const RANGE_NPIXELS = 400;
 export default {
@@ -31,10 +28,8 @@ export default {
     data() {
         return {
             vector: this.value,
-            dragger_style: {
-                'width': `calc(${Math.floor(100 / this.value.length)}% - 2px)`,
-                'margin-left': '0px'
-            }
+            // TODO make a prop
+            precision: 3,
         };
     },
     computed: {
@@ -44,16 +39,20 @@ export default {
     },
     watch: {
         value(new_value) {
-            this.vector = new_value;
+            this.vector = new_value.map((x) => Util.roundTo(x, this.precision));
         },
     },
     methods: {
         updateValue(i, val) {
+            if (typeof val !== 'number')
+              val = parseInt(val);
+
             if (typeof this.min !== 'undefined' && val <= this.min) {
                 val = this.min;
             } else if (typeof this.max !== 'undefined' && val >= this.max) {
                 val = this.max;
             }
+            val = Util.roundTo(val, this.precision);
             Vue.set(this.vector, i, val);
             this.$emit('input', this.vector);
         },
@@ -85,8 +84,5 @@ export default {
 };
 </script>
 
-<style scoped>
-.wname {
-    display: inline;
-}
+<style>
 </style>

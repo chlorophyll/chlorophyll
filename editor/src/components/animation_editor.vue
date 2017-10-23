@@ -1,4 +1,4 @@
-<template><div id="sequencer" class="litepanel">
+<template><div id="sequencer" class="panel">
 
 <select v-model="selected_anim">
     <option disabled value="">Select animation:</option>

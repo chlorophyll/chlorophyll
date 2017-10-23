@@ -1,18 +1,18 @@
 <template>
 <div v-show="show"
-     class="dialog-box litedialog"
+     class="dialog-box panel"
      v-bind:style="{ left: `${x}px`, top: `${y}px`, width }">
-    <div class="panel-header drag-handle" @mousedown="startDrag">
+    <div class="header drag-handle" @mousedown="startDrag">
         {{ title }}
     </div>
     <div class="content">
         <slot></slot>
     </div>
     <div class="panel-footer">
-        <button v-if="ok_btn" class="litebutton" @click="close(true)">
+        <button v-if="ok_btn" @click="close(true)">
             OK
         </button>
-        <button v-if="cancel_btn" class="litebutton" @click="close(false)">
+        <button v-if="cancel_btn" @click="close(false)">
             Cancel
         </button>
     </div>
@@ -41,7 +41,7 @@ export default {
         },
         width: {
             type: String,
-            default: '300px',
+            default: '350px',
         },
         pos: {
             type: Object,
@@ -97,11 +97,13 @@ export default {
 <style scoped>
 .dialog-box {
     position: fixed;
+    width: 100%;
     height: auto;
     min-width: 100px;
     min-height: 50px;
-    overflow: auto;
+    overflow: show;
     display: block;
+    z-index: 100;
 
     border: 1px solid #202020;
 }

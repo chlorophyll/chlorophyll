@@ -1,4 +1,4 @@
-import GraphLib, { GraphNode } from 'chl/graphlib';
+import GraphLib, { GraphNode } from '@/common/graphlib';
 import Units from '@/common/units';
 
 let node_types = [];

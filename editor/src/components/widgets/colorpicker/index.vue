@@ -1,6 +1,6 @@
 <template>
     <span>
-    <input ref="input"
+    <input ref="input" class="control"
            :value="value"
            :style="input_style"
            readonly="true"

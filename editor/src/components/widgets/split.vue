@@ -1,11 +1,11 @@
 <template>
     <div class="split" :class="[direction]" @mousemove="dragMove" @mouseup="dragEnd">
-        <div class="split-item" :style="firstStyle" :class="[direction]">
+        <div class="split-item" :style="splitStyles[0]" :class="[direction]">
             <slot name="first" />
         </div>
-        <div class="gutter" @mousedown="dragStart"
-             :style="gutterStyle" :class="[direction, {dragging: dragging}]"/>
-            <div class="split-item" :style="secondStyle" :class="[direction]">
+        <div class="split-gutter" @mousedown="dragStart"
+             :class="[direction, {dragging: dragging}]"/>
+        <div class="split-item" :style="splitStyles[1]" :class="[direction]">
             <slot name="second" />
         </div>
     </div>
@@ -20,7 +20,6 @@ export default {
     },
     data() {
         return {
-            gutter: 2,
             split: 50,
             dragging: false
         };
@@ -36,35 +35,19 @@ export default {
         this.$nextTick(() => this.resize());
     },
     computed: {
-        splitKey() {
-            return this.direction == 'horizontal' ? 'width' : 'height';
-        },
-        gutterStyle() {
-            let out = {};
-            out[this.splitKey] = `${this.gutter}px`;
-            return out;
-        },
-        firstStyle() {
-            let val;
-            if (this.initialSplit[0] === null) {
-                val = `calc(100% - ${this.split}px - ${this.gutter}px)`;
-            } else {
-                val = `${this.split}px`;
-            }
-            let out = {};
-            out[this.splitKey] = val;
-            return out;
-        },
-        secondStyle() {
-            let val;
-            if (this.initialSplit[1] === null) {
-                val = `calc(100% - ${this.split}px - ${this.gutter}px)`;
-            } else {
-                val = `${this.split}px`;
-            }
-            let out = {};
-            out[this.splitKey] = val;
-            return out;
+        splitStyles() {
+            return this.initialSplit.map((init) => {
+                if (init === null)
+                    return { flex: 'auto' };
+
+                const style = { flex: 'initial' };
+                const size = `${this.split}px`;
+                if (this.direction === 'horizontal')
+                    style.width = size;
+                else
+                    style.height = size;
+                return style;
+            });
         },
     },
     methods: {
@@ -96,52 +79,38 @@ export default {
     }
 };
 </script>
-<style scoped>
-div {
-    box-sizing: border-box;
-}
+<style lang="scss">
+@import "~@/style/aesthetic.scss";
 
 .split {
+    position: absolute;
     display: flex;
+    align-items: stretch;
     width: 100%;
     height: 100%;
+    &.horizontal {
+        flex-direction: row;
+    }
+
+    &.vertical {
+        flex-direction: column;
+    }
 }
 
-.split.horizontal {
-    flex-direction: row;
-}
-
-.split-item.horizontal {
-    height: 100%;
+.split-gutter {
+    flex: initial;
+    &.horizontal {
+        cursor: col-resize;
+        width: $split-gutter-size;
+    }
+    &.vertical {
+        cursor: row-resize;
+        height: $split-gutter-size;
+    }
 }
 
 .split-item {
     position: relative;
     overflow: auto;
 }
-
-.split.vertical {
-    flex-direction: column;
-}
-
-.split-item.vertical {
-    width: 100%;
-}
-
-.gutter {
-    background-color: #222;
-}
-
-.gutter.horizontal {
-    cursor: col-resize;
-}
-
-.gutter.vertical {
-    cursor: row-resize;
-}
-
-.gutter.dragging, .gutter:hover {
-    background-color: #888;
-}
-
 </style>

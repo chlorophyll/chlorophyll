@@ -1,8 +1,7 @@
-import Util from 'chl/util';
-import GraphLib, { GraphNode } from 'chl/graphlib';
+import Range from '@/common/util/range';
 import Units from '@/common/units';
+import GraphLib, { GraphNode } from '@/common/graphlib';
 
-import OscillatorPlotter from './plotter';
 import Frequency from './util';
 
 let node_types = [];
@@ -20,31 +19,12 @@ function make_oscillator(name, waveform) {
 
             const properties = {
                 frequency,
-                amplitude: new Util.Range(0, 1, 0, 1),
+                amplitude: new Range(0, 1, 0, 1),
                 phase: new Units.Percentage(0),
             };
             super(options, inputs, outputs, { properties });
 
-            // rewrite this to use Vue...
-            const width = 325;
-            const height = 200;
-            let oscElement = document.createElement('div');
-            oscElement.style.width = width+'px';
-            oscElement.style.height = height+'px';
-            oscElement.style.backgroundColor = '#222';
-            oscElement.style.clear = 'both';
-            oscElement.style.marginBottom = '2em';
-
-            let plotter = new OscillatorPlotter(oscElement, this, {
-                width: width,
-                height: height,
-            });
-
-            this.visualization = {
-                enabled: () => this.numEdgesToNode() == 0,
-                root: oscElement,
-                update: plotter.plot
-            };
+            // TODO: rewrite waveform plotter as vue component
         }
 
         value(t) {

@@ -1,9 +1,8 @@
 import store from 'chl/vue/store';
 
 import { SchemaDefs } from 'chl/schemas';
-import { getSaveField } from 'js/savefile';
 import { mappingTypes } from '@/common/mapping';
-import { saveMapping } from 'chl/mapping';
+import { saveMapping, saveAllMappings } from 'chl/mapping';
 
 import 'chl/testing';
 
@@ -33,7 +32,7 @@ describe('Mapping module', () => {
     });
 
     it("correctly restores a saved snapshot", () => {
-        let saved = getSaveField('mappings').save();
+        let saved = saveAllMappings();
 
         for (let id = 0; id < num_mapping_types; id++) {
             store.commit('mapping/delete', { id });
@@ -46,7 +45,7 @@ describe('Mapping module', () => {
     });
 
     it("correctly removes objects when restoring", () => {
-        let saved = getSaveField('mappings').save();
+        let saved = saveAllMappings();
 
         let id = num_mapping_types + 2;
 

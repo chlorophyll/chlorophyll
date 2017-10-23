@@ -1,7 +1,6 @@
 <template>
 <div id="mapping-browser">
   <div class="panel-header">Mapping Browser</div>
-  <div class="tree-container">
     <tree-view :items="treeItems">
       <template scope="props">
         <div class="item ltreeitem"
@@ -18,7 +17,6 @@
         </div>
       </template>
     </tree-view>
-  </div>
 </div>
 </template>
 

@@ -1,62 +1,63 @@
 <template>
-    <div class="root">
-    <div class="topwidgets">
-        <button
-         @click="toggleAnimation"
-         :disabled="!can_preview"
-         class="iconbutton litebutton material-icons">
-            {{ run_text }}
-        </button>
-        <button
-         @click="stopAnimation"
-         class="iconbutton litebutton material-icons">
-            stop
-        </button>
-        <label for="preview-map-list">Preview map</label>
-        <span class="inputcombo">
-        <select id="preview-map-list" v-model="preview_map_id">
-            <template v-for="mapping in mappings">
-                <option :value="mapping.id">{{ mapping.name }}</option>
-            </template>
-        </select>
-        </span>
-        <button @click="autolayout">Autolayout</button>
-        <button @click="resetZoom">Reset zoom</button>
-        <button @click="zoomToFit">Zoom to fit</button>
+<div id="pattern-composer">
+    <div class="panel inline" id="top-controls">
+      <div class="control-row">
+          <button @click="toggleAnimation"
+                  :disabled="!can_preview"
+                  class="square highlighted material-icons">
+              {{ run_text }}
+          </button>
+          <button @click="stopAnimation"
+                  class="square material-icons">
+              stop
+          </button>
+          <label for="preview-map-list">Preview map</label>
+          <span class="inputcombo">
+          <select class="control" id="preview-map-list"
+                  v-model="preview_map_id">
+              <template v-for="mapping in mappings">
+                  <option :value="mapping.id">{{ mapping.name }}</option>
+              </template>
+          </select>
+          </span>
+          <button @click="autolayout">Autolayout</button>
+          <button @click="resetZoom">Reset zoom</button>
+          <button @click="zoomToFit">Zoom to fit</button>
+      </div>
     </div>
-    <split-pane class="mainview" direction="horizontal" :initial-split="[210, null]">
-        <tree slot="first" :items="node_list">
-        <template scope="props">
-            <div class="item"
-                draggable="true"
-                v-if="props.leaf"
-                @dragstart="dragNode(props.item, $event)">
-                {{ props.item.label }}
-            </div>
-            <div v-else class="item">
-                {{ props.item.label }}
-            </div>
-        </template>
-        </tree>
-        <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
-    </split-pane>
+    <div class="panel" id="mainview">
+      <split-pane direction="horizontal" :initial-split="[210, null]">
+          <tree slot="first" :items="node_list">
+            <template scope="props">
+                <div class="item"
+                    draggable="true"
+                    v-if="props.leaf"
+                    @dragstart="dragNode(props.item, $event)">
+                    {{ props.item.label }}
+                </div>
+                <div v-else class="item">
+                    {{ props.item.label }}
+                </div>
+            </template>
+          </tree>
+          <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
+      </split-pane>
+    </div>
     <pattern-preview v-if="can_preview"
-                     :model="cur_model"
                      :pattern="cur_pattern"
                      :mapping="preview_mapping"
                      :runstate="runstate" />
-    </div>
+  </div>
 </template>
 <script>
 import { mapGetters } from 'vuex';
 import { mappingUtilsMixin } from 'chl/mapping';
-import { currentModel } from 'chl/model';
 import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graphcanvas';
-import register_nodes from 'chl/patterns/registry';
+import register_nodes from '@/common/nodes/registry';
 import { RunState, PatternPreview } from 'chl/patterns';
-import GraphLib from 'chl/graphlib';
+import GraphLib from '@/common/graphlib';
 import store from 'chl/vue/store';
 
 function getNodeList() {
@@ -94,9 +95,6 @@ export default {
         },
         can_preview() {
             return this.preview_mapping !== null && this.cur_pattern !== null;
-        },
-        cur_model() {
-            return currentModel;
         },
         cur_graph() {
             if (this.cur_pattern === null)
@@ -169,36 +167,27 @@ export default {
 };
 </script>
 <style scoped>
-.root {
+#pattern-composer {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     height: 100%;
+    width: 100%;
     position: relative;
     user-select: none;
 }
-.mainview {
-    flex: 1 1 auto;
+
+#top-controls {
+    flex: initial;
 }
-.topwidgets {
-    flex: 0 1 auto;
-    padding-top: 4px;
-    padding-bottom: 4px;
+
+#mainview {
+    flex: auto;
+    display: block;
+    position: relative;
+    height: 100%;
 }
-.iconbutton {
-    width: 30px;
-}
-.inputcombo {
-	border-bottom: 1px solid #666;
-	border-top: 1px solid #111;
-	border-radius: 4px;
-    display: inline-block;
-}
-.inputcombo select {
-    background-color: #222;
-    border: 0;
-    color: #5af;
-    width: 10em;
-}
+
 .item {
     cursor: pointer;
     padding: 0;

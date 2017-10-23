@@ -1,4 +1,4 @@
-import GraphLib, { GraphNode } from 'chl/graphlib';
+import GraphLib, { GraphNode } from '@/common/graphlib';
 import Units from '@/common/units';
 
 let node_types = [];
@@ -41,6 +41,6 @@ class TimeInput extends GraphNode {
 
 TimeInput.title = 'TimeInput';
 
-export default function register_util_nodes() {
+export default function register_pixel_stage_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };

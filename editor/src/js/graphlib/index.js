@@ -1,11 +1,9 @@
 import Vue from 'vue';
 import Util from 'chl/util';
 
-import { GraphLib, GraphBase, GraphNodeBase } from '@/common/graphlib';
+import { GraphLib, GraphBase } from '@/common/graphlib';
 import { registerSaveField } from 'chl/savefile';
 import { newgid } from 'chl/vue/store';
-
-export default GraphLib;
 
 export const GraphConstants = {
     NODE_SLOT_HEIGHT: 15,
@@ -36,20 +34,59 @@ export class Graph extends GraphBase {
     }
 
     addNode(path, options={}) {
-        if (options.id === undefined)
-            options.id = newgid();
+        let { id } = options;
+        if (id === undefined)
+            id = newgid();
 
         if (options.pos === undefined) {
             options.pos = GraphConstants.DEFAULT_POSITION.concat();
         }
 
-        return super.addNode(path, options);
+        return super.addNode(path, id, makeNodeVue, options);
     }
 
     static restore(snapshot) {
         const graph = new Graph(snapshot.id);
         graph.load_snapshot(snapshot);
         return graph;
+    }
+
+    copy() {
+        let child = new Graph();
+
+        for (let {name, type} of this.global_inputs.values()) {
+            child.addGlobalInput(name, type);
+        }
+        for (let {name, type} of this.global_outputs.values()) {
+            child.addGlobalOutput(name, type);
+        }
+
+        let nodemap = new Map(); // parent id => child id
+
+        this.forEachNode((node) => {
+            let cnode = child.addNode(node.path, {
+                pos: [...node.vm.pos],
+                title: node.vm.title,
+            });
+            nodemap.set(node.id, cnode.id);
+        });
+
+        this.forEachEdge((edge) => {
+            const child_edge = {
+                id: newgid(),
+                src_id: nodemap.get(edge.src_id),
+                src_slot: edge.src_slot,
+                dst_id: nodemap.get(edge.dst_id),
+                dst_slot: edge.dst_slot
+            };
+            child._insertEdge(child_edge);
+            child._notifyConnect(child_edge);
+        });
+
+        for (let [ref, id] of this.refs) {
+            child.refs.set(ref, nodemap.get(id));
+        }
+        return child;
     }
 }
 
@@ -117,7 +154,8 @@ function makeNodeVue(graph, node, data) {
                 return is_input ? 0 : this.width;
             },
             connectionY(slot, is_input) {
-                 return GraphConstants.NODE_TITLE_HEIGHT + 10 + slot * GraphConstants.NODE_SLOT_HEIGHT;
+                return (GraphConstants.NODE_TITLE_HEIGHT + 10 +
+                        slot * GraphConstants.NODE_SLOT_HEIGHT);
             },
 
             canvasPos(pos) {
@@ -125,12 +163,6 @@ function makeNodeVue(graph, node, data) {
             },
         }
     });
-}
-
-export class GraphNode extends GraphNodeBase {
-    constructor(graph_info, inputs, outputs, options) {
-        super(graph_info, makeNodeVue, inputs, outputs, options);
-    }
 }
 
 registerSaveField('graphs', {

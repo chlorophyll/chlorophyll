@@ -1,7 +1,6 @@
+import clone from 'clone';
 import * as Projection from './projection';
 import * as Transform from './transform';
-
-import Util from 'chl/util';
 
 function coordInfo(map_type, coord_type) {
     return mappingTypes[map_type].coord_types[coord_type];
@@ -34,21 +33,20 @@ export const mappingTypes = {
     },
 };
 
-export function restoreMappings(state, mappings) {
+export function restoreAllMappings(snapshot) {
     let new_mapping_list = [];
     let new_mappings = {};
 
-    for (let mapping of mappings) {
+    for (let mapping of snapshot) {
         new_mappings[mapping.id] = restoreMapping(mapping);
         new_mapping_list.push(mapping.id);
     }
-    state.mappings = new_mappings;
-    state.mapping_list = new_mapping_list;
+    return { new_mappings, new_mapping_list };
 }
 
 
 export function restoreMapping(mappingsnap) {
-    return Util.clone(mappingsnap);
+    return clone(mappingsnap);
 }
 
 export function getMappedPoints(model, mapping, coord_type) {

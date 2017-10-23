@@ -1,5 +1,5 @@
 <template>
-  <div v-bind:class="{'active': active}">
+  <div class="tab-container" v-bind:class="{'active': active}">
     <slot></slot>
   </div>
 </template>
@@ -37,17 +37,15 @@ export default {
     }
 };
 </script>
-<style scoped>
+<style scoped lang="scss">
 div {
-    display: none;
-    background-color: #333;
-    padding-left: 2px;
-    padding-right: 2px;
-    flex: 1 1 auto;
-}
+  display: none;
+  width: 100%;
+  height: 100%;
 
-div.active {
+  &.active {
     display: block;
+  }
 }
 
 </style>

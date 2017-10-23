@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "ajv": "^5.2.2",
+    "clone": "^2.1.1",
     "concat-stream": "^1.6.0",
     "d3": "^4.9.1",
     "electron-config": "^1.0.0",
@@ -99,6 +100,7 @@
     "json-loader": "^0.5.4",
     "multispinner": "^0.2.1",
     "node-sass": "^4.5.3",
+    "resolve-url-loader": "^2.1.0",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.18.1",
     "url-loader": "^0.5.7",
@@ -116,6 +118,7 @@
       "vue"
     ],
     "moduleNameMapper": {
+      "^@/common/(.+)": "<rootDir>/../common/$1",
       "^@/(.+)": "<rootDir>/src/$1",
       "^chl/(.+)": "<rootDir>/src/js/$1"
     },

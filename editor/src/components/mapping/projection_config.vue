@@ -1,7 +1,7 @@
 <template>
-<div class="litepanel inspector">
+<div class="panel">
     <vector-input title="Plane Angle"
-                  min="-180" max="180"
+                  min="0" max="max_angle"
                   :value="value.plane_angle"
                   @input="updateProjectionAndCamera" />
     <vector-input title="Origin"
@@ -10,7 +10,7 @@
                   :value="value.origin">
     </vector-input>
     <vector-input title="Rotation"
-                  :min="0" :max="6.28"
+                  :min="0" :max="max_angle"
                   :value="[value.rotation]"
                   @input="([angle]) => updateProjection({ angle })">
     </vector-input>
@@ -40,6 +40,11 @@ export default {
     name: 'projection-config',
     props: ['value'],
     components: { VectorInput, ViewportAxes },
+    data() {
+        return {
+            max_angle: 2 * Math.PI
+        };
+    },
     computed: {
         proj_widget() {
             const origin_3d = new THREE.Vector3();
@@ -77,9 +82,13 @@ export default {
             this.updateProjection(this.proj_widget);
         },
         updateProjection({x, y, angle}) {
-            x = x || this.proj_widget.x;
-            y = y || this.proj_widget.y;
-            angle = angle || this.proj_widget.angle;
+            if (x === undefined)
+                x = this.proj_widget.x;
+            if (y === undefined)
+                y = this.proj_widget.y;
+            if (angle === undefined)
+                angle = this.proj_widget.angle;
+
             const proj = getCameraProjection(this.activeScreen.camera, {x, y, angle});
             this.$emit('input', proj);
         },

@@ -5,46 +5,9 @@ import {
     Vector3,
 } from 'three';
 
-import { addSerializableType } from '@/common/util/serialization';
-
 let _scratchCanvas = null;
 
 let Util = {
-    clone: function(obj) {
-        // Handle the 3 simple types, and null or undefined
-        if (null == obj || 'object' != typeof obj) return obj;
-
-        // Handle Date
-        if (obj instanceof Date) {
-            let copy = new Date();
-            copy.setTime(obj.getTime());
-            return copy;
-        }
-
-        // Handle Array
-        if (obj instanceof Array) {
-            let copy = [];
-            for (let i = 0, len = obj.length; i < len; i++) {
-                copy[i] = Util.clone(obj[i]);
-            }
-            return copy;
-        }
-
-        if (obj.clone) {
-            return obj.clone();
-        }
-
-        // Handle Object
-        if (obj instanceof Object) {
-            let copy = {};
-            for (let attr in obj) {
-                if (obj.hasOwnProperty(attr)) copy[attr] = Util.clone(obj[attr]);
-            }
-            return copy;
-        }
-
-        throw new Error('Unable to copy obj! Its type isn\'t supported.');
-    },
     map: function(value, fromLow, fromHigh, toLow, toHigh) {
         return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
     },
@@ -188,23 +151,14 @@ let Util = {
         delete elem.saved_background;
     },
 
-    Range: function(min, max, lower, upper) {
-        this.min = min;
-        this.max = max;
-        this.lower = lower;
-        this.upper = upper;
+    roundTo(n, digits) {
+        if (digits === undefined) {
+            digits = 0;
+        }
 
-        this.toString = function() {
-            return `${this.lower.toFixed(2)} - ${this.upper.toFixed(2)}`;
-        };
-
-        this.serialize = function() {
-            return {min: this.min, max: this.max, lower: this.lower, upper: this.upper};
-        };
-
-        this.constructor.deserialize = function(obj) {
-            return new Util.Range(obj.min, obj.max, obj.lower, obj.upper);
-        };
+        const multiplier = Math.pow(10, digits);
+        const parsed = parseFloat((n * multiplier).toFixed(11));
+        return Math.round(parsed) / multiplier;
     },
 
     uniqueName: function(prefix, objlist) {
@@ -235,9 +189,17 @@ let Util = {
 
         return '#'+r+g+b;
     },
+    copyName(name) {
+        const re = / \(copy (\d+)\)$/;
+        const result = re.exec(name);
+        if (!result) {
+            return `${name} (copy 1)`;
+        }
+        const copydigits = parseInt(result[1])+1;
+        const prefix = name.substring(0, result.index);
+        return `${prefix} (copy ${copydigits})`;
+    }
 };
-
-addSerializableType('Range', Util.Range);
 
 Util.EventDispatcher = function() {
     this.addEventListener = function(type, callback) {

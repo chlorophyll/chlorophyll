@@ -5,21 +5,6 @@ import { registerSaveField } from 'chl/savefile';
 
 Vue.use(Vuex);
 
-const selectionStore = {
-    namespaced: true,
-    state: {
-        active: [],
-    },
-    mutations: {
-        clear(state) {
-            state.active = [];
-        },
-        set(state, sel) {
-            state.active = sel;
-        }
-    }
-};
-
 registerSaveField('next_guid', {
     save() {
         return store.state.next_guid;
@@ -30,9 +15,6 @@ registerSaveField('next_guid', {
 });
 
 const store = new Vuex.Store({
-    modules: {
-        selection: selectionStore,
-    },
     state: {
         /*
          * Things should probably live in the global store if:

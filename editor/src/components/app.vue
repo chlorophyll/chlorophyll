@@ -10,7 +10,7 @@
                       :is-enabled="true"
                       :hotkey="Hotkey.camera"
                       :momentary-hotkey="Hotkey.momentary_camera"><camera /></tool>
-                <toolbox-separator />
+                <div class="separator" />
                 <tool label="Marquee"
                       :hotkey="Hotkey.select_marquee"><marquee-selection /></tool>
                 <tool label="Line"
@@ -27,8 +27,9 @@
                     :initial-split="[null, Const.sidebar_size]">
             <tab-set slot="first">
                 <tab title="Pattern Editor"><pattern-editor /></tab>
+                <tab title="Another tab">lololololol</tab>
             </tab-set>
-            <div slot="second"><pattern-list /></div>
+            <pattern-list slot="second" />
         </split-pane>
     </split-pane>
 </template>
@@ -43,9 +44,8 @@ import LineSelection from '@/components/tools/selection/line';
 import PlaneSelection from '@/components/tools/selection/plane';
 import Camera from '@/components/tools/camera';
 
-import Toolbox from '@/components/widgets/toolbox';
-import ToolboxSeparator from '@/components/widgets/toolbox/separator';
-import Tool from '@/components/widgets/toolbox/tool';
+import Toolbox from '@/components/tools/toolbox';
+import Tool from '@/components/tools/toolbox/tool';
 
 import TabSet from '@/components/widgets/tab-set';
 import Tab from '@/components/widgets/tab-set/tab';
@@ -70,7 +70,6 @@ export default {
         PatternList,
         SplitPane,
         Toolbox,
-        ToolboxSeparator,
         Tool,
         TabSet,
         Tab,
