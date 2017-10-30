@@ -78,21 +78,10 @@ export default {
             let anim = new Animation(id);
             this.animations[id] = anim;
         },
-        /*
         // TODO these should eventually be computed properties from global store
         listMappings() {
-            return groupManager.listMappings();
         },
         listPatterns() {
-            let pattern_list = [];
-            patternManager.patterns.forEach((pattern, id) => {
-                pattern_list.push({
-                    title: pattern.name,
-                    pattern: pattern
-                });
-            });
-
-            return pattern_list;
         },
         addAssignment() {
             if (this.selected_anim === null) {
@@ -104,13 +93,8 @@ export default {
                 pattern: null
             });
         }
-        */
     }
 };
-/*
- * Where do we store data?
- * - watchers make necessary delete/cleanup/etc. calls
- */
 </script>
 
 <style>

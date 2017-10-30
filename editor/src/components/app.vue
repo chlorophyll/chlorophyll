@@ -27,7 +27,7 @@
                     :initial-split="[null, Const.sidebar_size]">
             <tab-set slot="first">
                 <tab title="Pattern Editor"><pattern-editor /></tab>
-                <tab title="Another tab">lololololol</tab>
+                <tab title="Sequencer"><timeline-sequencer /></tab>
             </tab-set>
             <pattern-list slot="second" />
         </split-pane>
@@ -53,14 +53,14 @@ import Tab from '@/components/widgets/tab-set/tab';
 import MappingManager from '@/components/mapping_manager';
 import PatternEditor from '@/components/patterns/editor';
 import PatternList from '@/components/patterns/list';
-import AnimationEditor from '@/components/animation_editor';
+import TimelineSequencer from '@/components/sequencer/timeline_sequencer';
 import Viewport from '@/components/viewport';
 
 export default {
     name: 'app',
     mixins: [ConstMixin, HotkeyMixin],
     components: {
-        AnimationEditor,
+        TimelineSequencer,
         Camera,
         MarqueeSelection,
         LineSelection,
