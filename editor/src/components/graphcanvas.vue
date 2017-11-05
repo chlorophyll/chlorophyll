@@ -259,7 +259,7 @@ export default {
                     .translate(translate[0], translate[1])
                     .scale(scale);
 
-                d3.select(this.$el)
+                d3.select(this.$refs.canvas)
                     .transition()
                     .duration(duration)
                     .call(zoom.transform, transform)
@@ -338,7 +338,7 @@ export default {
         },
 
         resetZoom() {
-            d3.select(this.$el)
+            d3.select(this.$refs.canvas)
               .transition()
               .duration(GraphConstants.ANIM_TIME)
               .call(zoom.transform, d3.zoomIdentity);
