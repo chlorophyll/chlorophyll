@@ -117,6 +117,9 @@ function makeNodeVue(graph, node, data) {
             id() {
                 return node.id;
             },
+            graph_node() {
+                return node.graph.getNodeById(node.id);
+            },
             rows() {
                 const inslots = this.inputs.length;
                 const outslots = this.outputs.length;

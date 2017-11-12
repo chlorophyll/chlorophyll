@@ -110,6 +110,7 @@ export default {
 
 .content {
     padding-bottom: 20px;
+    position: relative;
 }
 
 .drag-handle {

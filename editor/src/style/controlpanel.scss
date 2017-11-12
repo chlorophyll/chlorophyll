@@ -386,6 +386,26 @@ button:focus {
       }
     }
 
+    .plotter {
+      @extend .panel-inset;
+      overflow: hidden;
+
+      .path {
+        fill: none;
+        stroke: $highlight;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+        stroke-width: 2;
+      }
+
+      .domain {
+        stroke: $panel-dark;
+      }
+
+      .tick, .tick line {
+        stroke: $panel-bg;
+      }
+    }
 
     .drag-widget {
       flex: initial;

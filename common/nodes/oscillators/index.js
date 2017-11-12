@@ -22,18 +22,26 @@ function make_oscillator(name, waveform) {
                 amplitude: new Range(0, 1, 0, 1),
                 phase: new Units.Percentage(0),
             };
-            super(options, inputs, outputs, { properties });
+
+            const config = {
+                visualization: 'oscillator-plotter',
+            };
+
+            super(options, inputs, outputs, { properties, config });
 
             // TODO: rewrite waveform plotter as vue component
+        }
+
+        waveform(frequency, amplitude, cycles, t) {
+            let phased_t = t + Units.Operations.mul(cycles, frequency.sec);
+            return waveform(frequency, amplitude, phased_t);
         }
 
         value(t) {
             let frequency = this.getInputData(0);
             let amplitude = this.getInputData(1);
             let cycles = this.getInputData(2);
-            let phased_t = t + Units.Operations.mul(cycles, frequency.sec);
-
-            return waveform(frequency, amplitude, phased_t);
+            return this.waveform(frequency, amplitude, cycles, t);
         }
 
         onExecute() {

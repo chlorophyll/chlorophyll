@@ -3,15 +3,22 @@
             <template v-for="(component, slot) in input_components">
                 <component v-bind:is="component" :node="node" :slotnum="slot" />
             </template>
+            <component v-if="node.config.visualization"
+                       v-bind:is="node.config.visualization"
+                       :node="node"
+                       :width="325"
+                       :height="250" />
     </dialog-box>
 </template>
 
 <script>
 import DialogBox from '@/components/widgets/dialog_box';
+import OscillatorPlotter from '@/components/graph/oscillator_plotter';
 
 import GraphTypeUnit from '@/components/graph/types/unit';
 import GraphTypeRange from '@/components/graph/types/range';
 import GraphTypeFrequency from '@/components/graph/types/frequency';
+import GraphTypeNumeric from '@/components/graph/types/numeric';
 
 import clone from 'clone';
 
@@ -35,6 +42,7 @@ export default {
     props: ['node'],
     components: {
         DialogBox,
+        OscillatorPlotter,
         GraphTypeFrequency,
         GraphTypeNumeric,
         GraphTypeRange,
