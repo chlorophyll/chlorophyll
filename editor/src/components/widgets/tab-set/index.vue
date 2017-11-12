@@ -67,7 +67,6 @@ export default {
   flex-shrink: 1;
   flex-basis: fill;
   position: relative;
-  height: 100%;
 }
 
 .tab-bar {
