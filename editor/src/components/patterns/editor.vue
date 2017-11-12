@@ -1,59 +1,65 @@
 <template>
-<div id="pattern-composer">
-    <div class="panel inline" id="top-controls">
-      <div class="control-row">
-          <button @click="toggleAnimation"
-                  :disabled="!can_preview"
-                  class="square highlighted material-icons">
-              {{ run_text }}
-          </button>
-          <button @click="stopAnimation"
-                  class="square material-icons">
-              stop
-          </button>
-          <label for="preview-map-list">Preview map</label>
-          <span class="inputcombo">
-          <select class="control" id="preview-map-list"
-                  v-model="preview_map_id">
-              <template v-for="mapping in mappings">
-                  <option :value="mapping.id">{{ mapping.name }}</option>
-              </template>
-          </select>
-          </span>
-          <button @click="autolayout">Autolayout</button>
-          <button @click="resetZoom">Reset zoom</button>
-          <button @click="zoomToFit">Zoom to fit</button>
-      </div>
-    </div>
-    <div class="panel" id="mainview">
-      <split-pane direction="horizontal" :initial-split="[210, null]">
-          <div slot="first" class="node-browser">
-          <tree :items="node_list" class="tree">
-            <template scope="props">
-                <div class="item"
-                    draggable="true"
-                    v-if="props.leaf"
-                    @dragstart="dragNode(props.item, $event)">
-                    {{ props.item.label }}
+    <split-pane direction="horizontal"
+                :initial-split="[null, Const.sidebar_size]">
+        <div id="pattern-composer" slot="first">
+            <div class="panel inline" id="top-controls">
+                <div class="control-row">
+                    <button @click="toggleAnimation"
+                     :disabled="!can_preview"
+                     class="square highlighted material-icons">
+                        {{ run_text }}
+                    </button>
+                    <button @click="stopAnimation"
+                     class="square material-icons">
+                        stop
+                    </button>
+                    <label for="preview-map-list">Preview map</label>
+                    <span class="inputcombo">
+                        <select class="control" id="preview-map-list"
+                                                v-model="preview_map_id">
+                            <template v-for="mapping in mappings">
+                                <option :value="mapping.id">{{ mapping.name }}</option>
+                            </template>
+                        </select>
+                    </span>
+                    <button @click="autolayout">Autolayout</button>
+                    <button @click="resetZoom">Reset zoom</button>
+                    <button @click="zoomToFit">Zoom to fit</button>
                 </div>
-                <div v-else class="item">
-                    {{ props.item.label }}
-                </div>
-            </template>
-          </tree>
-          </div>
-          <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
-      </split-pane>
-    </div>
-    <pattern-preview v-if="can_preview"
-                     :pattern="cur_pattern"
-                     :mapping="preview_mapping"
-                     :runstate="runstate" />
-  </div>
+            </div>
+            <div class="panel" id="mainview">
+                <split-pane direction="horizontal" :initial-split="[210, null]">
+                    <div slot="first" class="node-browser">
+                        <tree :items="node_list" class="tree">
+                        <template scope="props">
+                            <div class="item"
+                                 draggable="true"
+                                 v-if="props.leaf"
+                                 @dragstart="dragNode(props.item, $event)">
+                                {{ props.item.label }}
+                            </div>
+                            <div v-else class="item">
+                                {{ props.item.label }}
+                            </div>
+                        </template>
+                        </tree>
+                    </div>
+                    <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
+                </split-pane>
+            </div>
+            <pattern-preview v-if="can_preview"
+                             :pattern="cur_pattern"
+                             :mapping="preview_mapping"
+                             :runstate="runstate" />
+        </div>
+        <pattern-list slot="second" />
+    </split-pane>
 </template>
 <script>
+import { ConstMixin } from 'chl/const';
 import { mapGetters } from 'vuex';
 import { mappingUtilsMixin } from 'chl/mapping';
+import PatternList from '@/components/patterns/list';
 import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graphcanvas';
@@ -88,8 +94,8 @@ function getNodeList() {
 
 export default {
     store,
-    components: {Tree, GraphCanvas, SplitPane, PatternPreview},
-    mixins: [mappingUtilsMixin],
+    components: {Tree, GraphCanvas, SplitPane, PatternPreview, PatternList},
+    mixins: [ConstMixin, mappingUtilsMixin],
     computed: {
         run_text() {
             let running = (this.runstate == RunState.Running);

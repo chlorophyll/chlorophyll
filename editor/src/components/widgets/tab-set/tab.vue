@@ -1,5 +1,5 @@
 <template>
-  <div v-bind:class="{'active': active}">
+  <div class="tab-wrapper" v-bind:class="{'active': active}">
     <slot></slot>
   </div>
 </template>
@@ -38,7 +38,7 @@ export default {
 };
 </script>
 <style scoped lang="scss">
-div {
+.tab-wrapper {
   display: none;
   width: 100%;
   height: 100%;
