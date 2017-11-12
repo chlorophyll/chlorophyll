@@ -33,7 +33,7 @@ export default {
         const popup = this.$refs.popup;
         popup.style.position = 'absolute';
         popup.style.top = `calc(${top}px + 1.5em)`;
-        popup.style.left = `${left-100}px`;
+        popup.style.left = `${left-200}px`;
     },
     computed: {
         satval_pos() {
