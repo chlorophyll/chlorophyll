@@ -1,17 +1,19 @@
 <template>
-  <animation-editor />
+    <tracker />
 </template>
 
 <script>
-import AnimationEditor from './animation_editor';
+
+import Tracker from './tracker';
 
 export default {
-    components: { AnimationEditor },
+    name: 'timeline-sequencer',
+    components: { Tracker },
     data() {
         return {};
     }
 };
 </script>
 
-<style>
+<style scoped>
 </style>
