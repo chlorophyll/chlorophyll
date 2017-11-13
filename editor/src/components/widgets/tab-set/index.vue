@@ -59,14 +59,10 @@ export default {
 }
 
 .tab-content {
-  /* 
-   * NOTE: webkit requires width, flex-grow, and flex-basis to be specified
-   * in order for percentage-height to work on children
-   */
   flex-grow: 1;
   flex-shrink: 1;
-  flex-basis: fill;
-  position: relative;
+  display: flex;
+  align-content: stretch;
 }
 
 .tab-bar {
