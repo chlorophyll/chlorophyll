@@ -106,7 +106,9 @@ export default {
     mounted() {
         window.addEventListener('resize', this.resize);
         this.resize();
-        const zoom = d3.zoom().on('zoom', () => this.zoomed());
+        const zoom = d3.zoom()
+            .translateExtent([[0, -Infinity], [Infinity, Infinity]])
+            .on('zoom', () => this.zoomed());
         d3.select(this.$refs.canvas).call(zoom);
     },
     beforeDestroy() {
