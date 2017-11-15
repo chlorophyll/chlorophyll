@@ -2,7 +2,7 @@
     <g class="track">
     <g class="clips">
         <template v-for="clip in clips">
-            <sequencer-clip :clip="clip" />
+            <sequencer-clip :clip="clip" :scale="scale" />
         </template>
     </g>
     </g>
@@ -17,7 +17,7 @@ export default {
     name: 'sequencer-track',
     mixins: [ConstMixin],
     components: { SequencerClip },
-    props: ['index', 'settings', 'clips'],
+    props: ['scale', 'settings', 'clips'],
 };
 </script>
 

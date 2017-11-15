@@ -1,7 +1,7 @@
 <template>
-    <rect :x="frameUnits(clip.start)"
+    <rect :x="position"
           :y="0"
-          :width="frameUnits(clip.duration)"
+          :width="duration"
           :height="Const.timeline_track_height"
           class="clip"
           />
@@ -11,12 +11,16 @@ import Const, { ConstMixin } from 'chl/const';
 export default {
     name: 'sequencer-clip',
     mixins: [ConstMixin],
-    props: ['clip'],
-    methods: {
-        frameUnits(time) {
-            return time*Const.timeline_frame_width;
+    props: ['scale', 'clip'],
+    computed: {
+        position() {
+            return this.scale(this.clip.start);
+        },
+        duration() {
+            const end = this.clip.start + this.clip.duration;
+            return this.scale(end) - this.scale(this.clip.start);
         }
-    }
+    },
 };
 </script>
 <style scoped lang="scss">
