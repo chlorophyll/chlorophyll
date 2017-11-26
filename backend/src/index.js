@@ -18,6 +18,7 @@ setColorSpace('FastLED');
 function runPattern(controller, model, pattern, mapping) {
     console.log('trying to run pattern');
     console.log(model.strip_offsets);
+    console.log(model.num_pixels);
     let patternRunner = new PatternRunner(model, pattern, mapping);
     let time = 0;
 
@@ -38,30 +39,48 @@ function runPattern(controller, model, pattern, mapping) {
     setInterval(frame, 1000/60);
 }
 
+function testPattern(controller) {
+    let cur = 0;
+    let num_pixels = 150;
+    let channel = 0;
+
+    let frame = () => {
+        let buf = new Buffer(num_pixels*3);
+        for (let i = 0; i < num_pixels; i++) {
+                buf[i*3+0] = 0x00;
+                buf[i*3+1] = 0x00;
+                buf[i*3+2] = 0x00;
+            if (i == cur) {
+                buf[i*3 + channel] = 0xff;
+            }
+        }
+        controller.setStrip(0, buf);
+        controller.sync();
+        cur = (cur+1) % num_pixels;
+        if (cur == 0) {
+            channel = (channel + 1) % 3;
+        }
+    }
+    //frame();
+    setInterval(frame, 1000/60);
+}
+
 function main() {
     let registry = new PixelPusherRegistry();
 
     if (argv.command == 'off') {
         registry.on('discovered', (controller) => {
             for (let strip = 0; strip < 4; strip++) {
-                controller.setStrip(strip, new Buffer(68*3));
+                controller.setStrip(strip, new Buffer(150*3));
             }
             controller.sync();
         });
         registry.start();
         return;
-    } else if (argv.command == 'test') {
-        registry.on('discovered', (controller) => {
-            let strip = 0;
-            let buf = Buffer.alloc(68*3);
-            for (let i = 0; i < 68; i++) {
-                buf[3*i+0] = 0;
-                buf[3*i+1] = 0x44;
-                buf[3*i+2] = 0;
-            }
-            controller.setStrip(strip, buf);
-            controller.sync();
-        });
+    }
+
+    if (argv.command == 'test') {
+        registry.on('discovered', testPattern);
         registry.start();
         return;
     }
