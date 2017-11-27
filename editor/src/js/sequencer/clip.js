@@ -1,22 +1,20 @@
-// import { patternManager, groupManager } from 'chl/init';
-
-export default function Animation(id) {
+export default function Clip(id) {
     this.id = id;
-    this.name = `animation-${id}`;
+    this.name = `clip-${id}`;
     /*
      * list of { mapping, pattern } describing a pattern to apply for each
-     * mapping in the animation.
+     * mapping in the clip.
      */
     this.assigned_patterns = [];
 
     /*
-     * Preview an animation, executing & displaying all component patterns.
+     * Preview an clip, executing & displaying all component patterns.
      */
     this.runPreview = function() {
     };
 
     /*
-     * Stop running the current animation, if one exists.
+     * Stop running the current clip, if one exists.
      */
     this.stopPreview = function() {
     };

@@ -1,61 +1,61 @@
 <template><div id="sequencer" class="panel">
 
-<select v-model="selected_anim">
-    <option disabled value="">Select animation:</option>
-    <option v-for="anim in animations" v-bind:value="anim">
-        {{ anim.name }}
+<select v-model="selected_clip">
+    <option disabled value="">Select clip:</option>
+    <option v-for="clip in clips" v-bind:value="clip">
+        {{ clip.name }}
     </option>
 </select>
-<div v-if="selected_anim !== null" id="anim-config-panel">
-    <div v-for="(assmt, idx) in assigned_patterns" class="anim-assign-row">
+<div v-if="selected_clip !== null" id="clip-config-panel">
+    <div v-for="(assmt, idx) in assigned_patterns" class="clip-assign-row">
         <button @click="assigned_patterns.splice(idx, 1)" class="material-icons">
             remove
         </button>
-        <select v-model="assmt.mapping" class="animassign-select">
+        <select v-model="assmt.mapping" class="clipassign-select">
             <option disabled value="">Select mapping</option>
             <option v-for="map in listMappings()" v-bind:value="map.mapping">
                 {{ map.title }}
             </option>
         </select>
-        <select v-model="assmt.pattern" class="anim-assign-select">
+        <select v-model="assmt.pattern" class="clip-assign-select">
             <option disabled value="">Select pattern</option>
             <option v-for="pat in listPatterns()" v-bind:value="pat.pattern">
                 {{ pat.title }}
             </option>
         </select>
     </div>
-    <div class="animassign-row">
+    <div class="clipassign-row">
         <button @click="addAssignment()" class="material-icons">add</button>
     </div>
-    <div class="anim-properties">
+    <div class="clip-properties">
         <!-- TODO -->
     </div>
 </div>
 <div v-else class="text-placeholder">
-    Select an animation to edit.
+    Select an clip to edit.
 </div>
 
 </div></template>
 
 <script>
-import Animation from 'chl/sequencer/animation';
+import Clip from 'chl/sequencer/clip';
 import store, { newgid } from 'chl/vue/store';
 
 export default {
-    name: 'animation-editor',
+    name: 'clip-editor',
     store,
     props: ['mappings'],
     data() {
         return {
-            selected_anim: null,
+            selected_clip: null,
             // id -> object mapping
-            animations: {
+            clips: {
                 '1': {
-                    name: 'some animation',
+                    name: 'some clip',
                     assigned_patterns: []
                 },
                 '2': {
-                    name: 'another animation',
+                    name: 'another clip',
                     assigned_patterns: []
                 },
             },
@@ -64,19 +64,19 @@ export default {
     },
     watch: {
         assigned_patterns(newassmts, oldassmts) {
-            if (this.selected_anim !== null)
-                this.selected_anim.assigned_patterns = newassmts;
+            if (this.selected_clip !== null)
+                this.selected_clip.assigned_patterns = newassmts;
         },
-        selected_anim(newanim, oldanim) {
-            if (newanim !== null)
-                this.assigned_patterns = newanim.assigned_patterns;
+        selected_clip(newclip, oldclip) {
+            if (newclip !== null)
+                this.assigned_patterns = newclip.assigned_patterns;
         }
     },
     methods: {
-        createAnimation() {
+        createClip() {
             const id = newgid();
-            let anim = new Animation(id);
-            this.animations[id] = anim;
+            let clip = new Clip(id);
+            this.clips[id] = clip;
         },
         // TODO these should eventually be computed properties from global store
         listMappings() {
@@ -84,8 +84,8 @@ export default {
         listPatterns() {
         },
         addAssignment() {
-            if (this.selected_anim === null) {
-                console.error('No animation to add to!');
+            if (this.selected_clip === null) {
+                console.error('No clip to add to!');
                 return;
             }
             this.assigned_patterns.push({
