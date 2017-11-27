@@ -9,7 +9,7 @@ import { PatternRunner } from '@/common/patterns';
 
 import { setColorSpace } from '@/common/nodes/fastled/color';
 
-import PixelPusherRegistry from 'pixelpusherjs';
+import PixelPusherRegistry from 'pixelpusher-driver';
 
 register_nodes();
 

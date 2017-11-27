@@ -2015,12 +2015,11 @@ pify@^2.0.0, pify@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/pify/-/pify-2.3.0.tgz#ed141a6ac043a849ea588498e7dca8b15330e90c"
 
-"pixelpusherjs@github:rpearl/pixelpusherjs":
-  version "0.1.0"
-  resolved "https://codeload.github.com/rpearl/pixelpusherjs/tar.gz/d3c0366c96dfbd09ac1bb07efc8a6a27248fe9d2"
+pixelpusher-driver@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/pixelpusher-driver/-/pixelpusher-driver-0.1.1.tgz#7645c739aba23851d9234863dfabb3b4b5a96cf8"
   dependencies:
-    ref-array "^1.2.0"
-    ref-struct "^1.1.0"
+    struct "^0.0.12"
 
 prepend-http@^1.0.1:
   version "1.0.4"

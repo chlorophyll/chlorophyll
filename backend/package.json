@@ -22,16 +22,16 @@
   "scripts": {
     "watch": "babel src -d dist --source-maps --watch",
     "build": "babel src -d dist --source-maps",
-    "serve": "node dist/index.js",
+    "light": "node dist/index.js",
     "lint": "eslint --ext .js -f ./node_modules/eslint-friendly-formatter src"
   },
   "dependencies": {
     "clone": "^2.1.1",
     "concat-stream": "^1.6.0",
     "immutable": "^3.8.2",
-    "pixelpusherjs": "github:rpearl/pixelpusherjs",
     "tar-stream": "^1.5.4",
     "three": "^0.87.1",
-    "yargs": "^9.0.1"
+    "yargs": "^9.0.1",
+    "pixelpusher-driver": "^0.1.1"
   }
 }
