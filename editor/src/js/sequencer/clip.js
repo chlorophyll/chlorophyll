@@ -12,6 +12,10 @@ export default class Clip {
     this.assigned_patterns = attrs.assignments || [];
   }
 
+  static fetch(id) {
+    return new Clip(store.state.seq.clips[id]);
+  }
+
   /*
    * Preview an clip, executing & displaying all component patterns.
    */
