@@ -9,6 +9,12 @@ export default class OSCBus {
     this.listeners = {};
   }
 
+  addListener(url, args, callback) {
+  }
+
+  removeListener(url) {
+  }
+
   send(message) {
   }
 
@@ -24,7 +30,6 @@ export default class OSCBus {
  */
 export class Message {
   constructor(address, args) {
-    // TODO: provide a way to format the destination address by parameters
     this.urlPattern = new UrlPattern(base_address);
     this.args = args;
   }
