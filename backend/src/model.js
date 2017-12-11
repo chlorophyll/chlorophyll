@@ -1,0 +1,34 @@
+import ModelBase from '@/common/model';
+
+export default class Model extends ModelBase {
+    constructor(json, groups) {
+        super(json);
+        this.groups = groups;
+    }
+
+    makeStripBuffer(strip) {
+        let num_pixels = this.strip_offsets[strip+1] - this.strip_offsets[strip];
+        return new Buffer(3*num_pixels);
+    }
+
+    getGroupPixels(id) {
+        let group = this.groups[id];
+        return group.pixels.map((idx) => [idx, this.getPosition(idx)]);
+    }
+
+    getStripBuffers(colorbuf) {
+        let ptr = 0;
+
+        let stripbufs = [];
+
+        for (let strip = 0; strip < this.num_strips; strip++) {
+            let buf = this.makeStripBuffer(strip);
+            for (let i = 0; i < buf.length; i++) {
+                buf[i] = colorbuf[ptr++];
+            }
+            stripbufs.push(buf);
+        }
+
+        return stripbufs;
+    }
+}

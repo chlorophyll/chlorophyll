@@ -3,6 +3,7 @@ editor/.jshintrc
 .DS_Store
 npm-debug.log
 npm-debug.log.*
+backend/node_modules/
 editor/node_modules/
 editor/dist/electron/*
 editor/dist/web/*
@@ -12,3 +13,4 @@ editor/.cache-loader/
 thumbs.db
 !.gitkeep
 Session.vim
+backend/dist

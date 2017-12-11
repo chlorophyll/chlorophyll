@@ -11,7 +11,7 @@ import store, { newgid } from 'chl/vue/store';
 import Util from 'chl/util';
 import ColorPool from 'chl/colors';
 
-import ModelBase from '@/common/model';
+import ModelBase, { restoreAllGroups } from '@/common/model';
 
 export let currentModel = null;
 
@@ -123,13 +123,7 @@ store.registerModule('pixels', {
         },
 
         restore(state, groups) {
-            let new_groups = {};
-            let new_group_list = [];
-
-            for (let group of groups) {
-                new_groups[group.id] = restoreGroup(group);
-                new_group_list.push(group.id);
-            }
+            let { new_groups, new_group_list } = restoreAllGroups(groups);
 
             state.groups = new_groups;
             state.group_list = new_group_list;
