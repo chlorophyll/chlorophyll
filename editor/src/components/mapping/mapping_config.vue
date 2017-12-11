@@ -41,6 +41,7 @@
 import { mappingUtilsMixin } from 'chl/mapping';
 
 import ProjectionConfig from '@/components/mapping/projection_config';
+import TransformConfig from '@/components/mapping/transform_config';
 
 import DialogBox from '@/components/widgets/dialog_box';
 
@@ -51,7 +52,7 @@ export default {
     components: {
         DialogBox,
         'projection': ProjectionConfig,
-        /* 'transform': TransformConfig */
+        'transform': TransformConfig,
     },
 
     data() {
