@@ -20,23 +20,40 @@
     <label>Auto scale</label>
     <input type="checkbox" v-model="">
   </div>
+  <viewport-transform-control @input="handleChanged"
+    :value="handle_data"
+    :mode="handle_mode"
+    :shape="value.shape" />
 </div>
 </template>
 
 <script>
 import VectorInput from '@/components/widgets/vector_input';
-import Handle3D from '@/components/widgets/handle_3d';
+import TransformControl from '@/components/widgets/viewport_transform_control';
 
 export default {
   store,
   name: 'transform-config',
   props: ['value'],
-  components: { VectorInput, Handle3D },
+  components: { VectorInput, TransformControl },
   data() {
+    return {
+      handle_mode: 'translate',
+    };
   },
   computed: {
+    handle_data() {
+      return {
+        pos: this.value.position,
+        rot: this.value.rotation,
+        scale: this.value.scale,
+      };
+    }
   },
   methods: {
+    handleChanged(event) {
+      // TODO
+    }
   }
 };
 </script>
