@@ -40,6 +40,7 @@ export default {
         this.centerpoint.position.fromArray(this.value.position);
         this.centerpoint.setRotationFromEuler(rot.fromArray(this.value.rotation));
         this.centerpoint.scale.set(...this.value.scale);
+        this.control.update();
       }
     },
 
@@ -69,9 +70,8 @@ export default {
   },
 
   methods: {
-    cameraUpdated() {
-      if (this.activeScreen.isActive)
-        this.control.update();
+    update() {
+      this.control.update();
     },
 
     onChange() {
@@ -95,11 +95,13 @@ export default {
     this.scene.add(this.control);
     this.control.setMode(this.mode);
 
-    this.activeScreen.controls.addEventListener('change', this.cameraUpdated);
+    this.activeScreen.controls.addEventListener('change', this.update);
+    this.control.addEventListener('objectChange', this.onChange);
   },
 
   beforeDestroy() {
-    this.activeScreen.controls.removeEventListener('change', this.updateControls);
+    this.activeScreen.controls.removeEventListener('change', this.update);
+    this.control.removeEventListener('objectChange', this.onChange);
 
     if (this.bounding_mesh)
       this.centerpoint.remove(this.bounding_mesh);

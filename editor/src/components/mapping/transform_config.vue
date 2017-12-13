@@ -3,11 +3,19 @@
   <div class="control-row">
     <label>Shape preview</label>
     <select :value="value.shape"
-            @input="val => transformUpdated({shape: val})" />
+            @input="val => transformUpdated({shape: val})">
+      <option v-for="opt in shape_options" :value="opt.val">
+        {{ opt.label }}
+      </option>
+    </select>
   </div>
   <div class="control-row">
     <label>Tool mode:</label>
-    <select v-model="handle_mode" />
+    <select v-model="handle_mode">
+      <option v-for="opt in mode_options" :value="opt.val">
+        {{ opt.label }}
+      </option>
+    </select>
   </div>
   <vector-input title="Position"
                 :dragscale="100"
@@ -47,7 +55,16 @@ export default {
   components: { VectorInput, ViewportTransformControl },
   data() {
     return {
-      handle_mode: 'translate'
+      handle_mode: 'translate',
+      mode_options: [
+        { label: 'Translate', val: 'translate' },
+        { label: 'Rotate', val: 'rotate' }
+      ],
+      shape_options: [
+        { label: 'Cartesian', val: 'cube' },
+        { label: 'Cylindrical', val: 'cylinder' },
+        { label: 'Spherical', val: 'sphere' }
+      ],
     };
   },
   computed: {
