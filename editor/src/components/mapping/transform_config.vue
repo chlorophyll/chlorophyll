@@ -27,14 +27,13 @@
                 @input="val => transformUpdated({rotation: val})" />
   <vector-input title="Scale"
                 :dragscale="2"
-                :min="0.0001"
+                :min="0.1" :max="10000"
                 :value="value.scale"
                 @input="val => transformUpdated({scale: val})" />
   <div class="control-row">
     <label>Auto scale</label>
     <input type="checkbox"
-           :value="value.autoscale"
-           @input="val => transformUpdated({autoscale: val})" />
+           v-model="autoscale" />
   </div>
   <viewport-transform-control @input="transformUpdated"
     :value="handle_data"
@@ -74,8 +73,17 @@ export default {
         rotation: this.value.rotation,
         scale: this.value.scale,
       };
+    },
+    autoscale: {
+      get() {
+        return this.value.autoscale;
+      },
+      set(val) {
+        this.transformUpdated({autoscale: val});
+      }
     }
   },
+
   methods: {
     transformUpdated(toUpdate) {
       // Grab any fields provided, defaulting to the existing value.

@@ -359,7 +359,12 @@ export class Model extends ModelBase {
         if (group === undefined)
             return undefined;
 
-        return group.pixels.map((idx) => [idx, this.getPosition(idx)]);
+        return group.pixels.map((idx) => {
+          return {
+            idx: idx,
+            pos: this.getPosition(idx)
+          };
+        });
     }
 }
 
