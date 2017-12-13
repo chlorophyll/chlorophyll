@@ -2,8 +2,7 @@
 <div class="panel">
   <div class="control-row">
     <label>Shape preview</label>
-    <select :value="value.shape"
-            @input="val => transformUpdated({shape: val})">
+    <select v-model="shape">
       <option v-for="opt in shape_options" :value="opt.val">
         {{ opt.label }}
       </option>
@@ -38,7 +37,7 @@
   <viewport-transform-control @input="transformUpdated"
     :value="handle_data"
     :mode="handle_mode"
-    :shape="value.shape" />
+    :shape="shape" />
 </div>
 </template>
 
@@ -75,12 +74,12 @@ export default {
       };
     },
     autoscale: {
-      get() {
-        return this.value.autoscale;
-      },
-      set(val) {
-        this.transformUpdated({autoscale: val});
-      }
+      get() { return this.value.autoscale; },
+      set(val) { this.transformUpdated({autoscale: val}); }
+    },
+    shape: {
+      get() { return this.value.shape; },
+      set(val) { this.transformUpdated({shape: val}); }
     }
   },
 

@@ -44,12 +44,30 @@ export default {
       }
     },
 
-    mode(mode) {
+    mode(val) {
       if (this.control)
-        this.control.setMode(mode);
+        this.control.setMode(val);
     },
 
     shape(shape) {
+      this.setPreviewShape(shape);
+    }
+  },
+
+  methods: {
+    update() {
+      this.control.update();
+    },
+
+    onChange() {
+      this.$emit('input', {
+        position: this.centerpoint.position.toArray(),
+        rotation: this.centerpoint.rotation.toArray().slice(0, 3),
+        scale: this.value.scale
+      });
+    },
+
+    setPreviewShape(shape) {
       if (this.bounding_mesh !== null)
         this.centerpoint.remove(this.bounding_mesh);
 
@@ -69,23 +87,10 @@ export default {
     }
   },
 
-  methods: {
-    update() {
-      this.control.update();
-    },
-
-    onChange() {
-      this.$emit('input', {
-        position: this.centerpoint.position.toArray(),
-        rotation: this.centerpoint.rotation.toArray().slice(0, 3),
-        scale: this.value.scale
-      });
-    }
-  },
-
   mounted() {
     const camera = this.activeScreen.camera;
     const renderer = this.activeScreen.renderer;
+
     this.control = new THREE.TransformControls(camera, renderer.domElement);
     this.centerpoint = new THREE.Points(centerpoint_geom, centerpoint_mat);
     this.scene = currentModel.scene;
@@ -93,7 +98,9 @@ export default {
     this.scene.add(this.centerpoint);
     this.control.attach(this.centerpoint);
     this.scene.add(this.control);
+
     this.control.setMode(this.mode);
+    this.setPreviewShape(this.shape);
 
     this.activeScreen.controls.addEventListener('change', this.update);
     this.control.addEventListener('objectChange', this.onChange);
