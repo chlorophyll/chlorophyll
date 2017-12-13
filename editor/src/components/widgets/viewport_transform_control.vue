@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import 'three-examples/controls/TransformControls';
 import store from 'chl/vue/store';
+import { mapGetters } from 'vuex';
 
 const centerpoint_mat = new THREE.PointsMaterial({size: 30, sizeAttenuation: true});
 const bounds_mat = new THREE.MeshBasicMaterial({
@@ -17,7 +18,7 @@ centerpoint_geom.vertices.push(new THREE.Vector3(0, 0, 0));
 
 export default {
   store,
-  name: 'transform-controls-3d',
+  name: 'viewport-transform-control',
   props: ['value', 'mode', 'shape'],
   data() {
     return {
@@ -34,8 +35,8 @@ export default {
       deep: true,
       handler() {
         const rot = new THREE.Euler();
-        this.centerpoint.position.fromArray(this.value.pos);
-        this.centerpoint.setRotationFromEuler(rot.fromArray(this.value.rot));
+        this.centerpoint.position.fromArray(this.value.position);
+        this.centerpoint.setRotationFromEuler(rot.fromArray(this.value.rotation));
         this.centerpoint.scale.set(...this.value.scale);
       }
     },
@@ -73,8 +74,8 @@ export default {
 
     onChange() {
       this.$emit('input', {
-        pos: this.centerpoint.position.toArray(),
-        rot: this.centerpoint.rotation.toArray().slice(0, 3),
+        position: this.centerpoint.position.toArray(),
+        rotation: this.centerpoint.rotation.toArray().slice(0, 3),
         scale: this.value.scale
       });
     }

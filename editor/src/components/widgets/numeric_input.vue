@@ -23,6 +23,7 @@ export default {
         value: Number,
         min: Number,
         max: Number,
+        dragscale: Number,
         disabled: {
             type: Boolean,
             default: false,
@@ -39,9 +40,12 @@ export default {
     },
     computed: {
         range() {
-            if (this.min === undefined || this.max === undefined) {
+            if (this.dragscale)
+                return this.dragscale;
+
+            if (this.min === undefined || this.max === undefined)
                 return undefined;
-            }
+
             return this.max - this.min;
         },
         display_value() {
@@ -53,9 +57,9 @@ export default {
             if (typeof val !== 'number')
                 val = parseFloat(val);
 
-            if (typeof this.min !== undefined && val <= this.min) {
+            if (typeof this.min !== undefined && val < this.min) {
                 val = this.min;
-            } else if (typeof this.max !== undefined && val >= this.max) {
+            } else if (typeof this.max !== undefined && val > this.max) {
                 val = this.max;
             }
 
@@ -73,9 +77,9 @@ export default {
 
             const delta_y = event.clientY - this.drag_y;
             this.drag_y = event.clientY;
-            const range = this.range === undefined ? 1 : this.range;
-            let curval = this.display_value||0;
-            let newval = curval - (delta_y * range / RANGE_NPIXELS);
+
+            let curval = this.display_value || 0;
+            let newval = curval - (delta_y * this.range / RANGE_NPIXELS);
             this.updateValue(newval);
         },
         endDrag() {
