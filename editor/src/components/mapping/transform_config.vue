@@ -37,14 +37,14 @@
 
 <script>
 import VectorInput from '@/components/widgets/vector_input';
-import TransformControl from '@/components/widgets/viewport_transform_control';
+import ViewportTransformControl from '@/components/widgets/viewport_transform_control';
 import { scaleToFitPoints } from '@/common/mapping/transform';
 import { currentModel } from 'chl/model';
 
 export default {
   name: 'transform-config',
   props: ['value', 'group'],
-  components: { VectorInput, TransformControl },
+  components: { VectorInput, ViewportTransformControl },
   data() {
     return {
       handle_mode: 'translate'

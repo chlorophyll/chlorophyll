@@ -67,6 +67,7 @@ export function screenCoords(v) {
 class Screen {
     constructor(camera, active) {
         this.camera = camera;
+        this.renderer = renderer;
         camera.position.z = 1000;
         let controls = new THREE.OrbitControls(this.camera, renderer.domElement);
         controls.enableDamping = true;

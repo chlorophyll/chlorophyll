@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import 'three-examples/controls/TransformControls';
 import store from 'chl/vue/store';
 import { mapGetters } from 'vuex';
+import { currentModel } from 'chl/model';
 
 const centerpoint_mat = new THREE.PointsMaterial({size: 30, sizeAttenuation: true});
 const bounds_mat = new THREE.MeshBasicMaterial({
@@ -25,6 +26,7 @@ export default {
       control: null,
       bounding_mesh: null,
       centerpoint: null,
+      scene: null,
     };
   },
   computed: {
@@ -82,13 +84,15 @@ export default {
   },
 
   mounted() {
-    const {camera, renderer} = this.activeScreen;
+    const camera = this.activeScreen.camera;
+    const renderer = this.activeScreen.renderer;
     this.control = new THREE.TransformControls(camera, renderer.domElement);
     this.centerpoint = new THREE.Points(centerpoint_geom, centerpoint_mat);
+    this.scene = currentModel.scene;
 
-    screen.scene.add(centerpoint);
-    this.control.attach(centerpoint);
-    screen.scene.add(this.control);
+    this.scene.add(this.centerpoint);
+    this.control.attach(this.centerpoint);
+    this.scene.add(this.control);
     this.control.setMode(this.mode);
 
     this.activeScreen.controls.addEventListener('change', this.cameraUpdated);
@@ -99,7 +103,7 @@ export default {
 
     if (this.bounding_mesh)
       this.centerpoint.remove(this.bounding_mesh);
-    this.scene.remove(centerpoint);
+    this.scene.remove(this.centerpoint);
     this.scene.remove(this.control);
   }
 };
