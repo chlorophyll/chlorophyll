@@ -7,7 +7,7 @@ export default class Model extends ModelBase {
     }
 
     makeStripBuffer(strip) {
-        let num_pixels = this.strip_offsets[strip+1] - this.strip_offsets[strip];
+        let num_pixels = this.numPixelsInStrip(strip);
         return new Buffer(3*num_pixels);
     }
 

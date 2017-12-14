@@ -58,6 +58,10 @@ export default class ModelBase {
     pixelPositions(group) {
         return group.pixels.map((idx) => ({idx, pos: this.getPosition(idx)}));
     }
+
+    numPixelsInStrip(strip) {
+        return this.strip_offsets[strip+1] - this.strip_offsets[strip];
+    }
 }
 
 export function restoreGroup(group) {
