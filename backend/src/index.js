@@ -15,10 +15,26 @@ register_nodes();
 
 setColorSpace('FastLED');
 
-function runPattern(controller, model, pattern, mapping) {
+const controllers = new Array();
+
+const controllerForStrip = new Map();
+
+
+function addController(controller) {
+    controllers.push(controller);
+
+    for(let i = controllers.length - 1; i > 0 && controllers[i].controller_id < controllers[i-1].controller_id; i--) {
+        let tmp = controllers[i];
+        controllers[i] = controllers[i-1];
+        controllers[i-1] = tmp;
+    }
+}
+
+function runPattern(model, pattern, mapping) {
     console.log('trying to run pattern');
     console.log(model.strip_offsets);
     console.log(model.num_pixels);
+    console.log(`number of pushers: ${controllers.length}`);
     let patternRunner = new PatternRunner(model, pattern, mapping);
     let time = 0;
 
@@ -30,38 +46,15 @@ function runPattern(controller, model, pattern, mapping) {
         patternRunner.getFrame(prevbuf, curbuf, time);
         time++;
         let stripbufs = model.getStripBuffers(curbuf);
-        for (let strip = 0; strip < stripbufs.length; strip++) {
-            controller.setStrip(strip, stripbufs[strip]);
-        }
-        controller.sync();
-    }
-
-    setInterval(frame, 1000/60);
-}
-
-function testPattern(controller) {
-    let cur = 0;
-    let num_pixels = 150;
-    let channel = 0;
-
-    let frame = () => {
-        let buf = new Buffer(num_pixels*3);
-        for (let i = 0; i < num_pixels; i++) {
-                buf[i*3+0] = 0x00;
-                buf[i*3+1] = 0x00;
-                buf[i*3+2] = 0x00;
-            if (i == cur) {
-                buf[i*3 + channel] = 0xff;
+        let strip_idx = 0;
+        for (let controller of controllers) {
+            for (let cstrip = 0; cstrip < controller.strips_attached; cstrip++) {
+                controller.setStrip(cstrip, stripbufs[strip_idx]);
+                strip_idx++;
             }
-        }
-        controller.setStrip(0, buf);
-        controller.sync();
-        cur = (cur+1) % num_pixels;
-        if (cur == 0) {
-            channel = (channel + 1) % 3;
+            controller.sync();
         }
     }
-    //frame();
     setInterval(frame, 1000/60);
 }
 
@@ -115,8 +108,17 @@ function main() {
             console.log(`Unknown mapping ${argv.mapping}`);
             return;
         }
-        registry.on('discovered',
-            (controller) => runPattern(controller, state.model, pattern, mapping));
+        registry.on('discovered', (controller) => {
+            addController(controller);
+            let strips_attached = 0;
+
+            for (let controller of controllers) {
+                strips_attached += controller.strips_attached;
+            }
+
+            if (strips_attached == state.model.num_strips)
+                runPattern(state.model, pattern, mapping);
+        });
         registry.start();
     }).catch((err) => {
         console.log(err);
