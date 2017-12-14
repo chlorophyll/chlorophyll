@@ -212,7 +212,7 @@ export default {
 
         coords(pageX, pageY) {
             const coords = Util.relativeCoords(this.$el, pageX, pageY);
-            const cur_transform = d3.zoomTransform(this.$el);
+            const cur_transform = d3.zoomTransform(this.$refs.canvas);
             const [x, y] = cur_transform.invert([coords.x, coords.y]);
             return {x, y};
         },
