@@ -23,8 +23,8 @@ export function scaleToFitPoints(pixels, position) {
     center.fromArray(position);
 
     let furthest = 0;
-    pixels.forEach((pixel) => {
-        let dist = center.distanceToSquared(pixel.pos);
+    pixels.forEach(({pos}) => {
+        let dist = center.distanceToSquared(pos);
         if (dist > furthest)
             furthest = dist;
     });

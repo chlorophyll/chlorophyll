@@ -59,7 +59,7 @@ export function getMappedPoints(model, mapping, coord_type) {
         settings = type_info.precompute(mapping.settings);
     else
         settings = mapping.settings;
-    return pixels.map(([idx, pos]) => [idx, type_info.mapPoint(settings, pos)]);
+    return pixels.map(({idx, pos}) => [idx, type_info.mapPoint(settings, pos)]);
 }
 
 export function convertPointCoords(map_type, coord_type, points) {

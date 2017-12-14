@@ -13,7 +13,7 @@ export default class Model extends ModelBase {
 
     getGroupPixels(id) {
         let group = this.groups[id];
-        return group.pixels.map((idx) => [idx, this.getPosition(idx)]);
+        return this.pixelPositions(group);
     }
 
     getStripBuffers(colorbuf) {

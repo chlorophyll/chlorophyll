@@ -54,6 +54,10 @@ export default class ModelBase {
             func(i);
         }
     }
+
+    pixelPositions(group) {
+        return group.pixels.map((idx) => ({idx, pos: this.getPosition(idx)}));
+    }
 }
 
 export function restoreGroup(group) {
