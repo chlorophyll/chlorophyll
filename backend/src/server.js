@@ -1,0 +1,177 @@
+require("babel-register");
+
+import express from 'express';
+import bodyParser from 'body-parser';
+import http from 'http';
+import path from 'path';
+import * as WebSocket from 'ws';
+
+import { argv } from 'yargs';
+
+import PixelPusherRegistry from 'pixelpusher-driver';
+
+import { readSavefile } from './restore';
+import { PatternRunner } from '@/common/patterns';
+import { setColorSpace } from '@/common/nodes/fastled/color';
+
+import register_nodes from '@/common/nodes/registry';
+register_nodes();
+
+// server stuff
+const app = express();
+const server = http.Server(app);
+const wss = new WebSocket.Server({ server });
+
+app.use(bodyParser.json());
+
+wss.broadcast = function broadcast(data) {
+  wss.clients.forEach(function each(client) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(data);
+    }
+  });
+};
+
+// pixelpusher stuff
+let registry = new PixelPusherRegistry();
+let controllers = [];
+let strips_attached = 0;
+let saveState = null;
+
+function addController(controller) {
+    controllers.push(controller);
+    controllers.sort((a, b) => {
+        if (a.group_id == b.group_id) {
+            return a.controller_id - b.controller_id;
+        } else {
+            return a.group_id - b.group_id;
+        }
+    });
+}
+
+function removeController(controller) {
+    let index = controllers.findIndex((el) => el == controller);
+    if (index == -1)
+        return;
+    controllers.splice(index, 1);
+}
+
+let frameInterval = undefined;
+
+function runPattern(pattern, mapping) {
+    stopPattern();
+    let model = saveState.model;
+    console.log('trying to run pattern');
+    console.log(model.strip_offsets);
+    console.log(model.num_pixels);
+    console.log(`number of pushers: ${controllers.length}`);
+    let patternRunner = new PatternRunner(model, pattern, mapping);
+    let time = 0;
+
+    let curbuf = new Buffer(model.num_pixels*3);
+    let prevbuf = new Buffer(model.num_pixels*3);
+
+    let frame = () => {
+        [prevbuf, curbuf] = [curbuf, prevbuf];
+        patternRunner.getFrame(prevbuf, curbuf, time);
+        time++;
+        let stripbufs = model.getStripBuffers(curbuf);
+        let strip_idx = 0;
+        for (let controller of controllers) {
+            for (let cstrip = 0; cstrip < controller.strips_attached; cstrip++) {
+                controller.setStrip(cstrip, stripbufs[strip_idx]);
+                strip_idx++;
+            }
+            controller.sync();
+        }
+    }
+    frameInterval = setInterval(frame, 1000/60);
+}
+
+function clearModel() {
+    stopPattern();
+
+    for (let controller of controllers) {
+        let buffer = new Buffer(controller.pixels_per_strip*3);
+        for (let cstrip = 0; cstrip < controller.strips_attached; cstrip++) {
+            controller.setStrip(cstrip, buffer);
+        }
+        controller.sync();
+    }
+}
+
+function stopPattern() {
+    if (frameInterval !== undefined) {
+        clearInterval(frameInterval);
+    }
+    frameInterval = undefined;
+}
+
+function stripsAttachedMessage() {
+    return JSON.stringify({ 'strips-attached': strips_attached });
+}
+
+function updateStripsAttached() {
+    strips_attached = 0;
+
+    for (let controller of controllers) {
+        strips_attached += controller.strips_attached;
+    }
+    console.log(`strips attached: ${strips_attached}`);
+
+    wss.broadcast(stripsAttachedMessage());
+}
+
+function main() {
+    readSavefile(argv.filename).then((state) => {
+        saveState = state;
+        registry.start();
+        server.listen(8080);
+    });
+}
+
+registry.on('discovered', (controller) => {
+    addController(controller);
+    updateStripsAttached();
+});
+
+registry.on('pruned', (controller) => {
+    removeController(controller);
+    updateStripsAttached();
+});
+
+app.use('/', express.static('ui/dist'));
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
+app.get('/info', function(req, res) {
+    let filename = argv.filename;
+    let name = path.basename(filename, '.chl');
+
+    res.json({ name, ...saveState });
+});
+
+app.post('/play', function(req, res) {
+    let pattern_id = req.body.pattern;
+    let mapping_id = req.body.mapping;
+
+    let pattern = saveState.patterns[pattern_id];
+    let mapping = saveState.mappings[mapping_id];
+    runPattern(pattern, mapping);
+    res.send('ok');
+});
+
+app.post('/off', function(req, res) {
+    clearModel();
+    res.send('ok');
+});
+
+wss.on('connection', function connection(ws) {
+    ws.send(stripsAttachedMessage());
+});
+
+main();
+
