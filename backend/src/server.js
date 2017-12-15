@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import http from 'http';
 import path from 'path';
 import * as WebSocket from 'ws';
+import fs from 'fs';
 
 import { argv } from 'yargs';
 
@@ -31,6 +32,8 @@ wss.broadcast = function broadcast(data) {
     }
   });
 };
+//
+let savedSequence = null;
 
 // pixelpusher stuff
 let registry = new PixelPusherRegistry();
@@ -88,6 +91,88 @@ function runPattern(pattern, mapping) {
     frameInterval = setInterval(frame, 1000/60);
 }
 
+function runPatternSequence(sequence, xfade) {
+    if (sequence.length === 1)
+        return runPattern(sequence[0].pattern, sequence[0].mapping);
+
+    stopPattern();
+    let model = saveState.model;
+    console.log('trying to run pattern sequence');
+    console.log(model.strip_offsets);
+    console.log(model.num_pixels);
+    console.log(`number of pushers: ${controllers.length}`);
+
+    sequence = sequence.map((clip) => {
+        return {
+            ...clip,
+            time: clip.time * 60,
+            patternRunner: new PatternRunner(model, clip.pattern, clip.mapping)
+        };
+    });
+
+    xfade = xfade * 60;
+
+    let timeA = 0;
+    let timeB = 0;
+    let patternA_idx = 0;
+    let patternB_idx = 1;
+
+    let curbufA = new Buffer(model.num_pixels*3);
+    let prevbufA = new Buffer(model.num_pixels*3);
+    let curbufB = new Buffer(model.num_pixels*3);
+    let prevbufB = new Buffer(model.num_pixels*3);
+    let mixbuf = new Buffer(model.num_pixels*3);
+
+    let frame = () => {
+        if (timeA > sequence[patternA_idx].time) {
+            timeA = timeB;
+            curbufA = curbufB;
+            prevbufA = prevbufB;
+            patternA_idx = patternB_idx;
+
+            timeB = 0;
+            curbufB = new Buffer(model.num_pixels*3);
+            prevbufB = new Buffer(model.num_pixels*3);
+            patternB_idx = (patternA_idx + 1) % sequence.length;
+        }
+        const runnerA = sequence[patternA_idx].patternRunner;
+        const lengthA = sequence[patternA_idx].time;
+
+        const runnerB = sequence[patternB_idx].patternRunner;
+        const lengthB = sequence[patternB_idx].time;
+
+        let displaybuf;
+        [prevbufA, curbufA] = [curbufA, prevbufA];
+        runnerA.getFrame(prevbufA, curbufA, timeA);
+        timeA++;
+        if (timeA <= (lengthA - xfade)) {
+            // Just run the one pattern
+            displaybuf = curbufA;
+        } else {
+            // Currently crossfading - run both patterns and mix
+            [prevbufB, curbufB] = [curbufB, prevbufB];
+            runnerB.getFrame(prevbufB, curbufB, timeB);
+            timeB++;
+            const fadePercent = (xfade - (lengthA - timeA));
+            for (let i = 0; i < mixbuf.length; i++) {
+                mixbuf[i] = Math.floor((curbufA[i] * fadePercent) + (curbufB[i] * (1 - fadePercent)));
+            }
+            displaybuf = mixbuf;
+        }
+
+        let stripbufs = model.getStripBuffers(displaybuf);
+        let strip_idx = 0;
+        for (let controller of controllers) {
+            for (let cstrip = 0; cstrip < controller.strips_attached; cstrip++) {
+                controller.setStrip(cstrip, stripbufs[strip_idx]);
+                strip_idx++;
+            }
+            controller.sync();
+        }
+    }
+    frameInterval = setInterval(frame, 1000/60);
+}
+
 function clearModel() {
     stopPattern();
 
@@ -120,6 +205,28 @@ function updateStripsAttached() {
     console.log(`strips attached: ${strips_attached}`);
 
     wss.broadcast(stripsAttachedMessage());
+}
+
+function loadSequence() {
+    const raw = fs.readFileSync('./saved_sequence.json');
+    if (!raw) {
+        console.log('No sequence found at ./saved_sequence.json');
+        return;
+    }
+    savedSequence = JSON.parse(raw);
+}
+
+function saveSequence() {
+    const data = savedSequence ? JSON.stringify(savedSequence) : '';
+    if (!data)
+        return;
+
+    fs.writeFile('./saved_sequence.json', data, (err) => {
+        if (err)
+            console.log('Failed to save sequence');
+        else
+            console.log('Saved seq to ./saved_sequence.json');
+    });
 }
 
 function main() {
@@ -155,12 +262,23 @@ app.get('/info', function(req, res) {
 });
 
 app.post('/play', function(req, res) {
-    let pattern_id = req.body.pattern;
-    let mapping_id = req.body.mapping;
+    const clips = req.body.sequence;
+    const xfade = req.body.xfade;
+    if (!clips || clips === []) {
+        res.send('empty sequence!');
+        return;
+    }
 
-    let pattern = saveState.patterns[pattern_id];
-    let mapping = saveState.mappings[mapping_id];
-    runPattern(pattern, mapping);
+    const sequence = clips.map(clip => {
+      let pattern = saveState.patterns[clip.pattern_id];
+      let mapping = saveState.mappings[clip.mapping_id];
+      return {
+          pattern,
+          mapping,
+          time: clip.time
+      };
+    }
+    runPatternSequence(sequence);
     res.send('ok');
 });
 
