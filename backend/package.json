@@ -23,15 +23,18 @@
     "watch": "babel src -d dist --source-maps --watch",
     "build": "babel src -d dist --source-maps",
     "light": "node dist/index.js",
+    "serve": "node dist/server.js",
     "lint": "eslint --ext .js -f ./node_modules/eslint-friendly-formatter src"
   },
   "dependencies": {
     "clone": "^2.1.1",
     "concat-stream": "^1.6.0",
+    "express": "^4.16.2",
     "immutable": "^3.8.2",
+    "pixelpusher-driver": "^0.1.1",
     "tar-stream": "^1.5.4",
     "three": "^0.87.1",
-    "yargs": "^9.0.1",
-    "pixelpusher-driver": "^0.1.1"
+    "ws": "^3.3.2",
+    "yargs": "^9.0.1"
   }
 }
