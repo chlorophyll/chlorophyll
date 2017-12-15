@@ -17,9 +17,8 @@
                 <option :value="mapping.id">{{ mapping.name }}</option>
             </template>
         </select>
-        <label for="playtime">Time:</label>
-        <input id="playtime" type="number" :value="clip.time"
-               @input="value => { clip.time = Number(value) }">
+        <label :for="`playtime${idx}`">Time:</label>
+        <input :id="`playtime${idx}`" type="number" v-model.number="clip.time" />
         <button @click="deleteClip(idx)">X</button>
     </div>
     <div>
@@ -92,7 +91,7 @@ export default {
         },
         off() {
             axios.post('http://localhost:8080/off');
-        }
+        },
         valid_mappings(pattern_id) {
             if (pattern_id === null)
                 return [];
@@ -127,7 +126,8 @@ export default {
         },
 
         num_strips() {
-            return this.model.strip_offsets.length - 1;
+            let strip_offsets = this.model.strip_offsets || [0];
+            return strip_offsets.length - 1;
         },
 
         ready() {

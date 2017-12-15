@@ -110,6 +110,7 @@ function runPatternSequence(sequence, xfade) {
         };
     });
 
+
     xfade = xfade * 60;
 
     let timeA = 0;
@@ -124,7 +125,7 @@ function runPatternSequence(sequence, xfade) {
     let mixbuf = new Buffer(model.num_pixels*3);
 
     let frame = () => {
-        if (timeA > sequence[patternA_idx].time) {
+        if (timeA >= sequence[patternA_idx].time) {
             timeA = timeB;
             curbufA = curbufB;
             prevbufA = prevbufB;
@@ -133,7 +134,7 @@ function runPatternSequence(sequence, xfade) {
             timeB = 0;
             curbufB = new Buffer(model.num_pixels*3);
             prevbufB = new Buffer(model.num_pixels*3);
-            patternB_idx = (patternA_idx + 1) % sequence.length;
+            patternB_idx = (patternB_idx + 1) % sequence.length;
         }
         const runnerA = sequence[patternA_idx].patternRunner;
         const lengthA = sequence[patternA_idx].time;
@@ -148,17 +149,20 @@ function runPatternSequence(sequence, xfade) {
         if (timeA <= (lengthA - xfade)) {
             // Just run the one pattern
             displaybuf = curbufA;
+            //console.log(`running A ${timeA} ${lengthA}`);
         } else {
             // Currently crossfading - run both patterns and mix
             [prevbufB, curbufB] = [curbufB, prevbufB];
             runnerB.getFrame(prevbufB, curbufB, timeB);
             timeB++;
-            const fadePercent = (xfade - (lengthA - timeA));
+            const remaining = (lengthA - timeA);
+            const fadePercent = remaining / xfade;
             for (let i = 0; i < mixbuf.length; i++) {
                 mixbuf[i] = Math.floor((curbufA[i] * fadePercent) + (curbufB[i] * (1 - fadePercent)));
             }
             displaybuf = mixbuf;
         }
+
 
         let stripbufs = model.getStripBuffers(displaybuf);
         let strip_idx = 0;
@@ -264,6 +268,7 @@ app.get('/info', function(req, res) {
 app.post('/play', function(req, res) {
     const clips = req.body.sequence;
     const xfade = req.body.xfade;
+    console.log(clips);
     if (!clips || clips === []) {
         res.send('empty sequence!');
         return;
@@ -277,8 +282,8 @@ app.post('/play', function(req, res) {
           mapping,
           time: clip.time
       };
-    }
-    runPatternSequence(sequence);
+    });
+    runPatternSequence(sequence, xfade);
     res.send('ok');
 });
 
