@@ -4,7 +4,9 @@
     <ul>
     <li>Project: {{ name }}</li>
     <li>Strips attached: {{ strips_attached }}</li>
-    <li>{{ connected_msg }}</li>
+    <li>{{ connected_msg }}
+        <span v-if="!connected"><button @click="connect">Try to connect</button> (can't be bothered to write autoretry)</span>
+    </li>
     </ul>
     <div v-for="(clip, idx) in sequence">
         <select v-model="clip.pattern_id">
@@ -50,25 +52,7 @@ export default {
         };
     },
     created() {
-        this.socket = new WebSocket('ws://localhost:8080');
-        this.socket.onopen = (event) => {
-            this.connected = true;
-        }
-
-        this.socket.onclose = (event) => {
-            this.connected = false;
-        }
-
-        this.socket.onmessage = (event) => {
-            this.strips_attached = JSON.parse(event.data)['strips-attached'];
-        }
-        axios.get('http://localhost:8080/info').then((resp) => {
-            this.mappings = resp.data.mappings;
-            this.patterns = resp.data.patterns;
-            this.sequence = resp.data.sequence || [];
-            this.model = resp.data.model;
-            this.name = resp.data.name;
-        });
+        this.connect();
     },
     watch: {
         valid_mappings() {
@@ -119,7 +103,30 @@ export default {
         },
         deleteClip(i) {
             this.sequence.splice(i, 1);
-        }
+        },
+
+        connect() {
+            this.socket = new WebSocket('ws://localhost:8080');
+            this.socket.onopen = (event) => {
+                this.connected = true;
+            }
+
+            this.socket.onclose = (event) => {
+                this.connected = false;
+            }
+
+            this.socket.onmessage = (event) => {
+                this.strips_attached = JSON.parse(event.data)['strips-attached'];
+            }
+            axios.get('http://localhost:8080/info').then((resp) => {
+                this.mappings = resp.data.mappings;
+                this.patterns = resp.data.patterns;
+                this.sequence = resp.data.sequence || [];
+                this.model = resp.data.model;
+                this.name = resp.data.name;
+            });
+
+        },
     },
     computed: {
         connected_msg() {
