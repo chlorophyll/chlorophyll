@@ -23,6 +23,8 @@
     </div>
     <div>
         <button @click="newClip">Add clip</button>
+        <button @click="save">Save seq to disk</button>
+        <button @click="clear">Clear seq on disk</button>
     </div>
     <div>
         <button @click="play" :disabled="!ready">Run</button>
@@ -61,9 +63,9 @@ export default {
             this.strips_attached = JSON.parse(event.data)['strips-attached'];
         }
         axios.get('http://localhost:8080/info').then((resp) => {
-            this.sequence = resp.data.sequence || [];
             this.mappings = resp.data.mappings;
             this.patterns = resp.data.patterns;
+            this.sequence = resp.data.sequence || [];
             this.model = resp.data.model;
             this.name = resp.data.name;
         });
@@ -91,6 +93,13 @@ export default {
         },
         off() {
             axios.post('http://localhost:8080/off');
+        },
+        save() {
+            axios.post('http://localhost:8080/save', this.sequence);
+        },
+        clear() {
+            this.sequence = [];
+            this.save();
         },
         valid_mappings(pattern_id) {
             if (pattern_id === null)
