@@ -212,16 +212,20 @@ function updateStripsAttached() {
 }
 
 function loadSequence() {
-    const raw = fs.readFileSync('./saved_sequence.json');
-    if (!raw) {
-        console.log('No sequence found at ./saved_sequence.json');
-        return;
+    try {
+        const raw = fs.readFileSync('./saved_sequence.json');
+        if (!raw) {
+            console.log('No sequence found at ./saved_sequence.json');
+            return null;
+        }
+        return JSON.parse(raw);
+    } catch (err) {
+        return null;
     }
-    savedSequence = JSON.parse(raw);
 }
 
-function saveSequence() {
-    const data = savedSequence ? JSON.stringify(savedSequence) : '';
+function saveSequence(sequence) {
+    const data = sequence ? JSON.stringify(sequence) : '';
     if (!data)
         return;
 
@@ -262,7 +266,10 @@ app.get('/info', function(req, res) {
     let filename = argv.filename;
     let name = path.basename(filename, '.chl');
 
-    res.json({ name, ...saveState });
+    let sequence = loadSequence();
+    console.log(sequence);
+
+    res.json({ name, sequence, ...saveState });
 });
 
 app.post('/play', function(req, res) {
@@ -285,6 +292,10 @@ app.post('/play', function(req, res) {
     });
     runPatternSequence(sequence, xfade);
     res.send('ok');
+});
+
+app.post('/save', function(req, res) {
+    saveSequence(req.body);
 });
 
 app.post('/off', function(req, res) {
