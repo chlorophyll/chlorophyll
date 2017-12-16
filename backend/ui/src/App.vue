@@ -68,7 +68,7 @@ export default {
     },
     methods: {
         play() {
-            axios.post('http://localhost:8080/play', {
+            axios.post('/play', {
                 sequence: this.sequence,
                 xfade: 5
             }).then((resp) => {
@@ -76,21 +76,23 @@ export default {
             });
         },
         off() {
-            axios.post('http://localhost:8080/off');
+            axios.post('/off');
         },
         save() {
-            axios.post('http://localhost:8080/save', this.sequence);
+            axios.post('/save', this.sequence);
         },
         clear() {
             this.sequence = [];
             this.save();
         },
         valid_mappings(pattern_id) {
-            if (pattern_id === null)
+            if (!pattern_id)
                 return [];
 
             const pattern = this.patterns[pattern_id];
-            return Object.values(this.mappings).filter((mapping) =>
+            let mappings = Object.values(this.mappings);
+            console.log(mappings);
+            return mappings.filter((mapping) =>
                 mapping.type === pattern.mapping_type
             );
         },
@@ -106,7 +108,8 @@ export default {
         },
 
         connect() {
-            this.socket = new WebSocket('ws://localhost:8080');
+            let host = window.document.location.host.replace(/:.*/,'');
+            this.socket = new WebSocket(`ws://${host}:8080`);
             this.socket.onopen = (event) => {
                 this.connected = true;
             }
@@ -118,7 +121,7 @@ export default {
             this.socket.onmessage = (event) => {
                 this.strips_attached = JSON.parse(event.data)['strips-attached'];
             }
-            axios.get('http://localhost:8080/info').then((resp) => {
+            axios.get('/info').then((resp) => {
                 this.mappings = resp.data.mappings;
                 this.patterns = resp.data.patterns;
                 this.sequence = resp.data.sequence || [];

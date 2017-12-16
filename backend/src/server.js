@@ -81,7 +81,7 @@ function runPattern(pattern, mapping) {
         let stripbufs = model.getStripBuffers(curbuf);
         let strip_idx = 0;
         for (let controller of controllers) {
-            for (let cstrip = 0; cstrip < controller.strips_attached; cstrip++) {
+            for (let cstrip = 0; cstrip < controller.strips_attached && strip_idx < model.num_strips; cstrip++) {
                 controller.setStrip(cstrip, stripbufs[strip_idx]);
                 strip_idx++;
             }
