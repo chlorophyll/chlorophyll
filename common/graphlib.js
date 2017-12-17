@@ -61,6 +61,7 @@ export class GraphBase {
         this.order = [];
         this.edges_by_src = new Map(); // src -> slot -> edge list
         this.edges_by_dst = new Map(); // dst -> slot -> edge
+        this.step = 0;
     }
 
     emit(name, detail) {
@@ -333,6 +334,7 @@ export class GraphBase {
     }
 
     runStep() {
+        this.step++;
         this.nodes.forEach(function(node, id) {
             node.clearOutgoingData();
             node.onExecute();
@@ -543,10 +545,9 @@ export class GraphNode {
 
     getOutgoingData(slot) {
         const { type } = this.output_info[slot];
-
-        let data = this.outgoing_data[slot];
-
-        return { data, type };
+        const {step, data} = this.outgoing_data[slot];
+        let out = { data, type };
+        return this.graph.step == step ? out : undefined;
     }
 
     _isConvertible(outgoing, type) {
@@ -583,7 +584,7 @@ export class GraphNode {
         if (data && type && type.isUnit) {
             data = new Ctor(data.valueOf());
         }
-        this.outgoing_data[slot] = data;
+        this.outgoing_data[slot] = {data, step: this.graph.step};
     }
 
     setPosition(x, y) {
@@ -591,8 +592,6 @@ export class GraphNode {
     }
 
     clearOutgoingData() {
-        for (let i = 0; i < this.outgoing_data.length; i++)
-            this.outgoing_data[i] = undefined;
     }
 
     save() {
