@@ -581,7 +581,7 @@ export class GraphNode {
     setOutputData(slot, data) {
         const { type } = this.output_info[slot];
         let Ctor = type;
-        if (data && type && type.isUnit) {
+        if (data && type && type.isUnit && !Ctor.isPrototypeOf(data)) {
             data = new Ctor(data.valueOf());
         }
         this.outgoing_data[slot] = {data, step: this.graph.step};
