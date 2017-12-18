@@ -10,11 +10,13 @@ import store, { newgid } from 'chl/vue/store';
 
 import { Graph } from 'chl/graphlib';
 import { restoreAllPatterns, PatternRunner } from '@/common/patterns';
+import { setColorSpace } from '@/common/nodes/fastled/color';
 import { currentModel } from 'chl/model';
 import { registerSaveField } from 'chl/savefile';
 
 import register_nodes from '@/common/nodes/registry';
 
+setColorSpace('Preview');
 register_nodes();
 
 store.registerModule('pattern', {

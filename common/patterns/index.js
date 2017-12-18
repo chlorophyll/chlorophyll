@@ -30,12 +30,11 @@ export class PatternRunner {
 
     getFrame(prevbuf, outbuf, t) {
         this.graph.setGlobalInputData('t', t);
+        let incolor = new CRGB(0, 0, 0);
         this.positions.forEach(([idx, pos]) => {
-            let incolor = new CRGB(
-                prevbuf[3*idx+0],
-                prevbuf[3*idx+1],
-                prevbuf[3*idx+2]
-            );
+            incolor.r = prevbuf[3*idx+0];
+            incolor.g = prevbuf[3*idx+1];
+            incolor.b = prevbuf[3*idx+2];
 
             this.graph.setGlobalInputData('coords', pos.toArray());
             this.graph.setGlobalInputData('color', incolor);

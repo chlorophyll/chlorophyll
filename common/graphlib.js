@@ -274,9 +274,9 @@ export class GraphBase {
 
         try {
             this.toposort();
-            this._notifyConnect(edge);
             if (prev_edge)
                 this._notifyDisconnect(prev_edge);
+            this._notifyConnect(edge);
             return edge;
         } catch (e) {
             if (prev_edge) this._insertEdge(prev_edge);
@@ -306,39 +306,15 @@ export class GraphBase {
         this._notifyDisconnect(edge);
     }
 
-    getNodeByInput(dst, dst_slot) {
-        let dst_slots = this.edges_by_dst.get(dst.id);
-        if (dst_slots === undefined) {
-            return null;
-        }
-
-        let edge = dst_slots.get(dst_slot);
-
-        if (edge === undefined) {
-            return null;
-        }
-
-        if (!edge)
-            return null;
-
-        let node = this.nodes.get(edge.src_id);
-
-        return {
-            node: node,
-            slot: edge.src_slot
-        };
-    }
-
     getNodeById(node_id) {
         return this.nodes.get(node_id);
     }
 
     runStep() {
         this.step++;
-        this.nodes.forEach(function(node, id) {
-            node.clearOutgoingData();
-            node.onExecute();
-        });
+        for (let id of this.order) {
+            this.getNodeById(id).onExecute();
+        }
     }
 
     forEachNode(f) {
@@ -520,7 +496,7 @@ export class GraphNode {
         let defaults = {};
 
         for (const { name } of inputs) {
-            defaults[name] = properties[name];
+            defaults[name] = properties[name] || undefined;
         }
 
         let cfg = {...DEFAULT_CONFIG, ...config};
@@ -539,8 +515,7 @@ export class GraphNode {
 
     defaultForSlot(slot) {
         const { name } = this.input_info[slot];
-        let out = this.vm.defaults[name];
-        return out;
+        return this.vm.defaults[name];
     }
 
     getOutgoingData(slot) {
