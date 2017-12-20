@@ -148,6 +148,9 @@ export class GraphBase {
         this.nodes.delete(node.id);
         this.refs.delete(node.id);
 
+        let index = this.order.find(node);
+        this.order.splice(index, 1);
+
         this.emit('node-removed', { node });
     }
 
@@ -205,7 +208,7 @@ export class GraphBase {
                 }
             }
         });
-        this.order = ordered;
+        this.order = ordered.map((id) => this.getNodeById(id));
     }
 
     _insertEdge(edge) {
@@ -312,8 +315,8 @@ export class GraphBase {
 
     runStep() {
         this.step++;
-        for (let id of this.order) {
-            this.getNodeById(id).onExecute();
+        for (let node of this.order) {
+            node.onExecute();
         }
     }
 
