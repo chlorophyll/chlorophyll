@@ -20,7 +20,7 @@ function make_oscillator(name, waveform) {
             const properties = {
                 frequency,
                 amplitude: new Range(0, 1, 0, 1),
-                phase: new Units.Percentage(0),
+                phase: 0,
             };
 
             const config = {
@@ -33,7 +33,7 @@ function make_oscillator(name, waveform) {
         }
 
         waveform(frequency, amplitude, cycles, t) {
-            let phased_t = t + Units.Operations.mul(cycles, frequency.sec);
+            let phased_t = t + cycles * frequency.sec;
             return waveform(frequency, amplitude, phased_t);
         }
 
@@ -47,7 +47,7 @@ function make_oscillator(name, waveform) {
         onExecute() {
             let t = this.graph.getGlobalInputData('t') / 60;
             let out = this.value(t);
-            this.setOutputData(0, new Units.Percentage(out));
+            this.setOutputData(0, out);
         }
     };
 

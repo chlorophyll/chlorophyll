@@ -29,9 +29,7 @@ function make_nodes(mapping_name, coord_types) {
 
                 for (let i = 0; i < info.coords.length; i++) {
                     let in_val = coords[i];
-                    let UnitConstructor = info.coords[i].unit;
-
-                    this.setOutputData(i, new UnitConstructor(in_val));
+                    this.setOutputData(i, in_val);
                 }
                 let color = this.graph.getGlobalInputData('color');
                 this.setOutputData(info.coords.length, color);

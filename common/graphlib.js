@@ -1,6 +1,8 @@
 import Immutable from 'immutable';
 
-import * as Serialization from 'common/util/serialization';
+import * as Serialization from '@/common/util/serialization';
+
+import Units from '@/common/units';
 
 let node_types = new Map();
 let graphs = new Map();
@@ -159,7 +161,8 @@ export class GraphBase {
             return (src_type == dst_type);
         }
 
-        if (src_type == 'number' && dst_type.isUnit) {
+        if (src_type == 'number' && dst_type.isUnit ||
+            src_type.isUnit && dst_type == 'number') {
             return true;
         }
 
@@ -477,7 +480,7 @@ export class GraphNode {
         let defaults = {};
 
         for (const { name } of inputs) {
-            defaults[name] = properties[name] || null;
+            defaults[name] = properties[name];
         }
 
         let cfg = {...DEFAULT_CONFIG, ...config};
@@ -497,22 +500,22 @@ export class GraphNode {
     defaultForSlot(slot) {
         const { name } = this.input_info[slot];
         let out = this.vm.defaults[name];
-        if (out === null)
-            out = undefined;
         return out;
     }
 
     getOutgoingData(slot) {
         const { type } = this.output_info[slot];
 
-        let outgoing = this.outgoing_data[slot];
+        let data = this.outgoing_data[slot];
 
-        if (outgoing && type && type.isUnit) {
-            let Ctor = type;
-            outgoing = new Ctor(outgoing.valueOf());
-        }
-        return outgoing;
+        return { data, type };
+
     }
+
+    _isConvertible(outgoing, type) {
+        return outgoing.data && outgoing.type && outgoing.type.isUnit && type && type.isUnit;
+    }
+
     getInputData(slot) {
         let src = this.graph.getNodeByInput(this, slot);
 
@@ -520,22 +523,21 @@ export class GraphNode {
         const { type } = this.input_info[slot];
 
         let data = undefined;
+
         if (src) {
-            data = src.node.getOutgoingData(src.slot);
+            let outgoing = src.node.getOutgoingData(src.slot);
+
+            if (autoconvert && this._isConvertible(outgoing, type)) {
+                data = Units.convert(outgoing.data, outgoing.type, type);
+            } else {
+                data = outgoing.data;
+            }
         }
 
         if (data == undefined) {
             data = this.defaultForSlot(slot);
         }
 
-        if (data !== undefined && type && type.isUnit) {
-            if (data.isUnit && autoconvert) {
-                data = data.convertTo(type);
-            } else {
-                let Ctor = type;
-                data = new Ctor(data);
-            }
-        }
         return data;
     }
 

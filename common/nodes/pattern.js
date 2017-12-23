@@ -114,84 +114,50 @@ make_binop_node('logic', '>=', (a, b) => a >= b, {
 });
 
 // math
-make_binop_node('math', {symbol: '+', named: 'add'}, Units.Operations.add, {
+make_binop_node('math', {symbol: '+', named: 'add'}, (a, b) => a+b, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '-', named: 'sub'}, Units.Operations.sub, {
+make_binop_node('math', {symbol: '-', named: 'sub'}, (a, b) => a-b, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '*', named: 'mul'}, Units.Operations.mul, {
+make_binop_node('math', {symbol: '*', named: 'mul'}, (a, b) => a*b, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '/', named: 'div'}, Units.Operations.div, {
+make_binop_node('math', {symbol: '/', named: 'div'}, (a, b) => a/b, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '%', named: 'mod'}, Units.Operations.mod, {
+make_binop_node('math', {symbol: '%', named: 'mod'}, (a, b) => a%b, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
 make_unary_node('math', '|a|', Math.abs, {
-    a: Units.Numeric,
-    result: Units.Numeric
+    a: 'number',
+    result: 'number',
 });
 
 make_unary_node('math', 'sin(a)', Math.sin, {
-    a: Units.Numeric,
-    result: Units.Numeric
+    a: 'number',
+    result: 'number',
 });
 
 make_unary_node('math', 'cos(a)', Math.cos, {
-    a: Units.Numeric,
-    result: Units.Numeric
+    a: 'number',
+    result: 'number',
 });
-
-class MapNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
-            GraphNode.input('value', Units.Numeric),
-            GraphNode.input('fromLow', Units.Numeric),
-            GraphNode.input('fromHigh', Units.Numeric),
-            GraphNode.input('toLow', Units.Numeric),
-            GraphNode.input('toHigh', Units.Numeric),
-        ];
-
-        const outputs = [GraphNode.output('result', Units.Numeric)];
-
-        super(options, inputs, outputs);
-    }
-
-    onExecute() {
-        let value = this.getInputData(0);
-        let fromLow = this.getInputData(1);
-        let fromHigh = this.getInputData(2);
-        let toLow = this.getInputData(3);
-        let toHigh = this.getInputData(4);
-
-        let fromVal = Units.Operations.sub(value, fromLow);
-        let toRange = Units.Operations.sub(toHigh, toLow);
-        let fromRange = Units.Operations.sub(fromHigh, fromLow);
-
-        let toVal = Units.Operations.mul(fromVal, Units.Operations.div(toRange, fromRange));
-        let output = Units.Operations.add(toVal, toLow);
-        this.setOutputData(0, output);
-    }
-};
-MapNode.title = 'map';
-node_types.push(['math/map', MapNode]);
 
 class Rotate2D extends GraphNode {
     constructor(options) {
@@ -208,9 +174,9 @@ class Rotate2D extends GraphNode {
     }
 
     onExecute() {
-        let x = this.getInputData(0).valueOf();
-        let y = this.getInputData(1).valueOf();
-        let theta = this.getInputData(2).valueOf();
+        let x = this.getInputData(0);
+        let y = this.getInputData(1);
+        let theta = this.getInputData(2);
 
         let c = Math.cos(theta);
         let s = Math.sin(theta);

@@ -3,15 +3,15 @@ import { addSerializableType } from '@/common/util/serialization';
 function mapValue(value, fromLow, fromHigh, toLow, toHigh) {
     return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
 }
+
 function binop(oper) {
-    return function(a, b) {
+    return function(a, aUnit, b, bUnit) {
 
-        if (a === undefined || b === undefined || !a.isUnit || !b.isUnit)
-            return oper(a, b);
+        let lhs = Units.convert(a, aUnit, Units.Numeric);
+        let rhs = Units.convert(b, bUnit, Units.Numeric);
 
-        let lhs = a.convertTo(Units.Numeric);
-        let rhs = b.convertTo(Units.Numeric);
-        return new Units.Numeric(oper(lhs, rhs));
+        return oper(lhs, rhs);
+
     };
 };
 
@@ -23,82 +23,50 @@ let _Units = {
         div: binop(function(a, b) { return a/b; }),
         mod: binop(function(a, b) { return a%b; }),
     },
+
+    convert(val, fromUnit, toUnit) {
+        let [fromLow, fromHigh] = fromUnit.range;
+        let [toLow, toHigh] = toUnit.range;
+
+        let out = mapValue(val, fromLow, fromHigh, toLow, toHigh);
+
+        return toUnit.create(out);
+    }
 };
 
 let Units = new Proxy(_Units, {
-    set: function(obj, prop, Value) {
-        obj[prop] = Value;
+    set: function(obj, prop, value) {
+        obj[prop] = value;
 
-        Value._unit_name = prop;
+        // backwards compatibility
+        let Serializer = class extends Number {
+            serialize() {
+                return this;
+            }
 
-        Value.prototype.serialize = function() {
-            return this.val;
+            static deserialize() {
+                return value.create(this);
+            }
         };
 
-        Value.deserialize = function(property) {
-            return new Value(property);
-        };
-        addSerializableType(prop, Value);
-
-        Value.isUnit = true;
-        Value.prototype.isUnit = true;
-
-        Value.prototype.convertTo = function(Constructor) {
-            if (!Constructor || !Constructor._unit_name)
-                return undefined;
-
-            if (Value == constructor)
-                return new Value(this.val);
-
-            return new Constructor(mapValue(
-                this.val,
-                Value.low, Value.high,
-                Constructor.low, Constructor.high
-            ));
-        };
-
-        Value.prototype.valueOf = function() {
-            return this.val;
-        };
-
-        Value.prototype.toString = function() {
-            return this.val.toString();
-        };
-
-        Value.prototype.clone = function() {
-            return new Value(this.val);
-        };
-
+        addSerializableType(prop, Serializer);
         return true;
     }
 });
 
-function RangeType(low, high, constructor) {
-    constructor.low = low;
-    constructor.high = high;
-    return constructor;
-}
+class RangeType {
+    constructor(low, high, create) {
+        this.range = [low, high];
+        this.create = create || ((val) => val);
+        this.isUnit = true;
+    }
+};
 
-/* eslint-disable no-invalid-this */
+Units.Numeric = new RangeType(0, 1);
+Units.Percentage = new RangeType(0, 1);
+Units.UInt8 = new RangeType(0, 0xff, (val) => val & 0xff);
 
-Units.Numeric = RangeType(0, 1, function(val) {
-    this.val = val;
-});
+Units.Distance = new RangeType(-1, 1);
+Units.Angle = new RangeType(0, 2*Math.PI);
 
-Units.Percentage = RangeType(0, 1, function(val) {
-    this.val = val;
-});
-
-Units.UInt8 = RangeType(0, 0xff, function(val) {
-    this.val = val & 0xff;
-});
-Units.UInt8.isIntegral = true;
-
-Units.Distance = RangeType(-1, 1, function(val) {
-    this.val = val;
-});
-
-Units.Angle = RangeType(0, 2*Math.PI, function(val) {
-    this.val = val;
-});
 export default Units;
