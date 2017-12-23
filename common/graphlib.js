@@ -247,6 +247,8 @@ export class GraphBase {
         let src = this.getNodeById(edge.src_id);
         let dst = this.getNodeById(edge.dst_id);
 
+        dst.input_info[edge.dst_slot].src = {node: src, slot: edge.src_slot};
+
         src.vm.outputs[edge.src_slot].state.num_edges += 1;
         dst.vm.inputs[edge.dst_slot].state.num_edges += 1;
         this.emit('edge-added', { edge });
@@ -284,6 +286,9 @@ export class GraphBase {
     _notifyDisconnect(edge) {
         let src = this.getNodeById(edge.src_id);
         let dst = this.getNodeById(edge.dst_id);
+
+        dst.input_info[edge.dst_slot].src = null;
+
         src.vm.outputs[edge.src_slot].state.num_edges -= 1;
         dst.vm.inputs[edge.dst_slot].state.num_edges -= 1;
         this.emit('edge-removed', { edge });
@@ -507,7 +512,7 @@ export class GraphNode {
         let input_vm = inputs.map(({ state, settings }) => ({state, settings}));
         let output_vm = outputs.map(({ state, settings }) => ({state, settings}));
 
-        this.input_info = inputs.map(({name, type}) => ({name, type}));
+        this.input_info = inputs.map(({name, type}) => ({name, type, src: null}));
         this.output_info = outputs.map(({name, type}) => ({name, type}));
 
         let defaults = {};
@@ -542,7 +547,6 @@ export class GraphNode {
         let data = this.outgoing_data[slot];
 
         return { data, type };
-
     }
 
     _isConvertible(outgoing, type) {
@@ -550,10 +554,9 @@ export class GraphNode {
     }
 
     getInputData(slot) {
-        let src = this.graph.getNodeByInput(this, slot);
 
         const { autoconvert } = this.vm.inputs[slot].settings;
-        const { type } = this.input_info[slot];
+        const { type, src } = this.input_info[slot];
 
         let data = undefined;
 
@@ -575,6 +578,11 @@ export class GraphNode {
     }
 
     setOutputData(slot, data) {
+        const { type } = this.output_info[slot];
+        let Ctor = type;
+        if (data && type && type.isUnit) {
+            data = new Ctor(data.valueOf());
+        }
         this.outgoing_data[slot] = data;
     }
 
@@ -584,7 +592,7 @@ export class GraphNode {
 
     clearOutgoingData() {
         for (let i = 0; i < this.outgoing_data.length; i++)
-            this.outgoing_data[i] = null;
+            this.outgoing_data[i] = undefined;
     }
 
     save() {
