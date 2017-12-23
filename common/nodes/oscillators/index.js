@@ -11,8 +11,8 @@ function make_oscillator(name, waveform) {
         constructor(options) {
             const outputs = [GraphNode.output('result', Units.Percentage)];
             const inputs = [
-                GraphNode.input('frequency', 'frequency'),
-                GraphNode.input('amplitude', 'range'),
+                GraphNode.input('frequency', 'Frequency'),
+                GraphNode.input('amplitude', 'Range'),
                 GraphNode.input('phase', Units.Percentage),
             ];
             let frequency = new Frequency(1);
@@ -44,6 +44,21 @@ function make_oscillator(name, waveform) {
             return this.waveform(frequency, amplitude, cycles, t);
         }
 
+        compile(c) {
+            let frequency = c.getInput(this, 0);
+            let amplitude = c.getInput(this, 1);
+            let cycles = c.getInput(this, 2);
+
+            let t = c.getGlobalInput('t');
+
+            let expr = `${t} + ${cycles} * 1.0/${frequency}`;
+
+            let phased_t = c.declare('float', c.variable(), expr);
+
+            let w = waveform(c, frequency, amplitude, phased_t);
+            c.setOutput(this, 0, w);
+        }
+
         onExecute() {
             let t = this.graph.getGlobalInputData('t') / 60;
             let out = this.value(t);
@@ -55,74 +70,61 @@ function make_oscillator(name, waveform) {
     node_types.push([`oscillators/${name}`, Oscillator]);
 }
 
-make_oscillator('triangle', function(frequency, amplitude, t) {
-    let lower = amplitude.lower;
-    let upper = amplitude.upper;
+make_oscillator('triangle', function(c, frequency, amplitude, t) {
 
-    let a = upper - lower;
+    let lower = c.declare('float', c.variable(), `${amplitude}[0]`);
+    let upper = c.declare('float', c.variable(), `${amplitude}[1]`);
 
-    let freq = frequency.hz;
-    let p = 1/(2*freq);
+    let a = c.declare('float', c.variable(), `${upper} - ${lower}`);
 
-    function mod(n, m) {
-        return ((n % m) + m) % m;
-    };
+    let p = c.declare('float', c.variable(), `1.0/(2.0*${frequency})`);
 
-    return lower + (a/p) * (p - Math.abs(mod(t, 2*p) - p) );
+    return `${lower} + ${a}/${p} * (${p}-abs(mod(${t}, 2.0*${p})-${p}))`;
 });
 
-make_oscillator('square', function(frequency, amplitude, t) {
-    let lower = amplitude.lower;
-    let upper = amplitude.upper;
+make_oscillator('square', function(c, frequency, amplitude, t) {
+    let lower = c.declare('float', c.variable(), `${amplitude}[0]`);
+    let upper = c.declare('float', c.variable(), `${amplitude}[1]`);
 
-    let freq = frequency.hz;
-    let p = 1/(2*freq);
+    let p = c.declare('float', c.variable(), `1.0/(2.0*${frequency})`);
 
-    let c = t % (2*p);
+    let cyc = c.declare('float', c.variable(), `mod(${t}, 2.0*${p})`);
 
-    if (c < 0)
-        c += 2*p;
+    return `${cyc} < ${p} ? ${lower} : ${upper}`;
 
-    if (c < p) {
-        return lower;
-    } else {
-        return upper;
-    }
 });
 
-make_oscillator('saw', function(frequency, amplitude, t) {
-    let lower = amplitude.lower;
-    let upper = amplitude.upper;
+make_oscillator('saw', function(c, frequency, amplitude, t) {
+    let lower = c.declare('float', c.variable(), `${amplitude}[0]`);
+    let upper = c.declare('float', c.variable(), `${amplitude}[1]`);
 
-    let p = frequency.sec;
+    let p = c.declare('float', c.variable(), `1.0 / ${frequency}`);
 
-    let cyc = (t % p);
-    if (cyc < 0)
-        cyc += p;
+    let cyc = c.declare('float', c.variable(), `mod(${t}, ${p})`);
 
-    return lower + (upper - lower)*(cyc / p);
+    return `${lower} + (${upper} - ${lower})*(${cyc} / ${p})`;
 });
 
 make_oscillator('sine', function(frequency, amplitude, t) {
-    let lower = amplitude.lower;
-    let upper = amplitude.upper;
+    let lower = c.declare('float', c.variable(), `${amplitude}[0]`);
+    let upper = c.declare('float', c.variable(), `${amplitude}[1]`);
 
-    let a = (upper - lower) / 2;
+    let a = c.declare('float', c.variable(), `(${upper} - ${lower}) / 2.0`);
 
-    let p = frequency.sec;
+    let p = c.declare('float', c.variable(), `1.0 / ${frequency}`);
 
-    return lower + a * (Math.sin(t*2*Math.PI/p)+1);
+    return `${lower} + ${a} * sin(${t}*2*${Math.PI}/${p})+1`;
 });
 
 make_oscillator('cos', function(frequency, amplitude, t) {
-    let lower = amplitude.lower;
-    let upper = amplitude.upper;
+    let lower = c.declare('float', c.variable(), `${amplitude}[0]`);
+    let upper = c.declare('float', c.variable(), `${amplitude}[1]`);
 
-    let a = (upper - lower) / 2;
+    let a = c.declare('float', c.variable(), `(${upper} - ${lower}) / 2.0`);
 
-    let p = frequency.sec;
+    let p = c.declare('float', c.variable(), `1.0 / ${frequency}`);
 
-    return lower + a * (Math.cos(t*2*Math.PI/p)+1);
+    return `${lower} + ${a} * cos(${t}*2*${Math.PI}/${p})+1`;
 });
 
 export default function register_oscillator_nodes() {

@@ -1,5 +1,7 @@
 import { addSerializableType } from '@/common/util/serialization';
 
+import { Compilation } from '@/common/graphlib/compiler';
+
 function mapValue(value, fromLow, fromHigh, toLow, toHigh) {
     return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
 }
@@ -31,7 +33,15 @@ let _Units = {
         let out = mapValue(val, fromLow, fromHigh, toLow, toHigh);
 
         return toUnit.create(out);
+    },
+
+    compile(val, fromUnit, toUnit) {
+        let [fromLow, fromHigh] = fromUnit.range;
+        let [toLow, toHigh] = toUnit.range;
+
+        return `mapValue(${val}, ${fromLow}, ${fromHigh}, ${toLow}, ${toHigh})`;
     }
+
 };
 
 let Units = new Proxy(_Units, {
@@ -68,5 +78,14 @@ Units.UInt8 = new RangeType(0, 0xff, (val) => val & 0xff);
 
 Units.Distance = new RangeType(-1, 1);
 Units.Angle = new RangeType(0, 2*Math.PI);
+
+Compilation.toplevel(
+`
+float mapValue(in float value,
+               in float fromLow, in float fromHigh,
+               in float toLow, in float toHigh) {
+    return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
+}
+`);
 
 export default Units;

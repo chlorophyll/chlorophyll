@@ -18,6 +18,14 @@ class IfNode extends GraphNode {
         super(options, inputs, outputs);
     }
 
+    compile(c) {
+        let clause = c.getInput(this, 0);
+        let trueBranch = c.getInput(this, 1);
+        let falseBranch = c.getInput(this, 2);
+
+        c.setOutput(this, 0, `${clause} ? ${trueBranch} : ${falseBranch}`);
+    }
+
     onExecute() {
         let clause = this.getInputData(0);
         let trueBranch = this.getInputData(1);
@@ -53,6 +61,13 @@ function make_binop_node(type, sym, fn, {a, b, result}) {
             super(options, inputs, outputs);
         }
 
+        compile(c) {
+            let ai = c.getInput(this, 0);
+            let bi = c.getInput(this, 1);
+
+            c.setOutput(this, 0, fn(ai, bi));
+        }
+
         onExecute() {
             let ai = this.getInputData(0);
             let bi = this.getInputData(1);
@@ -72,6 +87,11 @@ function make_unary_node(type, title, fn, {a, result}) {
             super(options, inputs, outputs);
         }
 
+        compile(c) {
+            let inp = c.getInput(this, 0);
+            c.setOutput(this, 0, fn(inp));
+        }
+
         onExecute() {
             let inp = this.getInputData(0);
             this.setOutputData(0, fn(inp));
@@ -84,79 +104,79 @@ function make_unary_node(type, title, fn, {a, result}) {
 
 // Logic
 
-make_unary_node('logic', '!a', (a) => !a, {result: 'boolean'});
-make_binop_node('logic', '==', (a, b) => a == b, {result: 'boolean'});
-make_binop_node('logic', '&&', (a, b) => a && b, {result: 'boolean'});
-make_binop_node('logic', '||', (a, b) => a || b, {result: 'boolean'});
+make_unary_node('logic', '!a', (a) => `!${a}`, {result: 'bool'});
+make_binop_node('logic', '==', (a, b) => `${a} == ${b}`, {result: 'bool'});
+make_binop_node('logic', '&&', (a, b) => `${a} && ${b}`, {result: 'bool'});
+make_binop_node('logic', '||', (a, b) => `${a} || ${b}`, {result: 'bool'});
 
-make_binop_node('logic', '<', (a, b) => a < b, {
+make_binop_node('logic', '<', (a, b) => `${a} < ${b}`, {
     a: Units.Numeric,
     b: Units.Numeric,
-    result: 'boolean'
+    result: 'bool'
 });
 
-make_binop_node('logic', '<=', (a, b) => a <= b, {
+make_binop_node('logic', '<=', (a, b) => `${a} <= ${b}`, {
     a: Units.Numeric,
     b: Units.Numeric,
-    result: 'boolean'
+    result: 'bool'
 });
 
-make_binop_node('logic', '>', (a, b) => a > b, {
+make_binop_node('logic', '>', (a, b) => `${a} > ${b}`, {
     a: Units.Numeric,
     b: Units.Numeric,
-    result: 'boolean'
+    result: 'bool'
 });
 
-make_binop_node('logic', '>=', (a, b) => a >= b, {
+make_binop_node('logic', '>=', (a, b) => `${a} >= ${b}`, {
     a: Units.Numeric,
     b: Units.Numeric,
-    result: 'boolean'
+    result: 'bool'
 });
 
 // math
-make_binop_node('math', {symbol: '+', named: 'add'}, (a, b) => a+b, {
+make_binop_node('math', {symbol: '+', named: 'add'}, (a, b) => `${a}+${b}`, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '-', named: 'sub'}, (a, b) => a-b, {
+make_binop_node('math', {symbol: '-', named: 'sub'}, (a, b) => `${a}-${b}`, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '*', named: 'mul'}, (a, b) => a*b, {
+make_binop_node('math', {symbol: '*', named: 'mul'}, (a, b) => `${a}*${b}`, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '/', named: 'div'}, (a, b) => a/b, {
+make_binop_node('math', {symbol: '/', named: 'div'}, (a, b) => `${a}/${b}`, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '%', named: 'mod'}, (a, b) => a%b, {
+make_binop_node('math', {symbol: '%', named: 'mod'}, (a, b) => `${a}%{b}`, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_unary_node('math', '|a|', Math.abs, {
-    a: 'number',
+make_unary_node('math', '|a|', (a) => `abs(${a})`, {
+    a: 'float',
+    result: 'float',
+});
+
+make_unary_node('math', 'sin(a)', (a) => `sin(${a})`, {
+    a: 'float',
     result: 'number',
 });
 
-make_unary_node('math', 'sin(a)', Math.sin, {
-    a: 'number',
-    result: 'number',
-});
-
-make_unary_node('math', 'cos(a)', Math.cos, {
-    a: 'number',
-    result: 'number',
+make_unary_node('math', 'cos(a)', (a) => `cos(${a})`, {
+    a: 'float',
+    result: 'float',
 });
 
 class Rotate2D extends GraphNode {
@@ -171,6 +191,18 @@ class Rotate2D extends GraphNode {
             GraphNode.output('y\'', Units.Distance),
         ];
         super(options, inputs, outputs);
+    }
+
+    compile(c) {
+        let x = c.getInput(this, 0);
+        let y = c.getInput(this, 1);
+        let theta = c.getInput(this, 2);
+
+        let sv = c.declare('float', c.variable(), `sin(${theta})`);
+        let cv = c.declare('float', c.variable(), `cos(${theta})`);
+
+        c.setOutput(this, 0, `${x} * ${cv} - ${y} * ${sv}`);
+        c.setOutput(this, 1, `${x} * ${sv} + ${y} * ${cv}`);
     }
 
     onExecute() {

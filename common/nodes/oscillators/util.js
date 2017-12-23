@@ -1,4 +1,5 @@
 import { addSerializableType } from '@/common/util/serialization';
+import { Compilation } from '@/common/graphlib/compiler';
 
 export default class Frequency {
     constructor(hz) {
@@ -34,6 +35,16 @@ export default class Frequency {
         this.frequency = val;
     }
 
+    static declare() {
+        return {
+            type: 'float',
+        };
+    }
+
+    sendToShader(gl, loc) {
+        gl.uniform1f(loc, this.frequency);
+    }
+
     static deserialize(hz) {
         return new Frequency(hz);
     }
@@ -57,3 +68,4 @@ export default class Frequency {
 };
 
 addSerializableType('Frequency', Frequency);
+Compilation.registerType('Frequency', Frequency);

@@ -49,6 +49,7 @@ export default GraphLib;
 
 export class GraphBase {
     constructor(id) {
+        console.log(this);
         this.id = id;
         graphs.set(this.id, this);
 
@@ -529,7 +530,7 @@ export class GraphNode {
     }
 
     _isConvertible(outgoing, type) {
-        return outgoing.data && outgoing.type && outgoing.type.isUnit && type && type.isUnit;
+        return outgoing.type && outgoing.type.isUnit && type && type.isUnit;
     }
 
     getInputData(slot) {
