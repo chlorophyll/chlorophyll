@@ -1,5 +1,3 @@
-import Immutable from 'immutable';
-
 import * as Serialization from '@/common/util/serialization';
 
 import Units from '@/common/units';
@@ -59,10 +57,10 @@ export class GraphBase {
 
         this.refs = new Map();
 
-        this.nodes = new Immutable.Map();
-
-        this.edges_by_src = new Immutable.Map();
-        this.edges_by_dst = new Immutable.Map();
+        this.nodes = new Map();
+        this.order = [];
+        this.edges_by_src = new Map(); // src -> slot -> edge list
+        this.edges_by_dst = new Map(); // dst -> slot -> edge
     }
 
     emit(name, detail) {
@@ -124,7 +122,7 @@ export class GraphBase {
 
         let node = new Ctor({graph, id, title, pos, path, vm_factory});
 
-        this.nodes = this.nodes.set(node.id, node);
+        this.nodes.set(node.id, node);
 
         if (ref !== undefined) {
             this.refs.set(ref, id);
@@ -146,7 +144,7 @@ export class GraphBase {
         this.forEachEdgeToNode(node, (edge) => this.disconnect(edge));
         this.forEachEdgeFromNode(node, (edge) => this.disconnect(edge));
 
-        this.nodes = this.nodes.delete(node.id);
+        this.nodes.delete(node.id);
         this.refs.delete(node.id);
 
         this.emit('node-removed', { node });
@@ -202,29 +200,44 @@ export class GraphBase {
                     });
                 } else {
                     visited.set(id, BLACK);
-                    ordered.unshift([id, node]);
+                    ordered.unshift(id);
                 }
             }
         });
-        this.nodes = Immutable.OrderedMap(ordered);
+        this.order = ordered;
     }
 
     _insertEdge(edge) {
         const {src_id, src_slot, dst_id, dst_slot} = edge;
 
-        this.edges_by_src = this.edges_by_src.updateIn(
-            [src_id, src_slot],
-            Immutable.Set(),
-            (edgelist) => edgelist.add(edge));
-        let prev_edge = this.edges_by_dst.getIn([dst_id, dst_slot]);
+        let slots_for_src = this.edges_by_src.get(src_id);
+        if (slots_for_src === undefined) {
+            slots_for_src = new Map();
+            this.edges_by_src.set(src_id, slots_for_src);
+        }
 
-        this.edges_by_dst = this.edges_by_dst.setIn([dst_id, dst_slot], edge);
+        let edgelist = slots_for_src.get(src_slot);
+        if (edgelist === undefined) {
+            edgelist = new Set();
+            slots_for_src.set(src_slot, edgelist);
+        }
 
-        if (prev_edge) {
-            this.edges_by_src = this.edges_by_src.updateIn(
-                [prev_edge.src_id, prev_edge.src_slot],
-                Immutable.Set(), (edgelist) => edgelist.delete(prev_edge)
-            );
+        edgelist.add(edge);
+
+        let slots_for_dst = this.edges_by_dst.get(dst_id);
+        if (slots_for_dst === undefined) {
+            slots_for_dst = new Map();
+            this.edges_by_dst.set(dst_id, slots_for_dst);
+        }
+
+        let prev_edge = slots_for_dst.get(dst_slot);
+
+        slots_for_dst.set(dst_slot, edge);
+
+        if (prev_edge !== undefined) {
+            let prev_slots = this.edges_by_src.get(prev_edge.src_id);
+            let prev_edges = prev_slots.get(prev_edge.src_slot);
+            prev_edges.delete(prev_edge);
         }
 
         return prev_edge;
@@ -254,9 +267,6 @@ export class GraphBase {
             dst_slot,
         };
 
-        let old_src = this.edges_by_src;
-        let old_dst = this.edges_by_dst;
-
         let prev_edge = this._insertEdge(edge);
 
         try {
@@ -266,9 +276,7 @@ export class GraphBase {
                 this._notifyDisconnect(prev_edge);
             return edge;
         } catch (e) {
-            // a cycle was created
-            this.edges_by_src = old_src;
-            this.edges_by_dst = old_dst;
+            if (prev_edge) this._insertEdge(prev_edge);
             return false;
         }
     }
@@ -282,16 +290,27 @@ export class GraphBase {
     }
 
     disconnect(edge) {
-        this.edges_by_src = this.edges_by_src.updateIn(
-            [edge.src_id, edge.src_slot],
-            Immutable.Set(), (edgelist) => edgelist.delete(edge)
-        );
-        this.edges_by_dst = this.edges_by_dst.deleteIn([edge.dst_id, edge.dst_slot]);
+        let src_slots = this.edges_by_src.get(edge.src_id);
+        let edgelist = src_slots.get(edge.src_slot);
+        edgelist.delete(edge);
+
+        let dst_slots = this.edges_by_dst.get(edge.dst_id);
+        dst_slots.delete(edge.dst_slot);
+
         this._notifyDisconnect(edge);
     }
 
     getNodeByInput(dst, dst_slot) {
-        let edge = this.edges_by_dst.getIn([dst.id, dst_slot]);
+        let dst_slots = this.edges_by_dst.get(dst.id);
+        if (dst_slots === undefined) {
+            return null;
+        }
+
+        let edge = dst_slots.get(dst_slot);
+
+        if (edge === undefined) {
+            return null;
+        }
 
         if (!edge)
             return null;
@@ -329,7 +348,7 @@ export class GraphBase {
     numEdgesToNode(node) {
         let edges_by_slot = this.edges_by_dst.get(node.id);
         if (edges_by_slot !== undefined) {
-            return edges_by_slot.count();
+            return edges_by_slot.size;
         } else {
             return 0;
         }
@@ -346,21 +365,32 @@ export class GraphBase {
         let total = 0;
         let edges_by_slot = this.edges_by_src.get(node.id);
 
-        if (edges_by_slot)
-            edges_by_slot.forEach((slot) => total += slot.count());
+
+        if (edges_by_slot) {
+            for (let slot of edges_by_slot.values()) {
+                total += slot.size;
+            }
+        }
         return total;
     }
 
     forEachEdgeFromSlot(node, slot, f) {
-        this.edges_by_src.getIn([node.id, slot], Immutable.List()).forEach(f);
+        let edges_by_slot = this.edges_by_src.get(node.id);
+        if (edges_by_slot)
+            edges_by_slot.forEach(f);
     }
 
     numEdgesAtSlot(node, slot, is_input) {
         if (is_input)
             return this.hasIncomingEdge(node, slot) ? 1 : 0;
 
-        let edgelist = this.edges_by_src.getIn([node.id, slot]);
-        return edgelist ? edgelist.count() : 0;
+        let edges_by_slot = this.edges_by_src.get(node.id);
+        if (!edges_by_slot)
+            return 0;
+
+        let edgelist = edges_by_slot.get(slot);
+
+        return edgelist ? edgelist.size: 0;
     }
 
     hasIncomingEdge(node, slot) {
@@ -368,7 +398,10 @@ export class GraphBase {
     }
 
     getIncomingEdge(node, slot) {
-        return this.edges_by_dst.getIn([node.id, slot]);
+        let edges_by_slot = this.edges_by_dst.get(node.id);
+        if (!edges_by_slot) return undefined;
+
+        return edges_by_slot.get(slot);
     }
 
     forEachEdge(f) {
