@@ -55,9 +55,41 @@ const store = new Vuex.Store({
 });
 
 export default store;
+
 export function newgid(context={}) {
     const commit = context.commit || store.commit;
     const rootState = context.rootState || store.state;
     commit('guid_increment', null, { root: true });
     return rootState.next_guid;
+}
+
+export function crud(shortName, idMap, idList, defaultAttrs) {
+  return {
+    [`clear_${shortName}`]: (state) => {
+      state[idMap] = {};
+      state[idList] = [];
+    },
+
+    [`create_${shortName}`]: (state, attrs) => {
+      const defaults = {
+        id: attrs.id,
+        name: `${shortName} ${attrs.id}`,
+        ...defaultAttrs(id)
+      };
+      Vue.set(state[idMap], attrs.id, {...defaults, ...attrs});
+      state[idList].push(attrs.id);
+    },
+
+    [`update_${shortName}`]: (state, {id, attrs}) => {
+      Vue.set(state[idMap], id, {...state[idMap][id], ...attrs});
+    },
+
+    [`delete_${shortName}`]: (state, {id}) => {
+      if (!state[idMap][id])
+        return;
+
+      Vue.delete(state[idMap], id);
+      state[idList].splice(state[idList].indexOf(id), 1);
+    }
+  };
 }
