@@ -32,7 +32,8 @@
                 :show="true"
                 @close="endConfigure">
         <component v-bind:is="mapping.type"
-                   v-model="working_settings" />
+                   v-model="working_settings"
+                   :group="mapping.group" />
     </dialog-box>
   </div>
 </template>
@@ -41,6 +42,7 @@
 import { mappingUtilsMixin } from 'chl/mapping';
 
 import ProjectionConfig from '@/components/mapping/projection_config';
+import TransformConfig from '@/components/mapping/transform_config';
 
 import DialogBox from '@/components/widgets/dialog_box';
 
@@ -51,7 +53,7 @@ export default {
     components: {
         DialogBox,
         'projection': ProjectionConfig,
-        /* 'transform': TransformConfig */
+        'transform': TransformConfig,
     },
 
     data() {

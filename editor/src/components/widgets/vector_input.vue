@@ -5,6 +5,7 @@
         <numeric-input :value="val"
                        :min="min"
                        :max="max"
+                       :dragscale="dragscale"
                        :precision="precision"
                        :disabled="disabled"
                        @input="(val) => updateValue(idx, val)" />
@@ -24,6 +25,7 @@ export default {
         value: Array,
         min: Number,
         max: Number,
+        dragscale: Number,
         disabled: {
             type: Boolean,
             default: false,

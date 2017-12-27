@@ -16,14 +16,14 @@ import {
  * cartesian, cylindrical, or spherical coordinates.
  */
 
-export function scaleToFitPoints(pixel_positions, position) {
+export function scaleToFitPoints(pixels, position) {
     // TODO scale based on preview shape - a sphere is strictly smaller than
     // the others, though, so it's a workable approximation.
     const center = new Vector3();
     center.fromArray(position);
 
     let furthest = 0;
-    pixel_positions.forEach((pos) => {
+    pixels.forEach(({pos}) => {
         let dist = center.distanceToSquared(pos);
         if (dist > furthest)
             furthest = dist;
