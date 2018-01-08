@@ -22,11 +22,21 @@ export default {
         this.viewport.addEventListener('click', this.click, false);
     },
 
+    watch: {
+        enabled() {
+            if (!this.enabled && this.points.length > 0)
+                this.cancelSelection();
+        }
+    },
+
     methods: {
         reset() {
             this.points = [];
         },
         click(event) {
+            if (!this.enabled)
+              return;
+
             event.stopPropagation();
             let {x, y} = Util.relativeCoords(this.viewport, event.pageX, event.pageY);
             let chosen = activeScreen().getPointAt(x, y);

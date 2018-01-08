@@ -84,7 +84,11 @@ export function SelectionToolMixin(name) {
                 },
 
                 updateInProgressSelection(selection) {
-                    colorDisplay.in_progress_selection = [...selection];
+                    let new_selection = [...selection];
+                    if (this.initial_selection)
+                        new_selection = new_selection.concat(this.initial_selection);
+
+                    colorDisplay.in_progress_selection = new_selection;
                 },
 
                 commitSelection(selection=null) {
