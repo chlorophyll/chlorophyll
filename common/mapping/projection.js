@@ -62,8 +62,9 @@ export function getCameraProjection(camera, screen_origin) {
     let widgetpos = new Vector2(screen_origin.x, screen_origin.y);
     raycaster.setFromCamera(widgetpos, camera);
 
+    const intersection = raycaster.ray.intersectPlane(plane);
     return {
-        origin: raycaster.ray.intersectPlane(plane).toArray(),
+        origin: intersection ? intersection.toArray() : [0, 0, 0],
         plane_angle: plane_euler.toArray().slice(0, 2),
         rotation: screen_origin.angle,
     };

@@ -1,7 +1,7 @@
 <template>
 <div class="panel">
     <vector-input title="Plane Angle"
-                  min="0" max="max_angle"
+                  :min="min_angle" :max="max_angle"
                   :value="value.plane_angle"
                   @input="updateProjectionAndCamera" />
     <vector-input title="Origin"
@@ -9,15 +9,10 @@
                   :min="-10000" :max="10000"
                   :value="value.origin">
     </vector-input>
-    <vector-input title="Rotation"
-                  :min="0" :max="max_angle"
-                  :value="[value.rotation]"
-                  @input="([angle]) => updateProjection({ angle })">
-    </vector-input>
     <div class="control-row">
         <label>Rotation</label>
         <numeric-input title="Rotation"
-                      :min="0" :max="6.28"
+                      :min="0" :max="2*max_angle"
                       :value="value.rotation"
                       @input="(angle) => updateProjection({ angle })" />
     </div>
@@ -50,7 +45,8 @@ export default {
     components: { VectorInput, NumericInput, ViewportAxes },
     data() {
         return {
-            max_angle: 2 * Math.PI
+            min_angle: -Math.PI,
+            max_angle: Math.PI
         };
     },
     computed: {
