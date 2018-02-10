@@ -11,17 +11,16 @@ import initMenu from 'chl/menu';
 
 import RootComponent from '@/components/root';
 
-import { initRenderer, renderViewport } from 'chl/viewport';
+import viewports from 'chl/viewport';
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
 
 Vue.config.productionTip = false;
 initMenu();
-initRenderer();
 new Vue(RootComponent).$mount('#app');
 
 function animate() {
-    renderViewport();
+    viewports.renderAll();
     window.requestAnimationFrame(animate);
 }
 

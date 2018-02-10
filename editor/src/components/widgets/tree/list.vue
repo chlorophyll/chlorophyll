@@ -2,7 +2,7 @@
     <ul class="tree">
         <template v-for="child in items">
             <tree-item :item="child">
-                <template scope="props">
+                <template slot-scope="props">
                     <slot :item="props.item" :leaf="props.leaf" />
                 </template>
             </tree-item>

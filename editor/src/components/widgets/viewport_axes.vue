@@ -42,11 +42,9 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
 import * as THREE from 'three';
 import keyboardJS from 'keyboardjs';
 import Hotkey from 'chl/keybindings';
-import Util from 'chl/util';
 import store from 'chl/vue/store';
 
 const axes = [
@@ -58,14 +56,7 @@ export default {
     store,
     name: 'viewport-axes',
     props: ['value'],
-    mounted() {
-        document.getElementById('overlays').appendChild(this.$el);
-        keyboardJS.bind(Hotkey.widget_snap_angles, this.enableSnap, this.disableSnap);
-    },
-    beforeDestroy() {
-        document.getElementById('overlays').removeChild(this.$el);
-        keyboardJS.unbind(Hotkey.widget_snap_angles, this.enableSnap, this.disableSnap);
-    },
+    inject: ['localViewport'],
     data() {
         return {
             hovering: false,
@@ -76,6 +67,7 @@ export default {
             axes,
         };
     },
+
     computed: {
         size() {
             return 50 + this.container_height * 0.2;
@@ -98,33 +90,49 @@ export default {
         angle_degrees() {
             return this.radToDeg(this.value.angle);
         },
-        viewport() {
-            return document.getElementById('viewport');
+        container_width() {
+            return this.localViewport.width;
         },
-        ...mapState('viewport', {
-            container_width: 'width',
-            container_height: 'height'
-        })
+        container_height() {
+            return this.localViewport.height;
+        }
     },
+
+    mounted() {
+        this.localViewport.$refs.overlay.appendChild(this.$el);
+        keyboardJS.bind(Hotkey.widget_snap_angles, this.enableSnap, this.disableSnap);
+    },
+
+    beforeDestroy() {
+        const overlay = this.localViewport.$refs.overlay;
+        if (overlay)
+            overlay.removeChild(this.$el);
+        keyboardJS.unbind(Hotkey.widget_snap_angles, this.enableSnap, this.disableSnap);
+    },
+
     methods: {
         radToDeg(deg) {
             return THREE.Math.radToDeg(deg);
         },
+
         startRotate(offset) {
             this.rotating = true;
             this.rotate_offset = offset;
             window.addEventListener('mousemove', this.rotate);
             window.addEventListener('mouseup', this.endRotate);
         },
+
         endRotate() {
             this.rotating = false;
             window.removeEventListener('mousemove', this.rotate);
             window.removeEventListener('mouseup', this.endRotate);
         },
+
         rotate(event) {
             let {pageX, pageY} = event;
+            let {x, y} = this.localViewport.relativePageCoords(pageX, pageY);
+
             const offset = this.rotate_offset;
-            let {x, y} = Util.relativeCoords(this.viewport, pageX, pageY);
             const center = new THREE.Vector2(this.center_x, this.center_y);
             const mouse = new THREE.Vector2(x, y);
             mouse.sub(center);
@@ -135,23 +143,29 @@ export default {
             }
             this.$emit('input', {angle, x: this.value.x, y: this.value.y});
         },
+
         startDrag(event) {
             this.dragging = true;
-            this.viewport.addEventListener('mousemove', this.drag);
-            this.viewport.addEventListener('mouseup', this.endDrag);
+            const vp = this.localViewport.$refs;
+            vp.container.addEventListener('mousemove', this.drag);
+            vp.container.addEventListener('mouseup', this.endDrag);
         },
+
         drag(event) {
             event.preventDefault();
-            let {x: px, y: py} = Util.relativeCoords(this.viewport, event.pageX, event.pageY);
+            let {x: px, y: py} = this.localViewport.relativePageCoords(event.pageX, event.pageY);
             let x = +(px / this.container_width) * 2 - 1;
             let y = -(py / this.container_height) * 2 + 1;
             this.$emit('input', {angle: this.value.angle, x, y});
         },
+
         endDrag(event) {
             this.dragging = false;
-            this.viewport.removeEventListener('mousemove', this.drag);
-            this.viewport.removeEventListener('mouseup', this.endDrag);
+            const vp = this.localViewport.$refs;
+            vp.container.removeEventListener('mousemove', this.drag);
+            vp.container.removeEventListener('mouseup', this.endDrag);
         },
+
         startHover() {
             this.hovering = true;
         },

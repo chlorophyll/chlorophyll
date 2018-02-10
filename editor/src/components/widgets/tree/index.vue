@@ -1,7 +1,7 @@
 <template>
     <div class="tree-container">
         <tree-view-list :items="items">
-            <template scope="props">
+            <template slot-scope="props">
                 <slot :item="props.item" :leaf="props.leaf">
                 <span>{{ props.item.label }}</span>
                 </slot>

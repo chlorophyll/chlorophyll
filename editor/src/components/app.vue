@@ -3,9 +3,10 @@
         <split-pane slot="first"
                     direction="horizontal"
                     :initial-split="[null, Const.sidebar_size]">
-            <split-pane slot="first" direction="horizontal"
-                                     :initial-split="[Const.toolbar_size, null]">
-                <toolbox slot="first">
+            <viewport slot="first"
+                      label="main"
+                      projection="perspective"
+                      :show-toolbox="true">
                 <tool label="Camera"
                       :is-enabled="true"
                       :hotkey="Hotkey.camera"
@@ -17,9 +18,7 @@
                       :hotkey="Hotkey.select_line"><line-selection /></tool>
                 <tool label="Plane"
                       :hotkey="Hotkey.select_plane"><plane-selection /></tool>
-                </toolbox>
-                <viewport slot="second" />
-            </split-pane>
+            </viewport>
             <mapping-manager slot="second" />
         </split-pane>
         <tab-set slot="second">
@@ -39,7 +38,6 @@ import LineSelection from '@/components/tools/selection/line';
 import PlaneSelection from '@/components/tools/selection/plane';
 import Camera from '@/components/tools/camera';
 
-import Toolbox from '@/components/tools/toolbox';
 import Tool from '@/components/tools/toolbox/tool';
 
 import TabSet from '@/components/widgets/tab-set';
@@ -62,7 +60,6 @@ export default {
         MappingManager,
         PatternEditor,
         SplitPane,
-        Toolbox,
         Tool,
         TabSet,
         Tab,

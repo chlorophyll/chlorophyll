@@ -27,8 +27,8 @@
     </section>
     <dialog-box v-if="configuring"
                 title="Configure mapping"
-                width="300px"
-                :pos="{ x: 400, y: 400 }"
+                :width="configWidth"
+                :pos="{ x: 250, y: 100 }"
                 :show="true"
                 @close="endConfigure">
         <component v-bind:is="mapping.type"
@@ -72,6 +72,7 @@ export default {
                 });
             }
         },
+
         type: {
             get() { return this.mapping.type; },
             set(val) {
@@ -81,6 +82,13 @@ export default {
                 });
             }
         },
+
+        configWidth() {
+            if (this.mapping.type === 'projection')
+                return '700px';
+            else
+                return '300px';
+        }
     },
     beforeDestroy() {
         if (this.configuring)

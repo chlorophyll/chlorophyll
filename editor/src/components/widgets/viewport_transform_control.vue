@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import 'three-examples/controls/TransformControls';
 import store from 'chl/vue/store';
-import { mapGetters } from 'vuex';
+import { ViewportMixin } from 'chl/viewport';
 import { currentModel } from 'chl/model';
 
 const centerpoint_mat = new THREE.PointsMaterial({size: 30, sizeAttenuation: true});
@@ -20,6 +20,7 @@ centerpoint_geom.vertices.push(new THREE.Vector3(0, 0, 0));
 export default {
   store,
   name: 'viewport-transform-control',
+  mixins: [ViewportMixin],
   props: ['value', 'mode', 'shape'],
   data() {
     return {
@@ -29,9 +30,7 @@ export default {
       scene: null,
     };
   },
-  computed: {
-    ...mapGetters('viewport', ['activeScreen'])
-  },
+
   watch: {
     value: {
       deep: true,
@@ -88,8 +87,8 @@ export default {
   },
 
   mounted() {
-    const camera = this.activeScreen.camera;
-    const renderer = this.activeScreen.renderer;
+    const camera = this.mainViewport().camera;
+    const renderer = this.mainViewport().renderer;
 
     this.control = new THREE.TransformControls(camera, renderer.domElement);
     this.centerpoint = new THREE.Points(centerpoint_geom, centerpoint_mat);
@@ -102,12 +101,12 @@ export default {
     this.control.setMode(this.mode);
     this.setPreviewShape(this.shape);
 
-    this.activeScreen.controls.addEventListener('change', this.update);
+    this.mainViewport().controls.addEventListener('change', this.update);
     this.control.addEventListener('objectChange', this.onChange);
   },
 
   beforeDestroy() {
-    this.activeScreen.controls.removeEventListener('change', this.update);
+    this.mainViewport().controls.removeEventListener('change', this.update);
     this.control.removeEventListener('objectChange', this.onChange);
 
     if (this.bounding_mesh)

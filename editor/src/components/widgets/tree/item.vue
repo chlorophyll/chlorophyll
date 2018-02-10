@@ -7,7 +7,7 @@
         </div>
 
         <tree-view-list v-show="open" v-if="hasChildren" :items="item.children">
-            <template scope="props">
+            <template slot-scope="props">
                 <slot :item="props.item" :leaf="props.leaf" />
             </template>
         </tree-view-list>

@@ -2,7 +2,7 @@
 <div id="mapping-browser">
   <div class="panel-header">Mapping Browser</div>
     <tree-view class="tree-view" :items="treeItems">
-      <template scope="props">
+      <template slot-scope="props">
         <div class="item ltreeitem"
              @click="select(props.item.id)">
           {{ props.item.label }}

@@ -31,7 +31,7 @@
                 <split-pane direction="horizontal" :initial-split="[210, null]">
                     <div slot="first" class="node-browser">
                         <tree :items="node_list" class="tree">
-                        <template scope="props">
+                        <template slot-scope="props">
                             <div class="item"
                                  draggable="true"
                                  v-if="props.leaf"

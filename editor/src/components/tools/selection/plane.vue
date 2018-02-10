@@ -6,12 +6,12 @@
 import { Line3, Plane } from 'three';
 
 import Util from 'chl/util';
-import { activeScreen } from 'chl/viewport';
 import { SelectionToolMixin } from 'chl/tools/selection';
 import { currentModel, colorDisplay } from 'chl/model';
 
 export default {
     mixins: [...SelectionToolMixin('plane-selection')],
+    inject: ['localViewport'],
     data() {
         return {
             points: [],
@@ -19,7 +19,10 @@ export default {
     },
 
     mounted() {
-        this.viewport.addEventListener('click', this.click, false);
+        this.$nextTick(() => {
+            const vp = this.localViewport.$refs;
+            vp.container.addEventListener('click', this.click);
+        });
     },
 
     watch: {
@@ -38,8 +41,8 @@ export default {
               return;
 
             event.stopPropagation();
-            let {x, y} = Util.relativeCoords(this.viewport, event.pageX, event.pageY);
-            let chosen = activeScreen().getPointAt(x, y);
+            let {x, y} = this.localViewport.relativePageCoords(event.pageX, event.pageY);
+            let chosen = this.localViewport.getPointAt(x, y);
             if (!chosen)
                 return;
 

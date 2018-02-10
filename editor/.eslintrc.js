@@ -56,6 +56,7 @@ module.exports = {
     'spaced-comment': [1, 'always', {exceptions: ['/', '*', '+', '@']}],
     'no-multi-spaces': 0,
     'quote-props': 0,
+    'arrow-parens': 0,
     // allow debugger during development
     'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0
   }

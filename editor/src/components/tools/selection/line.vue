@@ -6,19 +6,22 @@
 import { Line3 } from 'three';
 
 import Util from 'chl/util';
-import { activeScreen } from 'chl/viewport';
 import { SelectionToolMixin } from 'chl/tools/selection';
 import { currentModel, colorDisplay } from 'chl/model';
 
 export default {
     mixins: [...SelectionToolMixin('line-selection')],
+    inject: ['localViewport'],
     data() {
         return {
             p1: null,
         };
     },
     mounted() {
-        this.viewport.addEventListener('click', this.click, false);
+        this.$nextTick(() => {
+            const vp = this.localViewport.$refs;
+            vp.container.addEventListener('click', this.click);
+        });
     },
 
     methods: {
@@ -32,9 +35,8 @@ export default {
             event.stopPropagation();
 
             let {pageX, pageY} = event;
-            let {x, y} = Util.relativeCoords(this.viewport, pageX, pageY);
-
-            let chosen = activeScreen().getPointAt(x, y);
+            let {x, y} = this.localViewport.relativePageCoords(pageX, pageY);
+            let chosen = this.localViewport.getPointAt(x, y);
 
             if (!chosen)
                 return;

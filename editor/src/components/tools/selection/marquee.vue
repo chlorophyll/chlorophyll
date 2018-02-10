@@ -5,17 +5,12 @@
 </template>
 
 <script>
-import Util from 'chl/util';
-import { activeScreen, isClipped } from 'chl/viewport';
 import { SelectionToolMixin } from 'chl/tools/selection';
 import { currentModel } from 'chl/model';
 
 export default {
     mixins: [...SelectionToolMixin('marquee-selection')],
-    mounted() {
-        document.getElementById('overlays').appendChild(this.$refs.box);
-        this.viewport.addEventListener('mousedown', this.start, false);
-    },
+    inject: ['localViewport'],
     data() {
         return {
             rect: {
@@ -51,31 +46,44 @@ export default {
             };
         },
     },
+    mounted() {
+        this.$nextTick(() => {
+            const vp = this.localViewport.$refs;
+            vp.overlay.appendChild(this.$refs.box);
+            vp.container.addEventListener('mousedown', this.start, false);
+        });
+    },
+
     methods: {
         reset() {
             this.rect.startX = 0;
             this.rect.startY = 0;
             this.rect.endX = 0;
             this.rect.endY = 0;
-            this.viewport.removeEventListener('mousemove', this.drag);
-            this.viewport.removeEventListener('mouseup', this.end);
+
+            const vp = this.localViewport.$refs;
+            vp.container.removeEventListener('mousemove', this.drag);
+            vp.container.removeEventListener('mouseup', this.end);
         },
         start(event) {
             if (!this.enabled)
                 return;
             let {pageX, pageY} = event;
-            let {x, y} = Util.relativeCoords(this.viewport, pageX, pageY);
+            let {x, y} = this.localViewport.relativePageCoords(pageX, pageY);
             this.rect.startX = x;
             this.rect.startY = y;
             this.rect.endX = x;
             this.rect.endY = y;
-            this.viewport.addEventListener('mousemove', this.drag, false);
-            this.viewport.addEventListener('mouseup', this.end, false);
+
+            const vp = this.localViewport.$refs;
+            vp.container.addEventListener('mousemove', this.drag);
+            vp.container.addEventListener('mouseup', this.end);
+
             this.startSelection(event);
         },
         drag(event) {
             let {pageX, pageY} = event;
-            let {x, y} = Util.relativeCoords(this.viewport, pageX, pageY);
+            let {x, y} = this.localViewport.relativePageCoords(pageX, pageY);
             this.rect.endX = x;
             this.rect.endY = y;
 
@@ -84,10 +92,10 @@ export default {
 
             currentModel.forEach((strip, i) => {
                 let v = currentModel.getPosition(i);
-                if (isClipped(v))
+                if (this.localViewport.isClipped(v))
                     return;
 
-                let s = activeScreen().screenCoords(v);
+                let s = this.localViewport.screenCoords(v);
 
                 if (s.x >= l && s.x <= r && s.y >= t && s.y <= b) {
                     this.handlePixel(current_selection, i);

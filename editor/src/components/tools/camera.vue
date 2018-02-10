@@ -1,14 +1,15 @@
 <template><span/></template>
 <script>
-import { activeScreen } from 'chl/viewport';
 import { ToolMixin } from 'chl/tools';
 
 export default {
     name: 'camera',
     mixins: [ToolMixin],
+    inject: ['localViewport'],
     watch: {
         enabled() {
-            activeScreen().controlsEnabled = this.enabled;
+            if (this.localViewport)
+                this.localViewport.controlsEnabled = this.enabled;
         }
     }
 };

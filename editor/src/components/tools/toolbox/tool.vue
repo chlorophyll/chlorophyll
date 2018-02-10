@@ -43,6 +43,9 @@ export default {
 
     methods: {
         selected() {
+            if (!this.$parent.selectTool)
+                return;
+
             this.$parent.selectTool(this);
         }
     },
@@ -50,6 +53,9 @@ export default {
         this.enabled = this.isEnabled;
     },
     mounted() {
+        if (!this.$parent.addTool)
+            return;
+
         this.$parent.addTool(this);
     },
 
