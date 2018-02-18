@@ -9,6 +9,7 @@
 </template>
 
 <script>
+/* eslint-disable */
 import Const, { ConstMixin } from 'chl/const';
 
 import SequencerClip from './clip';

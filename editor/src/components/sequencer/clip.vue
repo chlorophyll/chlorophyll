@@ -7,6 +7,7 @@
           />
 </template>
 <script>
+/* eslint-disable */
 import Const, { ConstMixin } from 'chl/const';
 export default {
     name: 'sequencer-clip',

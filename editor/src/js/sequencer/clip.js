@@ -1,3 +1,4 @@
+/* eslint-disable */
 import store from 'chl/vue/store';
 import { registerSaveField } from 'chl/savefile';
 

@@ -31,6 +31,7 @@
 </template>
 
 <script>
+/* eslint-disable */
 import * as d3 from 'd3';
 import Util from 'chl/util';
 import Const from 'chl/const';

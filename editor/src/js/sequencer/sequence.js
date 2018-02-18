@@ -1,3 +1,4 @@
+/* eslint-disable */
 import Vue from 'vue';
 import clone from 'clone';
 
