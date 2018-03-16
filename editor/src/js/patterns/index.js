@@ -10,6 +10,7 @@ import store, { newgid } from 'chl/vue/store';
 
 import { Graph } from 'chl/graphlib';
 import { restoreAllPatterns, PatternRunner } from '@/common/patterns';
+import { mappingTypes } from '@/common/mapping';
 import { setColorSpace } from '@/common/nodes/fastled/color';
 import { currentModel } from 'chl/model';
 import { registerSaveField } from 'chl/savefile';
@@ -97,6 +98,8 @@ export function setCoordType(id, mapping_type, coord_type) {
     const old_input = graph.getNodeByRef('input_node');
     graph.removeNode(old_input);
 
+    graph.addGlobalInput('coords', mappingTypes[mapping_type].glsl_type);
+
     const path = `mapping/${mapping_type}/${coord_type}`;
     graph.addNode(path, {
         title: 'input',
@@ -113,10 +116,10 @@ export function createPattern(id, {name, set_current=true} = {}) {
 
     let pixel_stage = new Graph();
 
-    pixel_stage.addGlobalInput('coords');
-    pixel_stage.addGlobalInput('t');
-    pixel_stage.addGlobalInput('color');
-    pixel_stage.addGlobalOutput('outcolor');
+    pixel_stage.addGlobalInput('coords', mappingTypes[mapping_type].glsl_type);
+    pixel_stage.addGlobalInput('t', 'float');
+    pixel_stage.addGlobalInput('color', 'CRGB');
+    pixel_stage.addGlobalOutput('outcolor', 'CRGB');
 
     let path = `mapping/${mapping_type}/${coord_type}`;
     pixel_stage.addNode(path, {title: 'input', ref: 'input_node'});

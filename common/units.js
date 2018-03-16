@@ -1,5 +1,5 @@
 import { addSerializableType } from '@/common/util/serialization';
-
+import * as glsl from '@/common/glsl';
 import { Compilation } from '@/common/graphlib/compiler';
 
 function mapValue(value, fromLow, fromHigh, toLow, toHigh) {
@@ -36,10 +36,10 @@ let _Units = {
     },
 
     compile(val, fromUnit, toUnit) {
-        let [fromLow, fromHigh] = fromUnit.range;
-        let [toLow, toHigh] = toUnit.range;
+        let [fromLow, fromHigh] = fromUnit.range.map(glsl.Const);
+        let [toLow, toHigh] = toUnit.range.map(glsl.Const);
 
-        return `mapValue(${val}, ${fromLow}, ${fromHigh}, ${toLow}, ${toHigh})`;
+        return glsl.FunctionCall('mapValue', [val, fromLow, fromHigh, toLow, toHigh]);
     }
 
 };
@@ -79,13 +79,34 @@ Units.UInt8 = new RangeType(0, 0xff, (val) => val & 0xff);
 Units.Distance = new RangeType(-1, 1);
 Units.Angle = new RangeType(0, 2*Math.PI);
 
+/*
 Compilation.toplevel(
-`
+    glsl.FunctionDecl('float', 'mapValue', [
+        glsl.Variable('float', 'value'),
+        glsl.Variable('float', 'fromLow'), glsl.Variable('float', 'fromHigh'),
+        glsl.Variable('float', 'toLow'), glsl.Variable('float', 'toHigh'),
+    ], [
+        glsl.Return(glsl.BinOp(
+            glsl.BinOp(
+                glsl.BinOp(glsl.Ident('value'), '-', glsl.Ident('fromLow')),
+                '*',
+                glsl.BinOp(
+                    glsl.BinOp(glsl.Ident('toHigh'), '-', glsl.Ident('toLow')),
+                    '/',
+                    glsl.BinOp(glsl.Ident('fromHigh'), '-', glsl.Ident('fromLow'))
+                )
+            ),
+            '+',
+            glsl.Ident('toLow'))
+        )
+    ]));
+*/
+
+Compilation.toplevel(`
 float mapValue(in float value,
                in float fromLow, in float fromHigh,
                in float toLow, in float toHigh) {
     return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
 }
 `);
-
 export default Units;

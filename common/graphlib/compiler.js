@@ -1,6 +1,8 @@
 import Units from '@/common/units';
 
-let decls = [];
+import * as glsl from '@/common/glsl';
+
+let global_decls = [];
 let types = new Map();
 
 function isConvertible(t1, t2) {
@@ -9,19 +11,22 @@ function isConvertible(t1, t2) {
 
 export let Compilation = {
     toplevel(source) {
-        decls.push(source);
+        global_decls.push(source);
     },
 
     registerType(name, obj) {
         let {type, decl} = obj.declare();
 
         if (decl !== undefined) {
-            decls.push(decl);
+            global_decls.push(decl);
         }
 
         types.set(name, {type, obj});
     },
 
+    registerAlias(name, type) {
+        types.set(name, { type });
+    },
 
     glsl_type(type) {
         let t = types.get(type);
@@ -47,18 +52,31 @@ export class GraphCompiler {
 
     reset() {
         this.out = [];
-        this.uniforms = [];
+        this.decls = [];
         this.id = 0;
     }
 
     compile() {
         this.reset();
 
-        this.out.push('void main() {');
+        for (let {name, type, per_pixel} of this.graph.global_inputs.values()) {
+            if (per_pixel) {
+                this.attribute(type, name);
+            } else {
+                this.uniform(type, name);
+            }
+        }
+
+        for (let {name, type} of this.graph.global_outputs.values()) {
+            this.varying(type, name);
+        }
 
         this.graph.forEachNode((node) => {
             for (let slot = 0; slot < node.input_info.length; slot++) {
                 let v = this.default_value(node, slot);
+                if (node.id == 6 && slot == 0) {
+                    console.log(node.input_info);
+                }
                 let { type } = node.input_info[slot];
 
                 if (v == undefined)
@@ -68,62 +86,77 @@ export class GraphCompiler {
 
             }
             if (node.compile) {
-                this.comment(`node ${node.id}`);
+                this.out.push(glsl.Comment(`node ${node.id}`));
                 node.compile(this);
-                this.comment(`end node ${node.id}`);
-                this.out.push('');
+                this.out.push(glsl.Comment(`end node ${node.id}`));
             }
         });
 
-        this.out.push('}');
+        let main = glsl.FunctionDecl('void', 'main', [], this.out);
 
-        let output = [...this.uniforms, ...decls, ...this.out];
+        let output = glsl.Root([...this.decls, main]);
 
-        return output.join('\n');
+        return global_decls.join('\n') + glsl.generate(output);
+
+        return glsl.Root(output);
+    }
+
+    decl(fn, type, name) {
+        let t = Compilation.glsl_type(type);
+        this.decls.push(fn(t, name));
     }
 
     uniform(type, name) {
-        let t = Compilation.glsl_type(type);
-        this.uniforms.push(`uniform ${t} ${name};`);
+        this.decl(glsl.UniformDecl, type, name);
     }
 
-    comment(s) {
-        this.out.push('// '+s);
+    attribute(type, name) {
+        this.decl(glsl.AttributeDecl, type, name);
     }
 
-    variable(prefix) {
-        prefix = prefix || '';
-        return `v${prefix}_${this.id++}`;
+    varying(type, name) {
+        this.decl(glsl.VaryingDecl, type, name);
+    }
+
+    variable(prefix='') {
+        return glsl.Ident(`v${prefix}_${this.id++}`);
     }
 
     input(node, slot) {
-        return `input_${node.id}_${slot}`;
+        return glsl.Ident(`input_${node.id}_${slot}`);
     }
 
     output(node, slot) {
-        return `output_${node.id}_${slot}`;
+        return glsl.Ident(`output_${node.id}_${slot}`);
     }
 
     declare(type, v, init) {
         let t = Compilation.glsl_type(type);
-        let suffix = '';
+
+        let stmt = glsl.Variable(t, v);
+
         if (init) {
-            suffix = ` = ${init}`;
+            stmt = glsl.BinOp(stmt, '=', init);
         }
-        this.out.push(`${t} ${v}${suffix};`);
+
+        this.out.push(stmt);
         return v;
     }
 
     default_value(node, slot) {
         const { name } = node.input_info[slot];
-        if (node.vm.defaults[name] === undefined) {
+        if (node.vm.defaults[name] === undefined || node.vm.defaults[name] == null) {
             return undefined;
         }
-        return `default_${node.id}_${name}`;
+        return glsl.Ident(`default_${node.id}_${name}`);
     }
 
     getGlobalInput(name) {
-        return 'placeholder';
+        return glsl.Ident(name);
+    }
+
+    setGlobalOutput(name, expr) {
+        this.out.push(glsl.BinOp(glsl.Ident(name), '=', expr));
     }
 
     getInput(node, slot) {
@@ -162,3 +195,4 @@ export class GraphCompiler {
 };
 
 window.GraphCompiler = GraphCompiler;
+window.glsl = glsl;

@@ -1,4 +1,5 @@
 import GraphLib, { GraphNode } from '@/common/graphlib';
+import * as glsl from '@/common/glsl';
 import Units from '@/common/units';
 
 let node_types = [];
@@ -23,14 +24,7 @@ class IfNode extends GraphNode {
         let trueBranch = c.getInput(this, 1);
         let falseBranch = c.getInput(this, 2);
 
-        c.setOutput(this, 0, `${clause} ? ${trueBranch} : ${falseBranch}`);
-    }
-
-    onExecute() {
-        let clause = this.getInputData(0);
-        let trueBranch = this.getInputData(1);
-        let falseBranch = this.getInputData(2);
-        this.setOutputData(0, clause ? trueBranch : falseBranch);
+        c.setOutput(this, 0, glsl.TernaryOp(clause, trueBranch, falseBranch));
     }
 };
 
@@ -38,7 +32,7 @@ IfNode.title = 'if';
 
 node_types.push(['logic/if', IfNode]);
 
-function make_binop_node(type, sym, fn, {a, b, result}) {
+function make_binop_node(type, sym, {a, b, result}) {
     let symbol, named;
     if (typeof(sym) == 'string') {
         symbol = sym;
@@ -65,20 +59,16 @@ function make_binop_node(type, sym, fn, {a, b, result}) {
             let ai = c.getInput(this, 0);
             let bi = c.getInput(this, 1);
 
-            c.setOutput(this, 0, fn(ai, bi));
-        }
-
-        onExecute() {
-            let ai = this.getInputData(0);
-            let bi = this.getInputData(1);
-            this.setOutputData(0, fn(ai, bi));
+            c.setOutput(this, 0, glsl.BinOp(ai, symbol, bi));
         }
     };
+
     BinopNode.title = title;
     node_types.push([`${type}/${named}`, BinopNode]);
 };
 
-function make_unary_node(type, title, fn, {a, result}) {
+function make_unary_node(type, sym, {a, result}) {
+    let title = `${sym}a`;
 
     let UnaryNode = class extends GraphNode {
         constructor(options) {
@@ -89,95 +79,111 @@ function make_unary_node(type, title, fn, {a, result}) {
 
         compile(c) {
             let inp = c.getInput(this, 0);
-            c.setOutput(this, 0, fn(inp));
-        }
-
-        onExecute() {
-            let inp = this.getInputData(0);
-            this.setOutputData(0, fn(inp));
+            c.setOutput(this, 0, glsl.UnOp(sym, inp));
         }
     };
     UnaryNode.title = title;
     node_types.push([`${type}/${title}`, UnaryNode]);
 }
 
+function make_function_node(type, title, fname, args, result) {
+    let FuncNode = class extends GraphNode {
+        constructor(options) {
+            const inputs = args.map(([name, argtype]) => GraphNode(name, argtype));
+            const outputs = [GraphNode.output(title, result)];
+            super(options, inputs, outputs);
+        }
+
+        compile(c) {
+            let inputs = [];
+            for (let i = 0; i < args.length; i++) {
+                inputs.push(c.getInput(this, i));
+            }
+
+            c.setOutput(this, 0, glsl.FunctionCall(fname, inputs));
+        }
+    };
+
+    FuncNode.title = title;
+    node_types.push([`${type}/${title}`, FuncNode]);
+}
+
 
 // Logic
 
-make_unary_node('logic', '!a', (a) => `!${a}`, {result: 'bool'});
-make_binop_node('logic', '==', (a, b) => `${a} == ${b}`, {result: 'bool'});
-make_binop_node('logic', '&&', (a, b) => `${a} && ${b}`, {result: 'bool'});
-make_binop_node('logic', '||', (a, b) => `${a} || ${b}`, {result: 'bool'});
+make_unary_node('logic', '!', {result: 'bool'});
+make_binop_node('logic', '==', {result: 'bool'});
+make_binop_node('logic', '&&', {result: 'bool'});
+make_binop_node('logic', '||', {result: 'bool'});
 
-make_binop_node('logic', '<', (a, b) => `${a} < ${b}`, {
+make_binop_node('logic', '<', {
     a: Units.Numeric,
     b: Units.Numeric,
     result: 'bool'
 });
 
-make_binop_node('logic', '<=', (a, b) => `${a} <= ${b}`, {
+make_binop_node('logic', '<=', {
     a: Units.Numeric,
     b: Units.Numeric,
     result: 'bool'
 });
 
-make_binop_node('logic', '>', (a, b) => `${a} > ${b}`, {
+make_binop_node('logic', '>', {
     a: Units.Numeric,
     b: Units.Numeric,
     result: 'bool'
 });
 
-make_binop_node('logic', '>=', (a, b) => `${a} >= ${b}`, {
+make_binop_node('logic', '>=', {
     a: Units.Numeric,
     b: Units.Numeric,
     result: 'bool'
 });
 
 // math
-make_binop_node('math', {symbol: '+', named: 'add'}, (a, b) => `${a}+${b}`, {
+make_binop_node('math', {symbol: '+', named: 'add'}, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '-', named: 'sub'}, (a, b) => `${a}-${b}`, {
+make_binop_node('math', {symbol: '-', named: 'sub'}, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '*', named: 'mul'}, (a, b) => `${a}*${b}`, {
+make_binop_node('math', {symbol: '*', named: 'mul'}, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '/', named: 'div'}, (a, b) => `${a}/${b}`, {
+make_binop_node('math', {symbol: '/', named: 'div'}, {
     a: Units.Numeric,
     b: Units.Numeric,
     result: Units.Numeric,
 });
 
-make_binop_node('math', {symbol: '%', named: 'mod'}, (a, b) => `${a}%{b}`, {
-    a: Units.Numeric,
-    b: Units.Numeric,
-    result: Units.Numeric,
-});
+make_function_node('math', 'a % b', 'mod',
+    [['a', Units.Numeric], ['b', Units.Numeric]],
+    Units.Numeric,
+);
 
-make_unary_node('math', '|a|', (a) => `abs(${a})`, {
-    a: 'float',
-    result: 'float',
-});
+make_function_node('math', '|a|', 'abs',
+    [['a', 'float']],
+    'float',
+);
 
-make_unary_node('math', 'sin(a)', (a) => `sin(${a})`, {
-    a: 'float',
-    result: 'number',
-});
+make_function_node('math', 'sin(a)', 'sin',
+    [['a', 'float']],
+    'float',
+);
 
-make_unary_node('math', 'cos(a)', (a) => `cos(${a})`, {
-    a: 'float',
-    result: 'float',
-});
+make_function_node('math', 'cos(a)', 'cos',
+    [['a', 'float']],
+    'float',
+);
 
 class Rotate2D extends GraphNode {
     constructor(options) {
@@ -198,26 +204,11 @@ class Rotate2D extends GraphNode {
         let y = c.getInput(this, 1);
         let theta = c.getInput(this, 2);
 
-        let sv = c.declare('float', c.variable(), `sin(${theta})`);
-        let cv = c.declare('float', c.variable(), `cos(${theta})`);
+        let sv = c.declare('float', c.variable(), glsl.FunctionCall('sin', [theta]));
+        let cv = c.declare('float', c.variable(), glsl.FunctionCall('cos', [theta]));
 
-        c.setOutput(this, 0, `${x} * ${cv} - ${y} * ${sv}`);
-        c.setOutput(this, 1, `${x} * ${sv} + ${y} * ${cv}`);
-    }
-
-    onExecute() {
-        let x = this.getInputData(0);
-        let y = this.getInputData(1);
-        let theta = this.getInputData(2);
-
-        let c = Math.cos(theta);
-        let s = Math.sin(theta);
-
-        let xo = x * c - y * s;
-        let yo = x * s + y * c;
-
-        this.setOutputData(0, xo);
-        this.setOutputData(1, yo);
+        c.setOutput(this, 0, glsl.BinOp(glsl.BinOp(x, '*', cv), '-', glsl.BinOp(y, '*', sv)));
+        c.setOutput(this, 1, glsl.BinOp(glsl.BinOp(x, '*', sv), '+', glsl.BinOp(y, '*', cv)));
     }
 };
 

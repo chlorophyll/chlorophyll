@@ -18,8 +18,8 @@ class OutputColor extends GraphNode {
         });
     }
 
-    onExecute() {
-        this.graph.setGlobalOutputData('outcolor', this.getInputData(0));
+    compile(c) {
+        c.setGlobalOutput('outcolor', c.getInput(this, 0));
     }
 }
 

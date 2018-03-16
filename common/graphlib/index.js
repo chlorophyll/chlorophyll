@@ -76,8 +76,8 @@ export class GraphBase {
         return this.getNodeById(id);
     }
 
-    addGlobalInput(name, type) {
-        this.global_inputs.set(name, { name, type, data: null });
+    addGlobalInput(name, type, per_pixel=false) {
+        this.global_inputs.set(name, { name, type, per_pixel, data: null });
         this.emit('global-input-added', { name, type });
     }
 
