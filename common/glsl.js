@@ -115,6 +115,14 @@ export function Variable(type, name) {
     return _VarDecl(undefined, type, name);
 }
 
+export function InParam(type, name) {
+    return _VarDecl('in', type, name);
+}
+
+export function OutParam(type, name) {
+    return _VarDecl('out', type, name);
+}
+
 export function FunctionCall(name, args) {
     return {
         type: 'function_call',

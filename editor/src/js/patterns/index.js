@@ -9,7 +9,8 @@ import GraphLib from '@/common/graphlib';
 import store, { newgid } from 'chl/vue/store';
 
 import { Graph } from 'chl/graphlib';
-import { restoreAllPatterns, PatternRunner } from '@/common/patterns';
+import { restoreAllPatterns } from '@/common/patterns';
+import { PatternRunner } from 'chl/patterns/runner';
 import { mappingTypes } from '@/common/mapping';
 import { setColorSpace } from '@/common/nodes/fastled/color';
 import { currentModel } from 'chl/model';
@@ -208,6 +209,8 @@ export let PatternPreview = Vue.component('pattern-preview', {
             let curbuf = new Uint8Array(3*currentModel.num_pixels);
 
             return () => {
+                const current = runner.step();
+                
                 runner.getFrame(prevbuf, curbuf, this.time);
                 currentModel.setFromBuffer(curbuf);
                 [prevbuf, curbuf] = [curbuf, prevbuf];

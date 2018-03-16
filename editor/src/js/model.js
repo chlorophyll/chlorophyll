@@ -337,6 +337,9 @@ export class Model extends ModelBase {
         this.geometry.attributes.color.needsUpdate = true;
     }
 
+    setFromTexture(texture) {
+    }
+
     setFromBuffer(colorbuf) {
         for (let i = 0; i < this.num_pixels*3; i++) {
             this.colors[i] = colorbuf[i]/255;

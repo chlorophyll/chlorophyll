@@ -1,8 +1,11 @@
 import clone from 'clone';
-
 import GraphLib from '@/common/graphlib';
-import { getMappedPoints, convertPointCoords } from '@/common/mapping';
+
+import * as glsl from '@/common/glsl';
+
+import { getMappedPoints, convertPointCoords, mappingTypes } from '@/common/mapping';
 import { CRGB } from '@/common/nodes/fastled/color';
+
 
 export function restorePattern(patternsnap) {
     return clone(patternsnap);
@@ -18,32 +21,56 @@ export function restoreAllPatterns(snapshot) {
     }
     return { new_patterns, new_pattern_ordering };
 }
-
+/* 
 export class PatternRunner {
     constructor(model, pattern, mapping) {
         const { coord_type, mapping_type } = pattern;
         const mapped_points = getMappedPoints(model, mapping, coord_type);
-
+        this.pattern = pattern;
         this.positions = convertPointCoords(mapping_type, coord_type, mapped_points);
         this.graph = GraphLib.graphById(pattern.stages.pixel);
     }
 
-    getFrame(prevbuf, outbuf, t) {
-        this.graph.setGlobalInputData('t', t);
-        let incolor = new CRGB(0, 0, 0);
-        this.positions.forEach(([idx, pos]) => {
-            incolor.r = prevbuf[3*idx+0];
-            incolor.g = prevbuf[3*idx+1];
-            incolor.b = prevbuf[3*idx+2];
+    compile() {
+        const c = new GraphCompiler(this.graph);
+        const ast = c.compile();
 
-            this.graph.setGlobalInputData('coords', pos.toArray());
-            this.graph.setGlobalInputData('color', incolor);
-            this.graph.runStep();
-            let outcolor = this.graph.getGlobalOutputData('outcolor');
+        const uniforms = [
+            glsl.UniformDecl('sampler2D', 'uCoords'),
+            glsl.UniformDecl('sampler2D', 'uColors'),
+            glsl.UniformDecl('float', 'time'),
+        ];
+        const {glsl_type, glsl_swizzle} = mappingTypes[pattern.mapping_type];
 
-            outbuf[3*idx+0] = outcolor.r;
-            outbuf[3*idx+1] = outcolor.g;
-            outbuf[3*idx+2] = outcolor.b;
-        });
+        let coords = glsl.Variable(glsl_type, 'coords');
+        let color = glsl.Variable('vec3f', 'color');
+
+        const main = glsl.FunctionDecl('void', 'main', [], [
+            glsl.BinOp(coords, '=', glsl.Dot(
+                glsl.FunctionCall('texture2D', [glsl.Ident('uCoords'), glsl.Ident('vUv')]),
+                glsl_swizzle
+            )),
+            glsl.BinOp(color, '=', glsl.Dot(
+                glsl.FunctionCall('texture2D', [glsl.Ident('uColors'), glsl.Ident('vUv')]),
+                'rgb'
+            )),
+            glsl.FunctionCall(c.ident(), [
+                glsl.Ident('coords'),
+                glsl.Ident('color'),
+                glsl.Ident('time'),
+                glsl.Ident('gl_FragColor')
+            ]),
+        ]);
+    }
+
+    getFrame(prevTexture, outTexture, t) {
+        // textures remain in gpu memory.
+        // bind prevTexture to uColors
+        // bind this.positions texture to uCoords
+        // set time
+        // run shader
+        // outTexture now holds computed frame
     }
 }
+
+*/

@@ -11,6 +11,7 @@ export const mappingTypes = {
         display_name: '2D Projection',
         coord_types: Projection.coord_types,
         glsl_type: 'vec2f',
+        glsl_swizzle: 'xy',
         defaultSettings() {
             return {
                 origin: [0, 0, 0],
@@ -23,6 +24,7 @@ export const mappingTypes = {
         display_name: '3D Transform',
         coord_types: Transform.coord_types,
         glsl_type: 'vec3f',
+        glsl_swizzle: 'xyz',
         defaultSettings() {
             return {
                 shape: 'cube',

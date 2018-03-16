@@ -42,7 +42,16 @@ export let Compilation = {
         }
 
         return type;
+    },
+
+    global_decls() {
+        return global_decls;
+    },
+
+    uniform(type, name) {
+        return glsl.UniformDecl(Compilation.glsl_type(type), name);
     }
+
 };
 
 export class GraphCompiler {
@@ -56,20 +65,23 @@ export class GraphCompiler {
         this.id = 0;
     }
 
+    ident() {
+        return `graph${this.graph.id}`;
+    }
+
     compile() {
         this.reset();
-
-        for (let {name, type, per_pixel} of this.graph.global_inputs.values()) {
-            if (per_pixel) {
-                this.attribute(type, name);
-            } else {
-                this.uniform(type, name);
-            }
+        /*
+        for (let {name, type} of this.graph.global_inputs.values()) {
+            this.uniform(type, name);
         }
+        */
 
+        /* hmm
         for (let {name, type} of this.graph.global_outputs.values()) {
             this.varying(type, name);
         }
+        */
 
         this.graph.forEachNode((node) => {
             for (let slot = 0; slot < node.input_info.length; slot++) {
@@ -91,14 +103,17 @@ export class GraphCompiler {
                 this.out.push(glsl.Comment(`end node ${node.id}`));
             }
         });
+        let params = [];
+        for (const {type, name} of this.graph.global_inputs.values()) {
+            let t = Compilation.glsl_type(type);
+            params.push(glsl.InParam(t, name));
+        }
+        for (const {type, name} of this.graph.global_outputs.values()) {
+            let t = Compilation.glsl_type(type);
+            params.push(glsl.OutParam(t, name));
+        }
 
-        let main = glsl.FunctionDecl('void', 'main', [], this.out);
-
-        let output = glsl.Root([...this.decls, main]);
-
-        return global_decls.join('\n') + glsl.generate(output);
-
-        return glsl.Root(output);
+        return glsl.FunctionDecl('void', this.ident(), params, this.out);
     }
 
     decl(fn, type, name) {
@@ -196,3 +211,4 @@ export class GraphCompiler {
 
 window.GraphCompiler = GraphCompiler;
 window.glsl = glsl;
+window.Compilation = Compilation;

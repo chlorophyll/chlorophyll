@@ -180,8 +180,7 @@ export class GraphBase {
         let stack = [];
 
         let visited = new Map();
-
-        this.forEachNode((source, source_id) => {
+        this.nodes.forEach((source, source_id) => {
             if (visited.has(source_id))
                 return;
 
@@ -322,7 +321,9 @@ export class GraphBase {
     }
 
     forEachNode(f) {
-        return this.nodes.forEach(f);
+        for (let node of this.order) {
+            f(node);
+        }
     }
 
     forEachEdgeToNode(node, f) {

@@ -1,9 +1,19 @@
 import GraphLib from '@/common/graphlib';
-import { getMappedPoints, convertPointCoords } from '@/common/mapping';
+import { GraphCompiler } from '@/common/graphlib/compiler';
+import { getMappedPoints, convertPointCoords, mappingTypes } from '@/common/mapping';
 
 import * as THREE from 'three';
 
+import * as glsl from '@/common/glsl';
+
 import { renderer } from 'chl/viewport';
+
+const passthruVertexShader = `
+varying vec2 vUv;
+void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
 
 export class PatternRunner {
     constructor(model, pattern, mapping) {
@@ -13,51 +23,64 @@ export class PatternRunner {
         this.positions = convertPointCoords(mapping_type, coord_type, mapped_points);
         this.graph = GraphLib.graphById(pattern.stages.pixel);
 
-        let scene = new THREE.Scene();
-        let camera = new THREE.Camera();
-        camera.position.z = 1;
-        /*
-        outline:
-        + update graph compiler to produce fragments instead of vertex shaders
-        + update graph compiler to give back a list of uniforms
-        + create new rawshadermaterial with a passthrough vertex shader and the
-          compiled fragment shader
-        - construct appropriate positions texture as input
-          - one row for each strip?
-        - create render shader to color the points
+        const c = new GraphCompiler(this.graph);
+        const ast = c.compile();
 
-        - generally follow http://barradeau.com/blog/?p=621
-        - https://github.com/mrdoob/three.js/blob/dev/examples/js/GPUComputationRenderer.js maybe useful
-        - ignore the others for now
-        - expect to rewrite but you need to start *somewhere*
-        */
+        const uniforms = [
+            glsl.VaryingDecl('vec2', 'vUv'),
+            glsl.UniformDecl('sampler2D', 'uCoords'),
+            glsl.UniformDecl('sampler2D', 'uColors'),
+            glsl.UniformDecl('float', 'time'),
+        ];
+        const {glsl_type, glsl_swizzle} = mappingTypes[pattern.mapping_type];
 
-        /* TODO: revamp model into rows where each row is a strip */
-        let positionsData = new Float32Array(model.num_pixels*4);
+        let coords = glsl.Variable(glsl_type, 'coords');
+        let color = glsl.Variable('vec3f', 'color');
 
-        this.positions.forEach(([idx, pos]) => {
-            pos.toArray(positionsData, 4*idx);
-            positionsData[4*idx+3] = 255; /* masking */
-        });
+        const main = glsl.FunctionDecl('void', 'main', [], [
+            glsl.BinOp(coords, '=', glsl.Dot(
+                glsl.FunctionCall('texture2D', [glsl.Ident('uCoords'), glsl.Ident('vUv')]),
+                glsl_swizzle
+            )),
+            glsl.BinOp(color, '=', glsl.Dot(
+                glsl.FunctionCall('texture2D', [glsl.Ident('tPrev'), glsl.Ident('vUv')]),
+                'rgb'
+            )),
+            glsl.FunctionCall(c.ident(), [
+                glsl.Ident('coords'),
+                glsl.Ident('color'),
+                glsl.Ident('time'),
+                glsl.Ident('gl_FragColor')
+            ]),
+        ]);
 
-        let positionsTexture = new THREE.DataTexture(
-            positionsData,
-            model.num_pixels,
-            1,
-            THREE.RGBAFormat,
-            THREE.FloatType
-        );
+        const source = Compilation.global_decls().join('\n') + glsl.generate(glsl.Root([
+            ...uniforms,
+            ast,
+            main
+        ]));
 
-        let uniforms = {};
-        for (let {name, type} of this.graph.global_inputs.values()) {
-            uniforms[name] = {value: null};
+        const mappedPositions = new Float32Array(model.num_pixels * 3);
+        const colors = new Float32Array(model.num_pixels * 3);
+
+        for (const [idx, pos] of this.positions) {
+            pos.toArray(mappedPositions, idx*3);
         }
 
-        const computeShader = new THREE.RawShaderMaterial({
-            uniforms
+        const fbo = new FBO({
+            tWidth: this.num_pixels,
+            tHeight: 1,
+            numTargets: 3,
+            uniforms: {
+                time: { value: 0 },
+                uCoords: { value: null },
+                uColors: { value: null },
+            }
+            simulationVertexShader: passthruVertexShader,
+            simulationFragmentShader: source,
         });
 
-        let mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), passThruShader);
-        scene.add(mesh);
+        fbo.setTextureUniform('uCoords', mappedPositions);
+
     }
 }
