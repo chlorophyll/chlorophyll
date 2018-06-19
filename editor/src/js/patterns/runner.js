@@ -3,6 +3,7 @@ import { GraphCompiler } from '@/common/graphlib/compiler';
 import { getMappedPoints, convertPointCoords, mappingTypes } from '@/common/mapping';
 
 import * as THREE from 'three';
+import FBO from 'three.js-fbo';
 
 import * as glsl from '@/common/glsl';
 
@@ -75,7 +76,7 @@ export class PatternRunner {
                 time: { value: 0 },
                 uCoords: { value: null },
                 uColors: { value: null },
-            }
+            },
             simulationVertexShader: passthruVertexShader,
             simulationFragmentShader: source,
         });

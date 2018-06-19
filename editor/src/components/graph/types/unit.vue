@@ -1,7 +1,7 @@
 <template>
     <div class="control-row">
         <label>{{ name }}</label>
-        <numeric-input v-model="current" />
+        <numeric-input v-model="current" :max="max" :min="min" />
     </div>
 </template>
 
@@ -19,9 +19,16 @@ export default {
                 return this.value !== null ? this.value.valueOf() : null;
             },
             set(val) {
-                const Ctor = this.type;
-                this.value = new Ctor(val);
+                if (isNaN(val))
+                    val = 0;
+                this.value = this.type.create(val);
             }
+        },
+        max() {
+            return this.type.range[1];
+        },
+        min() {
+            return this.type.range[0];
         }
     }
 };

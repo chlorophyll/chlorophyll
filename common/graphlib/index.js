@@ -2,6 +2,8 @@ import * as Serialization from '@/common/util/serialization';
 
 import Units from '@/common/units';
 
+import { GraphCompiler } from '@/common/graphlib/compiler';
+
 let node_types = new Map();
 let graphs = new Map();
 
@@ -63,6 +65,11 @@ export class GraphBase {
         this.edges_by_src = new Map(); // src -> slot -> edge list
         this.edges_by_dst = new Map(); // dst -> slot -> edge
         this.step = 0;
+    }
+
+    compile() {
+        const compiler = new GraphCompiler(this);
+        return compiler.compile();
     }
 
     emit(name, detail) {
@@ -130,6 +137,8 @@ export class GraphBase {
             this.refs.set(ref, id);
         }
 
+        this.order.push(id);
+
         this.emit('node-added', { node });
 
         return node;
@@ -149,7 +158,7 @@ export class GraphBase {
         this.nodes.delete(node.id);
         this.refs.delete(node.id);
 
-        let index = this.order.find(node);
+        let index = this.order.find(node.id);
         this.order.splice(index, 1);
 
         this.emit('node-removed', { node });
@@ -208,7 +217,7 @@ export class GraphBase {
                 }
             }
         });
-        this.order = ordered.map((id) => this.getNodeById(id));
+        this.order = ordered;
     }
 
     _insertEdge(edge) {
@@ -315,14 +324,14 @@ export class GraphBase {
 
     runStep() {
         this.step++;
-        for (let node of this.order) {
-            node.onExecute();
+        for (let id of this.order) {
+            this.getNodeById(id).onExecute();
         }
     }
 
     forEachNode(f) {
-        for (let node of this.order) {
-            f(node);
+        for (let id of this.order) {
+            f(this.getNodeById(id));
         }
     }
 

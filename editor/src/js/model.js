@@ -37,6 +37,18 @@ function createStripGroup(strip) {
 
 }
 
+const modelVertexShader = `
+attribute vec2 offset;
+uniform float pointSize;
+varying vec2 vOffset;
+
+void main() {
+    vOffset = offset;
+	gl_PointSize = pointSize;
+	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+}`;
+
+
 export function importNewModel(json) {
     store.commit('pixels/clear_groups');
     store.commit('mapping/clear_mappings');
@@ -280,7 +292,7 @@ export class Model extends ModelBase {
 
         const pixelsize = THREE.Math.clamp(avg_dist / 3, 5, 15);
 
-        const material = new THREE.PointsMaterial({
+        const material = new THREE.ShaderMaterial({
             size: pixelsize,
             vertexColors: THREE.VertexColors
         });
