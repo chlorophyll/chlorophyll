@@ -209,7 +209,7 @@ let generator = {
     },
 
     const(c, node) {
-        c.emit(node.value);
+        c.emit(node.value.toPrecision(3));
     },
 
     return(c, node) {

@@ -196,7 +196,6 @@ export let PatternPreview = Vue.component('pattern-preview', {
     props: ['pattern', 'mapping', 'runstate'],
     data() {
         return {
-            buf_idx: 0,
             time: 0,
             request_id: null,
         };
@@ -205,15 +204,9 @@ export let PatternPreview = Vue.component('pattern-preview', {
     computed: {
         step() {
             let runner = new PatternRunner(currentModel, this.pattern, this.mapping);
-            let prevbuf = new Uint8Array(3*currentModel.num_pixels);
-            let curbuf = new Uint8Array(3*currentModel.num_pixels);
-
             return () => {
-                const current = runner.step();
-                
-                runner.getFrame(prevbuf, curbuf, this.time);
-                currentModel.setFromBuffer(curbuf);
-                [prevbuf, curbuf] = [curbuf, prevbuf];
+                const current = runner.step(this.time);
+                currentModel.setFromTexture(current);
                 this.time++;
             };
         },

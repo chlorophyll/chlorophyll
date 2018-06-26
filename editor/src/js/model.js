@@ -38,15 +38,37 @@ function createStripGroup(strip) {
 }
 
 const modelVertexShader = `
-attribute vec2 offset;
+attribute float aOffset;
+varying float vOffset;
+
+attribute vec3 overlayColor;
+varying vec3 vOverlayColor;
+
 uniform float pointSize;
-varying vec2 vOffset;
 
 void main() {
-    vOffset = offset;
+    vOffset = aOffset;
+    vOverlayColor = overlayColor;
 	gl_PointSize = pointSize;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 }`;
+
+const modelFragmentShader = `
+uniform sampler2D computedColors;
+varying float vOffset;
+
+uniform bool displayOnly;
+varying vec3 vOverlayColor;
+
+void main() {
+  if (!displayOnly) {
+    gl_FragColor = vec4(vOverlayColor, 1.0);
+  } else {
+    vec3 color = texture2D(computedColors, vec2(vOffset, 0.5)).rgb;
+    gl_FragColor = vec4(color, 1.0);
+  }
+}
+`;
 
 
 export function importNewModel(json) {
@@ -249,6 +271,10 @@ export class Model extends ModelBase {
         });
 
         this.colors = new Float32Array(this.num_pixels * 3);
+        let offsets = new Float32Array(this.num_pixels);
+        for (let i = 0; i < this.num_pixels; i++) {
+            offsets[i] = i / this.num_pixels;
+        }
 
         for (let strip = 0; strip < this.num_strips; strip++) {
             let strip_geometry = new THREE.Geometry();
@@ -267,7 +293,8 @@ export class Model extends ModelBase {
 
         this.geometry = new THREE.BufferGeometry();
         this.geometry.addAttribute('position', new THREE.BufferAttribute(this.positions, 3));
-        this.geometry.addAttribute('color', new THREE.BufferAttribute(this.colors, 3));
+        this.geometry.addAttribute('overlayColor', new THREE.BufferAttribute(this.colors, 3));
+        this.geometry.addAttribute('aOffset', new THREE.BufferAttribute(offsets, 1));
 
         this.updateColors();
 
@@ -292,11 +319,25 @@ export class Model extends ModelBase {
 
         const pixelsize = THREE.Math.clamp(avg_dist / 3, 5, 15);
 
-        const material = new THREE.ShaderMaterial({
-            size: pixelsize,
-            vertexColors: THREE.VertexColors
+        const texture = new THREE.DataTexture(
+            new Float32Array(3*this.num_pixels),
+            this.num_pixels,
+            1,
+            THREE.RGBFormat,
+            THREE.FloatType
+        );
+
+        this.material = new THREE.ShaderMaterial({
+            uniforms: {
+                pointSize: { value: pixelsize },
+                computedColors: { value: texture },
+                displayOnly: { value: false },
+            },
+            vertexShader: modelVertexShader,
+            fragmentShader: modelFragmentShader,
+            transparent: true,
         });
-        this.particles = new THREE.Points(this.geometry, material);
+        this.particles = new THREE.Points(this.geometry, this.material);
 
         this.scene = new THREE.Scene();
         this.scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
@@ -324,6 +365,7 @@ export class Model extends ModelBase {
 
     set display_only(val) {
         this._display_only = val;
+        this.material.uniforms.displayOnly.value = val;
         this.updateColors();
     }
 
@@ -346,10 +388,11 @@ export class Model extends ModelBase {
         if (!this.display_only) {
             this.setColorsFromOverlays();
         }
-        this.geometry.attributes.color.needsUpdate = true;
+        this.geometry.attributes.overlayColor.needsUpdate = true;
     }
 
     setFromTexture(texture) {
+        this.material.uniforms.computedColors.value = texture;
     }
 
     setFromBuffer(colorbuf) {

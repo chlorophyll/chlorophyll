@@ -7,7 +7,8 @@ import FBO from 'three.js-fbo';
 
 import * as glsl from '@/common/glsl';
 
-import { renderer } from 'chl/viewport';
+import viewports from 'chl/viewport';
+
 
 const passthruVertexShader = `
 varying vec2 vUv;
@@ -30,13 +31,14 @@ export class PatternRunner {
         const uniforms = [
             glsl.VaryingDecl('vec2', 'vUv'),
             glsl.UniformDecl('sampler2D', 'uCoords'),
-            glsl.UniformDecl('sampler2D', 'uColors'),
+            glsl.UniformDecl('sampler2D', 'tPrev'),
             glsl.UniformDecl('float', 'time'),
         ];
         const {glsl_type, glsl_swizzle} = mappingTypes[pattern.mapping_type];
 
         let coords = glsl.Variable(glsl_type, 'coords');
-        let color = glsl.Variable('vec3f', 'color');
+        let color = glsl.Variable('vec3', 'color');
+        let outcolor = glsl.Variable('vec3', 'outcolor');
 
         const main = glsl.FunctionDecl('void', 'main', [], [
             glsl.BinOp(coords, '=', glsl.Dot(
@@ -47,12 +49,17 @@ export class PatternRunner {
                 glsl.FunctionCall('texture2D', [glsl.Ident('tPrev'), glsl.Ident('vUv')]),
                 'rgb'
             )),
+            outcolor,
             glsl.FunctionCall(c.ident(), [
                 glsl.Ident('coords'),
-                glsl.Ident('color'),
                 glsl.Ident('time'),
-                glsl.Ident('gl_FragColor')
+                glsl.Ident('color'),
+                glsl.Ident('outcolor')
             ]),
+            glsl.BinOp(glsl.Ident('gl_FragColor'), '=', glsl.FunctionCall('vec4', [
+                glsl.Ident('outcolor'),
+                glsl.Const(1.0),
+            ])),
         ]);
 
         const source = Compilation.global_decls().join('\n') + glsl.generate(glsl.Root([
@@ -61,6 +68,8 @@ export class PatternRunner {
             main
         ]));
 
+        console.log(source);
+
         const mappedPositions = new Float32Array(model.num_pixels * 3);
         const colors = new Float32Array(model.num_pixels * 3);
 
@@ -68,20 +77,29 @@ export class PatternRunner {
             pos.toArray(mappedPositions, idx*3);
         }
 
-        const fbo = new FBO({
-            tWidth: this.num_pixels,
+        const { renderer } = viewports.getViewport('main');
+        this.fbo = new FBO({
+            tWidth: model.num_pixels,
             tHeight: 1,
             numTargets: 3,
             uniforms: {
                 time: { value: 0 },
                 uCoords: { value: null },
-                uColors: { value: null },
             },
             simulationVertexShader: passthruVertexShader,
             simulationFragmentShader: source,
+            renderer,
+            format: THREE.RGBFormat,
+            filterType: THREE.NearestFilter,
         });
 
-        fbo.setTextureUniform('uCoords', mappedPositions);
+        this.fbo.setTextureUniform('uCoords', mappedPositions);
 
+    }
+
+    step(time) {
+        this.fbo.setTextureUniform('time', time);
+        this.fbo.simulate();
+        return this.fbo.getCurrentFrame().texture;
     }
 }
