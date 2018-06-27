@@ -16,7 +16,7 @@ export default class Range {
         };
     }
 
-    toUniform() {
+    valueOf() {
         return [this.min, this.max];
     }
 

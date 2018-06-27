@@ -510,7 +510,7 @@ export class GraphNode {
         let defaults = {};
 
         for (const { name } of inputs) {
-            defaults[name] = properties[name] || undefined;
+            defaults[name] = properties[name] !== undefined ? properties[name] : undefined;
         }
 
         let cfg = {...DEFAULT_CONFIG, ...config};

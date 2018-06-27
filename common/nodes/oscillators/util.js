@@ -53,10 +53,6 @@ export default class Frequency {
         return this[this.display_qty];
     }
 
-    toUniform() {
-        return this.valueOf();
-    }
-
     setCurrent(val) {
         this[this.display_qty] = val;
     }

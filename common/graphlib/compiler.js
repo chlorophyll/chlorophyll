@@ -95,7 +95,7 @@ export class GraphCompiler {
                     continue;
 
                 this.uniform(type, name, () => {
-                    let ret = node.defaultForSlot(slot).toUniform();
+                    let ret = node.defaultForSlot(slot).valueOf();
                     return ret;
                 });
 

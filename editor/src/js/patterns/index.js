@@ -198,14 +198,11 @@ export let PatternPreview = Vue.component('pattern-preview', {
         return {
             time: 0,
             request_id: null,
-            runner: this.createRunner(),
+            runner: null,
         };
     },
 
     computed: {
-        runner_info() {
-            return { mapping: this.mapping, pattern: this.pattern };
-        },
         step() {
             return (time) => {
                 const current = this.runner.step(time);
@@ -218,9 +215,6 @@ export let PatternPreview = Vue.component('pattern-preview', {
     },
 
     watch: {
-        runner_info(newval) {
-            this.createRunner();
-        },
         runstate(newval) {
             switch (newval) {
                 case RunState.Stopped:
@@ -262,6 +256,7 @@ export let PatternPreview = Vue.component('pattern-preview', {
             this.pause();
             currentModel.display_only = false;
             this.time = 0;
+            this.runner = null;
         },
         createRunner() {
             this.runner = new PatternRunner(currentModel, this.pattern, this.mapping);
