@@ -198,16 +198,18 @@ export let PatternPreview = Vue.component('pattern-preview', {
         return {
             time: 0,
             request_id: null,
+            runner: this.createRunner(),
         };
     },
 
     computed: {
+        runner_info() {
+            return { mapping: this.mapping, pattern: this.pattern };
+        },
         step() {
-            let runner = new PatternRunner(currentModel, this.pattern, this.mapping);
-            return () => {
-                const current = runner.step(this.time);
+            return (time) => {
+                const current = this.runner.step(time);
                 currentModel.setFromTexture(current);
-                this.time++;
             };
         },
         running() {
@@ -216,6 +218,9 @@ export let PatternPreview = Vue.component('pattern-preview', {
     },
 
     watch: {
+        runner_info(newval) {
+            this.createRunner();
+        },
         runstate(newval) {
             switch (newval) {
                 case RunState.Stopped:
@@ -235,11 +240,15 @@ export let PatternPreview = Vue.component('pattern-preview', {
 
     methods: {
         run() {
-            this.step();
+            this.step(this.time);
+            this.time++;
             if (this.running)
                 this.request_id = window.requestAnimationFrame(() => this.run());
         },
         start() {
+            if (!this.runner) {
+                this.createRunner();
+            }
             currentModel.display_only = true;
             this.run();
         },
@@ -253,6 +262,9 @@ export let PatternPreview = Vue.component('pattern-preview', {
             this.pause();
             currentModel.display_only = false;
             this.time = 0;
+        },
+        createRunner() {
+            this.runner = new PatternRunner(currentModel, this.pattern, this.mapping);
         }
     }
 });

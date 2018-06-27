@@ -47,9 +47,9 @@ function make_oscillator(name, waveform) {
         compile(c) {
             let frequency = c.getInput(this, 0);
             let amplitude = c.getInput(this, 1);
-            let cycles = c.getInput(this, 2);
+            let cycles = glsl.Const(0);//c.getInput(this, 2);
 
-            let t = c.getGlobalInput('t');
+            let t = glsl.BinOp(c.getGlobalInput('t'), '/', glsl.Const(60));
 
             let sec = glsl.BinOp(glsl.Const(1.0), '/', frequency);
             let expr = glsl.BinOp(t, '+', glsl.BinOp(cycles, '*', sec));

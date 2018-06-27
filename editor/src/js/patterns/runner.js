@@ -26,14 +26,18 @@ export class PatternRunner {
         this.graph = GraphLib.graphById(pattern.stages.pixel);
 
         const c = new GraphCompiler(this.graph);
-        const ast = c.compile();
+        const compiled = c.compile();
 
-        const uniforms = [
+        const uniformDecls = [
             glsl.VaryingDecl('vec2', 'vUv'),
             glsl.UniformDecl('sampler2D', 'uCoords'),
             glsl.UniformDecl('sampler2D', 'tPrev'),
             glsl.UniformDecl('float', 'time'),
+            ...compiled.uniforms.map(
+                ({type, name}) => glsl.UniformDecl(type, glsl.Ident(name))
+            ),
         ];
+        const ast = compiled.source;
         const {glsl_type, glsl_swizzle} = mappingTypes[pattern.mapping_type];
 
         let coords = glsl.Variable(glsl_type, 'coords');
@@ -63,7 +67,7 @@ export class PatternRunner {
         ]);
 
         const source = Compilation.global_decls().join('\n') + glsl.generate(glsl.Root([
-            ...uniforms,
+            ...uniformDecls,
             ast,
             main
         ]));
@@ -77,17 +81,25 @@ export class PatternRunner {
             pos.toArray(mappedPositions, idx*3);
         }
 
+        let uniforms = {
+            time: { value: 0 },
+            uCoords: { value: null },
+        };
+
+        for (let { name, getValue } of compiled.uniforms) {
+            uniforms[name] = { value: getValue() };
+        }
+
+        this.graphUniforms = compiled.uniforms;
+
         const { renderer } = viewports.getViewport('main');
         this.fbo = new FBO({
             tWidth: model.num_pixels,
             tHeight: 1,
             numTargets: 3,
-            uniforms: {
-                time: { value: 0 },
-                uCoords: { value: null },
-            },
             simulationVertexShader: passthruVertexShader,
             simulationFragmentShader: source,
+            uniforms,
             renderer,
             format: THREE.RGBFormat,
             filterType: THREE.NearestFilter,
@@ -98,7 +110,11 @@ export class PatternRunner {
     }
 
     step(time) {
-        this.fbo.setTextureUniform('time', time);
+        this.fbo.simulationShader.uniforms['time'].value = time;
+        for (let {name, getValue} of this.graphUniforms) {
+            this.fbo.simulationShader.uniforms[name].value = getValue();
+        }
+
         this.fbo.simulate();
         return this.fbo.getCurrentFrame().texture;
     }

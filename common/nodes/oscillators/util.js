@@ -41,10 +41,6 @@ export default class Frequency {
         };
     }
 
-    sendToShader(gl, loc) {
-        gl.uniform1f(loc, this.frequency);
-    }
-
     static deserialize(hz) {
         return new Frequency(hz);
     }
@@ -55,6 +51,10 @@ export default class Frequency {
 
     valueOf() {
         return this[this.display_qty];
+    }
+
+    toUniform() {
+        return this.valueOf();
     }
 
     setCurrent(val) {

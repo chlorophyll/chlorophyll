@@ -12,12 +12,12 @@ export default class Range {
 
     static declare() {
         return {
-            type: 'vec2f',
+            type: 'vec2',
         };
     }
 
-    sendToShader(gl, loc) {
-        gl.uniform2f(loc, this.lower, this.upper);
+    toUniform() {
+        return [this.min, this.max];
     }
 
     toString() {
