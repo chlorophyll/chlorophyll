@@ -17,7 +17,7 @@ export default class Range {
     }
 
     valueOf() {
-        return [this.min, this.max];
+        return [this.lower, this.upper];
     }
 
     toString() {

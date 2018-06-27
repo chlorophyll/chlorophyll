@@ -26,13 +26,14 @@ function componentForInputType(type, slot) {
     if (type.isUnit) {
         return 'graph-type-unit';
     }
+    console.log(type);
 
     switch (type) {
         case 'number':
             return 'graph-type-numeric';
-        case 'range':
+        case 'Range':
             return 'graph-type-range';
-        case 'frequency':
+        case 'Frequency':
             return 'graph-type-frequency';
     }
 }

@@ -1,6 +1,7 @@
 import Range from '@/common/util/range';
 import Units from '@/common/units';
 import GraphLib, { GraphNode } from '@/common/graphlib';
+import * as glsl from '@/common/glsl';
 
 import Frequency from './util';
 
@@ -28,20 +29,10 @@ function make_oscillator(name, waveform) {
             };
 
             super(options, inputs, outputs, { properties, config });
-
-            // TODO: rewrite waveform plotter as vue component
         }
 
-        waveform(frequency, amplitude, cycles, t) {
-            let phased_t = t + cycles * frequency.sec;
-            return waveform(frequency, amplitude, phased_t);
-        }
-
-        value(t) {
-            let frequency = this.getInputData(0);
-            let amplitude = this.getInputData(1);
-            let cycles = this.getInputData(2);
-            return this.waveform(frequency, amplitude, cycles, t);
+        waveform(frequency, amplitude, time) {
+            return waveform(frequency, amplitude, time);
         }
 
         compile(c) {
@@ -58,12 +49,6 @@ function make_oscillator(name, waveform) {
 
             let w = waveform(frequency, amplitude, phased_t);
             c.setOutput(this, 0, w);
-        }
-
-        onExecute() {
-            let t = this.graph.getGlobalInputData('t') / 60;
-            let out = this.value(t);
-            this.setOutputData(0, out);
         }
     };
 

@@ -50,6 +50,9 @@ export default class Frequency {
     }
 
     valueOf() {
+        return this.hz;
+    }
+    current() {
         return this[this.display_qty];
     }
 
@@ -58,7 +61,7 @@ export default class Frequency {
     }
 
     toString() {
-        const val = this.valueOf();
+        const val = this.current();
         return `${val} ${this.display_qty}`;
     }
 };

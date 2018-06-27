@@ -50,6 +50,7 @@
     "concat-stream": "^1.6.0",
     "d3": "^4.9.1",
     "electron-config": "^1.0.0",
+    "glsl-transpiler": "^1.5.9",
     "jquery": "^3.2.1",
     "keyboardjs": "^2.3.4",
     "klayjs": "^0.4.1",
