@@ -20,11 +20,29 @@ void main() {
 export class PatternRunner {
     constructor(model, pattern, mapping) {
         const { coord_type, mapping_type } = pattern;
-        const mapped_points = getMappedPoints(model, mapping, coord_type);
+        this.pattern = pattern;
+        this.model = model;
+        this.mapped_points = getMappedPoints(model, mapping, coord_type);
 
-        this.positions = convertPointCoords(mapping_type, coord_type, mapped_points);
+        this.positions = convertPointCoords(mapping_type, coord_type, this.mapped_points);
         this.graph = GraphLib.graphById(pattern.stages.pixel);
 
+        this.createFBO();
+
+        this.listener = () => this.createFBO();
+
+        this.graph.addEventListener('node-removed', this.listener);
+        this.graph.addEventListener('edge-removed', this.listener);
+        this.graph.addEventListener('edge-added', this.listener);
+    }
+
+    detach() {
+        this.graph.removeEventListener('node-removed', this.listener);
+        this.graph.removeEventListener('edge-removed', this.listener);
+        this.graph.removeEventListener('edge-added', this.listener);
+    }
+
+    createFBO() {
         const c = new GraphCompiler(this.graph);
         const compiled = c.compile();
 
@@ -38,7 +56,7 @@ export class PatternRunner {
             ),
         ];
         const ast = compiled.source;
-        const {glsl_type, glsl_swizzle} = mappingTypes[pattern.mapping_type];
+        const {glsl_type, glsl_swizzle} = mappingTypes[this.pattern.mapping_type];
 
         let coords = glsl.Variable(glsl_type, 'coords');
         let color = glsl.Variable('vec3', 'color');
@@ -74,8 +92,8 @@ export class PatternRunner {
 
         console.log(source);
 
-        const mappedPositions = new Float32Array(model.num_pixels * 3);
-        const colors = new Float32Array(model.num_pixels * 3);
+        const mappedPositions = new Float32Array(this.model.num_pixels * 3);
+        const colors = new Float32Array(this.model.num_pixels * 3);
 
         for (const [idx, pos] of this.positions) {
             pos.toArray(mappedPositions, idx*3);
@@ -94,7 +112,7 @@ export class PatternRunner {
 
         const { renderer } = viewports.getViewport('main');
         this.fbo = new FBO({
-            tWidth: model.num_pixels,
+            tWidth: this.model.num_pixels,
             tHeight: 1,
             numTargets: 3,
             simulationVertexShader: passthruVertexShader,
