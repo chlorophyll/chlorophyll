@@ -410,6 +410,10 @@ export class Model extends ModelBase {
         this.geometry.attributes.overlayColor.needsUpdate = true;
     }
 
+    setFromTexture(texture) {
+        this.material.uniforms.computedColors.value = texture;
+    }
+
     save() {
         return this.model_info;
     }
