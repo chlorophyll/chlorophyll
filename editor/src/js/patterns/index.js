@@ -202,6 +202,10 @@ export let PatternPreview = Vue.component('pattern-preview', {
         };
     },
 
+    destroyed() {
+        this.runner.detach();
+    },
+
     computed: {
         step() {
             return (time) => {

@@ -49,8 +49,9 @@ uniform float pointSize;
 void main() {
     vOffset = aOffset;
     vOverlayColor = overlayColor;
-	gl_PointSize = pointSize;
-	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+	gl_Position = projectionMatrix * mvPosition;
+	gl_PointSize = pointSize * ( 350. / - mvPosition.z );
 }`;
 
 const modelFragmentShader = `
@@ -60,13 +61,28 @@ varying float vOffset;
 uniform bool displayOnly;
 varying vec3 vOverlayColor;
 
+float aastep(float threshold, float value) {
+    float afwidth = length(vec2(dFdx(value), dFdy(value))) * 0.70710678118654757;
+    return smoothstep(threshold-afwidth, threshold+afwidth, value);
+}
+
+float circle(vec2 p, float radius) {
+  return 1.-aastep(radius, length(p)-radius);
+}
+
 void main() {
+  vec3 outcolor;
+  vec2 uv =  vec3( gl_PointCoord.x, 1.0 - gl_PointCoord.y, 1 ).xy;
+  float circ = circle(vec2(0.5)-uv, 0.25);
   if (!displayOnly) {
-    gl_FragColor = vec4(vOverlayColor, 1.0);
+    if (vOverlayColor == vec3(0.)) {
+      discard;
+    }
+    outcolor = vOverlayColor;
   } else {
-    vec3 color = texture2D(computedColors, vec2(vOffset, 0.5)).rgb;
-    gl_FragColor = vec4(color, 1.0);
+    outcolor = texture2D(computedColors, vec2(vOffset, 0.5)).rgb;
   }
+  gl_FragColor = vec4(outcolor, circ);
 }
 `;
 
@@ -317,7 +333,7 @@ export class Model extends ModelBase {
         }
         avg_dist /= this.num_pixels;
 
-        const pixelsize = THREE.Math.clamp(avg_dist / 3, 5, 15);
+        const pixelsize = THREE.Math.clamp(avg_dist / 3, 35, 65);
 
         const texture = new THREE.DataTexture(
             new Float32Array(3*this.num_pixels),
@@ -336,6 +352,9 @@ export class Model extends ModelBase {
             vertexShader: modelVertexShader,
             fragmentShader: modelFragmentShader,
             transparent: true,
+            extensions: {
+                derivatives: true,
+            }
         });
         this.particles = new THREE.Points(this.geometry, this.material);
 
