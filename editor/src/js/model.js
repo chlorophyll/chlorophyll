@@ -82,6 +82,8 @@ void main() {
   } else {
     outcolor = texture2D(computedColors, vec2(vOffset, 0.5)).rgb;
   }
+  if (circ == 0.)
+    discard;
   gl_FragColor = vec4(outcolor, circ);
 }
 `;
