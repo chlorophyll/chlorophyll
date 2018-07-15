@@ -28,11 +28,10 @@ store.registerModule('mapping', {
             const defaults = {
                 id: params.id,
                 name: `Mapping ${params.id}`,
-                group: -1,
                 type: params.type,
                 settings: mappingTypes[params.type].defaultSettings(),
             };
-            Vue.set(state.mappings, params.id, {...defaults, ...params});
+            Vue.set(state.mappings, params.id, {...defaults, ...params, group: undefined});
             state.mapping_list.push(params.id);
         },
         update_mapping(state, {id, props}) {
@@ -76,7 +75,9 @@ store.registerModule('mapping', {
 
 
 export function saveMapping(mapping) {
-    return clone(mapping);
+    let out = clone(mapping);
+    delete out.group;
+    return out;
 }
 
 export function saveAllMappings() {

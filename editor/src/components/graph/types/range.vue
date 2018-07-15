@@ -2,9 +2,9 @@
     <div class="control-row">
         <label> {{ name }} </label>
         <div class="control">
-        <input type="text" disabled="true" :value="value.lower" />
-        <multirange :min="this.value.min" :max="this.value.max" v-model="current" step="0.001" />
-        <input type="text" disabled="true" :value="value.upper" />
+        <input class="smol" type="text" disabled="true" :value="value.lower" />
+        <multirange class="fill" :min="this.value.min" :max="this.value.max" v-model="current" step="0.001" />
+        <input class="smol" type="text" disabled="true" :value="value.upper" />
         </div>
     </div>
 </template>

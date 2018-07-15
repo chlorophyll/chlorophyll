@@ -7,7 +7,7 @@
                     <option :value="qty">{{ qty }}</option>
                 </template>
             </select>
-            <numeric-input v-model="current" :dragscale="25" />
+            <numeric-input class="fill" v-model="current" :min="0" :dragscale="dragscale"/>
         </div>
     </div>
 </template>
@@ -39,8 +39,21 @@ export default {
             set(val) {
                 this.value.display_qty = val;
             }
+        },
+        dragscale() {
+
+            if (this.value.display_qty == 'bpm') {
+                return 80;
+            } else if (this.value.display_qty == 'sec') {
+                return 4;
+            } else {
+                return 1;
+            }
         }
     }
 };
 
 </script>
+
+<style scoped>
+</style>

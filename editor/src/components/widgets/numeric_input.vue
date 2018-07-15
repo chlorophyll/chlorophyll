@@ -1,8 +1,7 @@
 <template>
-    <div class="control">
+    <div class="root">
         <input
           type="text"
-          size="2"
           class="fill"
           :value="display_value"
           :disabled="disabled"
@@ -36,6 +35,7 @@ export default {
     data() {
         return {
             drag_y: undefined,
+            start_val: undefined,
         };
     },
     computed: {
@@ -48,8 +48,11 @@ export default {
 
             return this.max - this.min;
         },
+        has_value() {
+            return this.value !== null && this.value !== undefined;
+        },
         display_value() {
-            return this.value === null ? null : Util.roundTo(this.value, this.precision);
+            return this.has_value ? Util.roundTo(this.value, this.precision) : null;
         },
     },
     methods: {
@@ -69,6 +72,7 @@ export default {
         startDrag(event) {
             if (event.preventDefault) event.preventDefault();
             this.drag_y = event.clientY;
+            this.start_val = this.display_value || 0;
             document.addEventListener('mousemove', this.drag);
             document.addEventListener('mouseup', this.endDrag);
         },
@@ -76,10 +80,7 @@ export default {
             if (event.preventDefault) event.preventDefault();
 
             const delta_y = event.clientY - this.drag_y;
-            this.drag_y = event.clientY;
-
-            let curval = this.display_value !== null ? this.display_value : 0;
-            let newval = curval - (delta_y * this.range / RANGE_NPIXELS);
+            let newval = this.start_val - (delta_y * this.range / RANGE_NPIXELS);
             this.updateValue(newval);
         },
         endDrag() {
@@ -89,3 +90,13 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+.root {
+    display: flex;
+}
+input {
+    flex: auto;
+    width: 0;
+}
+</style>

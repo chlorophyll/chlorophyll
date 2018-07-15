@@ -1,6 +1,6 @@
 <template>
     <split-pane direction="horizontal"
-                :initial-split="[null, Const.sidebar_size]">
+                :initial-split="[null, Const.sidebar_size]" style="height: 100%">
         <div id="pattern-composer" slot="first">
             <div class="panel inline" id="top-controls">
                 <div class="control-row">
@@ -14,16 +14,21 @@
                         stop
                     </button>
                     <label for="preview-map-list">Preview map</label>
-                    <span class="inputcombo">
-                        <select class="control" id="preview-map-list"
-                                                v-model="preview_map_id">
-                            <template v-for="mapping in mappings">
-                                <option :value="mapping.id">{{ mapping.name }}</option>
-                            </template>
-                        </select>
-                    </span>
+                    <select class="control" id="preview-map-list"
+                                            v-model="preview_map_id">
+                        <template v-for="mapping in mappings">
+                            <option :value="mapping.id">{{ mapping.name }}</option>
+                        </template>
+                    </select>
+                    <label for="preview-group-list">Preview group</label>
+                    <select class="control" id="preview-group-list"
+                                            v-model="preview_group_id">
+                        <template v-for="group in group_list">
+                            <option :value="group.id">{{ group.name }}</option>
+                        </template>
+                    </select>
                     <button @click="autolayout">Autolayout</button>
-                    <button @click="resetZoom">Reset zoom</button>
+                    <button @click="resetZoom">reset</button>
                     <button @click="zoomToFit">Zoom to fit</button>
                 </div>
             </div>
@@ -50,6 +55,7 @@
             <pattern-preview v-if="can_preview"
                              :pattern="cur_pattern"
                              :mapping="preview_mapping"
+                             :group="preview_group"
                              :runstate="runstate" />
         </div>
         <pattern-list slot="second" />
@@ -102,7 +108,8 @@ export default {
             return running ? 'pause' : 'play_arrow';
         },
         can_preview() {
-            return this.preview_mapping !== null && this.cur_pattern !== null;
+            const conditions = [this.preview_mapping, this.cur_pattern, this.preview_group];
+            return conditions.every((c) => c !== null);
         },
         cur_graph() {
             if (this.cur_pattern === null)
@@ -115,6 +122,9 @@ export default {
         ...mapGetters('mapping', [
             'mapping_list',
         ]),
+        ...mapGetters('pixels', [
+            'group_list',
+        ]),
         mappings() {
             if (this.cur_pattern === null)
                 return [];
@@ -125,17 +135,20 @@ export default {
         },
         preview_mapping() {
             return this.preview_map_id !== null ? this.getMapping(this.preview_map_id) : null;
+        },
+        preview_group() {
+            return this.preview_group_id !== null ? this.getGroup(this.preview_group_id) : null;
         }
     },
     data() {
         return {
             time: 0,
             preview_map_id: null,
+            preview_group_id: this.$store.state.pixels.group_list[0],
             runstate: RunState.Stopped,
             node_list: getNodeList(),
         };
     },
-
     watch: {
         mappings(newval) {
             if (newval.length == 1)
@@ -183,6 +196,12 @@ export default {
     width: 100%;
     position: relative;
     user-select: none;
+}
+
+label {
+    display: inline-block;
+    vertical-align: middle;
+    padding-top: 5px;
 }
 
 #top-controls {

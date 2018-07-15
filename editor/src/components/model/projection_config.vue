@@ -1,21 +1,23 @@
 <template>
 <div id="proj-config-container">
     <div class="panel" id="proj-config-controls">
-        <vector-input title="Plane Angle"
-                      :min="min_angle" :max="max_angle"
-                      :value="value.plane_angle"
-                      @input="updateProjectionAndCamera" />
-        <vector-input title="Origin"
-                      :disabled="true"
-                      :min="-10000" :max="10000"
-                      :value="value.origin">
-        </vector-input>
-        <div class="control-row">
-            <label>Rotation</label>
-            <numeric-input title="Rotation"
-                          :min="0" :max="2*max_angle"
-                          :value="value.rotation"
-                          @input="(angle) => updateProjection({ angle })" />
+        <div class="controls">
+            <vector-input title="Plane Angle"
+                          :min="min_angle" :max="max_angle"
+                          :value="value.plane_angle"
+                          @input="updateProjectionAndCamera" />
+            <vector-input title="Origin"
+                          :disabled="true"
+                          :min="-10000" :max="10000"
+                          :value="value.origin">
+            </vector-input>
+            <div class="control-row">
+                <label>Rotation</label>
+                <numeric-input title="Rotation"
+                              :min="0" :max="2*max_angle"
+                              :value="value.rotation"
+                              @input="(angle) => updateProjection({ angle })" />
+            </div>
         </div>
     </div>
     <div id="proj-config-vp">

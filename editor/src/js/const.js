@@ -4,8 +4,8 @@
 const Const = {
     // UI & field sizes
     dock_size: 250,
-    sidebar_size: 235,
-    toolbar_size: 75,
+    sidebar_size: 220,
+    toolbar_size: 25,
     group_smallbutton_width: 40,
     max_name_len: 40,
     num_recent_files: 10,

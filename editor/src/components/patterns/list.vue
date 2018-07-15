@@ -62,7 +62,7 @@ export default {
                 return { mapping_type, coord_type };
             },
             set({ mapping_type, coord_type}) {
-                this.setCoordType(this.cur_pattern.id, mapping_type, coord_type);
+                setCoordType(this.cur_pattern.id, mapping_type, coord_type);
             }
         },
         cur_name: {
@@ -82,7 +82,6 @@ export default {
         ]),
     },
     methods: {
-        setCoordType: setCoordType,
         newPattern() {
             const id = newgid();
             createPattern(id, { set_current: true });

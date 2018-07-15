@@ -18,12 +18,10 @@
         </option>
       </select>
     </div>
-    <div class="control-row">
-      <button @click="configure" class="control">
-        Configure Mapping
-      </button>
     </div>
-    </div>
+    <button @click="configure" class="control">
+      Configure Mapping
+    </button>
     </section>
     <dialog-box v-if="configuring"
                 title="Configure mapping"
@@ -41,8 +39,8 @@
 <script>
 import { mappingUtilsMixin } from 'chl/mapping';
 
-import ProjectionConfig from '@/components/mapping/projection_config';
-import TransformConfig from '@/components/mapping/transform_config';
+import ProjectionConfig from '@/components/model/projection_config';
+import TransformConfig from '@/components/model/transform_config';
 
 import DialogBox from '@/components/widgets/dialog_box';
 

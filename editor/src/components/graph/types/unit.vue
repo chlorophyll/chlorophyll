@@ -19,9 +19,8 @@ export default {
                 return this.value !== undefined ? this.value.valueOf() : null;
             },
             set(val) {
-                if (isNaN(val))
-                    val = 0;
-                this.value = this.type.create(val);
+                const v = this.type.create(val);
+                this.value = v;
             }
         },
         max() {
@@ -30,6 +29,6 @@ export default {
         min() {
             return this.type.range[0];
         }
-    }
+    },
 };
 </script>

@@ -1,8 +1,10 @@
 <template>
     <dialog-box title="node config" :show="true" @close="close" width="350px">
+      <div class="controls config">
             <template v-for="(component, slot) in input_components">
                 <component v-bind:is="component" :node="node" :slotnum="slot" />
             </template>
+      </div>
             <component v-if="node.config.visualization"
                        v-bind:is="node.config.visualization"
                        :node="node"
@@ -12,6 +14,7 @@
 </template>
 
 <script>
+import Units from '@/common/units';
 import DialogBox from '@/components/widgets/dialog_box';
 import OscillatorPlotter from '@/components/graph/oscillator_plotter';
 
@@ -24,9 +27,12 @@ import clone from 'clone';
 
 function componentForInputType(type, slot) {
     if (type.isUnit) {
-        return 'graph-type-unit';
+        if (type == Units.Numeric) {
+            return 'graph-type-numeric';
+        } else {
+            return 'graph-type-unit';
+        }
     }
-    console.log(type);
 
     switch (type) {
         case 'number':
@@ -69,3 +75,9 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+.config >>> .control {
+    display: flex;
+}
+</style>

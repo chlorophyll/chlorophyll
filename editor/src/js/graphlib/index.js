@@ -28,7 +28,7 @@ export const NodeConfigMixin = {
                 return this.node.defaults[this.name];
             },
             set(val) {
-                this.node.defaults[this.name] = val;
+                this.$set(this.node.defaults, this.name, val);
             }
         }
     }

@@ -158,7 +158,7 @@ export class GraphBase {
         this.nodes.delete(node.id);
         this.refs.delete(node.id);
 
-        let index = this.order.find(node.id);
+        let index = this.order.indexOf(node.id);
         this.order.splice(index, 1);
 
         this.emit('node-removed', { node });

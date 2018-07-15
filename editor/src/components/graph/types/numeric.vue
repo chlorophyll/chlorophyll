@@ -1,7 +1,7 @@
 <template>
     <div class="control-row">
         <label>{{ name }}</label>
-        <numeric-input v-model="current" />
+        <numeric-input v-model="current" :dragscale="5" />
     </div>
 </template>
 
@@ -16,10 +16,11 @@ export default {
     computed: {
         current: {
             get() {
-                return this.value !== null ? this.value.valueOf() : null;
+                return this.value !== undefined ? this.value.valueOf() : null;
             },
             set(val) {
-                this.value = val;
+                const v = this.type.create(val);
+                this.value = v;
             }
         }
     }

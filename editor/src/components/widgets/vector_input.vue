@@ -1,6 +1,7 @@
 <template>
   <div class="control-row">
     <label>{{ title }}</label>
+    <div class="control root">
     <template v-for="(val, idx) in vector">
         <numeric-input :value="val"
                        :min="min"
@@ -8,8 +9,10 @@
                        :dragscale="dragscale"
                        :precision="precision"
                        :disabled="disabled"
+                       class="numeric-input"
                        @input="(val) => updateValue(idx, val)" />
     </template>
+    </div>
   </div>
 </template>
 
@@ -50,5 +53,23 @@ export default {
 };
 </script>
 
-<style>
+<style scoped lang="scss">
+.root {
+    display: flex;
+
+    
+
+    .numeric-input {
+        margin: 0 0.5em;
+        flex: auto;
+
+        &:first-child {
+            margin: 0;
+        }
+
+        &:last-child {
+            margin: 0;
+        }
+    }
+}
 </style>
