@@ -1,5 +1,30 @@
 <template>
     <div id="mapping-manager" class="panel">
+        <div class="browser-container">
+            <group-browser
+                class="browser"
+                :groups="group_list"
+                :selected.sync="selected_gid" />
+            <mapping-browser
+                class="browser"
+                :mappings="mapping_list"
+                :selected.sync="selected_mid" />
+            <div class="control-row browser-button-container">
+                <button class="fill"
+                        :disabled="!can_create_group"
+                        @click="newGroupFromSelection()">
+                    New group
+                </button>
+                <button class="fill">
+                    New mapping
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+/*
         <split-pane direction="vertical" :initial-split="[200,null]">
             <div slot="first" class="browser-container">
                 <mapping-browser class="browser"
@@ -11,7 +36,10 @@
                     <button class="fill"
                             :disabled="!can_create_group"
                             @click="newGroupFromSelection()">
-                        New group from selection
+                        New group
+                    </button>
+                    <button class="fill">
+                        New mapping
                     </button>
                 </div>
             </div>
@@ -19,22 +47,16 @@
                 slot="second"
                 :mapping="selected_mapping">
             </mapping-config>
-            <group-config v-if="selected_group"
-                slot="second"
-                :group="selected_group"
-                @new_mapping="val => { selected_id = val; }">
-            </group-config>
         </split-pane>
     </div>
-</template>
-
-<script>
+    */
 import { mapState } from 'vuex';
 import store, { newgid } from 'chl/vue/store';
 import { mappingUtilsMixin } from 'chl/mapping';
 import { createGroup } from 'chl/model';
 
-import MappingBrowser from '@/components/mapping/browser';
+import GroupBrowser from '@/components/mapping/group_browser';
+import MappingBrowser from '@/components/mapping/mapping_browser';
 import MappingConfig from '@/components/mapping/mapping_config';
 import GroupConfig from '@/components/mapping/group_config';
 import SplitPane from '@/components/widgets/split';
@@ -44,6 +66,7 @@ export default {
     store,
     mixins: [mappingUtilsMixin],
     components: {
+        GroupBrowser,
         MappingBrowser,
         MappingConfig,
         GroupConfig,
@@ -51,15 +74,16 @@ export default {
     },
     data() {
         return {
-            selected_id: -1,
+            selected_gid: -1,
+            selected_mid: -1,
         };
     },
     computed: {
-        selected_mapping() {
-            return this.getMapping(this.selected_id);
-        },
         selected_group() {
-            return this.getGroup(this.selected_id);
+            return this.getGroup(this.selected_gid);
+        },
+        selected_mapping() {
+            return this.getMapping(this.selected_mid);
         },
         can_create_group() {
             return this.active_selection.length > 0;
@@ -79,7 +103,7 @@ export default {
 
             createGroup({id, pixels: [...this.active_selection]});
             this.$store.commit('pixels/clear_active_selection');
-            this.selected_id = id;
+            this.selected_gid = id;
         },
     },
 };
@@ -89,11 +113,6 @@ export default {
 .browser-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
-}
-
-.browser-container .browser {
-    flex: 1;
 }
 
 .browser-button-container {

@@ -2,6 +2,7 @@
     <div>
     <input ref="input"
            :value="value"
+           class="control"
            :style="input_style"
            readonly="true"
            @click="showPicker"/>

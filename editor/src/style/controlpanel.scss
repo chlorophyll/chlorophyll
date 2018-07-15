@@ -54,29 +54,6 @@ button:focus {
     display: block;
   }
 
-  .controls {
-    margin: auto 3px;
-    padding: 5px 0px 4px 2px;
-    box-shadow: inset 1px 1px 1px darken($control-group-dark, 15%);
-    border-radius: $inset-radius;
-    border-bottom: 1px solid $control-group-dark;
-    border-right: 1px solid $control-group-dark;
-    background-color: $control-group-base;
-
-    .control-row {
-      border-top: 1px solid $control-group-light;
-      border-bottom: 1px solid $control-group-dark;
-
-      &:first-child {
-        border-top: 0px;
-      }
-
-      &:last-child {
-        border-bottom: 0px;
-      }
-    }
-  }
-
   /*
    * For panels embedded in other UI elements, e.g. a toolbar,
    * without needing a wrapper div to constrain the height.
@@ -86,44 +63,38 @@ button:focus {
     border-top: 1px solid;
     border-bottom: 1px solid;
     border-color: #333;
+  }
 
-    label {
-      flex: initial;
-      width: fit-content;
-      min-width: 0;
-      padding-left: 2em;
+
+  .controls {
+    display: grid;
+    grid-template-columns: minmax(6em, max-content) 1fr;
+    margin: 0 5px;
+    padding-right: 1em;
+    grid-gap: 2px;
+    border: 1px solid $control-border;
+    border-radius: $control-border-radius;
+    background-color: $control-group-base;
+    padding-top: 5px;
+    padding-bottom: 5px;
+
+    .control-row {
+      display: contents;
+
+      label {
+        text-align: right;
+        padding-right: 0.5em;
+        padding-top: 3px;
+      }
+
+      .control {
+        width: 100%;
+        padding-top: 2px;
+        padding-bottom: 2px;
+      }
     }
-  }
-
-  label {
-    display: inline-block;
-    width: fit-content;
-    max-width: 10rem;
-    min-width: 4rem;
-    flex: initial;
-
-    padding-top: 0.4rem;
-    text-align: right;
-    padding-right: 0.5em;
-  }
 
 
-  .control-row {
-    width: 100%;
-    height: auto;
-    display: flex;
-    flex-direction: row;
-
-    padding: 0.3em;
-    // border-top: 1px solid #181818;
-    // border-bottom: 1px solid #181818;
-  }
-
-  .control {
-    flex: auto;
-    display: flex;
-    height: $control-height;
-    margin-right: 0.5em;
   }
 
   /*
@@ -238,10 +209,9 @@ button:focus {
   }
 
   input {
-    line-height: 1.313rem;
-    font-size: 12px;
     letter-spacing: 0;
-    padding: 0 0.563rem;
+    padding: 0;
+    padding-left: 0.5em;
     border: 1px solid $input-border;
     border-radius: $control-border-radius;
     background-color: $input-bg;
@@ -333,11 +303,15 @@ button:focus {
         list-style: none;
         padding-left: 0;
       }
+      li:first-child {
+      	padding-top: 2px;
+	  }
 
       li {
         padding-left: 1.5em;
         line-height: 1.5em;
         border-bottom: 1px solid darken($bg-dark, 5%);
+        cursor: pointer;
 
         &.selected {
           background-color: $accent;

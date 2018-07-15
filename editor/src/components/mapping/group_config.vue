@@ -10,21 +10,9 @@
         </div>
         <div class="control-row">
           <label>color</label>
-          <colorpicker-input v-model="color" class="control" />
+          <colorpicker-input v-model="color" class="control"/>
         </div>
       </div>
-    </section>
-    <section>
-      <h1>Add mapping for group</h1>
-        <div class="control-row">
-          <button @click="newMapping" class="smol material-icons">add</button>
-          <select v-model="create_mapping_type" class="control fill">
-            <option v-for="(dispname, type) in mapping_types"
-                    v-bind:value="type">
-              {{ dispname }}
-            </option>
-          </select>
-        </div>
     </section>
   </div>
 </template>
