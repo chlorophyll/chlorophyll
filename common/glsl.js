@@ -60,7 +60,7 @@ export function UnOp(operator, expr) {
     };
 }
 
-export function TernaryOp(operator, condition, tbranch, fbranch) {
+export function TernaryOp(condition, tbranch, fbranch) {
     return {
         type: 'ternary_op',
         condition,

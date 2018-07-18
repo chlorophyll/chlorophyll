@@ -7,7 +7,7 @@ let node_types = [];
 class IfNode extends GraphNode {
     constructor(options) {
         const inputs = [
-            GraphNode.input('clause', 'boolean'),
+            GraphNode.input('clause', 'bool'),
             GraphNode.input('trueBranch'),
             GraphNode.input('falseBranch'),
         ];
@@ -21,10 +21,10 @@ class IfNode extends GraphNode {
 
     compile(c) {
         let clause = c.getInput(this, 0);
-        let trueBranch = c.getInput(this, 1);
+        let {v: trueBranch, type} = c.getInputAndInferType(this, 1);
         let falseBranch = c.getInput(this, 2);
 
-        c.setOutput(this, 0, glsl.TernaryOp(clause, trueBranch, falseBranch));
+        c.setOutput(this, 0, glsl.TernaryOp(clause, trueBranch, falseBranch), type);
     }
 };
 

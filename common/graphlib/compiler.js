@@ -176,7 +176,7 @@ export class GraphCompiler {
         this.out.push(glsl.BinOp(glsl.Ident(name), '=', expr));
     }
 
-    getInput(node, slot) {
+    getInputAndInferType(node, slot) {
         const { type, src } = node.input_info[slot];
 
         let v_dst = this.input(node, slot);
@@ -197,16 +197,25 @@ export class GraphCompiler {
             } else {
                 init_expr = v_src;
             }
+            if (!decl_type) {
+                decl_type = outgoing_type;
+            }
         } else {
             init_expr = this.default_value(node, slot);
         }
         this.declare(decl_type, v_dst, init_expr);
 
-        return v_dst;
+        return {v: v_dst, type: decl_type};
     }
 
-    setOutput(node, slot, val) {
-        let { type } = node.output_info[slot];
+    getInput(node, slot) {
+        return this.getInputAndInferType(node, slot).v;
+    }
+
+    setOutput(node, slot, val, type) {
+        if (!type) {
+            type = node.output_info[slot].type;
+        }
         this.declare(type, this.output(node, slot), val);
     }
 };
