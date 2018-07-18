@@ -281,12 +281,3 @@ export function generate(root) {
     state.visit(root);
     return out.join('');
 }
-
-let root = Root([
-    AttributeDecl('vec4', 'position'),
-    UniformDecl('mat4', 'projection'),
-    FunctionDecl('void', 'main', [], [
-        BinOp(Ident('gl_Position'), '=', BinOp(Ident('projection'), '*', Ident('position')))
-    ]),
-]);
-console.log(generate(root));

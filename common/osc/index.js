@@ -1,3 +1,4 @@
+/* eslint-disable */
 import osc from 'osc';
 import UrlPattern from 'url-pattern';
 

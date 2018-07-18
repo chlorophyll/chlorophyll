@@ -1,9 +1,4 @@
 import clone from 'clone';
-import GraphLib from '@/common/graphlib';
-
-import * as glsl from '@/common/glsl';
-
-import { getMappedPoints, convertPointCoords, mappingTypes } from '@/common/mapping';
 
 export function restorePattern(patternsnap) {
     return clone(patternsnap);

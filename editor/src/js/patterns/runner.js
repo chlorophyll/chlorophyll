@@ -90,10 +90,7 @@ export class PatternRunner {
             main
         ]));
 
-        console.log(source);
-
         const mappedPositions = new Float32Array(this.model.num_pixels * 3);
-        const colors = new Float32Array(this.model.num_pixels * 3);
 
         for (const [idx, pos] of this.positions) {
             pos.toArray(mappedPositions, idx*3);

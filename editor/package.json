@@ -36,7 +36,7 @@
     "build": "cross-env BUILD_TARGET=$(uname -s | tr '[:upper:]' '[:lower:]') node config/build.js",
     "dev": "node config/dev-runner.js",
     "test": "jest",
-    "lint": "eslint --ext .js,.vue -f ./node_modules/eslint-friendly-formatter src",
+    "lint": "eslint --ext .js,.vue -f ./node_modules/eslint-friendly-formatter src src/common",
     "lint:fix": "eslint --ext .js,.vue -f ./node_modules/eslint-friendly-formatter --fix src",
     "pack": "yarn run pack:main && yarn run pack:renderer",
     "pack:main": "cross-env NODE_ENV=production webpack --progress --colors --config config/webpack.main.config.js",

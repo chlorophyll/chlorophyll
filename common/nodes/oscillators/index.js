@@ -65,8 +65,6 @@ make_oscillator('triangle', function(frequency, amplitude, t) {
 
     let p = glsl.BinOp(glsl.Const(1.0), '/', glsl.BinOp(glsl.Const(2.0), '*', frequency));
 
-    //p - Math.abs(mod(t, 2*p) - p)
-
     let triangle = glsl.BinOp(
         glsl.BinOp(a, '/', p),
         '*',
