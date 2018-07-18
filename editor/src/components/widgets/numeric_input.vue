@@ -78,7 +78,7 @@ export default {
             const delta_y = event.clientY - this.drag_y;
             this.drag_y = event.clientY;
 
-            let curval = this.display_value || 0;
+            let curval = this.display_value !== null ? this.display_value : 0;
             let newval = curval - (delta_y * this.range / RANGE_NPIXELS);
             this.updateValue(newval);
         },

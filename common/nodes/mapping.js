@@ -23,18 +23,17 @@ function make_nodes(mapping_name, coord_types) {
                     }
                 });
             }
-            onExecute() {
-                let coords = this.graph.getGlobalInputData('coords');
 
+            compile(c) {
+                let coords = c.getGlobalInput('coords');
+                let fields = ['x', 'y', 'z'];
 
                 for (let i = 0; i < info.coords.length; i++) {
-                    let in_val = coords[i];
-                    let UnitConstructor = info.coords[i].unit;
-
-                    this.setOutputData(i, new UnitConstructor(in_val));
+                    c.setOutput(this, i, glsl.Dot(coords, fields[i]));
                 }
-                let color = this.graph.getGlobalInputData('color');
-                this.setOutputData(info.coords.length, color);
+
+                let color = c.getGlobalInput('color');
+                c.setOutput(this, info.coords.length, color);
             }
         };
         node_types.push([path, MapInputNode]);

@@ -7,7 +7,7 @@
                     <option :value="qty">{{ qty }}</option>
                 </template>
             </select>
-            <numeric-input v-model="current" />
+            <numeric-input v-model="current" :dragscale="25" />
         </div>
     </div>
 </template>

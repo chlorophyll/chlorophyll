@@ -1,6 +1,6 @@
 <template>
-    <span>
-    <input ref="input" class="control"
+    <div>
+    <input ref="input"
            :value="value"
            :style="input_style"
            readonly="true"
@@ -10,7 +10,7 @@
            :value="value"
            @blur="active=false"
            @input="(val) => $emit('input', val)" />
-    </span>
+    </div>
 </template>
 
 <script>
@@ -44,3 +44,9 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+input {
+    width: 100%;
+}
+</style>

@@ -14,3 +14,4 @@ thumbs.db
 !.gitkeep
 Session.vim
 backend/dist
+yarn-error.log

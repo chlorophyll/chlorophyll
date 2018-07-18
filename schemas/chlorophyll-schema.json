@@ -70,14 +70,19 @@
                 "required": ["_tag"]
             },
             "unitValue": {
-                "type": "object",
-                "properties": {
-                    "_tag": {
-                        "type": "string"
+                "anyOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "_tag": {
+                                "type": "string"
+                            },
+                            "value": {}
+                        },
+                        "required": ["_tag", "value"]
                     },
-                    "value": {}
-                },
-                "required": ["_tag", "value"]
+                    {"type": "number"}
+                ]
             }
         },
         "objects": {

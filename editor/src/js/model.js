@@ -37,6 +37,58 @@ function createStripGroup(strip) {
 
 }
 
+const modelVertexShader = `
+attribute float aOffset;
+varying float vOffset;
+
+attribute vec3 overlayColor;
+varying vec3 vOverlayColor;
+
+uniform float pointSize;
+
+void main() {
+    vOffset = aOffset;
+    vOverlayColor = overlayColor;
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+	gl_Position = projectionMatrix * mvPosition;
+	gl_PointSize = pointSize * ( 350. / - mvPosition.z );
+}`;
+
+const modelFragmentShader = `
+uniform sampler2D computedColors;
+varying float vOffset;
+
+uniform bool displayOnly;
+varying vec3 vOverlayColor;
+
+float aastep(float threshold, float value) {
+    float afwidth = length(vec2(dFdx(value), dFdy(value))) * 0.70710678118654757;
+    return smoothstep(threshold-afwidth, threshold+afwidth, value);
+}
+
+float circle(vec2 p, float radius) {
+  return 1.-aastep(radius, length(p)-radius);
+}
+
+void main() {
+  vec3 outcolor;
+  vec2 uv =  vec3( gl_PointCoord.x, 1.0 - gl_PointCoord.y, 1 ).xy;
+  float circ = circle(vec2(0.5)-uv, 0.25);
+  if (!displayOnly) {
+    if (vOverlayColor == vec3(0.)) {
+      discard;
+    }
+    outcolor = vOverlayColor;
+  } else {
+    outcolor = texture2D(computedColors, vec2(vOffset, 0.5)).rgb;
+  }
+  if (circ == 0.)
+    discard;
+  gl_FragColor = vec4(outcolor, circ);
+}
+`;
+
+
 export function importNewModel(json) {
     store.commit('pixels/clear_groups');
     store.commit('mapping/clear_mappings');
@@ -237,6 +289,10 @@ export class Model extends ModelBase {
         });
 
         this.colors = new Float32Array(this.num_pixels * 3);
+        let offsets = new Float32Array(this.num_pixels);
+        for (let i = 0; i < this.num_pixels; i++) {
+            offsets[i] = i / this.num_pixels;
+        }
 
         for (let strip = 0; strip < this.num_strips; strip++) {
             let strip_geometry = new THREE.Geometry();
@@ -255,7 +311,8 @@ export class Model extends ModelBase {
 
         this.geometry = new THREE.BufferGeometry();
         this.geometry.addAttribute('position', new THREE.BufferAttribute(this.positions, 3));
-        this.geometry.addAttribute('color', new THREE.BufferAttribute(this.colors, 3));
+        this.geometry.addAttribute('overlayColor', new THREE.BufferAttribute(this.colors, 3));
+        this.geometry.addAttribute('aOffset', new THREE.BufferAttribute(offsets, 1));
 
         this.updateColors();
 
@@ -278,13 +335,30 @@ export class Model extends ModelBase {
         }
         avg_dist /= this.num_pixels;
 
-        const pixelsize = THREE.Math.clamp(avg_dist / 3, 5, 15);
+        const pixelsize = THREE.Math.clamp(avg_dist / 3, 35, 65);
 
-        const material = new THREE.PointsMaterial({
-            size: pixelsize,
-            vertexColors: THREE.VertexColors
+        const texture = new THREE.DataTexture(
+            new Float32Array(3*this.num_pixels),
+            this.num_pixels,
+            1,
+            THREE.RGBFormat,
+            THREE.FloatType
+        );
+
+        this.material = new THREE.ShaderMaterial({
+            uniforms: {
+                pointSize: { value: pixelsize },
+                computedColors: { value: texture },
+                displayOnly: { value: false },
+            },
+            vertexShader: modelVertexShader,
+            fragmentShader: modelFragmentShader,
+            transparent: true,
+            extensions: {
+                derivatives: true,
+            }
         });
-        this.particles = new THREE.Points(this.geometry, material);
+        this.particles = new THREE.Points(this.geometry, this.material);
 
         this.scene = new THREE.Scene();
         this.scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
@@ -312,6 +386,7 @@ export class Model extends ModelBase {
 
     set display_only(val) {
         this._display_only = val;
+        this.material.uniforms.displayOnly.value = val;
         this.updateColors();
     }
 
@@ -334,20 +409,11 @@ export class Model extends ModelBase {
         if (!this.display_only) {
             this.setColorsFromOverlays();
         }
-        this.geometry.attributes.color.needsUpdate = true;
+        this.geometry.attributes.overlayColor.needsUpdate = true;
     }
 
-    setFromBuffer(colorbuf) {
-        for (let i = 0; i < this.num_pixels*3; i++) {
-            this.colors[i] = colorbuf[i]/255;
-        }
-        this.updateColors();
-    }
-
-    setColor(i, [r, g, b]) {
-        this.colors[3*i+0] = r;
-        this.colors[3*i+1] = g;
-        this.colors[3*i+2] = b;
+    setFromTexture(texture) {
+        this.material.uniforms.computedColors.value = texture;
     }
 
     save() {

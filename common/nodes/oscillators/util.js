@@ -1,4 +1,5 @@
 import { addSerializableType } from '@/common/util/serialization';
+import { Compilation } from '@/common/graphlib/compiler';
 
 export default class Frequency {
     constructor(hz) {
@@ -34,6 +35,12 @@ export default class Frequency {
         this.frequency = val;
     }
 
+    static declare() {
+        return {
+            type: 'float',
+        };
+    }
+
     static deserialize(hz) {
         return new Frequency(hz);
     }
@@ -43,6 +50,9 @@ export default class Frequency {
     }
 
     valueOf() {
+        return this.hz;
+    }
+    current() {
         return this[this.display_qty];
     }
 
@@ -51,9 +61,10 @@ export default class Frequency {
     }
 
     toString() {
-        const val = this.valueOf();
+        const val = this.current();
         return `${val} ${this.display_qty}`;
     }
 };
 
 addSerializableType('Frequency', Frequency);
+Compilation.registerType('Frequency', Frequency);

@@ -195,7 +195,7 @@ describe('Graph', () => {
 
         expect(node.save()).toMatchSchema(SchemaDefs.object('node'));
 
-        node.vm.defaults['input'] = new Units.Percentage(0.5);
+        node.vm.defaults['input'] = 0.5;
 
         expect(node.save()).toMatchSchema(SchemaDefs.object('node'));
     });
@@ -208,7 +208,7 @@ describe('Graph', () => {
         graph.connect(a, 0, b, 0);
 
         a.vm.defaults['input'] = 'foo';
-        c.vm.defaults['input'] = new Units.Percentage(0.5);
+        c.vm.defaults['input'] = 0.5;
 
         let saved = graph.save();
         let newgraph = Graph.restore(saved);
@@ -221,7 +221,7 @@ describe('Graph', () => {
         expect(newgraph.numEdgesFromNode(newa)).toEqual(1);
         expect(newgraph.numEdgesToNode(newb)).toEqual(1);
         expect(newa.vm.defaults['input']).toEqual('foo');
-        expect(newc.vm.defaults['input']).toEqual(new Units.Percentage(0.5));
+        expect(newc.vm.defaults['input']).toEqual(0.5);
 
         newgraph.forEachEdgeFromNode(newa, (edge) => {
             expect(edge.src_id).toEqual(newa.id);

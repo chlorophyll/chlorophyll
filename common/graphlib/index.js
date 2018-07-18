@@ -1,6 +1,8 @@
-import Immutable from 'immutable';
+import * as Serialization from '@/common/util/serialization';
 
-import * as Serialization from 'common/util/serialization';
+import Units from '@/common/units';
+
+import { GraphCompiler } from '@/common/graphlib/compiler';
 
 let node_types = new Map();
 let graphs = new Map();
@@ -49,6 +51,7 @@ export default GraphLib;
 
 export class GraphBase {
     constructor(id) {
+        console.log(this);
         this.id = id;
         graphs.set(this.id, this);
 
@@ -57,10 +60,16 @@ export class GraphBase {
 
         this.refs = new Map();
 
-        this.nodes = new Immutable.Map();
+        this.nodes = new Map();
+        this.order = [];
+        this.edges_by_src = new Map(); // src -> slot -> edge list
+        this.edges_by_dst = new Map(); // dst -> slot -> edge
+        this.step = 0;
+    }
 
-        this.edges_by_src = new Immutable.Map();
-        this.edges_by_dst = new Immutable.Map();
+    compile() {
+        const compiler = new GraphCompiler(this);
+        return compiler.compile();
     }
 
     emit(name, detail) {
@@ -74,8 +83,8 @@ export class GraphBase {
         return this.getNodeById(id);
     }
 
-    addGlobalInput(name, type) {
-        this.global_inputs.set(name, { name, type, data: null });
+    addGlobalInput(name, type, per_pixel=false) {
+        this.global_inputs.set(name, { name, type, per_pixel, data: null });
         this.emit('global-input-added', { name, type });
     }
 
@@ -122,11 +131,13 @@ export class GraphBase {
 
         let node = new Ctor({graph, id, title, pos, path, vm_factory});
 
-        this.nodes = this.nodes.set(node.id, node);
+        this.nodes.set(node.id, node);
 
         if (ref !== undefined) {
             this.refs.set(ref, id);
         }
+
+        this.order.push(id);
 
         this.emit('node-added', { node });
 
@@ -144,8 +155,11 @@ export class GraphBase {
         this.forEachEdgeToNode(node, (edge) => this.disconnect(edge));
         this.forEachEdgeFromNode(node, (edge) => this.disconnect(edge));
 
-        this.nodes = this.nodes.delete(node.id);
+        this.nodes.delete(node.id);
         this.refs.delete(node.id);
+
+        let index = this.order.find(node.id);
+        this.order.splice(index, 1);
 
         this.emit('node-removed', { node });
     }
@@ -159,7 +173,8 @@ export class GraphBase {
             return (src_type == dst_type);
         }
 
-        if (src_type == 'number' && dst_type.isUnit) {
+        if (src_type == 'number' && dst_type.isUnit ||
+            src_type.isUnit && dst_type == 'number') {
             return true;
         }
 
@@ -174,8 +189,7 @@ export class GraphBase {
         let stack = [];
 
         let visited = new Map();
-
-        this.forEachNode((source, source_id) => {
+        this.nodes.forEach((source, source_id) => {
             if (visited.has(source_id))
                 return;
 
@@ -199,29 +213,44 @@ export class GraphBase {
                     });
                 } else {
                     visited.set(id, BLACK);
-                    ordered.unshift([id, node]);
+                    ordered.unshift(id);
                 }
             }
         });
-        this.nodes = Immutable.OrderedMap(ordered);
+        this.order = ordered;
     }
 
     _insertEdge(edge) {
         const {src_id, src_slot, dst_id, dst_slot} = edge;
 
-        this.edges_by_src = this.edges_by_src.updateIn(
-            [src_id, src_slot],
-            Immutable.Set(),
-            (edgelist) => edgelist.add(edge));
-        let prev_edge = this.edges_by_dst.getIn([dst_id, dst_slot]);
+        let slots_for_src = this.edges_by_src.get(src_id);
+        if (slots_for_src === undefined) {
+            slots_for_src = new Map();
+            this.edges_by_src.set(src_id, slots_for_src);
+        }
 
-        this.edges_by_dst = this.edges_by_dst.setIn([dst_id, dst_slot], edge);
+        let edgelist = slots_for_src.get(src_slot);
+        if (edgelist === undefined) {
+            edgelist = new Set();
+            slots_for_src.set(src_slot, edgelist);
+        }
 
-        if (prev_edge) {
-            this.edges_by_src = this.edges_by_src.updateIn(
-                [prev_edge.src_id, prev_edge.src_slot],
-                Immutable.Set(), (edgelist) => edgelist.delete(prev_edge)
-            );
+        edgelist.add(edge);
+
+        let slots_for_dst = this.edges_by_dst.get(dst_id);
+        if (slots_for_dst === undefined) {
+            slots_for_dst = new Map();
+            this.edges_by_dst.set(dst_id, slots_for_dst);
+        }
+
+        let prev_edge = slots_for_dst.get(dst_slot);
+
+        slots_for_dst.set(dst_slot, edge);
+
+        if (prev_edge !== undefined) {
+            let prev_slots = this.edges_by_src.get(prev_edge.src_id);
+            let prev_edges = prev_slots.get(prev_edge.src_slot);
+            prev_edges.delete(prev_edge);
         }
 
         return prev_edge;
@@ -230,6 +259,8 @@ export class GraphBase {
     _notifyConnect(edge) {
         let src = this.getNodeById(edge.src_id);
         let dst = this.getNodeById(edge.dst_id);
+
+        dst.input_info[edge.dst_slot].src = {node: src, slot: edge.src_slot};
 
         src.vm.outputs[edge.src_slot].state.num_edges += 1;
         dst.vm.inputs[edge.dst_slot].state.num_edges += 1;
@@ -251,21 +282,16 @@ export class GraphBase {
             dst_slot,
         };
 
-        let old_src = this.edges_by_src;
-        let old_dst = this.edges_by_dst;
-
         let prev_edge = this._insertEdge(edge);
 
         try {
             this.toposort();
-            this._notifyConnect(edge);
             if (prev_edge)
                 this._notifyDisconnect(prev_edge);
+            this._notifyConnect(edge);
             return edge;
         } catch (e) {
-            // a cycle was created
-            this.edges_by_src = old_src;
-            this.edges_by_dst = old_dst;
+            if (prev_edge) this._insertEdge(prev_edge);
             return false;
         }
     }
@@ -273,32 +299,23 @@ export class GraphBase {
     _notifyDisconnect(edge) {
         let src = this.getNodeById(edge.src_id);
         let dst = this.getNodeById(edge.dst_id);
+
+        dst.input_info[edge.dst_slot].src = null;
+
         src.vm.outputs[edge.src_slot].state.num_edges -= 1;
         dst.vm.inputs[edge.dst_slot].state.num_edges -= 1;
         this.emit('edge-removed', { edge });
     }
 
     disconnect(edge) {
-        this.edges_by_src = this.edges_by_src.updateIn(
-            [edge.src_id, edge.src_slot],
-            Immutable.Set(), (edgelist) => edgelist.delete(edge)
-        );
-        this.edges_by_dst = this.edges_by_dst.deleteIn([edge.dst_id, edge.dst_slot]);
+        let src_slots = this.edges_by_src.get(edge.src_id);
+        let edgelist = src_slots.get(edge.src_slot);
+        edgelist.delete(edge);
+
+        let dst_slots = this.edges_by_dst.get(edge.dst_id);
+        dst_slots.delete(edge.dst_slot);
+
         this._notifyDisconnect(edge);
-    }
-
-    getNodeByInput(dst, dst_slot) {
-        let edge = this.edges_by_dst.getIn([dst.id, dst_slot]);
-
-        if (!edge)
-            return null;
-
-        let node = this.nodes.get(edge.src_id);
-
-        return {
-            node: node,
-            slot: edge.src_slot
-        };
     }
 
     getNodeById(node_id) {
@@ -306,14 +323,16 @@ export class GraphBase {
     }
 
     runStep() {
-        this.nodes.forEach(function(node, id) {
-            node.clearOutgoingData();
-            node.onExecute();
-        });
+        this.step++;
+        for (let id of this.order) {
+            this.getNodeById(id).onExecute();
+        }
     }
 
     forEachNode(f) {
-        return this.nodes.forEach(f);
+        for (let id of this.order) {
+            f(this.getNodeById(id));
+        }
     }
 
     forEachEdgeToNode(node, f) {
@@ -326,7 +345,7 @@ export class GraphBase {
     numEdgesToNode(node) {
         let edges_by_slot = this.edges_by_dst.get(node.id);
         if (edges_by_slot !== undefined) {
-            return edges_by_slot.count();
+            return edges_by_slot.size;
         } else {
             return 0;
         }
@@ -343,21 +362,32 @@ export class GraphBase {
         let total = 0;
         let edges_by_slot = this.edges_by_src.get(node.id);
 
-        if (edges_by_slot)
-            edges_by_slot.forEach((slot) => total += slot.count());
+
+        if (edges_by_slot) {
+            for (let slot of edges_by_slot.values()) {
+                total += slot.size;
+            }
+        }
         return total;
     }
 
     forEachEdgeFromSlot(node, slot, f) {
-        this.edges_by_src.getIn([node.id, slot], Immutable.List()).forEach(f);
+        let edges_by_slot = this.edges_by_src.get(node.id);
+        if (edges_by_slot)
+            edges_by_slot.forEach(f);
     }
 
     numEdgesAtSlot(node, slot, is_input) {
         if (is_input)
             return this.hasIncomingEdge(node, slot) ? 1 : 0;
 
-        let edgelist = this.edges_by_src.getIn([node.id, slot]);
-        return edgelist ? edgelist.count() : 0;
+        let edges_by_slot = this.edges_by_src.get(node.id);
+        if (!edges_by_slot)
+            return 0;
+
+        let edgelist = edges_by_slot.get(slot);
+
+        return edgelist ? edgelist.size: 0;
     }
 
     hasIncomingEdge(node, slot) {
@@ -365,7 +395,10 @@ export class GraphBase {
     }
 
     getIncomingEdge(node, slot) {
-        return this.edges_by_dst.getIn([node.id, slot]);
+        let edges_by_slot = this.edges_by_dst.get(node.id);
+        if (!edges_by_slot) return undefined;
+
+        return edges_by_slot.get(slot);
     }
 
     forEachEdge(f) {
@@ -471,13 +504,13 @@ export class GraphNode {
         let input_vm = inputs.map(({ state, settings }) => ({state, settings}));
         let output_vm = outputs.map(({ state, settings }) => ({state, settings}));
 
-        this.input_info = inputs.map(({name, type}) => ({name, type}));
+        this.input_info = inputs.map(({name, type}) => ({name, type, src: null}));
         this.output_info = outputs.map(({name, type}) => ({name, type}));
 
         let defaults = {};
 
         for (const { name } of inputs) {
-            defaults[name] = properties[name] || null;
+            defaults[name] = properties[name] !== undefined ? properties[name] : undefined;
         }
 
         let cfg = {...DEFAULT_CONFIG, ...config};
@@ -496,51 +529,51 @@ export class GraphNode {
 
     defaultForSlot(slot) {
         const { name } = this.input_info[slot];
-        let out = this.vm.defaults[name];
-        if (out === null)
-            out = undefined;
-        return out;
+        return this.vm.defaults[name];
     }
 
     getOutgoingData(slot) {
         const { type } = this.output_info[slot];
-
-        let outgoing = this.outgoing_data[slot];
-
-        if (outgoing && type && type.isUnit) {
-            let Ctor = type;
-            outgoing = new Ctor(outgoing.valueOf());
-        }
-        return outgoing;
+        const {step, data} = this.outgoing_data[slot];
+        let out = { data, type };
+        return this.graph.step == step ? out : undefined;
     }
+
+    _isConvertible(outgoing, type) {
+        return outgoing.type && outgoing.type.isUnit && type && type.isUnit;
+    }
+
     getInputData(slot) {
-        let src = this.graph.getNodeByInput(this, slot);
 
         const { autoconvert } = this.vm.inputs[slot].settings;
-        const { type } = this.input_info[slot];
+        const { type, src } = this.input_info[slot];
 
         let data = undefined;
+
         if (src) {
-            data = src.node.getOutgoingData(src.slot);
+            let outgoing = src.node.getOutgoingData(src.slot);
+
+            if (autoconvert && this._isConvertible(outgoing, type)) {
+                data = Units.convert(outgoing.data, outgoing.type, type);
+            } else {
+                data = outgoing.data;
+            }
         }
 
         if (data == undefined) {
             data = this.defaultForSlot(slot);
         }
 
-        if (data !== undefined && type && type.isUnit) {
-            if (data.isUnit && autoconvert) {
-                data = data.convertTo(type);
-            } else {
-                let Ctor = type;
-                data = new Ctor(data);
-            }
-        }
         return data;
     }
 
     setOutputData(slot, data) {
-        this.outgoing_data[slot] = data;
+        const { type } = this.output_info[slot];
+        let Ctor = type;
+        if (data && type && type.isUnit && !Ctor.isPrototypeOf(data)) {
+            data = new Ctor(data.valueOf());
+        }
+        this.outgoing_data[slot] = {data, step: this.graph.step};
     }
 
     setPosition(x, y) {
@@ -548,8 +581,6 @@ export class GraphNode {
     }
 
     clearOutgoingData() {
-        for (let i = 0; i < this.outgoing_data.length; i++)
-            this.outgoing_data[i] = null;
     }
 
     save() {

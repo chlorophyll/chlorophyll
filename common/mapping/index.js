@@ -10,6 +10,8 @@ export const mappingTypes = {
     projection: {
         display_name: '2D Projection',
         coord_types: Projection.coord_types,
+        glsl_type: 'vec2',
+        glsl_swizzle: 'xy',
         defaultSettings() {
             return {
                 origin: [0, 0, 0],
@@ -21,6 +23,8 @@ export const mappingTypes = {
     transform: {
         display_name: '3D Transform',
         coord_types: Transform.coord_types,
+        glsl_type: 'vec3',
+        glsl_swizzle: 'xyz',
         defaultSettings() {
             return {
                 shape: 'cube',

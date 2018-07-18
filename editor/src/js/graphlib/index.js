@@ -168,7 +168,7 @@ function makeNodeVue(graph, node, data) {
                     const name = node.input_info[slot].name;
                     let text = settings.label !== null ? settings.label : name;
                     const val = this.defaults[name];
-                    if (val !== null) {
+                    if (val !== undefined && val !== null) {
                         text += ` (${val.toString()})`;
                     }
                     return text;
