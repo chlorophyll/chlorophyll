@@ -27,20 +27,6 @@ OutputColor.title = 'Output Color';
 
 node_types.push(['lowlevel/output/color', OutputColor]);
 
-class TimeInput extends GraphNode {
-    constructor(options) {
-        const outputs = [GraphNode.output('t', Units.Numeric)];
-        const inputs = [];
-        super(options, inputs, outputs);
-    }
-
-    onExecute() {
-        this.setOutputData(0, this.graph.getGlobalInputData('t'));
-    }
-};
-
-TimeInput.title = 'TimeInput';
-
 export default function register_pixel_stage_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };

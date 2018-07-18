@@ -16,7 +16,7 @@ export default {
     computed: {
         current: {
             get() {
-                return this.value !== null ? this.value.valueOf() : null;
+                return this.value !== undefined ? this.value.valueOf() : null;
             },
             set(val) {
                 if (isNaN(val))

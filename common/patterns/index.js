@@ -4,8 +4,6 @@ import GraphLib from '@/common/graphlib';
 import * as glsl from '@/common/glsl';
 
 import { getMappedPoints, convertPointCoords, mappingTypes } from '@/common/mapping';
-import { CRGB } from '@/common/nodes/fastled/color';
-
 
 export function restorePattern(patternsnap) {
     return clone(patternsnap);

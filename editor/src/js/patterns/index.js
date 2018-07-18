@@ -12,13 +12,11 @@ import { Graph } from 'chl/graphlib';
 import { restoreAllPatterns } from '@/common/patterns';
 import { PatternRunner } from 'chl/patterns/runner';
 import { mappingTypes } from '@/common/mapping';
-import { setColorSpace } from '@/common/nodes/fastled/color';
 import { currentModel } from 'chl/model';
 import { registerSaveField } from 'chl/savefile';
 
 import register_nodes from '@/common/nodes/registry';
 
-setColorSpace('Preview');
 register_nodes();
 
 store.registerModule('pattern', {
