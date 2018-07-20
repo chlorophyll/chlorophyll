@@ -2,41 +2,46 @@ import osc from 'osc';
 import UrlPattern from 'url-pattern';
 
 /*
- * Handles OSC message delivery, logging, error reporting
+ * Handles OSC message delivery etc.
  */
 export default class OSCBus {
   constructor() {
     this.listeners = {};
   }
 
-  addListener(url, args, callback) {
+  /*
+   * Any asynchronous setup necessary. To be called before any other methods.
+   */
+  async init() {
   }
 
-  removeListener(url) {
+  /*
+   * Register a handler to listen to an OSC address or pattern.
+   */
+  async listen(address, spec) {
   }
 
-  send(message) {
+  /*
+   * Send a message, routing to the appropriate destination(s).
+   */
+  async send(address, payload) {
   }
 
-  listen(address) {
-  }
-}
-
-/*
- * Represents a particular type of OSC message.
- *
- * Can be invoked to generate and send an OSC-formatted message object as a
- * regular function call.
- */
-export class Message {
-  constructor(address, args) {
-    this.urlPattern = new UrlPattern(base_address);
-    this.args = args;
+  /*
+   * Send a message to be executed in the future at the given time.
+   */
+  async schedule(address, payload, timestamp) {
   }
 
-  create(params) {
+  /*
+   * Remove all listeners matching the address or pattern.
+   */
+  stop(address) {
   }
 
-  createBundle(params_list) {
+  /*
+   * Teardown the bus, removing all registered listeners & inflight events.
+   */
+  destroy() {
   }
 }
