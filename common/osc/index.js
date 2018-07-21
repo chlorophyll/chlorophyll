@@ -1,10 +1,12 @@
 import OSCBus from './bus';
 
-export const bus = new OSCBus();
+export const playback = new OSCBus('playback');
+export const config = new OSCBus('config');
 
 // To be run on startup to start connections
 export default async function init() {
-  return await bus.init();
+  playback.init();
+  config.init();
 }
 
 /*
@@ -12,7 +14,7 @@ export default async function init() {
  *
  * // default behavior: type list -> array
  *
- * bus.listen('/url/pattern/*', ['t', 'i', 'r']).then(payload => {
+ * bus.listen('/url/pattern/*', ['t', 'i', 'r'], payload => {
  *   const [time, val, color] = payload;
  *   // Rejects the promise at the OSC level to be handled as appropriate
  *   if (val < 0)
@@ -25,13 +27,13 @@ export default async function init() {
  *
  * // or, with arugment names annotated:
  *
- * bus.listen('/foo', {color: 'r', data: 'b'}).then(payload => {
+ * bus.listen('/foo', {color: 'r', data: 'b'}, payload => {
  *   doSomeStuff(payload.color, payload.data);
  * });
  *
  *
  * // or, with typechecking omitted:
- * bus.listen('/foo').then(payload => {
+ * bus.listen('/foo', payload => {
  *   const someString = payload[0];
  *   assert(String.isString(someString));
  *
@@ -39,9 +41,9 @@ export default async function init() {
  * });
  *
  *
- * // Using promises means we can have control flow that blocks waiting for an event:
+ * // block control flow waiting for an event:
  *
- * const payload = await bus.listen('/start');
+ * const payload = bus.wait('/start');
  *
  *
  * bus.send('/some/full/url', payload);
