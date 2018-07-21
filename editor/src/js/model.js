@@ -335,7 +335,7 @@ export class Model extends ModelBase {
         }
         avg_dist /= this.num_pixels;
 
-        const pixelsize = THREE.Math.clamp(avg_dist / 3, 35, 65);
+        this.pixelsize = 0.75 * THREE.Math.clamp(avg_dist / 3, 35, 65);
 
         const texture = new THREE.DataTexture(
             new Float32Array(3*this.num_pixels),
@@ -347,7 +347,7 @@ export class Model extends ModelBase {
 
         this.material = new THREE.ShaderMaterial({
             uniforms: {
-                pointSize: { value: pixelsize },
+                pointSize: { value: this.pixelsize },
                 computedColors: { value: texture },
                 displayOnly: { value: false },
             },
@@ -426,6 +426,10 @@ export class Model extends ModelBase {
             return undefined;
 
         return this.pixelPositions(group);
+    }
+
+    setPixelRatio(devicePixelRatio) {
+        this.material.uniforms.pointSize.value = this.pixelsize * (devicePixelRatio||1);
     }
 }
 

@@ -185,8 +185,12 @@ export default {
         },
 
         render() {
-            if (currentModel)
+
+            this.renderer.setPixelRatio(window.devicePixelRatio);
+            if (currentModel) {
+                currentModel.setPixelRatio(window.devicePixelRatio);
                 this.renderer.render(currentModel.scene, this.camera);
+            }
         },
 
         relativePageCoords(pageX, pageY) {
