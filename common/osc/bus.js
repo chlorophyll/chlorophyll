@@ -1,6 +1,9 @@
+import assert from 'assert';
+import minimatch from 'minimatch';
 import osc from 'osc';
 
 import LocalPort from './transport_local';
+
 
 /*
  * Handles OSC message delivery etc.
@@ -10,10 +13,7 @@ export default class OSCBus {
     this.domain = domain;
     this.pubsubPattern = `${domain}:*`;
 
-    this.listeners = {
-      children: {},
-      listeners: {}
-    };
+    this.listeners = new Map();
 
     const tcpPort = getTCPPort();
     this.ports = {
@@ -41,31 +41,18 @@ export default class OSCBus {
   /*
    * Register a handler to listen to an OSC address or pattern.
    *
-   * If multiple listeners match an incoming message, they will be applied
-   * most-general first (so '/foo/*' is executed before '/foo/bar/3').
+   * If multiple handlers are installed, they will be run in insertion order.
    */
-  listen(address, spec, callback) {
-    const parts = address.split('/').map(addressPartToGlob);
+  listen(address, spec, cb) {
+    if (!this.listeners.has(address))
+      this.listeners.set(address, []);
 
     // Register the new callback.
-    let level = this.listeners;
-    parts.forEach((part, i) => {
-      if (i < parts.length - 1) {
-        let record = level.children[part];
-        if (!record) {
-          record = {
-            listeners: {}
-            children: {}
-          };
-          level.children[part] = record;
-        }
-        level = level.children[part];
-      } else {
-        // Reached the last node, record the listener
-        if (!level.listeners[part])
-          level.listeners[part] = [];
-        level.listeners[part].push({address, spec, callback});
-      }
+    const route = this.listeners.get(address);
+    route.push({
+      patterns: address.split('/').map(addressPartToRegExp),
+      spec: spec,
+      callback: cb
     });
   }
 
@@ -73,6 +60,12 @@ export default class OSCBus {
    * Send a message, routing to the appropriate destination(s).
    */
   send(address, payload) {
+    const parts = address.split('/');
+    this.listeners.values().forEach(listener => {
+      // TODO check each regex part
+      // Check spec
+      // call callback
+    });
   }
 
   /*
@@ -82,15 +75,21 @@ export default class OSCBus {
   }
 
   /*
-   * Remove all listeners matching the address or pattern.
+   * Remove all listeners for the given pattern.
    */
   stop(address) {
+    return this.listeners.delete(address);
   }
 
   /*
    * Teardown the bus, removing all registered listeners & inflight events.
    */
   destroy() {
+    this.listeners = [];
+    Object.values(this.ports).forEach(port => {
+      if (port.close)
+        port.close();
+    });
   }
 }
 
@@ -100,14 +99,7 @@ function getTCPPort() {
   return lastUsedPort;
 }
 
-function addressPartToGlob(part) {
-  // All OSC patterns match standard globs except for {foo,bar}
-  // which become +(foo|bar) in standard glob terms
-  if (!/{.*}/.test(part))
-    return part;
-
-  return part
-    .replace('{', '+(')
-    .replace('}', ')')
-    .replace(',', '|');
+function addressPartToRegExp(part) {
+  // TODO use minimatch toRegexp
+  
 }
