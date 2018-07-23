@@ -53,10 +53,10 @@ export function restoreMapping(mappingsnap) {
     return clone(mappingsnap);
 }
 
-export function getMappedPoints(model, mapping, coord_type) {
+export function getMappedPoints(model, mapping, group, coord_type) {
     const type_info = coordInfo(mapping.type, coord_type);
 
-    const pixels = model.getGroupPixels(mapping.group);
+    const pixels = model.getGroupPixels(group.id);
 
     let settings;
     if (type_info.precompute)

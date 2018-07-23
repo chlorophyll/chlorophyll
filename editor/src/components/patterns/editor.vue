@@ -1,6 +1,6 @@
 <template>
     <split-pane direction="horizontal"
-                :initial-split="[null, Const.sidebar_size]">
+                :initial-split="[null, Const.sidebar_size]" style="height: 100%">
         <div id="pattern-composer" slot="first">
             <div class="panel inline" id="top-controls">
                 <div class="control-row">
@@ -55,6 +55,7 @@
             <pattern-preview v-if="can_preview"
                              :pattern="cur_pattern"
                              :mapping="preview_mapping"
+                             :group="preview_group"
                              :runstate="runstate" />
         </div>
         <pattern-list slot="second" />

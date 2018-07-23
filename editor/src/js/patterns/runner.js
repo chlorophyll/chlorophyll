@@ -18,11 +18,11 @@ void main() {
 }`;
 
 export class PatternRunner {
-    constructor(model, pattern, mapping) {
+    constructor(model, pattern, group, mapping) {
         const { coord_type, mapping_type } = pattern;
         this.pattern = pattern;
         this.model = model;
-        this.mapped_points = getMappedPoints(model, mapping, coord_type);
+        this.mapped_points = getMappedPoints(model, mapping, group, coord_type);
 
         this.positions = convertPointCoords(mapping_type, coord_type, this.mapped_points);
         this.graph = GraphLib.graphById(pattern.stages.pixel);
@@ -50,6 +50,7 @@ export class PatternRunner {
             glsl.VaryingDecl('vec2', 'vUv'),
             glsl.UniformDecl('sampler2D', 'uCoords'),
             glsl.UniformDecl('sampler2D', 'tPrev'),
+            glsl.UniformDecl('sampler2D', 'uGroupMask'),
             glsl.UniformDecl('float', 'time'),
             ...compiled.uniforms.map(
                 ({type, name}) => glsl.UniformDecl(type, glsl.Ident(name))
@@ -61,16 +62,19 @@ export class PatternRunner {
         let coords = glsl.Variable(glsl_type, 'coords');
         let color = glsl.Variable('vec3', 'color');
         let outcolor = glsl.Variable('vec3', 'outcolor');
+        let groupmask = glsl.Variable('float', 'groupmask');
+
+        function extractFromTexture(target, ident, swizzle) {
+            return glsl.BinOp(target, '=', glsl.Dot(
+                glsl.FunctionCall('texture2D', [glsl.Ident(ident), glsl.Ident('vUv')]),
+                swizzle
+            ));
+        }
 
         const main = glsl.FunctionDecl('void', 'main', [], [
-            glsl.BinOp(coords, '=', glsl.Dot(
-                glsl.FunctionCall('texture2D', [glsl.Ident('uCoords'), glsl.Ident('vUv')]),
-                glsl_swizzle
-            )),
-            glsl.BinOp(color, '=', glsl.Dot(
-                glsl.FunctionCall('texture2D', [glsl.Ident('tPrev'), glsl.Ident('vUv')]),
-                'rgb'
-            )),
+            extractFromTexture(coords, 'uCoords', glsl_swizzle),
+            extractFromTexture(color, 'tPrev', 'rgb'),
+            extractFromTexture(groupmask, 'uGroupMask', 'r'),
             outcolor,
             glsl.FunctionCall(c.ident(), [
                 glsl.Ident('coords'),
@@ -78,9 +82,10 @@ export class PatternRunner {
                 glsl.Ident('color'),
                 glsl.Ident('outcolor')
             ]),
+            glsl.BinOp(glsl.Ident('outcolor'), '*=', glsl.Ident('groupmask')),
             glsl.BinOp(glsl.Ident('gl_FragColor'), '=', glsl.FunctionCall('vec4', [
                 glsl.Ident('outcolor'),
-                glsl.Const(1.0),
+                glsl.Ident('groupmask'),
             ])),
         ]);
 
@@ -91,14 +96,18 @@ export class PatternRunner {
         ]));
 
         const mappedPositions = new Float32Array(this.model.num_pixels * 3);
+        const groupMask = new Float32Array(this.model.num_pixels*3);
+        console.log(groupMask);
 
         for (const [idx, pos] of this.positions) {
             pos.toArray(mappedPositions, idx*3);
+            groupMask[idx*3] = 1;
         }
 
         let uniforms = {
             time: { value: 0 },
             uCoords: { value: null },
+            uGroupMask: { value: null },
         };
 
         for (let { name, getValue } of compiled.uniforms) {
@@ -121,6 +130,7 @@ export class PatternRunner {
         });
 
         this.fbo.setTextureUniform('uCoords', mappedPositions);
+        this.fbo.setTextureUniform('uGroupMask', groupMask);
 
     }
 

@@ -191,17 +191,13 @@ export const RunState = {
 };
 
 export let PatternPreview = Vue.component('pattern-preview', {
-    props: ['pattern', 'mapping', 'runstate'],
+    props: ['pattern', 'mapping', 'group', 'runstate'],
     data() {
         return {
             time: 0,
             request_id: null,
             runner: null,
         };
-    },
-
-    destroyed() {
-        this.runner.detach();
     },
 
     computed: {
@@ -213,7 +209,14 @@ export let PatternPreview = Vue.component('pattern-preview', {
         },
         running() {
             return this.runstate == RunState.Running;
-        }
+        },
+        runnerParams() {
+            return {
+                pattern: this.pattern,
+                group: this.group,
+                mapping: this.mapping,
+            };
+        },
     },
 
     watch: {
@@ -229,6 +232,10 @@ export let PatternPreview = Vue.component('pattern-preview', {
                     this.start();
                     break;
             }
+        },
+        runnerParams(newval) {
+            const {pattern, group, mapping} = newval;
+            this.createRunner();
         }
     },
 
@@ -236,15 +243,15 @@ export let PatternPreview = Vue.component('pattern-preview', {
 
     methods: {
         run() {
+            if (!this.runner) {
+                this.createRunner();
+            }
             this.step(this.time);
             this.time++;
             if (this.running)
                 this.request_id = window.requestAnimationFrame(() => this.run());
         },
         start() {
-            if (!this.runner) {
-                this.createRunner();
-            }
             currentModel.display_only = true;
             this.run();
         },
@@ -258,10 +265,10 @@ export let PatternPreview = Vue.component('pattern-preview', {
             this.pause();
             currentModel.display_only = false;
             this.time = 0;
-            this.runner = null;
         },
         createRunner() {
-            this.runner = new PatternRunner(currentModel, this.pattern, this.mapping);
+            const {pattern, group, mapping} = this;
+            this.runner = new PatternRunner(currentModel, pattern, group, mapping);
         }
     }
 });
