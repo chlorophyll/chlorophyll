@@ -1,6 +1,6 @@
 <template>
     <split-pane v-if="showToolbox"
-                direction="horizontal"
+                direction="vertical"
                 :initial-split="[Const.toolbar_size, null]">
         <toolbox slot="first">
             <slot />
@@ -160,8 +160,8 @@ export default {
         },
 
         updateSize() {
-            this.width = this.$el.clientWidth;
-            this.height = this.$el.clientHeight;
+            this.width = this.$refs.container.clientWidth;
+            this.height = this.$refs.container.clientHeight;
 
             // Call asynchronously to avoid blocking other UI re-rendering
             setImmediate(() => {

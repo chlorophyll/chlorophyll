@@ -1,20 +1,33 @@
 <template>
-  <collapsible-section class="mapping-browser" title="Mappings" initially-open="true">
-    <div class="flat-list">
+  <div class="panel mapping-browser">
+    <div class="panel-header">Mappings</div>
+    <div class="flat-list" @click="select(-1)">
         <ul>
             <li v-for="mapping in mapping_info"
-                :class="{ selected: selected == mapping.id }"
-                @click="select(mapping.id)"
+                :class="{ selected: selected_mid == mapping.id }"
+                @click.stop="select(mapping.id)"
             >{{ mapping.name }}</li>
         </ul>
     </div>
+    <div class="control-row">
+    <button @click="newMapping">New mapping</button>
+      <select v-model="create_mapping_type" class="control fill">
+        <option v-for="(dispname, type) in mapping_types"
+                v-bind:value="type">
+          {{ dispname }}
+        </option>
+      </select>
+    </div>
+
     <mapping-config v-if="selected_mapping" :mapping="selected_mapping" />
-  </collapsible-section>
+  </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import { mappingUtilsMixin } from 'chl/mapping';
-import store from 'chl/vue/store';
+import { UniqueNameMixin } from 'chl/util';
+import store, { newgid } from 'chl/vue/store';
 
 import MappingConfig from '@/components/mapping/mapping_config';
 import CollapsibleSection from '@/components/widgets/collapsible_section';
@@ -22,20 +35,38 @@ import CollapsibleSection from '@/components/widgets/collapsible_section';
 export default {
     name: 'mapping-browser',
     store,
-    mixins: [mappingUtilsMixin],
+    mixins: [mappingUtilsMixin, UniqueNameMixin('Mapping', 'mapping/mapping_list')],
     components: { MappingConfig, CollapsibleSection },
-    props: ['mappings', 'selected'],
+    data() {
+        return {
+            selected_mid: -1,
+            create_mapping_type: 'projection',
+        };
+    },
     computed: {
+        ...mapState({
+            mapping_list: (state) => state.mapping.mapping_list,
+        }),
         mapping_info() {
-            return this.mappings.map(mid => this.getMapping(mid));
+            return this.mapping_list.map(mid => this.getMapping(mid));
         },
         selected_mapping() {
-            return this.getMapping(this.selected);
+            return this.getMapping(this.selected_mid);
         },
     },
     methods: {
         select(id) {
-            this.$emit('update:selected', id);
+          this.selected_mid = id;
+        },
+        newMapping() {
+            const id = newgid();
+            const name = this.uniqueMappingName();
+            this.$store.commit('mapping/create_mapping', {
+                id,
+                name,
+                type: this.create_mapping_type,
+            });
+            this.selected_mid = id;
         }
     }
 };
@@ -43,6 +74,10 @@ export default {
 
 <style scoped>
 .mapping-browser .flat-list {
-    height: 5em;
+    height: 15em;
+}
+
+.panel-header {
+    font-size: larger;
 }
 </style>

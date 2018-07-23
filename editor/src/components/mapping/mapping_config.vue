@@ -18,12 +18,10 @@
         </option>
       </select>
     </div>
-    <div class="control-row">
-      <button @click="configure" class="control">
-        Configure Mapping
-      </button>
     </div>
-    </div>
+    <button @click="configure" class="control">
+      Configure Mapping
+    </button>
     </section>
     <dialog-box v-if="configuring"
                 title="Configure mapping"

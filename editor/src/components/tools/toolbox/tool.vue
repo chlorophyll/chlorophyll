@@ -1,6 +1,6 @@
 <template>
     <div class="control">
-        <button class="fill" :class="{ highlighted: enabled }" @click="selected">
+        <button class="smol" :class="{ highlighted: enabled }" @click="selected">
             {{ label }}
         </button>
         <slot />
@@ -63,13 +63,9 @@ export default {
 </script>
 
 <style scoped>
-button {
-  width: 100%;
-  margin: 0px;
-}
 
 .control {
-  width: 100%;
-  margin: 2px;
+    display: inline-block;
 }
+
 </style>

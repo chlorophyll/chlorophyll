@@ -14,16 +14,21 @@
                         stop
                     </button>
                     <label for="preview-map-list">Preview map</label>
-                    <span class="inputcombo">
-                        <select class="control" id="preview-map-list"
-                                                v-model="preview_map_id">
-                            <template v-for="mapping in mappings">
-                                <option :value="mapping.id">{{ mapping.name }}</option>
-                            </template>
-                        </select>
-                    </span>
+                    <select class="control" id="preview-map-list"
+                                            v-model="preview_map_id">
+                        <template v-for="mapping in mappings">
+                            <option :value="mapping.id">{{ mapping.name }}</option>
+                        </template>
+                    </select>
+                    <label for="preview-group-list">Preview group</label>
+                    <select class="control" id="preview-group-list"
+                                            v-model="preview_group_id">
+                        <template v-for="group in group_list">
+                            <option :value="group.id">{{ group.name }}</option>
+                        </template>
+                    </select>
                     <button @click="autolayout">Autolayout</button>
-                    <button @click="resetZoom">Reset zoom</button>
+                    <button @click="resetZoom">reset</button>
                     <button @click="zoomToFit">Zoom to fit</button>
                 </div>
             </div>
@@ -115,6 +120,9 @@ export default {
         ...mapGetters('mapping', [
             'mapping_list',
         ]),
+        ...mapGetters('pixels', [
+            'group_list',
+        ]),
         mappings() {
             if (this.cur_pattern === null)
                 return [];
@@ -183,6 +191,12 @@ export default {
     width: 100%;
     position: relative;
     user-select: none;
+}
+
+label {
+    display: inline-block;
+    vertical-align: middle;
+    padding-top: 5px;
 }
 
 #top-controls {

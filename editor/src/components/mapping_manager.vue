@@ -24,32 +24,7 @@
 </template>
 
 <script>
-/*
-        <split-pane direction="vertical" :initial-split="[200,null]">
-            <div slot="first" class="browser-container">
-                <mapping-browser class="browser"
-                    :mappings="mapping_list"
-                    :groups="group_list"
-                    :selected.sync="selected_id">
-                </mapping-browser>
-                <div class="control-row browser-button-container">
-                    <button class="fill"
-                            :disabled="!can_create_group"
-                            @click="newGroupFromSelection()">
-                        New group
-                    </button>
-                    <button class="fill">
-                        New mapping
-                    </button>
-                </div>
-            </div>
-            <mapping-config v-if="selected_mapping"
-                slot="second"
-                :mapping="selected_mapping">
-            </mapping-config>
-        </split-pane>
-    </div>
-    */
+
 import { mapState } from 'vuex';
 import store, { newgid } from 'chl/vue/store';
 import { mappingUtilsMixin } from 'chl/mapping';
