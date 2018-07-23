@@ -107,7 +107,8 @@ export default {
             return running ? 'pause' : 'play_arrow';
         },
         can_preview() {
-            return this.preview_mapping !== null && this.cur_pattern !== null;
+            const conditions = [this.preview_mapping, this.cur_pattern, this.preview_group];
+            return conditions.every((c) => c !== null);
         },
         cur_graph() {
             if (this.cur_pattern === null)
@@ -133,17 +134,20 @@ export default {
         },
         preview_mapping() {
             return this.preview_map_id !== null ? this.getMapping(this.preview_map_id) : null;
+        },
+        preview_group() {
+            return this.preview_group_id !== null ? this.getGroup(this.preview_group_id) : null;
         }
     },
     data() {
         return {
             time: 0,
             preview_map_id: null,
+            preview_group_id: this.$store.state.pixels.group_list[0],
             runstate: RunState.Stopped,
             node_list: getNodeList(),
         };
     },
-
     watch: {
         mappings(newval) {
             if (newval.length == 1)

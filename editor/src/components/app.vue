@@ -1,5 +1,5 @@
 <template>
-    <split-pane direction="vertical" :initial-split="[null, Const.dock_size]">
+    <split-pane direction="vertical" :initial-split="[null, Const.dock_size]" class="root">
         <split-pane slot="first"
                     direction="horizontal"
                     :initial-split="[null, Const.sidebar_size]">
@@ -25,7 +25,7 @@
             </split-pane>
             <mapping-browser slot="second" />
         </split-pane>
-        <tab-set slot="second">
+        <tab-set slot="second" class="dock">
             <tab title="Pattern Editor"><pattern-editor /></tab>
             <tab title="Sequencer"><timeline-sequencer /></tab>
         </tab-set>
@@ -73,3 +73,13 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.root {
+    padding: 2px;
+}
+
+.dock {
+    overflow: hidden;
+}
+</style>
