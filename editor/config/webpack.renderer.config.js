@@ -108,6 +108,10 @@ let rendererConfig = {
       {
         test: /three\/examples\/js/,
         use: 'imports-loader?THREE=three'
+      },
+      {
+        test: /\.(frag|vert|glsl)$/,
+        use: 'raw-loader',
       }
     ]
   },
