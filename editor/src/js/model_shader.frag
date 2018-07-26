@@ -1,3 +1,6 @@
+#define CIRCLE_SIZE 0.25
+#define OUTLINE_WIDTH 0.015
+#define OUTLINE_SIZE (CIRCLE_SIZE - OUTLINE_WIDTH)
 uniform sampler2D computedColors;
 varying float vOffset;
 
@@ -16,7 +19,9 @@ float circle(vec2 p, float radius) {
 void main() {
   vec3 outcolor;
   vec2 uv =  vec3( gl_PointCoord.x, 1.0 - gl_PointCoord.y, 1 ).xy;
-  float circ = circle(vec2(0.5)-uv, 0.25);
+  float outline = circle(vec2(0.5)-uv, CIRCLE_SIZE);
+  float circ = circle(vec2(0.5)-uv, OUTLINE_SIZE);
+  vec3 outlineColor = vec3(0.);
   if (!displayOnly) {
     if (vOverlayColor == vec3(0.)) {
       discard;
@@ -25,7 +30,8 @@ void main() {
   } else {
     outcolor = texture2D(computedColors, vec2(vOffset, 0.5)).rgb;
   }
-  if (circ == 0.)
+  outcolor = mix(vec3(outlineColor), outcolor, circ);
+  if (outline == 0.)
     discard;
-  gl_FragColor = vec4(outcolor, circ);
+  gl_FragColor = vec4(outcolor, outline);
 }
