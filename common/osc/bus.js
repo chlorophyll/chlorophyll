@@ -3,6 +3,7 @@ import {Minimatch} from 'minimatch';
 import osc from 'osc';
 
 import LocalPort from './transport_local';
+import MessageBatch from './batch.js';
 import ot from './types';
 
 
@@ -76,13 +77,24 @@ export default class OSCBus {
   /*
    * Send a message, routing to the appropriate destination(s).
    */
-  send(address, payload) {
+  send(address, args, timeTag) {
+    // Only use the local port for now
+    const port = this.ports.local;
+    const message = {address, args};
+
+    port.send({
+      timeTag: timeTag || osc.timeTag(),
+      packets: [message]
+    });
   }
 
-  /*
-   * Send a message to be executed in the future at the given time.
-   */
-  schedule(address, payload, timestamp) {
+  batch(timeTag) {
+    const port = this.ports.local;
+
+    return new MessageBatch(packets => port.send({
+      timeTag: timeTag || osc.timeTag()
+      packets: packets
+    }));
   }
 
   /*
