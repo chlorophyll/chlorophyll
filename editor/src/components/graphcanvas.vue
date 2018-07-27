@@ -33,16 +33,13 @@
 import * as d3 from 'd3';
 import GraphNode from '@/components/graphnode';
 import GraphEdge from '@/components/graphedge';
-import GraphAutoLayout from 'chl/graphlib/layout';
+import autolayout from 'chl/graphlib/layout';
 import NodeConfig from '@/components/graph/node_config';
 
 import Util from 'chl/util';
 import { GraphConstants } from 'chl/graphlib';
 
 let zoom = d3.zoom();
-
-
-const autolayout = new GraphAutoLayout();
 
 export default {
     name: 'graph-canvas',
@@ -333,7 +330,7 @@ export default {
         },
 
         autolayout() {
-            autolayout.layout(this.graph, (kgraph) => {
+            autolayout(this.graph).then((kgraph) => {
                 let bounds = this.computeBounds(kgraph.children);
 
                 this.zoomToBounds(bounds, GraphConstants.ANIM_TIME).then(() => {
