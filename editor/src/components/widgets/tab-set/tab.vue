@@ -42,6 +42,7 @@ export default {
     flex: 1;
     display: flex;
     align-items: stretch;
+    position: relative;
 
     & > div {
         flex: 1;
