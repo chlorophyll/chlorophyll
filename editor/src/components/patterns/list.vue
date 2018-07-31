@@ -19,7 +19,6 @@
       </div>
       <div slot="second" v-if="cur_pattern !== null">
         <section>
-          <h1>{{ cur_name }} Settings</h1>
           <div class="controls">
             <div class="control-row">
               <label>Name</label><input type="text" v-model.lazy.trim="cur_name" />
@@ -35,6 +34,7 @@
               </select>
             </div>
           </div>
+                <button @click="deleteCurrent">Delete</button>
         </section>
       </div>
     </split-pane>
@@ -88,6 +88,9 @@ export default {
         },
         copyPattern() {
             copyPattern(this.cur_pattern, { set_current: true });
+        },
+        deleteCurrent() {
+            this.$store.commit('pattern/delete', this.cur_pattern);
         },
         ...mapMutations('pattern', [
             'set_current',
