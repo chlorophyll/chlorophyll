@@ -124,12 +124,12 @@ export class GraphBase {
             throw new Error('unknown node type' + path);
         }
 
-        const { pos, ref } = options;
+        const { pos, ref, properties } = options;
 
         const graph = this;
         const title = options.title || Ctor.title || path;
 
-        let node = new Ctor({graph, id, title, pos, path, vm_factory});
+        let node = new Ctor({graph, id, title, pos, path, properties, vm_factory});
 
         this.nodes.set(node.id, node);
 
@@ -493,9 +493,9 @@ export class GraphNode {
         };
     }
 
-    constructor({graph, id, title, pos, path, vm_factory},
+    constructor({graph, id, title, pos, path, properties = {}, vm_factory},
                 inputs, outputs,
-                {config = {}, properties = {}} = {}) {
+                {config = {}} = {}) {
 
         this.graph = graph;
         this.id = id;

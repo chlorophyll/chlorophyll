@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Util from 'chl/util';
+import {cloneDeep} from 'lodash';
 
 import { GraphLib, GraphBase } from '@/common/graphlib';
 import { registerSaveField } from 'chl/savefile';
@@ -87,6 +88,7 @@ export class Graph extends GraphBase {
             let cnode = child.addNode(node.path, {
                 pos: [...node.vm.pos],
                 title: node.vm.title,
+                properties: cloneDeep(node.vm.defaults),
             });
             nodemap.set(node.id, cnode.id);
         });

@@ -28,7 +28,9 @@ function make_oscillator(name, waveform) {
                 visualization: 'oscillator-plotter',
             };
 
-            super(options, inputs, outputs, { properties, config });
+            options.properties = { ...properties, ...options.properties };
+
+            super(options, inputs, outputs, { config });
         }
 
         waveform(frequency, amplitude, time) {
