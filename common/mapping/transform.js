@@ -95,8 +95,8 @@ export const coord_types = {
         mapPoint: transformPoint,
         convertCoords(cart) {
             let r = cart.length();
-            let theta = (r == 0) ? 0 : Math.acos(cart.z / r);
-            let phi = (r == 0) ? 0 : Math.atan2(cart.y, cart.x);
+            let phi = (r == 0) ? 0 : Math.acos(cart.z / r);
+            let theta = (r == 0) ? 0 : Math.atan2(cart.y, cart.x);
             return new Vector3(r, theta, phi);
         }
     },
