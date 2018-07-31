@@ -285,7 +285,7 @@ export class Model extends ModelBase {
         }
         avg_dist /= this.num_pixels;
 
-        this.pixelsize = 0.75 * THREE.Math.clamp(avg_dist / 3, 35, 65);
+        this.pixelsize = 0.5 * THREE.Math.clamp(avg_dist / 3, 35, 65);
 
         const texture = new THREE.DataTexture(
             new Float32Array(3*this.num_pixels),
