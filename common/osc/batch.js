@@ -1,3 +1,4 @@
+import assert from 'assert';
 /*
  * Helper class for batching OSC messages. For example:
  *
@@ -8,6 +9,8 @@
  */
 export default class MessageBatch {
   constructor(sendCallback) {
+    assert.ok(sendCallback);
+
     this.packets = [];
     this.callback = sendCallback;
   }
@@ -24,6 +27,7 @@ export default class MessageBatch {
   send() {
     if (this.packets.length === 0)
       throw new Error('Trying to send empty OSC message batch!');
+
 
     return this.callback(this.packets);
   }

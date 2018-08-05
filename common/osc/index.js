@@ -2,6 +2,7 @@ import OSCBus from './bus';
 
 export const playback = new OSCBus('playback');
 export const config = new OSCBus('config');
+export const input = new OSCBus('input');
 
 // To be run on startup to start connections
 export default async function init() {
@@ -27,8 +28,8 @@ export default async function init() {
  *
  * // or, with arugment names annotated:
  *
- * bus.listen('/foo', {color: 'r', data: 'b'}, payload => {
- *   doSomeStuff(payload.color, payload.data);
+ * bus.listen('/foo', {color: 'r', data: 'b'}, args => {
+ *   doSomeStuff(args.color, args.data);
  * });
  *
  *
@@ -46,17 +47,11 @@ export default async function init() {
  * const payload = bus.wait('/start');
  *
  *
- * bus.send('/some/full/url', payload);
- * bus.sendMulti([
- *   {
- *     address: '/some/url',
- *     payload: [1]
- *   }, {
- *     address: '/other/url',
- *     payload: [1,'abc']
- *   }
- * ]);
+ * bus.send('/some/full/url', args);
+ * bus.batch(optionalOscTimetag)
+ *   .message('/some/url', [ot.int32(1)])
+ *   .message('/other/url', [ot.int32(1), ot.string('abc')])
+ *   .send();
  *
- *
- * bus.schedule('/foo', payload, Date.now() + 5000);
+ * bus.send('/foo', args, Date.now() + 5000);
  */
