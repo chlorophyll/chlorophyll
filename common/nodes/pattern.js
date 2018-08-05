@@ -89,7 +89,7 @@ function make_unary_node(type, sym, {a, result}) {
 function make_function_node(type, title, fname, args, result) {
     let FuncNode = class extends GraphNode {
         constructor(options) {
-            const inputs = args.map(([name, argtype]) => GraphNode(name, argtype));
+            const inputs = args.map(([name, argtype]) => GraphNode.input(name, argtype));
             const outputs = [GraphNode.output(title, result)];
             super(options, inputs, outputs);
         }
@@ -165,7 +165,13 @@ make_binop_node('math', {symbol: '/', named: 'div'}, {
     result: Units.Numeric,
 });
 
+make_function_node('math', 'fract(a)', 'fract',
+    [['a', Units.Numeric]],
+    Units.Numeric
+);
+
 make_function_node('math', 'a % b', 'mod',
+
     [['a', Units.Numeric], ['b', Units.Numeric]],
     Units.Numeric,
 );
@@ -176,13 +182,13 @@ make_function_node('math', '|a|', 'abs',
 );
 
 make_function_node('math', 'sin(a)', 'sin',
-    [['a', 'float']],
-    'float',
+    [['a', Units.Angle]],
+    Units.Distance,
 );
 
 make_function_node('math', 'cos(a)', 'cos',
-    [['a', 'float']],
-    'float',
+    [['a', Units.Angle]],
+    Units.Distance,
 );
 
 class Rotate2D extends GraphNode {

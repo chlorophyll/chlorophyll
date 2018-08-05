@@ -39,9 +39,9 @@ node_types.push(['CRGB/fromHue', fromHue]);
 class fromHSV extends GraphNode {
     constructor(options) {
         let inputs = [
-            GraphNode.input('hue', Units.Numeric),
-            GraphNode.input('sat', Units.Numeric),
-            GraphNode.input('val', Units.Numeric),
+            GraphNode.input('hue', Units.Percentage),
+            GraphNode.input('sat', Units.Percentage),
+            GraphNode.input('val', Units.Percentage),
         ];
         let outputs = [GraphNode.output('CRGB', 'CRGB')];
 
