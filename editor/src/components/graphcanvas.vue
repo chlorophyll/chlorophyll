@@ -9,14 +9,15 @@
         </pattern>
         <rect width="100%" height="100%" style="fill: none; pointer-events: all;" v-once />
         <g ref="maingroup" v-if="graph">
-        <rect width="2000%" height="2000%" id="grid" v-once transform="translate(-1000, -1000)"/>
+        <rect width="2000%" height="2000%" id="grid" v-once transform="translate(-1000, -1000)" @click="clearHighlightNode" />
         <template v-for="edge in edges">
-            <graph-edge :graph="graph" :edge="edge" />
+            <graph-edge :graph="graph" :edge="edge" :highlighted="edge_highlighted(edge)"/>
         </template>
         <path class="connecting-edge" v-if="cur_src" :d="cur_src.drag_path" stroke="#aaa" fill="transparent" />
         <template v-for="node in nodes">
             <graph-node :node="node"
                         :cur-src="cur_src"
+                        @node-clicked="highlightNode"
                         @dst-hover-start="onDstHover"
                         @dst-hover-end="cur_dst = null"
                         @dst-selected="onDstSelected"
@@ -55,6 +56,7 @@ export default {
             nodes_configuring: [],
             cur_dst: null,
             cur_src: null,
+            cur_highlight: null,
         };
     },
 
@@ -84,6 +86,11 @@ export default {
         },
         edges() {
             return Object.values(this.edgeset);
+        },
+        edge_highlighted() {
+            return (
+                (e) => e.src_id == this.cur_highlight || e.dst_id == this.cur_highlight
+            );
         },
 
         cur_src_pos() {
@@ -361,7 +368,14 @@ export default {
 
         endConfigure(node) {
             this.nodes_configuring.splice(this.nodes_configuring.indexOf(node.id), 1);
-        }
+        },
+
+        highlightNode(node) {
+            this.cur_highlight = node.id;
+        },
+        clearHighlightNode() {
+            this.cur_highlight = null;
+        },
     }
 };
 </script>

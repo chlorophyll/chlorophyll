@@ -1,7 +1,7 @@
 <template>
     <g class="node"
        :class="{connecting: curSrc !== null}"
-       :transform="position" @dblclick="onDblClick">
+       :transform="position" @click="onClick" @dblclick="onDblClick">
         <g>
         <!-- main box -->
         <rect x="0"
@@ -196,7 +196,10 @@ export default {
         },
         onDblClick() {
             this.$emit('node-dblclicked', this.node);
-        }
+        },
+        onClick() {
+            this.$emit('node-clicked', this.node);
+        },
     }
 };
 </script>

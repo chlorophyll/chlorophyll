@@ -1,5 +1,12 @@
 <template>
-    <path stroke="#aaa" fill="transparent" :d="path_string" />
+    <g>
+    <path stroke="#999" fill="transparent" :d="path_string" :class="edge_class" :id="edge_id" />
+    <circle v-if="highlighted" fill="#eee" r="3" cx="" cy="">
+        <animateMotion dur="1.5s" repeatCount="indefinite">
+          <mpath :href="'#'+edge_id"/>
+        </animateMotion>
+    </circle>
+    </g>
 </template>
 
 <script>
@@ -7,8 +14,14 @@ import { GraphConstants } from 'chl/graphlib';
 import Util from 'chl/util';
 
 export default {
-    props: ['graph', 'edge'],
+    props: ['graph', 'edge', 'highlighted'],
     computed: {
+        edge_id() {
+            return `edge${this.edge.id}`;
+        },
+        edge_class() {
+            return { highlighted: this.highlighted };
+        },
         src_node() {
             return this.graph.getNodeById(this.edge.src_id).vm;
         },
@@ -133,3 +146,10 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+.highlighted {
+    stroke: #eee;
+    stroke-width: 1.5;
+}
+</style>
