@@ -109,6 +109,35 @@ class lerpColor extends GraphNode {
 lerpColor.title = 'lerpColor';
 node_types.push(['CRGB/lerpColor', lerpColor]);
 
+class CRGB extends GraphNode {
+    constructor(options) {
+        let inputs = [
+            GraphNode.input('red', Units.Percentage),
+            GraphNode.input('green', Units.Percentage),
+            GraphNode.input('blue', Units.Percentage),
+        ];
+
+        let outputs = [
+            GraphNode.output('output', 'CRGB')
+        ];
+        const config = {
+            visualization: 'color-preview',
+        };
+        super(options, inputs, outputs, { config });
+    }
+
+    compile(c) {
+        const r = c.getInput(this, 0);
+        const g = c.getInput(this, 1);
+        const b = c.getInput(this, 2);
+
+        c.setOutput(this, 0, glsl.FunctionCall('vec3', [r, g, b]));
+    }
+};
+
+CRGB.title = 'CRGB';
+node_types.push(['CRGB/CRGB', CRGB]);
+
 export default function register_crgb_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };

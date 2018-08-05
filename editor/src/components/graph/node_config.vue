@@ -17,6 +17,7 @@
 import Units from '@/common/units';
 import DialogBox from '@/components/widgets/dialog_box';
 import OscillatorPlotter from '@/components/graph/oscillator_plotter';
+import ColorPreview from '@/components/graph/color_preview';
 
 import GraphTypeUnit from '@/components/graph/types/unit';
 import GraphTypeRange from '@/components/graph/types/range';
@@ -50,6 +51,7 @@ export default {
     components: {
         DialogBox,
         OscillatorPlotter,
+        ColorPreview,
         GraphTypeFrequency,
         GraphTypeNumeric,
         GraphTypeRange,
