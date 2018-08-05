@@ -185,6 +185,7 @@ export default {
 
         onSrcSelected(node, slot) {
             this.cur_src = { node, slot, drag_path: ''};
+            this.cur_highlight = null;
 
             this.$el.addEventListener('mousemove', this.drag);
             this.$el.addEventListener('mouseup', this.endDrag);
@@ -209,6 +210,7 @@ export default {
                 let dst = this.graph.getNodeById(this.cur_dst.node.id);
                 this.graph.connect(src, this.cur_src.slot, dst, this.cur_dst.slot);
             }
+            this.cur_highlight = null;
             this.cur_src = null;
             this.$el.removeEventListener('mousemove', this.drag);
             this.$el.removeEventListener('mouseup', this.endDrag);
