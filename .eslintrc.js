@@ -45,6 +45,11 @@ module.exports = {
     'no-tabs': 1,
     'no-mixed-spaces-and-tabs': 1,
     'object-curly-spacing': 0,
+    'key-spacing': [1, {
+      beforeColon: false,
+      afterColon: true,
+      mode: 'minimum'
+    }],
     // 'curly': [1, 'multi', 'consistent'],
     'curly': 0,
     'brace-style': [1, '1tbs', {allowSingleLine: true}],
