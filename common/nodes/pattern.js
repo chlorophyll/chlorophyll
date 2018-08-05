@@ -221,6 +221,26 @@ class Rotate2D extends GraphNode {
 Rotate2D.title = '2D rotation';
 node_types.push(['2d/rotate', Rotate2D]);
 
+class ConstNode extends GraphNode {
+    constructor(options) {
+        const inp = GraphNode.input('constant', Units.Numeric);
+        inp.settings.read_only = true;
+        const inputs = [inp];
+        const outputs = [
+            GraphNode.output('', Units.Numeric),
+        ];
+        options.properties = {constant: 0, ...options.properties};
+        super(options, inputs, outputs);
+    }
+
+    compile(c) {
+        c.setOutput(this, 0, c.getInput(this, 0));
+    }
+};
+
+ConstNode.title = 'Constant';
+node_types.push(['math/constant', ConstNode]);
+
 export default function register_pattern_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };

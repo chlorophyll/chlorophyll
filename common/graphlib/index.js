@@ -480,7 +480,7 @@ export class GraphNode {
             name,
             type,
             state: {num_edges: 0},
-            settings: {label: null, autoconvert: true}
+            settings: {label: null, autoconvert: true, read_only: false}
         };
     }
 

@@ -53,6 +53,7 @@
         <template v-for="(input, slot) in node.inputs">
             <g :class="[fill_class.inputs[slot]]" class="input-target"
                @mouseenter="mouseEnter" @mouseleave="mouseLeave"
+               v-if='!input.settings.read_only'
             >
             <circle :cx="node.connectionX(slot, true)"
                     :cy="node.connectionY(slot, true)"
