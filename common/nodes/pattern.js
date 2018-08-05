@@ -1,6 +1,7 @@
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import * as glsl from '@/common/glsl';
 import Units from '@/common/units';
+import Range from '@/common/util/range';
 
 let node_types = [];
 
@@ -221,6 +222,31 @@ class Rotate2D extends GraphNode {
 Rotate2D.title = '2D rotation';
 node_types.push(['2d/rotate', Rotate2D]);
 
+class RangeNode extends GraphNode {
+    constructor(options) {
+        let inputs = [
+            GraphNode.input('min', Units.Numeric),
+            GraphNode.input('max', Units.Numeric),
+        ];
+
+        let outputs = [
+            GraphNode.output('range', 'Range'),
+        ];
+
+        super(options, inputs, outputs);
+    }
+
+    compile(c) {
+        const min = c.getInput(this, 0);
+        const max = c.getInput(this, 1);
+
+        c.setOutput(this, 0, glsl.FunctionCall('vec2', [min, max]));
+    }
+}
+
+RangeNode.title = 'Range';
+node_types.push(['util/range', RangeNode]);
+
 class ConstNode extends GraphNode {
     constructor(options) {
         const inp = GraphNode.input('constant', Units.Numeric);
@@ -239,7 +265,35 @@ class ConstNode extends GraphNode {
 };
 
 ConstNode.title = 'Constant';
-node_types.push(['math/constant', ConstNode]);
+node_types.push(['util/constant', ConstNode]);
+
+class ClampNode extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('value', Units.Numeric),
+            GraphNode.input('range', 'Range'),
+        ];
+
+        options.properties = {
+            range: new Range(0, 1, 0, 1),
+            ...options.properties,
+        };
+
+        const outputs = [GraphNode.output('clamped', Units.Numeric)];
+
+        super(options, inputs, outputs);
+    }
+
+    compile(c) {
+        const val = c.getInput(this, 0);
+        const range = c.getInput(this, 1);
+        const low = glsl.Dot(range, 'x');
+        const high = glsl.Dot(range, 'y');
+        c.setOutput(this, 0, glsl.FunctionCall('clamp', [val, low, high]));
+    }
+}
+ClampNode.title = 'Clamp';
+node_types.push(['util/clamp', ClampNode]);
 
 export default function register_pattern_nodes() {
     GraphLib.registerNodeTypes(node_types);

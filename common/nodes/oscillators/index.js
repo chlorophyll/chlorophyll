@@ -29,30 +29,6 @@ class FrequencyNode extends GraphNode {
 FrequencyNode.title = 'Frequency';
 node_types.push(['oscillators/util/frequency', FrequencyNode]);
 
-class RangeNode extends GraphNode {
-    constructor(options) {
-        let inputs = [
-            GraphNode.input('min', Units.Numeric),
-            GraphNode.input('max', Units.Numeric),
-        ];
-
-        let output = [
-            GraphNode.output('range', 'Range'),
-        ];
-
-        super(options, inputs, outputs);
-    }
-
-    compile(c) {
-        const min = c.getInput(this, 0);
-        const max = c.getInput(this, 1);
-
-        c.setOutput(this, 0, glsl.FunctionCall('vec2', [min, max]));
-    }
-}
-
-RangeNode.title = 'Range';
-node_types.push(['oscillators/util/range', RangeNode]);
 
 function make_oscillator(name, waveform) {
     let Oscillator = class extends GraphNode {
