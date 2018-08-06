@@ -1,47 +1,60 @@
 import assert from 'assert';
 import {Minimatch} from 'minimatch';
 import osc from 'osc';
+import _ from 'lodash';
 
 import LocalPort from './transport_local';
 import MessageBatch from './batch.js';
 import ot from './types';
-
 
 /*
  * Handles OSC message delivery etc.
  */
 export default class OSCBus {
   constructor(domain) {
+    assert.ok(_.isString(domain));
+
     this.domain = domain;
     this.pubsubPattern = `${domain}:*`;
 
     this.listeners = new Map();
+    this.nReady = 0;
 
-    const tcpPort = getTCPPort();
+    const udpPort = getOpenPort();
     this.ports = {
       local: new LocalPort({metadata: true}),
 
-      tcp: new osc.TCPSocketPort({
-        localAddress: "0.0.0.0",
-        localPort: tcpPort,
-        metadata: true
+      udp: new osc.UDPPort({
+        localAddress: '127.0.0.1',
+        localPort: udpPort,
+        metadata: true,
       })
     };
-    console.log(`OSC TCP listener initialized on localhost:${tcpPort}`);
 
-    Object.entries(this.ports).forEach([name, port] => {
+    Object.entries(this.ports).forEach(([name, port]) => {
+      port.on('ready', () => {
+        console.log(`OSC Bus (${this.domain}): ${name} port opened.`);
+        this.nReady++;
+      });
       port.on('message', this._recv);
+      port.on('error', error => {
+        console.error(`OSC Bus (${this.domain}) ERROR:`, error);
+      });
 
       if (port.open)
         port.open();
     });
   }
 
+  get ready() {
+    return (this.nReady === this.listeners.size);
+  }
+
   /*
    * Receive a packet, route it, call callbacks
    */
   _recv(message, timeTag, info) {
-    console.log(`Received OSC message from ${info.source} at ${timeTag}`, message);
+    console.log(`OSC Bus: Received OSC message from ${info.source} at ${timeTag}`, message);
 
     const parts = message.address.split('/');
     this.listeners.values().forEach(listener => {
@@ -51,8 +64,9 @@ export default class OSCBus {
       if (!listener.patterns.every((pattern, i) => pattern.test(parts[i])))
         return;
 
+      console.log(`OSC Bus: routing message to ${listener.address}`);
       const args = parseArguments(listener.spec, message.args);
-      listener.callback(args, timeTag, message.address)
+      listener.callback(args, timeTag, message.address);
     });
   }
 
@@ -62,15 +76,25 @@ export default class OSCBus {
    * If multiple handlers are installed, they will be run in insertion order.
    */
   listen(address, spec, cb) {
+    assert.ok(_.isString(address));
+    assert.ok(cb);
+
+    if (address[0] !== '/')
+      throw new Error('OSC address pattern must start with a / character');
+
     if (!this.listeners.has(address))
       this.listeners.set(address, []);
+
+    let parts = address.split('/');
+    parts.shift(); // Remove leading empty path
 
     // Register the new callback.
     const route = this.listeners.get(address);
     route.push({
-      patterns: address.split('/').map(addressPartToRegExp),
+      patterns: parts.map(addressPartToRegExp),
+      address: address,
       spec: toCanonicalSpec(spec),
-      callback: cb
+      callback: cb,
     });
   }
 
@@ -78,13 +102,15 @@ export default class OSCBus {
    * Send a message, routing to the appropriate destination(s).
    */
   send(address, args, timeTag) {
+    assert.ok(_.isString(address));
+
     // Only use the local port for now
     const port = this.ports.local;
     const message = {address, args};
 
     port.send({
       timeTag: timeTag || osc.timeTag(),
-      packets: [message]
+      packets: [message],
     });
   }
 
@@ -92,8 +118,8 @@ export default class OSCBus {
     const port = this.ports.local;
 
     return new MessageBatch(packets => port.send({
-      timeTag: timeTag || osc.timeTag()
-      packets: packets
+      timeTag: timeTag || osc.timeTag(),
+      packets: packets,
     }));
   }
 
@@ -117,8 +143,8 @@ export default class OSCBus {
 }
 
 let lastUsedPort = 57120;
-function getTCPPort() {
-  lastUsedPort++
+function getOpenPort() {
+  lastUsedPort++;
   return lastUsedPort;
 }
 
@@ -161,13 +187,13 @@ function toValues(args) {
   });
 }
 
-function parseSingleArg(spec, arg) => {
+function parseSingleArg(spec, arg) {
   const expectArr = Array.isArray(spec.type);
   const isArr = Array.isArray(arg);
   if (expectArr !== isArr) {
     return null;
   }
-  
+
   // Recurse for array arguments
   if (isArr)
     return arg.map((subArg, i) => parseSingleArg({ type: spec.type[i] }, arg));

@@ -4,12 +4,6 @@ export const playback = new OSCBus('playback');
 export const config = new OSCBus('config');
 export const input = new OSCBus('input');
 
-// To be run on startup to start connections
-export default async function init() {
-  playback.init();
-  config.init();
-}
-
 /*
  * ## Interface usage examples
  *
