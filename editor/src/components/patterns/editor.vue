@@ -70,7 +70,7 @@ import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graphcanvas';
 import register_nodes from '@/common/nodes/registry';
-import { RunState, PatternPreview } from 'chl/patterns';
+import { RunState, PatternPreview } from 'chl/patterns/preview';
 import GraphLib from '@/common/graphlib';
 import store from 'chl/vue/store';
 
