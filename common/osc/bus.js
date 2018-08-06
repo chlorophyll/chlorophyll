@@ -1,7 +1,7 @@
+import _ from 'lodash';
 import assert from 'assert';
 import {Minimatch} from 'minimatch';
 import osc from 'osc';
-import _ from 'lodash';
 
 import LocalPort from './transport_local';
 import MessageBatch from './batch.js';
@@ -21,11 +21,12 @@ export default class OSCBus {
     this.nReady = 0;
 
     const udpPort = getOpenPort();
+    console.log(`OSC Bus (${this.domain}): using localhost:${udpPort}`);
     this.ports = {
       local: new LocalPort({metadata: true}),
 
       udp: new osc.UDPPort({
-        localAddress: '127.0.0.1',
+        localAddress: '0.0.0.0',
         localPort: udpPort,
         metadata: true,
       })
@@ -36,13 +37,14 @@ export default class OSCBus {
         console.log(`OSC Bus (${this.domain}): ${name} port opened.`);
         this.nReady++;
       });
-      port.on('message', this._recv);
+      port.on('message', (message, timeTag, info) => {
+        return this._recv(message, timeTag, info);
+      });
       port.on('error', error => {
         console.error(`OSC Bus (${this.domain}) ERROR:`, error);
       });
 
-      if (port.open)
-        port.open();
+      port.open();
     });
   }
 
@@ -54,19 +56,23 @@ export default class OSCBus {
    * Receive a packet, route it, call callbacks
    */
   _recv(message, timeTag, info) {
-    console.log(`OSC Bus: Received OSC message from ${info.source} at ${timeTag}`, message);
+    console.log(`OSC Bus: Received OSC message:`, message);
 
-    const parts = message.address.split('/');
-    this.listeners.values().forEach(listener => {
-      if (listener.patterns.length !== parts.length)
-        return;
+    const parts = message.address.split('/').slice(1);
+    this.listeners.forEach((addressListeners, addr) => {
 
-      if (!listener.patterns.every((pattern, i) => pattern.test(parts[i])))
-        return;
+      addressListeners.forEach(listener => {
+        if (listener.patterns.length !== parts.length)
+          return;
 
-      console.log(`OSC Bus: routing message to ${listener.address}`);
-      const args = parseArguments(listener.spec, message.args);
-      listener.callback(args, timeTag, message.address);
+        if (!listener.patterns.every((pattern, i) => pattern.test(parts[i])))
+          return;
+
+        console.log(`OSC Bus: routing message to ${addr}`);
+        console.log('OSC Bus: spec', listener.spec, 'args', message.args);
+        const args = parseArguments(listener.spec, message.args);
+        listener.callback(args, timeTag, message.address);
+      });
     });
   }
 
@@ -92,7 +98,6 @@ export default class OSCBus {
     const route = this.listeners.get(address);
     route.push({
       patterns: parts.map(addressPartToRegExp),
-      address: address,
       spec: toCanonicalSpec(spec),
       callback: cb,
     });
@@ -180,7 +185,7 @@ function parseArguments(argSpec, rawArgs) {
 
 function toValues(args) {
   return args.map(arg => {
-    if (Array.isArray(arg))
+    if (_.isArray(arg))
       return toValues(arg);
 
     return arg.value;

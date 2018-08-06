@@ -1,8 +1,8 @@
 import OSCBus from './bus';
 
+export const input = new OSCBus('input');
 export const playback = new OSCBus('playback');
 export const config = new OSCBus('config');
-export const input = new OSCBus('input');
 
 /*
  * ## Interface usage examples
