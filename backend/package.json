@@ -26,15 +26,13 @@
     "lint": "eslint --ext .js -f ./node_modules/eslint-friendly-formatter src"
   },
   "dependencies": {
-    "bluebird": "^3.5.1",
     "clone": "^2.1.1",
     "concat-stream": "^1.6.0",
     "immutable": "^3.8.2",
-    "ioredis": "^3.2.2",
     "minimatch": "^3.0.4",
-    "pixelpusher-driver": "^0.1.1",
     "tar-stream": "^1.5.4",
     "three": "^0.87.1",
-    "yargs": "^9.0.1"
+    "yargs": "^9.0.1",
+    "pixelpusher-driver": "^0.1.1"
   }
 }
