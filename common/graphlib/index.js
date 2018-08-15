@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import * as Serialization from '@/common/util/serialization';
 
 import Units from '@/common/units';
@@ -507,11 +508,17 @@ export class GraphNode {
         this.input_info = inputs.map(({name, type}) => ({name, type, src: null}));
         this.output_info = outputs.map(({name, type}) => ({name, type}));
 
-        let defaults = {};
+        // Config values for default inputs / graph-typed values
+        const defaults = {};
+        // User-facing config values not used by shaders themselves
+        const parameters = {};
 
-        for (const { name } of inputs) {
-            defaults[name] = properties[name] !== undefined ? properties[name] : undefined;
-        }
+        _(properties).each((propValue, propName) => {
+            if (inputs.some(i => i.name === propName))
+                defaults[propName] = propValue;
+            else
+                parameters[propName] = propValue;
+        });
 
         let cfg = {...DEFAULT_CONFIG, ...config};
 
@@ -521,6 +528,7 @@ export class GraphNode {
             inputs: input_vm,
             outputs: output_vm,
             defaults,
+            parameters,
             config: cfg
         });
 
@@ -544,7 +552,6 @@ export class GraphNode {
     }
 
     getInputData(slot) {
-
         const { autoconvert } = this.vm.inputs[slot].settings;
         const { type, src } = this.input_info[slot];
 
@@ -592,6 +599,7 @@ export class GraphNode {
             input_settings: this.vm.inputs.map(({settings}) => ({...settings})),
             output_settings: this.vm.outputs.map(({settings})=> ({...settings})),
             defaults: Serialization.save(this.vm.defaults),
+            parameters: Serialization.save(this.vm.parameters)
         };
 
         return Object.freeze(data);
@@ -605,5 +613,6 @@ export class GraphNode {
             this.vm.outputs[i].settings = nodesnap.output_settings[i];
         }
         this.vm.defaults = Serialization.restore(nodesnap.defaults);
+        this.vm.parameters = Serialization.restore(nodesnap.parameters);
     }
 }
