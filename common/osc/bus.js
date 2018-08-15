@@ -130,6 +130,7 @@ export default class OSCBus {
 
   /*
    * Remove all listeners for the given pattern.
+   * TODO allow deleting a single listener for an address
    */
   stop(address) {
     return this.listeners.delete(address);

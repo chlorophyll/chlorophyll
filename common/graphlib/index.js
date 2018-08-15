@@ -493,25 +493,49 @@ export class GraphNode {
         };
     }
 
-    constructor({graph, id, title, pos, path, properties = {}, vm_factory},
-                inputs, outputs,
-                {config = {}} = {}) {
+    static parameter(name, type) {
+        return {
+            name,
+            type
+        };
+    }
+
+    constructor(options, inputs, outputs, {config = {}} = {}) {
+        const {
+            graph,
+            id,
+            title,
+            pos,
+            path,
+            parameters = [],
+            properties = {},
+            vm_factory
+        } = options;
 
         this.graph = graph;
         this.id = id;
         this.path = path;
 
-        let input_vm = inputs.map(({ state, settings }) => ({state, settings}));
-        let output_vm = outputs.map(({ state, settings }) => ({state, settings}));
+        const input_vm = inputs.map(({ state, settings }) => ({state, settings}));
+        const output_vm = outputs.map(({ state, settings }) => ({state, settings}));
 
         this.input_info = inputs.map(({name, type}) => ({name, type, src: null}));
         this.output_info = outputs.map(({name, type}) => ({name, type}));
 
-        let defaults = {};
+        // Config values for default inputs / graph-typed values
+        const defaults = {};
+        inputs.forEach(input => {
+            if (input.name in properties)
+                defaults[input.name] = properties[input.name];
+        });
 
-        for (const { name } of inputs) {
-            defaults[name] = properties[name] !== undefined ? properties[name] : undefined;
-        }
+        // User-facing config values not used by shaders themselves
+        const params_vm = parameters.map(param => {
+            if (param.name in properties)
+                return {...param, value: properties[param.name]};
+            else
+                return param;
+        });
 
         let cfg = {...DEFAULT_CONFIG, ...config};
 
@@ -520,11 +544,35 @@ export class GraphNode {
             pos,
             inputs: input_vm,
             outputs: output_vm,
+            parameters: params_vm,
             defaults,
             config: cfg
         });
 
         this.outgoing_data = [];
+    }
+
+    /*
+     * Update partial node configuration
+     */
+    updateIOConfig(inputs, outputs) {
+        if (inputs) {
+            this.input_info = inputs.map(({name, type}) => ({name, type, src: null}));
+            this.vm.inputs = inputs.map(({ state, settings }) => ({state, settings}));
+        }
+
+        if (outputs) {
+            this.output_info = outputs.map(({name, type}) => ({name, type}));
+            this.vm.outputs = outputs.map(({ state, settings }) => ({state, settings}));
+            this.outgoing_data = [];
+        }
+    }
+
+    /*
+     * To be overridden by the node, if needed.
+     * Will be called after any properties or defaults for the node are changed.
+     */
+    onPropertyChange() {
     }
 
     defaultForSlot(slot) {
@@ -544,7 +592,6 @@ export class GraphNode {
     }
 
     getInputData(slot) {
-
         const { autoconvert } = this.vm.inputs[slot].settings;
         const { type, src } = this.input_info[slot];
 
@@ -576,11 +623,12 @@ export class GraphNode {
         this.outgoing_data[slot] = {data, step: this.graph.step};
     }
 
-    setPosition(x, y) {
-        this.vm.pos = [x, y];
+    clearOutputData() {
+        this.outgoing_data = [];
     }
 
-    clearOutgoingData() {
+    setPosition(x, y) {
+        this.vm.pos = [x, y];
     }
 
     save() {
@@ -592,6 +640,7 @@ export class GraphNode {
             input_settings: this.vm.inputs.map(({settings}) => ({...settings})),
             output_settings: this.vm.outputs.map(({settings})=> ({...settings})),
             defaults: Serialization.save(this.vm.defaults),
+            parameters: Serialization.save(this.vm.parameters)
         };
 
         return Object.freeze(data);
@@ -605,5 +654,9 @@ export class GraphNode {
             this.vm.outputs[i].settings = nodesnap.output_settings[i];
         }
         this.vm.defaults = Serialization.restore(nodesnap.defaults);
+        this.vm.parameters = Serialization.restore(nodesnap.parameters) || [];
+
+        // Make sure any parameterized node configuration is recalculated on load
+        this.onPropertyChange();
     }
 }

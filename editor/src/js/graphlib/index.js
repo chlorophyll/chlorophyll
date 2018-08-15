@@ -16,19 +16,32 @@ export const GraphConstants = {
 };
 
 export const NodeConfigMixin = {
-    props: ['node', 'slotnum'],
+    props: ['node', 'slotnum', 'parameter'],
     computed: {
         name() {
-            return this.node.slot_names.inputs[this.slotnum];
+            if (this.node)
+                return this.node.slot_names.inputs[this.slotnum];
+
+            return this.parameter.name;
         },
         type() {
-            return this.node.input_types[this.slotnum];
+            if (this.node)
+                return this.node.input_types[this.slotnum];
+
+            return this.parameter.type;
         },
         value: {
             get() {
-                return this.node.defaults[this.name];
+                if (this.node)
+                    return this.node.defaults[this.name];
+
+                return this.parameter.value;
             },
             set(val) {
+                if (!this.node) {
+                    this.parameter.value = val;
+                    return;
+                }
                 // We emit an event when a new default is added.
                 //
                 // Doing the same when a default is deleted is complicated.
@@ -132,14 +145,17 @@ function makeNodeVue(graph, node, data) {
             id() {
                 return node.id;
             },
+
             graph_node() {
                 return node.graph.getNodeById(node.id);
             },
+
             rows() {
                 const inslots = this.inputs.length;
                 const outslots = this.outputs.length;
                 return Math.max(inslots, outslots);
             },
+
             width() {
                 let width = Math.max(Util.textWidth(this.title), GraphConstants.NODE_WIDTH);
 
@@ -198,10 +214,12 @@ function makeNodeVue(graph, node, data) {
                 return this.inputs.map(({ settings }, slot) => node.input_info[slot].type);
             },
         },
+
         methods: {
             connectionX(slot, is_input) {
                 return is_input ? 0 : this.width;
             },
+
             connectionY(slot, is_input) {
                 return (GraphConstants.NODE_TITLE_HEIGHT + 10 +
                         slot * GraphConstants.NODE_SLOT_HEIGHT);
@@ -210,6 +228,22 @@ function makeNodeVue(graph, node, data) {
             canvasPos(pos) {
                 return [this.pos[0] + pos[0], this.pos[1] + pos[1]];
             },
+        },
+
+        watch: {
+            parameters: {
+                deep: true,
+                handler() {
+                    return node.onPropertyChange();
+                }
+            },
+
+            defaults: {
+                deep: true,
+                handler() {
+                    return node.onPropertyChange();
+                }
+            }
         }
     });
 }

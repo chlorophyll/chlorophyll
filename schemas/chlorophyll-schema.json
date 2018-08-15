@@ -257,6 +257,18 @@
                             "type": "object"
                         }
                     },
+                    "parameters": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": "string",
+                                "type": "string",
+                                "value": {}
+                            },
+                            "required": ["name", "type"]
+                        }
+                    },
                     "defaults": {
                         "type": "object",
                         "additionalProperties": {

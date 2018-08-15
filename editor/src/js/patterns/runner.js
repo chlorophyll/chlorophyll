@@ -146,8 +146,6 @@ export class PatternRunner {
     step(time) {
         this.fbo.simulationShader.uniforms['time'].value = time;
 
-        // TODO OSC update hook goes here
-
         for (let {name, getValue} of this.graphUniforms) {
             this.fbo.simulationShader.uniforms[name].value = getValue();
         }
