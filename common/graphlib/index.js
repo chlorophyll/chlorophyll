@@ -494,7 +494,14 @@ export class GraphNode {
         };
     }
 
-    constructor({graph, id, title, pos, path, properties = {}, vm_factory},
+    static parameter(name, type) {
+        return {
+            name,
+            type
+        };
+    }
+
+    constructor({graph, id, title, pos, path, parameters = [], properties = {}, vm_factory},
                 inputs, outputs,
                 {config = {}} = {}) {
 
