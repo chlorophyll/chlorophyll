@@ -1,13 +1,15 @@
 import GraphLib from '@/common/graphlib';
 import { GraphCompiler } from '@/common/graphlib/compiler';
 import { getMappedPoints, convertPointCoords, mappingTypes } from '@/common/mapping';
-
+import _ from 'lodash';
 import * as THREE from 'three';
 import FBO from 'three.js-fbo';
 
 import * as glsl from '@/common/glsl';
 
 import viewports from 'chl/viewport';
+
+import PixelPusherRegistry from 'pixelpusher-driver';
 
 
 const passthruVertexShader = `
@@ -16,6 +18,85 @@ void main() {
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }`;
+
+class PixelDriver {
+    constructor() {
+        console.log('got here');
+        this.controllerForStrip = new Map();
+        this.controllers = [];
+
+        this.registry = new PixelPusherRegistry();
+
+        this.registry.on('discovered', (controller) => this.addController(controller));
+        this.registry.start();
+    }
+
+    setRunner(runner) {
+        this.runner = runner;
+        this.model = runner.model;
+        this.pixels = new Uint8Array(3*this.model.num_pixels);
+        this.dataTexture = new THREE.DataTexture(
+            new Uint8Array(3*this.model.num_pixels),
+            this.model.num_pixels,
+            1,
+            THREE.RGBFormat,
+            THREE.UnsignedByteType);
+    }
+
+    addController(controller) {
+        controller.setColorCorrection(0xffffff);
+        this.controllers.push(controller);
+        this.controllers = _.sortBy(this.controllers, 'controller_id');
+    }
+
+    makeStripBuffer(strip) {
+        let num_pixels = this.model.numPixelsInStrip(strip);
+        return new Buffer(3*num_pixels);
+    }
+
+    getStripBuffers() {
+        let ptr = 0;
+
+        let stripbufs = [];
+
+        for (let strip = 0; strip < this.model.num_strips; strip++) {
+            let buf = this.makeStripBuffer(strip);
+            for (let i = 0; i < buf.length; i++) {
+                buf[i] = this.pixels[ptr++];
+            }
+            stripbufs.push(buf);
+        }
+
+        return stripbufs;
+    }
+
+    pushFrame() {
+        let strips_attached = 0;
+        for (let controller of this.controllers) {
+            strips_attached += controller.strips_attached;
+        }
+        if (strips_attached < this.model.num_strips)
+            return;
+        const { renderer } = viewports.getViewport('main');
+        const gl = renderer.getContext();
+        const fbo = this.runner.fbo;
+        renderer.setTexture2D(this.dataTexture, 0);
+        gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 0, 0, this.model.num_pixels, 1, fbo.getCurrentFrame().texture.data);
+        gl.readPixels(0, 0, this.model.num_pixels, 1, gl.RGB, gl.UNSIGNED_BYTE, this.pixels);
+
+        let stripbufs = this.getStripBuffers();
+        let strip_idx = 0;
+        for (let controller of this.controllers) {
+            for (let cstrip = 0; strip_idx < this.model.num_strips && cstrip < controller.strips_attached; cstrip++) {
+                controller.setStrip(cstrip, stripbufs[strip_idx]);
+                strip_idx++;
+            }
+            controller.sync();
+        }
+    }
+}
+
+const driver = new PixelDriver();
 
 export class PatternRunner {
     constructor(model, pattern, group, mapping) {
@@ -30,6 +111,9 @@ export class PatternRunner {
         this.createFBO();
 
         this.listener = () => this.createFBO();
+
+        this.pixelDriver = driver;
+        driver.setRunner(this);
 
         this.graph.addEventListener('node-removed', this.listener);
         this.graph.addEventListener('edge-removed', this.listener);
@@ -130,7 +214,6 @@ export class PatternRunner {
 
         this.fbo.setTextureUniform('uCoords', mappedPositions);
         this.fbo.setTextureUniform('uGroupMask', groupMask);
-
     }
 
     step(time) {
@@ -140,6 +223,7 @@ export class PatternRunner {
         }
 
         this.fbo.simulate();
+        this.pixelDriver.pushFrame();
         return this.fbo.getCurrentFrame().texture;
     }
 }
