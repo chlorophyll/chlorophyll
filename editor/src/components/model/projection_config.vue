@@ -58,7 +58,8 @@ export default {
     data() {
         return {
             min_angle: -Math.PI,
-            max_angle: Math.PI
+            max_angle: Math.PI,
+            viewport_mounted: false,
         };
     },
 
@@ -67,7 +68,7 @@ export default {
             const origin_3d = new THREE.Vector3();
             origin_3d.fromArray(this.value.origin);
             // The viewport takes a tick to come into existence
-            const {x, y} = this.$refs.viewport
+            const {x, y} = this.viewport_mounted
                 ? this.$refs.viewport.normalizedCoords(origin_3d)
                 : {x: 0, y: 0};
             return {
@@ -82,11 +83,13 @@ export default {
         this.$nextTick(() => {
             this.$refs.viewport.controls.addEventListener('end', this.updateProjection);
             this.setCamera(this.value.plane_angle);
+            this.viewport_mounted = true;
         });
     },
 
     beforeDestroy() {
         this.$refs.viewport.controls.removeEventListener('end', this.updateProjection);
+        this.viewport_mounted = false;
     },
 
     methods: {
