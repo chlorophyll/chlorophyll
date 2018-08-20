@@ -614,11 +614,12 @@ export class GraphNode {
         this.outgoing_data[slot] = {data, step: this.graph.step};
     }
 
-    setPosition(x, y) {
-        this.vm.pos = [x, y];
+    clearOutputData() {
+        this.outgoing_data = [];
     }
 
-    clearOutgoingData() {
+    setPosition(x, y) {
+        this.vm.pos = [x, y];
     }
 
     save() {
