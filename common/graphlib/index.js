@@ -501,9 +501,17 @@ export class GraphNode {
         };
     }
 
-    constructor({graph, id, title, pos, path, parameters = [], properties = {}, vm_factory},
-                inputs, outputs,
-                {config = {}} = {}) {
+    constructor(options, inputs, outputs, {config = {}} = {}) {
+        const {
+            graph,
+            id,
+            title,
+            pos,
+            path,
+            parameters = [],
+            properties = {},
+            vm_factory
+        } = options;
 
         this.graph = graph;
         this.id = id;
@@ -540,6 +548,22 @@ export class GraphNode {
         });
 
         this.outgoing_data = [];
+    }
+
+    /*
+     * Update partial node configuration
+     */
+    updateIOConfig(inputs, outputs) {
+        if (inputs) {
+            this.input_info = inputs.map(({name, type}) => ({name, type, src: null}));
+            this.vm.inputs = inputs.map(({ state, settings }) => ({state, settings}));
+        }
+
+        if (outputs) {
+            this.output_info = outputs.map(({name, type}) => ({name, type}));
+            this.vm.outputs = outputs.map(({ state, settings }) => ({state, settings}));
+            this.outgoing_data = [];
+        }
     }
 
     defaultForSlot(slot) {

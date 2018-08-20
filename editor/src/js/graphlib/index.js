@@ -119,14 +119,17 @@ function makeNodeVue(graph, node, data) {
             id() {
                 return node.id;
             },
+
             graph_node() {
                 return node.graph.getNodeById(node.id);
             },
+
             rows() {
                 const inslots = this.inputs.length;
                 const outslots = this.outputs.length;
                 return Math.max(inslots, outslots);
             },
+
             width() {
                 let width = Math.max(Util.textWidth(this.title), GraphConstants.NODE_WIDTH);
 
@@ -185,10 +188,12 @@ function makeNodeVue(graph, node, data) {
                 return this.inputs.map(({ settings }, slot) => node.input_info[slot].type);
             },
         },
+
         methods: {
             connectionX(slot, is_input) {
                 return is_input ? 0 : this.width;
             },
+
             connectionY(slot, is_input) {
                 return (GraphConstants.NODE_TITLE_HEIGHT + 10 +
                         slot * GraphConstants.NODE_SLOT_HEIGHT);
@@ -197,6 +202,22 @@ function makeNodeVue(graph, node, data) {
             canvasPos(pos) {
                 return [this.pos[0] + pos[0], this.pos[1] + pos[1]];
             },
+
+            onPropertyChange() {
+                return node.onPropertyChange();
+            }
+        },
+
+        watch: {
+            parameters: {
+                deep: true,
+                handler: this.onPropertyChange
+            },
+
+            defaults: {
+                deep: true,
+                handler: this.onPropertyChange
+            }
         }
     });
 }

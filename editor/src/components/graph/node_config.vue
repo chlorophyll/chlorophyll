@@ -60,6 +60,7 @@ export default {
     data() {
         return {
             old_defaults: clone(this.node.defaults),
+            old_parameters: clone(this.node.parameters)
         };
     },
     computed: {
@@ -71,6 +72,7 @@ export default {
         close(save) {
             if (!save) {
                 this.node.defaults = this.old_defaults;
+                this.node.parameters = this.old_parameters;
             }
             this.$emit('close', save);
         }

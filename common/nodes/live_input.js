@@ -1,31 +1,36 @@
 import Enum from '@/common/util/enum';
 import GraphLib, { GraphNode } from '@/common/graphlib';
-import Signals from '@/common/osc/signals';
+import Signal from '@/common/osc/signals';
 import * as glsl from '@/common/glsl';
 
+/*
+ * TODO(cwill):
+ * - add string entry & type selector components to config panels
+ * - re-generation of nodes from config values / cfg separate from wiring
+ * - poll input from OSC
+*/
 
 const supportedOscTypes = [null, 'f', 'r'];
+const typeMap = {
+    f: Units.Numeric,
+    r: Units.CRGB
+};
 
 class LiveInput extends GraphNode {
     constructor(options) {
         const inputs = [];
         const outputs = [];
-        /*
-         * TODO(cwill):
-         * X figure out how to do non-parameterized config values
-         * - add string entry & type selector components to config panels
-         * - re-generation of nodes from config values / cfg separate from wiring
-         * - poll input from OSC
-         */
         options.properties = {
-            osc_path: '/',
+            osc_address: '',
             argument_type: new Enum(supportedOscTypes, null);
             ...options.properties
         };
+        // Will be filled in when node properties are set the first time.
+        this.signal = null;
 
         options.parameters = [
-            GraphNode.parameter('osc_path', 'string');
-            GraphNode.parameter('argument_type', 'Enum');
+            GraphNode.parameter('osc_address', 'string'),
+            GraphNode.parameter('argument_type', 'Enum'),
         ];
 
         super(options, inputs, outputs, {
@@ -33,11 +38,28 @@ class LiveInput extends GraphNode {
         });
     }
 
+    onPropertyChange() {
+        const params = this.vm.parameters;
+
+        if (params.osc_address) {
+            if (this.signal)
+                this.signal.address = params.osc_address;
+            else
+                this.signal = new Signal(this, params.osc_address, params.argument_type);
+        }
+
+        const outputType = typeMap[params.argument_type.valueOf()];
+        const newOutputs = [GraphNode.output('value', outputType)];
+
+        this.vm.title = `Live input (${this.signal.shortName})`;
+
+        this.updateIOConfig(null, newOutputs);
+    }
+
     compile(c) {
         this.output_info.forEach(({name, type}, i) => {
             // TODO write signal junk
-            const inSignal = Signals.declareSignal(this.id, osc_path);
-            const signalVal = c.uniform(/* TODO */)
+            const signalVal = c.uniform(/* TODO */);
             c.setOutput(this, i, signalVal)
         });
     }
