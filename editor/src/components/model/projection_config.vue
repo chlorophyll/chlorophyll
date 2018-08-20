@@ -23,6 +23,7 @@
     <div id="proj-config-vp">
         <viewport ref="viewport"
                   label="projconfig"
+                  :preview="true"
                   projection="orthographic">
             <viewport-axes :value="proj_widget" @input="updateProjection" />
         </viewport>

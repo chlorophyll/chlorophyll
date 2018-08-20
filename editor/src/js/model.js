@@ -308,11 +308,22 @@ export class Model extends ModelBase {
                 derivatives: true,
             }
         });
+
+
         this.particles = new THREE.Points(this.geometry, this.material);
+
+        const previewMaterial = this.material.clone();
+        const previewGeometry = this.geometry.clone();
+        const previewMesh = new THREE.Points(previewGeometry, previewMaterial);
 
         this.scene = new THREE.Scene();
         this.scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
         this.scene.add(this.particles);
+
+        this.previewScene = new THREE.Scene();
+        this.previewScene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
+        this.previewScene.add(previewMesh);
+
         for (let model of this.strip_models) {
             this.scene.add(model);
         }

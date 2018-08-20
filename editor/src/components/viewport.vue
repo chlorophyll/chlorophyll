@@ -39,6 +39,7 @@ export default {
     props: {
         projection: { type: String, default: 'perspective' },
         showToolbox: { type: Boolean, default: false },
+        preview: { type: Boolean, default: false },
         label: {
             type: String,
             default() {
@@ -67,7 +68,6 @@ export default {
             controlsEnabled: false
         };
     },
-
     watch: {
         controlsEnabled(val) {
             if (this.active && this.controls)
@@ -185,11 +185,11 @@ export default {
         },
 
         render() {
-
             this.renderer.setPixelRatio(window.devicePixelRatio);
             if (currentModel) {
                 currentModel.setPixelRatio(window.devicePixelRatio);
-                this.renderer.render(currentModel.scene, this.camera);
+                const scene = this.preview ? currentModel.previewScene : currentModel.scene;
+                this.renderer.render(scene, this.camera);
             }
         },
 
