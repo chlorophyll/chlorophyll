@@ -95,7 +95,7 @@ export default {
       } = toUpdate;
 
       if (autoscale)
-        scale = scaleToFitPoints(currentModel.getGroupPixels(this.group), position);
+        scale = scaleToFitPoints(currentModel.allPixelPositions(), position);
 
       this.$emit('input', {autoscale, shape, position, rotation, scale});
     }

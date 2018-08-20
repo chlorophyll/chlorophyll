@@ -55,6 +55,14 @@ export default class ModelBase {
         }
     }
 
+    allPixelPositions() {
+        const positions = [];
+        for (let idx = 0; idx < this.num_pixels; idx++) {
+            positions.push({idx, pos: this.getPosition(idx)});
+        }
+        return positions;
+    }
+
     pixelPositions(group) {
         return group.pixels.map((idx) => ({idx, pos: this.getPosition(idx)}));
     }
