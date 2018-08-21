@@ -517,22 +517,25 @@ export class GraphNode {
         this.id = id;
         this.path = path;
 
-        let input_vm = inputs.map(({ state, settings }) => ({state, settings}));
-        let output_vm = outputs.map(({ state, settings }) => ({state, settings}));
+        const input_vm = inputs.map(({ state, settings }) => ({state, settings}));
+        const output_vm = outputs.map(({ state, settings }) => ({state, settings}));
 
         this.input_info = inputs.map(({name, type}) => ({name, type, src: null}));
         this.output_info = outputs.map(({name, type}) => ({name, type}));
 
         // Config values for default inputs / graph-typed values
         const defaults = {};
-        // User-facing config values not used by shaders themselves
-        const parameters = {};
+        inputs.forEach(input => {
+            if (input.name in properties)
+                defaults[input.name] = properties[input.name];
+        });
 
-        _(properties).each((propValue, propName) => {
-            if (inputs.some(i => i.name === propName))
-                defaults[propName] = propValue;
+        // User-facing config values not used by shaders themselves
+        const params_vm = parameters.map(param => {
+            if (param.name in properties)
+                return {...param, value: properties[params.name]};
             else
-                parameters[propName] = propValue;
+                return param;
         });
 
         let cfg = {...DEFAULT_CONFIG, ...config};
@@ -542,8 +545,8 @@ export class GraphNode {
             pos,
             inputs: input_vm,
             outputs: output_vm,
+            parameters: params_vm,
             defaults,
-            parameters,
             config: cfg
         });
 

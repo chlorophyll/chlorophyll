@@ -16,20 +16,32 @@ export const GraphConstants = {
 };
 
 export const NodeConfigMixin = {
-    props: ['node', 'slotnum'],
+    props: ['node', 'slotnum', 'parameter'],
     computed: {
         name() {
-            return this.node.slot_names.inputs[this.slotnum];
+            if (this.node)
+                return this.node.slot_names.inputs[this.slotnum];
+
+            return this.parameter.name;
         },
         type() {
-            return this.node.input_types[this.slotnum];
+            if (this.node)
+                return this.node.input_types[this.slotnum];
+
+            return this.parameter.type;
         },
         value: {
             get() {
-                return this.node.defaults[this.name];
+                if (this.node)
+                    return this.node.defaults[this.name];
+
+                return this.parameter.value;
             },
             set(val) {
-                this.$set(this.node.defaults, this.name, val);
+                if (this.node)
+                    return this.$set(this.node.defaults, this.name, val);
+
+                this.parameter.value = val;
             }
         }
     }
@@ -202,21 +214,21 @@ function makeNodeVue(graph, node, data) {
             canvasPos(pos) {
                 return [this.pos[0] + pos[0], this.pos[1] + pos[1]];
             },
-
-            onPropertyChange() {
-                return node.onPropertyChange();
-            }
         },
 
         watch: {
             parameters: {
                 deep: true,
-                handler: this.onPropertyChange
+                handler() {
+                    return node.onPropertyChange();
+                }
             },
 
             defaults: {
                 deep: true,
-                handler: this.onPropertyChange
+                handler() {
+                    return node.onPropertyChange();
+                }
             }
         }
     });

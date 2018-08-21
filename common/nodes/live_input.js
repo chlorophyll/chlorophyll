@@ -1,6 +1,6 @@
 import Enum from '@/common/util/enum';
 import GraphLib, { GraphNode } from '@/common/graphlib';
-import Signal from '@/common/osc/signals';
+import Signal from '@/common/osc/signal';
 import * as glsl from '@/common/glsl';
 
 /*
@@ -8,27 +8,25 @@ import * as glsl from '@/common/glsl';
  * - add string entry & type selector components to config panels
  * - poll input from OSC
 */
-
 const supportedOscTypes = [null, 'f', 'r'];
 
 class LiveInput extends GraphNode {
     constructor(options) {
-        const inputs = [];
-        const outputs = [];
-        options.properties = {
-            osc_address: '',
-            argument_type: new Enum(supportedOscTypes, null);
-            ...options.properties
-        };
-        // Will be filled in when node properties are set the first time.
-        this.signal = null;
-
         options.parameters = [
             GraphNode.parameter('osc_address', 'string'),
             GraphNode.parameter('argument_type', 'Enum'),
         ];
 
-        super(options, inputs, outputs, {
+        options.properties = {
+            osc_address: '',
+            argument_type: new Enum(supportedOscTypes, null);
+            ...options.properties
+        };
+
+        // Will be filled in when node properties are set the first time.
+        this.signal = null;
+
+        super(options, [], [], {
             config: { color: '#7496a6', boxcolor: '#69a4bf' }
         });
     }
@@ -43,10 +41,17 @@ class LiveInput extends GraphNode {
                 this.signal = new Signal(this, params.osc_address, [params.argument_type.valueOf()]);
         }
 
-        const outputType = Signal.typeMap[params.argument_type.valueOf()];
-        const newOutputs = [GraphNode.output('value', outputType)];
-
         this.vm.title = `Live input (${this.signal.shortName})`;
+
+        const argType = params.argument_type.valueOf();
+        if (!argType)
+            return;
+
+        const outputType = Signal.typeMap[argType];
+        if (this.output_info.length > 0 && outputType === this.output_info[0].type)
+            return;
+
+        const newOutputs = [GraphNode.output('value', outputType)];
 
         this.updateIOConfig(null, newOutputs);
     }
