@@ -6,15 +6,10 @@ import * as glsl from '@/common/glsl';
 /*
  * TODO(cwill):
  * - add string entry & type selector components to config panels
- * - re-generation of nodes from config values / cfg separate from wiring
  * - poll input from OSC
 */
 
 const supportedOscTypes = [null, 'f', 'r'];
-const typeMap = {
-    f: Units.Numeric,
-    r: Units.CRGB
-};
 
 class LiveInput extends GraphNode {
     constructor(options) {
@@ -45,10 +40,10 @@ class LiveInput extends GraphNode {
             if (this.signal)
                 this.signal.address = params.osc_address;
             else
-                this.signal = new Signal(this, params.osc_address, params.argument_type);
+                this.signal = new Signal(this, params.osc_address, [params.argument_type.valueOf()]);
         }
 
-        const outputType = typeMap[params.argument_type.valueOf()];
+        const outputType = Signal.typeMap[params.argument_type.valueOf()];
         const newOutputs = [GraphNode.output('value', outputType)];
 
         this.vm.title = `Live input (${this.signal.shortName})`;
@@ -57,9 +52,9 @@ class LiveInput extends GraphNode {
     }
 
     compile(c) {
-        this.output_info.forEach(({name, type}, i) => {
-            // TODO write signal junk
-            const signalVal = c.uniform(/* TODO */);
+        this.output_info.forEach(({outputName, type}, i) => {
+            const uniformName = this.signal.ident;
+            const signalVal = c.uniform(type, this.signal.ident, () => this.signal.getValue());
             c.setOutput(this, i, signalVal)
         });
     }
