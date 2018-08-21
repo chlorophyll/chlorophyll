@@ -4,7 +4,8 @@
  * A signal can be created to track the latest values received by an OSC
  * address.
  */
-import { input } from '.';
+import Units from '@/common/units';
+import { input } from '@/common/osc';
 
 export default class Signal {
     constructor(node, address, args) {
@@ -16,6 +17,12 @@ export default class Signal {
         this._currentValue = null;
 
         this._startListener();
+
+        // Clean up the OSC listener if the node is removed.
+        node.graph.addEventListener('node-removed', event => {
+            if (event.node && event.node.id === this.node.id)
+                input.stop(this._address);
+        });
     }
 
     _startListener() {
