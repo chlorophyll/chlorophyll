@@ -54,14 +54,14 @@ class LiveInput extends GraphNode {
 
     compile(c) {
         this.output_info.forEach(({name, type}, i) => {
-            const signalVal = c.uniform(type, this.signal.ident, () => this.signal.getValue());
-            c.setOutput(this, i, signalVal);
+            const signalName = this.signal.ident;
+            c.uniform(type, signalName, () => this.signal.getValue());
+            c.setOutput(this, i, c.getGlobalInput(signalName));
         });
     }
 }
 LiveInput.title = 'Live input';
 
 export default function register_input_nodes() {
-    console.log('registered live input!');
     GraphLib.registerNodeType('input/OSC input', LiveInput);
 };
