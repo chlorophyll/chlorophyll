@@ -4,7 +4,6 @@
             <template v-for="(component, idx) in parameter_components">
                 <component v-bind:is="component" :parameter="parameters[idx]"/>
             </template>
-            <hr>
             <template v-for="(component, slot) in input_components">
                 <component v-bind:is="component" :node="node" :slotnum="slot" />
             </template>

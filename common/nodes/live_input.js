@@ -1,7 +1,6 @@
-import Enum from '@/common/util/enum';
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import Signal from '@/common/osc/signal';
-import * as glsl from '@/common/glsl';
+import Enum from '@/common/util/enum';
 
 /*
  * TODO(cwill):
@@ -20,26 +19,28 @@ class LiveInput extends GraphNode {
 
         options.properties = {
             osc_address: '',
-            argument_type: new Enum(supportedOscTypes, null, oscTypeDescs);
+            argument_type: new Enum(supportedOscTypes, null, oscTypeDescs),
             ...options.properties
         };
-
-        // Will be filled in when node properties are set the first time.
-        this.signal = null;
 
         super(options, [], [], {
             config: { color: '#7496a6', boxcolor: '#69a4bf' }
         });
+
+        // Will be filled in when node properties are set the first time.
+        this.signal = null;
     }
 
     onPropertyChange() {
         const params = this.vm.parameters;
 
         if (params.osc_address) {
-            if (this.signal)
+            if (this.signal) {
                 this.signal.address = params.osc_address;
-            else
-                this.signal = new Signal(this, params.osc_address, [params.argument_type.valueOf()]);
+            } else {
+                const args = [params.argument_type.valueOf()];
+                this.signal = new Signal(this, params.osc_address, args);
+            }
         }
 
         this.vm.title = `Live input (${this.signal.shortName})`;
@@ -59,14 +60,14 @@ class LiveInput extends GraphNode {
 
     compile(c) {
         this.output_info.forEach(({outputName, type}, i) => {
-            const uniformName = this.signal.ident;
             const signalVal = c.uniform(type, this.signal.ident, () => this.signal.getValue());
-            c.setOutput(this, i, signalVal)
+            c.setOutput(this, i, signalVal);
         });
     }
 }
 LiveInput.title = 'Live input';
 
-export default function register_live_input_nodes() {
+export default function register_input_nodes() {
+    console.log('registered live input!');
     GraphLib.registerNodeType('input/OSC input', LiveInput);
 };

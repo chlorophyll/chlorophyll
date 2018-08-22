@@ -568,6 +568,13 @@ export class GraphNode {
         }
     }
 
+    /*
+     * To be overridden by the node, if needed.
+     * Will be called after any properties or defaults for the node are changed.
+     */
+    onPropertyChange() {
+    }
+
     defaultForSlot(slot) {
         const { name } = this.input_info[slot];
         return this.vm.defaults[name];

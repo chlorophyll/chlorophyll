@@ -14,7 +14,6 @@
 import _ from 'lodash';
 import { NodeConfigMixin } from 'chl/graphlib';
 
-// TODO enum component
 export default {
     name: 'graph-type-enum',
     mixins: [NodeConfigMixin],

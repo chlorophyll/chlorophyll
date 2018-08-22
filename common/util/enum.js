@@ -5,7 +5,7 @@ import { addSerializableType } from './serialization';
 export default class Enum {
     constructor(enumValues, value, descriptions) {
         assert.ok(_.isArray(enumValues));
-        assert.ok(value in enumValues)
+        assert.ok(value in enumValues);
 
         this.value = value;
         this.enumValues = enumValues;
