@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import * as Serialization from '@/common/util/serialization';
 
 import Units from '@/common/units';
