@@ -17,7 +17,7 @@ export default {
                 return this.value || '';
             },
             set(val) {
-                this.value = v;
+                this.value = val;
             }
         }
     }

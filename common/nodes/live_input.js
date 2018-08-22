@@ -2,11 +2,6 @@ import GraphLib, { GraphNode } from '@/common/graphlib';
 import Signal from '@/common/osc/signal';
 import Enum from '@/common/util/enum';
 
-/*
- * TODO(cwill):
- * - add string entry & type selector components to config panels
- * - poll input from OSC
-*/
 const supportedOscTypes = [null, 'f', 'r'];
 const oscTypeDescs = ['', 'Float', 'Color'];
 
@@ -32,24 +27,23 @@ class LiveInput extends GraphNode {
     }
 
     onPropertyChange() {
-        const params = this.vm.parameters;
+        const [oscAddress, argType] = this.vm.parameters.map(p => p.value);
 
-        if (params.osc_address) {
+        if (oscAddress) {
             if (this.signal) {
-                this.signal.address = params.osc_address;
+                this.signal.address = oscAddress;
             } else {
-                const args = [params.argument_type.valueOf()];
-                this.signal = new Signal(this, params.osc_address, args);
+                const args = [argType.valueOf()];
+                this.signal = new Signal(this, oscAddress, args);
             }
         }
 
         this.vm.title = `Live input (${this.signal.shortName})`;
 
-        const argType = params.argument_type.valueOf();
-        if (!argType)
+        const outputType = Signal.oscToGraphType(argType.valueOf());
+        if (!outputType)
             return;
 
-        const outputType = Signal.oscToGraphType(argType);
         if (this.output_info.length > 0 && outputType === this.output_info[0].type)
             return;
 
@@ -59,7 +53,7 @@ class LiveInput extends GraphNode {
     }
 
     compile(c) {
-        this.output_info.forEach(({outputName, type}, i) => {
+        this.output_info.forEach(({name, type}, i) => {
             const signalVal = c.uniform(type, this.signal.ident, () => this.signal.getValue());
             c.setOutput(this, i, signalVal);
         });

@@ -532,7 +532,7 @@ export class GraphNode {
         // User-facing config values not used by shaders themselves
         const params_vm = parameters.map(param => {
             if (param.name in properties)
-                return {...param, value: properties[params.name]};
+                return {...param, value: properties[param.name]};
             else
                 return param;
         });

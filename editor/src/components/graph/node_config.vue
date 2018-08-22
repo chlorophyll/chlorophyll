@@ -2,7 +2,7 @@
     <dialog-box title="node config" :show="true" @close="close" width="350px">
       <div class="controls config">
             <template v-for="(component, idx) in parameter_components">
-                <component v-bind:is="component" :parameter="parameters[idx]"/>
+                <component v-bind:is="component" :parameter="node.parameters[idx]"/>
             </template>
             <template v-for="(component, slot) in input_components">
                 <component v-bind:is="component" :node="node" :slotnum="slot" />

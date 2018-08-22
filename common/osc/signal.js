@@ -19,16 +19,17 @@ export default class Signal {
         this._startListener();
 
         // Clean up the OSC listener if the node is removed.
-        node.graph.addEventListener('node-removed', event => {
+        this.node.graph.addEventListener('node-removed', event => {
             if (event.node && event.node.id === this.node.id)
                 input.stop(this._address);
         });
     }
 
     static oscToGraphType(ot) {
+        // TODO(cwill) export this from osc/types
         const typeMap = {
             f: Units.Numeric,
-            r: Units.CRGB
+            r: Units.CRB
         };
 
         return typeMap[ot] || null;
@@ -51,7 +52,7 @@ export default class Signal {
     }
 
     get ident() {
-        return `osc_signal_${node.id}`;
+        return `osc_signal_${this.node.id}`;
     }
 
     get shortName() {
