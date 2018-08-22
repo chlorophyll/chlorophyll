@@ -11,7 +11,7 @@ export default class Signal {
     constructor(node, address, args) {
         this.node = node;
         this.oscTypes = args;
-        this.graphTypes = args.map(arg => Signal.typeMap[arg]);
+        this.graphTypes = args.map(Signal.oscToGraphType);
 
         this._address = address;
         this._currentValue = null;
@@ -23,6 +23,15 @@ export default class Signal {
             if (event.node && event.node.id === this.node.id)
                 input.stop(this._address);
         });
+    }
+
+    static oscToGraphType(ot) {
+        const typeMap = {
+            f: Units.Numeric,
+            r: Units.CRGB
+        };
+
+        return typeMap[ot] || null;
     }
 
     _startListener() {
@@ -53,8 +62,3 @@ export default class Signal {
         return this._currentValue;
     }
 }
-
-Signal.typeMap = {
-    f: Units.Numeric,
-    r: Units.CRGB
-};

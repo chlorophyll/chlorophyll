@@ -48,7 +48,7 @@ class LiveInput extends GraphNode {
         if (!argType)
             return;
 
-        const outputType = Signal.typeMap[argType];
+        const outputType = Signal.oscToGraphType(argType);
         if (this.output_info.length > 0 && outputType === this.output_info[0].type)
             return;
 
