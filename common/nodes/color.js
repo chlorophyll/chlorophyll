@@ -3,12 +3,59 @@ import { Compilation } from '@/common/graphlib/compiler';
 import Units from '@/common/units';
 
 let node_types = [];
+// vec3 hsv2rgb(vec3 c) {
+//   vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+//   vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+//   return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+// }
 
 Compilation.toplevel(`
+
+float piece(float x, float start, float end) {
+  return step(start, x)*(1.-step(end, x));
+}
+
+float line(float x1, float y1, float x2, float y2, float t) {
+  float l = piece(t, x1, x2)*mix(y1, y2, (t-x1)/(x2-x1));
+  return l;
+}
+
+float sline(float x1, float y1, float x2, float y2, float t) {
+  return line(x1/256., y1/256., x2/256., y2/256., t);
+}
+
+float green(float hue) {
+  return (
+      sline(0., 0., 96., 256., hue)
+    + sline(96., 256., 128., 171., hue)
+    + sline(128., 171., 160., 0., hue)
+  );
+}
+
+float red(float hue) {
+  return (
+      sline(0., 256., 32., 171., hue)
+    + sline(32., 171., 64., 171., hue)
+    + sline(64., 171., 96., 0., hue)
+    + sline(96., 0., 160., 0., hue)
+    + sline(160., 0., 256., 256., hue)
+  );
+}
+
+float blue(float hue) {
+  return (
+      sline(0., 0., 96., 0., hue)
+    + sline(96., 0., 128., 85., hue)
+    + sline(128., 85., 160., 256., hue)
+    + sline(160., 256., 256., 0., hue)
+  );
+}
+
 vec3 hsv2rgb(vec3 c) {
-  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+  float h = fract(c.x);
+  vec3 u = vec3(1.);
+  vec3 o = vec3(red(h), green(h), blue(h));
+  return c.z * mix(u, o, c.y);
 }
 `);
 

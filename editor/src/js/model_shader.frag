@@ -16,6 +16,13 @@ float circle(vec2 p, float radius) {
   return 1.-aastep(radius, length(p)-radius);
 }
 
+vec3 toGamma(vec3 v, float gamma) {
+    return pow(v, vec3(1.0 / gamma));
+}
+vec3 toLinear(vec3 v, float gamma) {
+    return pow(v, vec3(gamma));
+}
+
 void main() {
   vec3 outcolor;
   vec2 uv =  vec3( gl_PointCoord.x, 1.0 - gl_PointCoord.y, 1 ).xy;
@@ -29,6 +36,10 @@ void main() {
     outcolor = vOverlayColor;
   } else {
     outcolor = texture2D(computedColors, vec2(vOffset, 0.5)).rgb;
+    outcolor *= vec3(1.25, 0.8, 0.95);
+    outcolor = toGamma(outcolor, 3.5);
+    outcolor.g *= 1.05;
+    outcolor.b *= 1.05;
   }
   outcolor = mix(vec3(outlineColor), outcolor, circ);
   if (outline == 0.)
