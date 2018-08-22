@@ -9,6 +9,7 @@ import * as glsl from '@/common/glsl';
  * - poll input from OSC
 */
 const supportedOscTypes = [null, 'f', 'r'];
+const oscTypeDescs = ['', 'Float', 'Color'];
 
 class LiveInput extends GraphNode {
     constructor(options) {
@@ -19,7 +20,7 @@ class LiveInput extends GraphNode {
 
         options.properties = {
             osc_address: '',
-            argument_type: new Enum(supportedOscTypes, null);
+            argument_type: new Enum(supportedOscTypes, null, oscTypeDescs);
             ...options.properties
         };
 

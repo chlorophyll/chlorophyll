@@ -3,16 +3,13 @@ import assert from 'assert';
 import { addSerializableType } from './serialization';
 
 export default class Enum {
-    constructor(enumValues, value) {
-        if (!enumValues.includes(value))
-            throw new Error(`Invalid enum member: ${value}`);
+    constructor(enumValues, value, descriptions) {
+        assert.ok(_.isArray(enumValues));
+        assert.ok(value in enumValues)
 
         this.value = value;
         this.enumValues = enumValues;
-    }
-
-    static declare() {
-        assert.fail('Plain enumerations cannot be compiled');
+        this.descriptions = _.isArray(descriptions) ? descriptions : null;
     }
 
     valueOf() {
@@ -25,13 +22,14 @@ export default class Enum {
 
     serialize() {
         return {
-            value: this.value
-            enumValues: this.enumValues
+            value: this.value,
+            enumValues: this.enumValues,
+            descriptions: this.descriptions
         };
     }
 
-    static deserialize(enumValues, value) {
-        return new Enum(enumValues, value);
+    static deserialize({enumValues, value, descriptions}) {
+        return new Enum(enumValues, value, descriptions);
     }
 }
 
