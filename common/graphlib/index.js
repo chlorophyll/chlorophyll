@@ -654,6 +654,6 @@ export class GraphNode {
             this.vm.outputs[i].settings = nodesnap.output_settings[i];
         }
         this.vm.defaults = Serialization.restore(nodesnap.defaults);
-        this.vm.parameters = Serialization.restore(nodesnap.parameters);
+        this.vm.parameters = Serialization.restore(nodesnap.parameters) || [];
     }
 }

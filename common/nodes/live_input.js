@@ -36,9 +36,10 @@ class LiveInput extends GraphNode {
                 const args = [argType.valueOf()];
                 this.signal = new Signal(this, oscAddress, args);
             }
+            this.vm.title = `Live input (${this.signal.shortName})`;
+        } else {
+            this.signal = null;
         }
-
-        this.vm.title = `Live input (${this.signal.shortName})`;
 
         const outputType = Signal.oscToGraphType(argType.valueOf());
         if (!outputType)
