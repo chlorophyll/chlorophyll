@@ -95,12 +95,12 @@ export class PatternRunner {
             main
         ]));
 
-        const mappedPositions = new Float32Array(this.model.num_pixels * 3);
-        const groupMask = new Float32Array(this.model.num_pixels * 3);
+        const mappedPositions = new Float32Array(this.model.num_pixels * 4);
+        const groupMask = new Float32Array(this.model.num_pixels * 4);
 
         for (const [idx, pos] of this.positions) {
-            pos.toArray(mappedPositions, idx*3);
-            groupMask[idx*3] = 1;
+            pos.toArray(mappedPositions, idx*4);
+            groupMask[idx*4] = 1;
         }
 
         let uniforms = {
@@ -116,21 +116,26 @@ export class PatternRunner {
         this.graphUniforms = compiled.uniforms;
 
         const { renderer } = viewports.getViewport('main');
+
+        // For some GPUs, pixel reading alignment needs to be changed from 4
+        // (the default) to 1 in order to support NPO2 framebuffer textures
+        const gl = renderer.getContext();
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+
         this.fbo = new FBO({
-            tWidth: this.model.num_pixels,
+            tWidth: this.positions.length,
             tHeight: 1,
             numTargets: 3,
             simulationVertexShader: passthruVertexShader,
             simulationFragmentShader: source,
             uniforms,
             renderer,
-            format: THREE.RGBFormat,
+            format: THREE.RGBAFormat,
             filterType: THREE.NearestFilter,
         });
 
         this.fbo.setTextureUniform('uCoords', mappedPositions);
         this.fbo.setTextureUniform('uGroupMask', groupMask);
-
     }
 
     step(time) {
