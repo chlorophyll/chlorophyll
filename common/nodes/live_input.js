@@ -18,39 +18,52 @@ class LiveInput extends GraphNode {
             ...options.properties
         };
 
-        super(options, [], [], {
+        // Generate outputs based on the current argument configuration.
+        const outputs = [];
+        const argType = options.properties.argument_type.valueOf();
+        if (argType !== null)
+            outputs.push(Signal.oscToGraphType(argType));
+
+        super(options, [], outputs, {
             config: { color: '#7496a6', boxcolor: '#69a4bf' }
         });
 
-        // Will be filled in when node properties are set the first time.
-        this.signal = null;
+        this._updateSignal(options.properties.osc_address, argType);
     }
 
     onPropertyChange() {
-        const [oscAddress, argType] = this.vm.parameters.map(p => p.value);
+        const [oscAddress, argEnum] = this.vm.parameters.map(p => p.value);
+        const argType = argEnum.valueOf();
+        // We may need to update the OSC listener
+        this._updateSignal(oscAddress, argType);
 
-        if (oscAddress) {
-            if (this.signal) {
-                this.signal.address = oscAddress;
-            } else {
-                const args = [argType.valueOf()];
-                this.signal = new Signal(this, oscAddress, args);
-            }
-            this.vm.title = `Live input (${this.signal.shortName})`;
-        } else {
-            this.signal = null;
-        }
-
-        const outputType = Signal.oscToGraphType(argType.valueOf());
+        // Reconfigure outputs to match any argument type changes
+        const outputType = Signal.oscToGraphType(argType);
         if (!outputType)
             return;
 
+        // TODO(cwill) will need to modify this when there are multiple args
         if (this.output_info.length > 0 && outputType === this.output_info[0].type)
             return;
 
         const newOutputs = [GraphNode.output('value', outputType)];
-
         this.updateIOConfig(null, newOutputs);
+    }
+
+    _updateSignal(oscAddress, argType) {
+        if (!oscAddress) {
+            this.signal = null;
+            this.vm.title = 'Live input';
+            return;
+        }
+
+        if (this.signal)
+            this.signal.update(address, argType);
+        else if (argType !== null)
+            this.signal = new Signal(this, oscAddress, [argType]);
+
+        // Mark the node with part of the OSC address to distinguish it
+        this.vm.title = `Live input (${this.signal.shortName})`;
     }
 
     compile(c) {
