@@ -4,6 +4,7 @@
  * A signal can be created to track the latest values received by an OSC
  * address.
  */
+import _ from 'lodash';
 import Units from '@/common/units';
 import { input } from '@/common/osc';
 
@@ -48,7 +49,7 @@ export default class Signal {
         input.stop(this._address);
 
         if (address)
-            this._address = addr;
+            this._address = address;
 
         if (args) {
             this.oscTypes = args;

@@ -655,5 +655,8 @@ export class GraphNode {
         }
         this.vm.defaults = Serialization.restore(nodesnap.defaults);
         this.vm.parameters = Serialization.restore(nodesnap.parameters) || [];
+
+        // Make sure any parameterized node configuration is recalculated on load
+        this.onPropertyChange();
     }
 }

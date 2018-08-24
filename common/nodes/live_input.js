@@ -56,12 +56,13 @@ class LiveInput extends GraphNode {
         }
 
         if (this.signal)
-            this.signal.update(oscAddress, argType);
+            this.signal.update(oscAddress, [argType]);
         else if (argType !== null)
             this.signal = new Signal(this, oscAddress, [argType]);
 
         // Mark the node with part of the OSC address to distinguish it
-        this.vm.title = `Live input (${this.signal.shortName})`;
+        if (this.signal)
+            this.vm.title = `Live input (${this.signal.shortName})`;
     }
 
     compile(c) {
