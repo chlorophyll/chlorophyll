@@ -27,8 +27,6 @@ class LiveInput extends GraphNode {
         super(options, [], outputs, {
             config: { color: '#7496a6', boxcolor: '#69a4bf' }
         });
-
-        this._updateSignal(options.properties.osc_address, argType);
     }
 
     onPropertyChange() {
@@ -58,7 +56,7 @@ class LiveInput extends GraphNode {
         }
 
         if (this.signal)
-            this.signal.update(address, argType);
+            this.signal.update(oscAddress, argType);
         else if (argType !== null)
             this.signal = new Signal(this, oscAddress, [argType]);
 
