@@ -22,9 +22,9 @@ export class PatternRunner {
         const { coord_type, mapping_type } = pattern;
         this.pattern = pattern;
         this.model = model;
-        this.mapped_points = getMappedPoints(model, mapping, group, coord_type);
+        const mapped_points = getMappedPoints(model, mapping, group, coord_type);
 
-        this.positions = convertPointCoords(mapping_type, coord_type, this.mapped_points);
+        this.positions = convertPointCoords(mapping_type, coord_type, mapped_points);
         this.graph = GraphLib.graphById(pattern.stages.pixel);
 
         this.createFBO();
@@ -73,8 +73,8 @@ export class PatternRunner {
 
         const main = glsl.FunctionDecl('void', 'main', [], [
             extractFromTexture(coords, 'uCoords', glsl_swizzle),
+            extractFromTexture(groupmask, 'uCoords', 'a'),
             extractFromTexture(color, 'tPrev', 'rgb'),
-            extractFromTexture(groupmask, 'uGroupMask', 'r'),
             outcolor,
             glsl.FunctionCall(c.ident(), [
                 glsl.Ident('coords'),
@@ -96,11 +96,10 @@ export class PatternRunner {
         ]));
 
         const mappedPositions = new Float32Array(this.model.num_pixels * 4);
-        const groupMask = new Float32Array(this.model.num_pixels * 4);
 
         for (const [idx, pos] of this.positions) {
             pos.toArray(mappedPositions, idx*4);
-            groupMask[idx*4] = 1;
+            mappedPositions[idx*4+3] = 1; // group mask
         }
 
         let uniforms = {
@@ -123,7 +122,7 @@ export class PatternRunner {
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
         this.fbo = new FBO({
-            tWidth: this.positions.length,
+            tWidth: this.model.num_pixels,
             tHeight: 1,
             numTargets: 3,
             simulationVertexShader: passthruVertexShader,
@@ -135,7 +134,6 @@ export class PatternRunner {
         });
 
         this.fbo.setTextureUniform('uCoords', mappedPositions);
-        this.fbo.setTextureUniform('uGroupMask', groupMask);
     }
 
     step(time) {
