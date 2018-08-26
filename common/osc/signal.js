@@ -8,6 +8,18 @@ import _ from 'lodash';
 import Units from '@/common/units';
 import { input } from '@/common/osc';
 
+// TODO(cwill) export this from osc/types
+const typeMap = {
+    f: {
+        unit: Units.Numeric,
+        zeroValue: 0
+    },
+    r: {
+        unit: 'CRGB',
+        zeroValue: [0, 0, 0]
+    }
+};
+
 export default class Signal {
     constructor(node, address, args) {
         this.node = node;
@@ -27,16 +39,18 @@ export default class Signal {
     }
 
     static oscToGraphType(ot) {
-        // TODO(cwill) export this from osc/types
-        const typeMap = {
-            f: Units.Numeric,
-            r: Units.CRB
-        };
-
-        return typeMap[ot] || null;
+        return typeMap[ot] ? typeMap[ot].unit : null;
     }
 
     getValue() {
+        if (this._currentValue === null) {
+            if (this.graphTypes.length > 1)
+                assert.fail('multiple signal args unimplemented');
+
+            const zero = typeMap[this.oscTypes[0]].zeroValue;
+            return zero;
+        }
+
         return this._currentValue;
     }
 
