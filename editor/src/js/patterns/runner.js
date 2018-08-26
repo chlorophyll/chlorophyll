@@ -126,6 +126,9 @@ export class PatternRunner {
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
         this.fbo = new FBO({
+            // We actually run the shader on every pixel and black out the
+            // masked pixels, which is a lot simpler than figuring out where in
+            // the output texture to read from in the model_frag shader.
             tWidth: this.model.num_pixels,
             tHeight: 1,
             numTargets: 3,
