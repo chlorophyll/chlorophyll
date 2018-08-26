@@ -32,12 +32,16 @@ export class PatternRunner {
         this.listener = () => this.createFBO();
 
         this.graph.addEventListener('node-removed', this.listener);
+        this.graph.addEventListener('node-added', this.listener);
+        this.graph.addEventListener('default-added', this.listener);
         this.graph.addEventListener('edge-removed', this.listener);
         this.graph.addEventListener('edge-added', this.listener);
     }
 
     detach() {
+        this.graph.removeEventListener('node-added', this.listener);
         this.graph.removeEventListener('node-removed', this.listener);
+        this.graph.removeEventListener('default-added', this.listener);
         this.graph.removeEventListener('edge-removed', this.listener);
         this.graph.removeEventListener('edge-added', this.listener);
     }

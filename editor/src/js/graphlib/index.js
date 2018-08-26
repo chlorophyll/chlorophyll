@@ -29,7 +29,20 @@ export const NodeConfigMixin = {
                 return this.node.defaults[this.name];
             },
             set(val) {
+                // We emit an event when a new default is added.
+                //
+                // Doing the same when a default is deleted is complicated.
+                // We'd be moving to an undefined state. Currently there's ways
+                // to get into that state, such as starting a pattern with an
+                // unconnected input driving an output, but we should
+                // eventually do the work to disallow those graphs from being
+                // compiled, those instead of faithfully moving to that state.
+                const old_value = this.value;
                 this.$set(this.node.defaults, this.name, val);
+
+                if (old_value === undefined) {
+                    this.node.graph_node.graph.emit('default-added');
+                }
             }
         }
     }
