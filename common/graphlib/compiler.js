@@ -101,7 +101,7 @@ export class GraphCompiler {
 
             }
             if (node.compile) {
-                this.out.push(glsl.Comment(`node ${node.id}`));
+                this.out.push(glsl.Comment(`node ${node.id} (${node.vm.title})`));
                 node.compile(this);
                 this.out.push(glsl.Comment(`end node ${node.id}`));
             }
