@@ -28,7 +28,7 @@
                         </template>
                     </select>
                     <button @click="autolayout">Autolayout</button>
-                    <button @click="resetZoom">reset</button>
+                    <button @click="resetZoom">Reset</button>
                     <button @click="zoomToFit">Zoom to fit</button>
                 </div>
             </div>

@@ -19,31 +19,38 @@ void main() {
 
 export class PatternRunner {
     constructor(model, pattern, group, mapping) {
-        const { coord_type, mapping_type } = pattern;
         this.pattern = pattern;
         this.model = model;
-        const mapped_points = getMappedPoints(model, mapping, group, coord_type);
-
-        this.positions = convertPointCoords(mapping_type, coord_type, mapped_points);
+        this.mapping = mapping;
+        this.group = group;
         this.graph = GraphLib.graphById(pattern.stages.pixel);
 
-        this.createFBO();
+        this.refresh = () => {
+            this.positions = this.mapPositions();
+            this.createFBO();
+        };
+        this.refresh();
 
-        this.listener = () => this.createFBO();
-
-        this.graph.addEventListener('node-removed', this.listener);
-        this.graph.addEventListener('node-added', this.listener);
-        this.graph.addEventListener('default-added', this.listener);
-        this.graph.addEventListener('edge-removed', this.listener);
-        this.graph.addEventListener('edge-added', this.listener);
+        this.graph.addEventListener('node-removed', this.refresh);
+        this.graph.addEventListener('node-added', this.refresh);
+        this.graph.addEventListener('default-added', this.refresh);
+        this.graph.addEventListener('edge-removed', this.refresh);
+        this.graph.addEventListener('edge-added', this.refresh);
     }
 
     detach() {
-        this.graph.removeEventListener('node-added', this.listener);
-        this.graph.removeEventListener('node-removed', this.listener);
-        this.graph.removeEventListener('default-added', this.listener);
-        this.graph.removeEventListener('edge-removed', this.listener);
-        this.graph.removeEventListener('edge-added', this.listener);
+        this.graph.removeEventListener('node-added', this.refresh);
+        this.graph.removeEventListener('node-removed', this.refresh);
+        this.graph.removeEventListener('default-added', this.refresh);
+        this.graph.removeEventListener('edge-removed', this.refresh);
+        this.graph.removeEventListener('edge-added', this.refresh);
+    }
+
+    mapPositions() {
+        const { coord_type, mapping_type } = this.pattern;
+        const mapped_points = getMappedPoints(this.model, this.mapping, this.group, coord_type);
+
+        return convertPointCoords(mapping_type, coord_type, mapped_points);
     }
 
     createFBO() {
