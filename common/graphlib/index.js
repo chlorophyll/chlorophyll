@@ -64,6 +64,7 @@ export class GraphBase {
         this.order = [];
         this.edges_by_src = new Map(); // src -> slot -> edge list
         this.edges_by_dst = new Map(); // dst -> slot -> edge
+        this.oscillators = [];
         this.step = 0;
     }
 
@@ -139,10 +140,15 @@ export class GraphBase {
 
         this.order.push(id);
 
+        if (Ctor.is_oscillator) {
+            this.oscillators.push(node.id);
+        }
+
         this.emit('node-added', { node });
 
         return node;
     }
+
 
     removeNode(node_or_id) {
         let node;
@@ -161,7 +167,25 @@ export class GraphBase {
         let index = this.order.indexOf(node.id);
         this.order.splice(index, 1);
 
+        const oscIndex = this.oscillators.indexOf(node.id);
+        if (oscIndex !== -1) {
+            this.oscillators.splice(oscIndex, 1);
+        }
+
         this.emit('node-removed', { node });
+    }
+
+    numOscillators() {
+        return this.oscillators.length;
+    }
+
+    getOscillators() {
+        return [...this.oscillators];
+    }
+
+    // TODO: make this not linear
+    getOscillatorId(node) {
+        return this.oscillators.indexOf(node.id);
     }
 
 

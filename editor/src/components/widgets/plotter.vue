@@ -14,19 +14,17 @@
 
 import * as d3 from 'd3';
 
-const sample = 3; /* seconds */
 
 export default {
     name: 'plotter',
-    props: ['func', 'width', 'height'],
+    props: ['samples', 'sampleDomain', 'width', 'height'],
     data() {
         const x_scale = d3.scaleLinear().rangeRound([0, this.width])
-                                        .domain([0, sample]);
+                                        .domain(this.sampleDomain);
 
         const y_scale = d3.scaleLinear().rangeRound([this.height, 0])
                                         .domain([0, 1]);
         return {
-            zoom: d3.zoom().on('zoom', () => this.zoomed()),
             x_scale,
             y_scale,
         };
@@ -44,21 +42,16 @@ export default {
         },
     },
     watch: {
-        func() {
+        samples() {
             this.redraw();
         }
     },
     methods: {
-        points() {
-            const [start, end] = this.x_scale.domain();
-            const step = (end - start) / (sample*100);
-            return d3.range(start, end, step).map((t) => ({x: t, y: this.func(t)}));
-        },
         zoomed() {
             let t = d3.event.transform;
 
             const x_init = d3.scaleLinear().rangeRound([0, this.width])
-                                           .domain([0, sample]);
+                                           .domain(this.sampleDomain);
 
             this.x_scale.domain(t.rescaleX(x_init).domain());
             this.redraw();
@@ -70,7 +63,7 @@ export default {
             d3.select(this.$refs.y_axis).call(y_axis);
             d3.select(this.$refs.x_axis).call(x_axis);
 
-            d3.select(this.$refs.path).datum(this.points()).attr('d', this.line);
+            d3.select(this.$refs.path).datum(this.samples).attr('d', this.line);
         },
         resetZoom() {
             d3.select(this.$refs.g)
@@ -81,9 +74,6 @@ export default {
     },
 
     mounted() {
-        const g = d3.select(this.$refs.g);
-        g.call(this.zoom);
-        g.on('dblclick.zoom', () => this.resetZoom());
         this.redraw();
     }
 };

@@ -238,14 +238,6 @@ function makeNodeVue(graph, node, data) {
                     node.onPropertyChange();
                 }
             },
-
-            defaults: {
-                deep: true,
-                handler() {
-                    graph.emit('node-property-changed', {node});
-                    node.onPropertyChange();
-                }
-            }
         }
     });
 }

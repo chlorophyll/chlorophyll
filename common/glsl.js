@@ -10,6 +10,15 @@ export function FunctionDecl(ret_type, name, params, b) {
     };
 }
 
+export function IfStmt(expr, body) {
+    return {
+        type: 'if_stmt',
+        expr,
+        body: Scope(body),
+        no_semicolon: true,
+    };
+}
+
 export function Comment(text) {
     return {
         type: 'comment',
@@ -156,6 +165,16 @@ let generator = {
         c.line('}');
     },
 
+    if_stmt(c, node) {
+        c.emit('if (');
+        c.visit(node.expr);
+        c.emit(') {');
+        c.indent();
+        c.visit(node.body);
+        c.dedent();
+        c.line('}');
+    },
+
     binary_op(c, node) {
         if (node.lhs.parenthesize) {
             c.emit('(');
@@ -213,8 +232,11 @@ let generator = {
     },
 
     return(c, node) {
-        c.emit('return ');
-        c.visit(node.expr);
+        c.emit('return');
+        if (node.expr) {
+            c.emit(' ');
+            c.visit(node.expr);
+        }
     },
 
     function_call(c, node) {

@@ -22,7 +22,7 @@ class FrequencyNode extends GraphNode {
         options.parameters = frequency_default_parameters();
 
         let outputs = [
-            GraphNode.output('hz', 'Frequency')
+            GraphNode.output('freq', 'Frequency')
         ];
 
         super(options, inputs, outputs);
@@ -33,10 +33,8 @@ class FrequencyNode extends GraphNode {
             this.vm.parameters = frequency_default_parameters();
         }
         const qty = this.vm.parameters[0].value;
-        const c = qty.valueOf();
 
-        const newOutputs = [GraphNode.output(c, 'Frequency')];
-        this.updateIOConfig(null, newOutputs);
+        this.vm.title = `Frequency (${qty})`;
     }
 
     compile(c) {
@@ -50,8 +48,33 @@ class FrequencyNode extends GraphNode {
 FrequencyNode.title = 'Frequency';
 node_types.push(['oscillators/util/frequency', FrequencyNode]);
 
+class TimeNode extends GraphNode {
+    constructor(options) {
+        const inputs = [];
+        const outputs = [
+            GraphNode.output('t', Units.Numeric),
+        ];
+        super(options, inputs, outputs);
+    }
 
-function make_oscillator(name, waveform) {
+    compile(c) {
+        const t = glsl.BinOp(c.getGlobalInput('t'), '/', glsl.Const(60));
+        c.setOutput(this, 0, t);
+    }
+}
+
+TimeNode.title = 'Time';
+node_types.push(['oscillators/util/time', TimeNode]);
+
+function applyAmplitude(amplitude, val) {
+    const lower = glsl.Dot(amplitude, 'x');
+    const upper = glsl.Dot(amplitude, 'y');
+    const a = glsl.BinOp(upper, '-', lower);
+    return glsl.BinOp(lower, '+', glsl.BinOp(a, '*', val));
+}
+
+
+function make_oscillator(name, {new_phase, value}) {
     let Oscillator = class extends GraphNode {
         constructor(options) {
             const outputs = [GraphNode.output('result', Units.Percentage)];
@@ -76,108 +99,141 @@ function make_oscillator(name, waveform) {
 
             super(options, inputs, outputs, { config });
         }
+        // phase is stored in units of cycles (0-1)
+        new_phase(cur_phase, frequency, framerate) {
+            return new_phase(cur_phase, frequency, framerate);
+        }
 
-        waveform(frequency, amplitude, time) {
-            return waveform(frequency, amplitude, time);
+        value(cur_phase, amplitude, phase_offset) {
+            return applyAmplitude(amplitude, value(cur_phase, phase_offset));
         }
 
         compile(c) {
-            let frequency = c.getInput(this, 0);
-            let amplitude = c.getInput(this, 1);
-            let cycles = c.getInput(this, 2);
+            const oscillator_id = this.graph.getOscillatorId(this);
+            const amplitude = c.getInput(this, 1);
+            const cycles = c.getInput(this, 2);
+            const context_name = c.context ? c.context.name : null;
+            if (context_name === 'phase_update') {
+                const cur_oscillator = glsl.Ident('cur_oscillator');
+                const cur_phase = glsl.Ident('cur_phase');
+                const out_phase = glsl.Ident('out_phase');
 
-            let t = glsl.BinOp(c.getGlobalInput('t'), '/', glsl.Const(60));
+                const frequency = c.getInput(this, 0);
+                const framerate = 60;
+                const cond = glsl.BinOp(cur_oscillator, '==', glsl.Ident(oscillator_id));
+                const next_phase = this.new_phase(cur_phase, frequency, framerate);
+                const stmt = glsl.IfStmt(cond, [
+                    glsl.BinOp(out_phase, '=', next_phase),
+                    glsl.Return(),
+                ]);
+                c.out.push(stmt);
+                c.setOutput(this, 0, this.value(cur_phase, amplitude, cycles));
+            } else {
+                const num_oscillators = this.graph.numOscillators();
 
-            let sec = glsl.BinOp(glsl.Const(1.0), '/', frequency);
-            let expr = glsl.BinOp(t, '+', glsl.BinOp(cycles, '*', sec));
+                const phase_coords = glsl.FunctionCall('vec2', [
+                    glsl.Dot(glsl.Ident('vUv'), 'x'),
+                    glsl.Const((1+2*oscillator_id) / (2*num_oscillators))
+                ]);
+                const phase_tex = glsl.Ident('uCurPhase');
 
-            let phased_t = c.declare('float', c.variable(), expr);
+                const cur_phase = glsl.Dot(
+                    glsl.FunctionCall('texture2D', [phase_tex, phase_coords]),
+                    'r'
+                );
 
-            let w = waveform(frequency, amplitude, phased_t);
-            c.setOutput(this, 0, w);
+                c.setOutput(this, 0, this.value(cur_phase, amplitude, cycles));
+            }
         }
     };
-
+    Oscillator.is_oscillator = true;
     Oscillator.title = `${name} wave`;
     node_types.push([`oscillators/${name}`, Oscillator]);
 }
 
-make_oscillator('triangle', function(frequency, amplitude, t) {
+// 2.*abs(t/p - floor(t/p+0.5));
+make_oscillator('triangle', {
+    new_phase(cur_phase, frequency, framerate) {
+        const t = glsl.Const(1/framerate);
+        const p = glsl.BinOp(glsl.Const(1), '/', frequency);
+        return glsl.BinOp(cur_phase, '+', glsl.BinOp(t, '/', p));
+    },
+    value(cur_phase, phase_offset) {
+        const total_phase = glsl.BinOp(cur_phase, '+', phase_offset);
+        const t = glsl.BinOp(
+            total_phase,
+            '-',
+            glsl.FunctionCall('floor', [glsl.BinOp(total_phase, '+', glsl.Const(0.5))])
+        );
 
-    let lower = glsl.Dot(amplitude, 'x');
-    let upper = glsl.Dot(amplitude, 'y');
-
-    let a = glsl.BinOp(upper, '-', lower);
-
-    let p = glsl.BinOp(glsl.Const(1.0), '/', glsl.BinOp(glsl.Const(2.0), '*', frequency));
-
-    let triangle = glsl.BinOp(
-        glsl.BinOp(a, '/', p),
-        '*',
-        glsl.BinOp(p, '-',
-            glsl.FunctionCall('abs', [
-                glsl.BinOp(
-                    glsl.FunctionCall('mod', [t, glsl.BinOp(glsl.Const(2), '*', p)]),
-                    '-',
-                    p
-                )
-            ])
-        ));
-
-    return glsl.BinOp(lower, '+', triangle);
+        const val = glsl.FunctionCall('abs', [t]);
+        return glsl.BinOp(glsl.Const(2), '*', val);
+    }
 });
 
-make_oscillator('square', function(frequency, amplitude, t) {
-    let lower = glsl.Dot(amplitude, 'x');
-    let upper = glsl.Dot(amplitude, 'y');
+// (2*floor(f*t)-floor(2*f*t))+1
+make_oscillator('square', {
+    new_phase(cur_phase, frequency, framerate) {
+        const c = glsl.Const(1/framerate);
+        return glsl.BinOp(cur_phase, '+', glsl.BinOp(frequency, '*', c));
+    },
+    value(cur_phase, phase_offset) {
+        const t = glsl.BinOp(phase_offset, '+', cur_phase);
 
-    let p = glsl.BinOp(glsl.Const(1.0), '/', glsl.BinOp(glsl.Const(2.0), '*', frequency));
-    let cyc = glsl.FunctionCall('mod', [t, glsl.BinOp(glsl.Const(2), '*', p)]);
-
-    return glsl.TernaryOp(
-        glsl.BinOp(cyc, '<', p),
-        lower,
-        upper
-    );
+        const wf = glsl.BinOp(
+            glsl.Const(1), '+',
+            glsl.BinOp(
+                glsl.BinOp(glsl.Const(2), '*', glsl.FunctionCall('floor', [t])),
+                '-',
+                glsl.FunctionCall('floor', [glsl.BinOp(glsl.Const(2), '*', t)])
+            )
+        );
+        return wf;
+    }
 });
 
-make_oscillator('saw', function(frequency, amplitude, t) {
-    let lower = glsl.Dot(amplitude, 'x');
-    let upper = glsl.Dot(amplitude, 'y');
 
-    let a = glsl.BinOp(upper, '-', lower);
-
-    let p = glsl.BinOp(glsl.Const(1.0), '/', frequency);
-    let cyc = glsl.FunctionCall('mod', [t, p]);
-    let ratio = glsl.BinOp(cyc, '/', p);
-
-    return glsl.BinOp(lower, '+', glsl.BinOp(a, '*', ratio));
+// t - floor(t)
+make_oscillator('saw', {
+    new_phase(cur_phase, frequency, framerate) {
+        const c = glsl.Const(1/framerate);
+        return glsl.BinOp(cur_phase, '+', glsl.BinOp(frequency, '*', c));
+    },
+    value(cur_phase, phase_offset) {
+        const t = glsl.BinOp(cur_phase, '+', phase_offset);
+        return glsl.BinOp(t, '-', glsl.FunctionCall('floor', [t]));
+    }
 });
 
-make_oscillator('sine', function(frequency, amplitude, t) {
-    let lower = glsl.Dot(amplitude, 'x');
-    let upper = glsl.Dot(amplitude, 'y');
-    let a = glsl.BinOp(glsl.BinOp(upper, '-', lower), '/', glsl.Const(2.0));
-    let p = glsl.BinOp(glsl.Const(1.0), '/', frequency);
+make_oscillator('sine', {
+    new_phase(cur_phase, frequency, framerate) {
+        const c = glsl.Const(1/framerate);
+        return glsl.BinOp(cur_phase, '+', glsl.BinOp(c, '*', frequency));
+    },
 
-    let ratio = glsl.BinOp(t, '/', p);
+    value(cur_phase, phase_offset) {
+        const total_phase = glsl.BinOp(cur_phase, '+', phase_offset);
+        const t = glsl.BinOp(total_phase, '*', glsl.Const(2*Math.PI));
 
-    let waveform = glsl.FunctionCall('sin', [glsl.BinOp(ratio, '*', glsl.Const(2*Math.PI))]);
-
-    return glsl.BinOp(lower, '+', glsl.BinOp(a, '*', glsl.BinOp(waveform, '+', glsl.Const(1))));
+        const val = glsl.BinOp(glsl.Const(1.0), '+', glsl.FunctionCall('sin', [t]));
+        const scaled = glsl.BinOp(glsl.Const(0.5), '*', val);
+        return scaled;
+    }
 });
+make_oscillator('cos', {
+    new_phase(cur_phase, frequency, framerate) {
+        const c = glsl.Const(1/framerate);
+        return glsl.BinOp(cur_phase, '+', glsl.BinOp(c, '*', frequency));
+    },
 
-make_oscillator('cos', function(frequency, amplitude, t) {
-    let lower = glsl.Dot(amplitude, 'x');
-    let upper = glsl.Dot(amplitude, 'y');
-    let a = glsl.BinOp(glsl.BinOp(upper, '-', lower), '/', glsl.Const(2.0));
-    let p = glsl.BinOp(glsl.Const(1.0), '/', frequency);
+    value(cur_phase, phase_offset) {
+        const total_phase = glsl.BinOp(cur_phase, '+', phase_offset);
+        const t = glsl.BinOp(total_phase, '*', glsl.Const(2*Math.PI));
 
-    let ratio = glsl.BinOp(t, '/', p);
-
-    let waveform = glsl.FunctionCall('cos', [glsl.BinOp(ratio, '*', glsl.Const(2*Math.PI))]);
-
-    return glsl.BinOp(lower, '+', glsl.BinOp(a, '*', glsl.BinOp(waveform, '+', glsl.Const(1))));
+        const val = glsl.BinOp(glsl.Const(1.0), '+', glsl.FunctionCall('cos', [t]));
+        const scaled = glsl.BinOp(glsl.Const(0.5), '*', val);
+        return scaled;
+    }
 });
 
 export default function register_oscillator_nodes() {

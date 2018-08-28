@@ -86,6 +86,10 @@ export function createRenderer(width, height) {
     renderer.setClearColor(new THREE.Color(0x000000));
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
+    // For some GPUs, pixel reading alignment needs to be changed from 4
+    // (the default) to 1 in order to support NPO2 framebuffer textures
+    const gl = renderer.getContext();
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
     return renderer;
 }

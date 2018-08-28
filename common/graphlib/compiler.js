@@ -63,14 +63,17 @@ export class GraphCompiler {
         this.out = [];
         this.uniforms = [];
         this.id = 0;
+        this.context = null;
     }
 
     ident() {
-        return `graph${this.graph.id}`;
+        const suffix = this.context === null ? '' : '_'+this.context.name;
+        return `graph${this.graph.id}${suffix}`;
     }
 
-    compile() {
+    compile(context=null) {
         this.reset();
+        this.context = context;
         /*
         for (let {name, type} of this.graph.global_inputs.values()) {
             this.uniform(type, name);
@@ -114,6 +117,16 @@ export class GraphCompiler {
         for (const {type, name} of this.graph.global_outputs.values()) {
             let t = Compilation.glsl_type(type);
             params.push(glsl.OutParam(t, name));
+        }
+        if (this.context !== null) {
+            for (const {type, name} of this.context.inputs) {
+                const t = Compilation.glsl_type(type);
+                params.push(glsl.InParam(t, name));
+            }
+            for (const {type, name} of this.context.outputs) {
+                const t = Compilation.glsl_type(type);
+                params.push(glsl.OutParam(t, name));
+            }
         }
 
         return {
