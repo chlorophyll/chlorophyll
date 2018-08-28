@@ -3,7 +3,7 @@
  */
 const Const = {
     // UI & field sizes
-    dock_size: 250,
+    dock_size: 400,
     sidebar_size: 220,
     toolbar_size: 25,
     group_smallbutton_width: 40,
