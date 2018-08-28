@@ -1,33 +1,35 @@
 <template>
   <div class="panel group-browser">
     <h1>Groups</h1>
+    <hr>
+
+    <div class="control-row">
+      <button class="control fill"
+              :disabled="!can_create_group"
+              @click="newGroupFromSelection()">
+        New group from selection
+      </button>
+    </div>
 
     <div class="flat-list" @click="select(-1)">
       <ul>
         <li v-for="group in group_info"
             :class="{ selected: selected_gid == group.id }"
-            @click.stop="select(group.id)"
-            >
-            {{ group.name }}
-            <span class="inline-controls">
-              <div class="visibility-button">
-                <span
-                   class="material-icons"
-                   @click.stop="toggleVisibility(group)">{{ visibilityText(group) }}</span>
-              </div>
-              <colorpicker-inline
-                   :value="group.color"
-                   @input="(val) => setColor(group.id, val)" />
-            </span>
+            @click.stop="select(group.id)">
+          {{ group.name }}
+          <span class="inline-controls">
+            <div class="visibility-button">
+              <span class="material-icons"
+                    @click.stop="toggleVisibility(group)">
+                {{ visibilityText(group) }}
+              </span>
+            </div>
+            <colorpicker-inline
+                 :value="group.color"
+                 @input="(val) => setColor(group.id, val)" />
+          </span>
         </li>
       </ul>
-    </div>
-    <div class="control-row browser-button-container">
-      <button class="fill"
-              :disabled="!can_create_group"
-              @click="newGroupFromSelection()">
-        New group
-      </button>
     </div>
     <group-config v-if="selected_group" :group="selected_group" />
   </div>

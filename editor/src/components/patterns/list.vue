@@ -1,6 +1,7 @@
 <template>
   <div class="panel" id="pattern-list">
     <h1>Patterns</h1>
+    <hr>
 
     <div class="control-row" id="pattern-browser-buttons">
       <button @click="newPattern"

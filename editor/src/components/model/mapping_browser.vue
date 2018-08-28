@@ -1,15 +1,8 @@
 <template>
   <div class="panel mapping-browser">
     <h1>Mappings</h1>
+    <hr>
 
-    <div class="flat-list" @click="select(-1)">
-        <ul>
-            <li v-for="mapping in mapping_info"
-                :class="{ selected: selected_mid == mapping.id }"
-                @click.stop="select(mapping.id)"
-            >{{ mapping.name }}</li>
-        </ul>
-    </div>
     <div class="control-row">
       <button @click="newMapping" class="control fill">New mapping</button>
       <select v-model="create_mapping_type" class="control fill">
@@ -18,6 +11,15 @@
           {{ dispname }}
         </option>
       </select>
+    </div>
+
+    <div class="flat-list" @click="select(-1)">
+        <ul>
+            <li v-for="mapping in mapping_info"
+                :class="{ selected: selected_mid == mapping.id }"
+                @click.stop="select(mapping.id)"
+            >{{ mapping.name }}</li>
+        </ul>
     </div>
 
     <mapping-config v-if="selected_mapping" :mapping="selected_mapping" />
