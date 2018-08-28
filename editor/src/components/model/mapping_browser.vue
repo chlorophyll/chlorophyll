@@ -10,7 +10,7 @@
         </ul>
     </div>
     <div class="control-row">
-    <button @click="newMapping">New mapping</button>
+      <button @click="newMapping">New mapping</button>
       <select v-model="create_mapping_type" class="control fill">
         <option v-for="(dispname, type) in mapping_types"
                 v-bind:value="type">
