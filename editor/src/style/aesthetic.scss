@@ -9,6 +9,8 @@ $base-blue-2: #137CBD;
 $base-blue-3: #2B95D6;
 $base-blue-4: #48AFF0;
 
+$base-red:  #EC514E;
+
 $panel-text:  #a9a9a9;
 $panel-bg:    $base-grey;
 
@@ -40,6 +42,7 @@ $control-border-radius: 4px;
 
 $control-highlight:        $base-blue-3;
 $control-highlight-border: $base-blue-1;
+$control-highlight-warn:   $base-red;
 
 $input-bg:  darken($control-base, 15%);
 $input-border: darken($input-bg, 10%);
@@ -49,4 +52,6 @@ $inset-radius: 4px;
 
 $control-height:  24px;
 $control-vspace:  6px;
+$panel-margin:    3px;
+
 $split-gutter-size: 3px;

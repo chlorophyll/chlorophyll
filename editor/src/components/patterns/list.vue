@@ -3,6 +3,7 @@
     <split-pane direction="vertical" :initial-split="[130,null]" class="content">
       <div slot="first" id="pattern-browser-container">
         <div class="panel-header">Patterns</div>
+
         <div class="flat-list" id="pattern-browser">
           <ul>
             <li v-for="pattern in pattern_list"
@@ -12,20 +13,27 @@
             </li>
           </ul>
         </div>
+
         <div class="control-row" id="pattern-browser-buttons">
-          <button @click="newPattern">New Pattern</button>
-          <button :disabled="cur_pattern === null" @click="copyPattern">Copy Pattern</button>
+          <button @click="newPattern"
+                  class="control full-row">
+            New Pattern
+          </button>
         </div>
+
       </div>
       <div slot="second" v-if="cur_pattern !== null">
         <section>
           <div class="controls">
             <div class="control-row">
-              <label>Name</label><input type="text" v-model.lazy.trim="cur_name" />
+              <label>Name</label>
+              <input type="text" class="control"
+                     v-model.lazy.trim="cur_name" />
             </div>
+
             <div class="control-row">
               <label>Type</label>
-              <select v-model="cur_coord_type">
+              <select v-model="cur_coord_type" class="control">
                 <template v-for="(map_type_info, mapping_type) in available_coord_types">
                   <template v-for="(info, coord_type) in map_type_info.coord_types">
                     <option :value="{mapping_type, coord_type}">{{ info.name }}</option>
@@ -33,8 +41,19 @@
                 </template>
               </select>
             </div>
+            <hr>
+
+            <div class="control-row no-label">
+              <button @click="copyPattern"
+                      class="control">
+                Duplicate
+              </button>
+              <button @click="deleteCurrent"
+                      class="control small-right material-icons warn">
+                delete
+              </button>
+            </div>
           </div>
-                <button @click="deleteCurrent">Delete</button>
         </section>
       </div>
     </split-pane>

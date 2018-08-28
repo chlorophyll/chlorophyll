@@ -55,13 +55,39 @@ button:focus {
 
   .control {
     height: $control-height;
+    grid-column-start: std-divide;
+    grid-column-end: span 2;
+
+    // Fill the entire width of the grid with an element.
+    &.full-row {
+      grid-column: 1 / -1;
+    }
+
+    &.small-right {
+      grid-column: short-col / -1;
+    }
+
+    &.warn {
+      color: $control-highlight-warn;
+    }
+  }
+
+  .control-row {
+    display: flex;
+    margin: auto $panel-margin;
+
+    &.no-label {
+      .control:first-child {
+        grid-column-start: 1;
+      }
+    }
   }
 
   .controls {
-    margin: auto 3px;
+    margin: auto $panel-margin;
     display: grid;
     grid-gap: 2px;
-    grid-template-columns: minmax(6em, max-content) 1fr;
+    grid-template-columns: minmax(6em, max-content) [std-divide] 2fr [short-col] 1fr;
     padding: 5px 5px 5px 5px;
     box-shadow: inset 1px 1px 1px darken($control-group-dark, 15%);
     border-radius: $inset-radius;
@@ -73,9 +99,8 @@ button:focus {
     .control-row {
       display: contents;
 
-      // Fill the entire width of the grid
-      .full-row {
-        grid-column: 1/-1;
+      &.full-row {
+        display: flex;
       }
     }
   }
@@ -100,6 +125,7 @@ button:focus {
   }
 
   label {
+    grid-column: 1 / std-divide;
     padding-top: 0.4rem;
     text-align: right;
     padding-right: 0.5em;

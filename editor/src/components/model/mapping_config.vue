@@ -2,7 +2,7 @@
   <div id="mapping-config" class="panel">
     <section>
     <h1>
-        {{ mappingDisplayName(type) }} Mapping settings
+      Mapping settings
     </h1>
     <div class="controls">
       <div class="control-row">
