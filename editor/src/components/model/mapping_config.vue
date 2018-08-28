@@ -1,30 +1,29 @@
 <template>
   <div id="mapping-config" class="panel">
     <section>
-    <h1>
-      Mapping settings
-    </h1>
-    <div class="controls">
-      <div class="control-row">
-        <label>name</label>
-        <input type="text" v-model.lazy.trim="name" class="control">
+      <h1>Mapping settings</h1>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>name</label>
+          <input type="text" v-model.lazy.trim="name" class="control">
+        </div>
+        <div class="control-row">
+          <label>type</label>
+          <select v-model="type" class="control">
+            <option v-for="(dispname, type) in mapping_types"
+                    v-bind:value="type">
+              {{ dispname }}
+            </option>
+          </select>
+        </div>
+        <hr>
+        <div class="control-row">
+          <button @click="configure" class="control full-row">
+            Configure Mapping
+          </button>
+        </div>
       </div>
-      <div class="control-row">
-        <label>type</label>
-        <select v-model="type" class="control">
-          <option v-for="(dispname, type) in mapping_types"
-                  v-bind:value="type">
-            {{ dispname }}
-          </option>
-        </select>
-      </div>
-      <hr>
-      <div class="control-row">
-        <button @click="configure" class="control full-row">
-          Configure Mapping
-        </button>
-      </div>
-    </div>
     </section>
     <dialog-box v-if="configuring"
                 title="Configure mapping"

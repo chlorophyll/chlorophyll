@@ -1,6 +1,7 @@
 <template>
   <div class="panel mapping-browser">
-    <div class="panel-header">Mappings</div>
+    <h1>Mappings</h1>
+
     <div class="flat-list" @click="select(-1)">
         <ul>
             <li v-for="mapping in mapping_info"
@@ -74,9 +75,5 @@ export default {
 <style scoped>
 .mapping-browser .flat-list {
     height: 10em;
-}
-
-.panel-header {
-    font-size: larger;
 }
 </style>

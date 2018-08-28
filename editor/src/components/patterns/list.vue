@@ -1,8 +1,16 @@
 <template>
   <div class="panel" id="pattern-list">
+    <h1>Patterns</h1>
+
+    <div class="control-row" id="pattern-browser-buttons">
+      <button @click="newPattern"
+              class="control fill">
+        New Pattern
+      </button>
+    </div>
+
     <split-pane direction="vertical" :initial-split="[130,null]" class="content">
       <div slot="first" id="pattern-browser-container">
-        <div class="panel-header">Patterns</div>
 
         <div class="flat-list" id="pattern-browser">
           <ul>
@@ -12,13 +20,6 @@
               {{ pattern.name }}
             </li>
           </ul>
-        </div>
-
-        <div class="control-row" id="pattern-browser-buttons">
-          <button @click="newPattern"
-                  class="control full-row">
-            New Pattern
-          </button>
         </div>
 
       </div>
@@ -122,17 +123,5 @@ export default {
     display: flex;
     flex-direction: column;
     height: 100%;
-}
-
-#pattern-browser .panel-header {
-    flex: 0 0 auto;
-}
-
-#pattern-browser {
-    flex: 1;
-}
-
-#pattern-browser-buttons {
-    align-content: flex-end;
 }
 </style>

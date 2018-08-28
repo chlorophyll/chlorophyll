@@ -1,6 +1,7 @@
 <template>
   <div class="panel group-browser">
-    <div class="panel-header">Groups</div>
+    <h1>Groups</h1>
+
     <div class="flat-list" @click="select(-1)">
       <ul>
         <li v-for="group in group_info"
@@ -95,11 +96,6 @@ export default {
 </script>
 
 <style scoped>
-
-.panel-header {
-  font-size: larger;
-}
-
 .group-browser .flat-list {
     height: 10em;
 }
@@ -115,5 +111,4 @@ export default {
     vertical-align: middle;
     margin-right: 0.5em;
 }
-
 </style>
