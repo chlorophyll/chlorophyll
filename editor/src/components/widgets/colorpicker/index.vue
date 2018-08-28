@@ -1,5 +1,5 @@
 <template>
-    <div class="fill">
+  <div class="control fill">
     <input ref="input"
            :value="value"
            class="control"
@@ -11,7 +11,7 @@
            :value="value"
            @blur="active=false"
            @input="(val) => $emit('input', val)" />
-    </div>
+  </div>
 </template>
 
 <script>
