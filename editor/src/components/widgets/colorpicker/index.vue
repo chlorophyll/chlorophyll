@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="fill">
     <input ref="input"
            :value="value"
            class="control"
@@ -47,6 +47,4 @@ export default {
 </script>
 
 <style scoped>
-input {
-}
 </style>

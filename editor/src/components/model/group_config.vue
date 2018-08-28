@@ -10,7 +10,7 @@
         </div>
         <div class="control-row">
           <label>color</label>
-          <colorpicker-input v-model="color" class="control"/>
+          <colorpicker-input v-model="color" />
         </div>
       </div>
     </section>
