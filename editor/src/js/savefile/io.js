@@ -5,7 +5,7 @@ import * as concatStream from 'concat-stream';
 import { remote } from 'electron';
 import schemas, { SchemaDefs } from 'chl/schemas';
 
-import { importNewModel } from 'chl/model';
+import { importNewModel, modelPreview } from 'chl/model';
 
 import store from 'chl/vue/store';
 
@@ -30,7 +30,7 @@ export function writeSavefile(path) {
 
     let fstream = fs.createWriteStream(path);
     fstream.on('close', () => {
-        pushRecentFile(path);
+        pushRecentFile(path, {preview: out.model});
         store.commit('set_current_save_path', path);
     });
 
@@ -48,7 +48,7 @@ function stringStream(next, cb) {
     });
 }
 
-function restoreSave(path, version, content) {
+function validateSave(path, version, content) {
     const msg = `${path} is not a valid Chlorophyll project file.`;
 
     let obj;
@@ -74,41 +74,58 @@ function restoreSave(path, version, content) {
         throw new Error(msg);
     }
 
-    restoreSaveObject(obj);
+    return obj;
+
 }
 
-export function readSavefile(path) {
-    let extract = tar.extract();
-    let content = '';
-    let version = undefined;
-    extract.on('entry', (header, stream, next) => {
-        if (header.name == 'version') {
-            stream.pipe(stringStream(next, (val) => {
-                version = val;
-            }));
-        } else if (header.name == 'data') {
-            stream.pipe(stringStream(next, (val) => {
-                content = val;
-            }));
-        }
-    });
+function readSaveFileAsync(path) {
+    return new Promise(function(resolve, reject) {
+        let extract = tar.extract();
+        let content = '';
+        let version = undefined;
+        extract.on('entry', (header, stream, next) => {
+            if (header.name == 'version') {
+                stream.pipe(stringStream(next, (val) => {
+                    version = val;
+                }));
+            } else if (header.name == 'data') {
+                stream.pipe(stringStream(next, (val) => {
+                    content = val;
+                }));
+            }
+        });
 
-    extract.on('error', (err) => {
-        remote.dialog.showErrorBox('Error opening file', err.message);
-    });
+        extract.on('error', (err) => {
+            reject(err);
+        });
 
-    extract.on('finish', () => {
-        try {
-            restoreSave(path, version, content);
-            pushRecentFile(path);
-            store.commit('set_current_save_path', path);
-        } catch (err) {
-            extract.emit('error', err);
-            console.error(err);
-        }
+        extract.on('finish', () => {
+            try {
+                resolve({version, content});
+            } catch (err) {
+                reject(err);
+            }
+        });
+        fs.createReadStream(path).pipe(extract);
     });
+}
 
-    fs.createReadStream(path).pipe(extract);
+export async function test() {
+    return 1;
+}
+
+export async function readSavefile(path) {
+    const {version, content} = await readSaveFileAsync(path);
+    const obj = validateSave(path, version, content);
+    restoreSaveObject(obj);
+    pushRecentFile(path, {preview: obj.model});
+    store.commit('set_current_save_path', path);
+}
+
+export async function previewSavefile(path) {
+    const {version, content} = await readSaveFileAsync(path);
+    const obj = validateSave(path, version, content);
+    return modelPreview(obj);
 }
 
 function importModelFile(path) {

@@ -26,7 +26,7 @@ import Const, { ConstMixin } from 'chl/const';
 import Util from 'chl/util';
 import store, { newgid } from 'chl/vue/store';
 import { currentModel } from 'chl/model';
-import viewports from 'chl/viewport';
+import viewports, {createRenderer, createCamera} from 'chl/viewport';
 
 import SplitPane from '@/components/widgets/split';
 import Toolbox from '@/components/tools/toolbox';
@@ -94,7 +94,6 @@ export default {
 
         this.active = true;
         this.controlsEnabled = true;
-
         viewports.addViewport(this.label, this);
 
         this.resizeDebounce = debounce(this.updateSize, 100);
@@ -125,29 +124,14 @@ export default {
         },
 
         initRenderer() {
-            this.renderer = new THREE.WebGLRenderer({antialias: true});
-            this.renderer.setClearColor(new THREE.Color(0x000000));
-            this.renderer.setPixelRatio(window.devicePixelRatio);
-            this.renderer.setSize(this.width, this.height);
+            this.renderer = createRenderer(this.width, this.height);
         },
 
         initCamera() {
+            this.camera = createCamera(this.projection);
             /*
              * TODO instantiate both, then just flip between them as necessary.
              */
-            if (this.projection === 'perspective') {
-                this.camera = new THREE.PerspectiveCamera(
-                    45, this.width / this.height,
-                    1, Const.max_draw_dist);
-            } else {
-                this.camera = new THREE.OrthographicCamera(
-                    this.width / -2, this.width / 2,
-                    this.height / 2, this.height / -2,
-                    1, Const.max_draw_dist);
-                this.camera.zoom /= 2;
-            }
-            this.camera.position.z = 1000;
-            this.camera.updateProjectionMatrix();
         },
 
         initControls() {

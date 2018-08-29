@@ -3,6 +3,20 @@
   <head>
     <meta charset="utf-8">
     <title>chlorophyll</title>
+    <style>
+#logo {
+    margin-top: 22px;
+    padding: 2em;
+}
+
+#logo div {
+    margin: -1px auto;
+    width: 500px;
+}
+
+#logo img {
+}
+</style>
     <% if (htmlWebpackPlugin.options.nodeModules) { %>
       <!-- Add `node_modules/` to global paths so `require` works properly in development -->
       <script>
@@ -11,12 +25,17 @@
     <% } %>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+        <div id="logo">
+            <div>
+                <img src="imgs/chlorophyll-logo.svg" />
+            </div>
+        </div>
+    </div>
     <!-- Set `__static` path to static files in production -->
     <script>
       if (process.env.NODE_ENV !== 'development') window.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
     </script>
-
     <!-- webpack builds are automatically injected -->
   </body>
 </html>

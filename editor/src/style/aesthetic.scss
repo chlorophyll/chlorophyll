@@ -2,6 +2,7 @@
  * Defined consistent colors, spacings, etc.
  */
 
+
 $base-grey: #2e3030;
 
 $base-blue-1: #106BA3;
@@ -55,3 +56,9 @@ $control-vspace:  6px;
 $panel-margin:    3px;
 
 $split-gutter-size: 3px;
+
+/* note:
+ *index.ejs hard-codes this value to get the logo to match up with the
+ * vue controlled component.
+*/
+$darwin-titlebar-height: 22px;

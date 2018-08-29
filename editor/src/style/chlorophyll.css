@@ -10,7 +10,8 @@ body {
   width: 100vw;
   color: #ddd;
   margin: 0;
-  background-color: black;
+  background-color: #2e3030;
+  user-select: none;
 }
 
 a {

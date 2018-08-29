@@ -3,7 +3,7 @@ import 'three-examples/controls/OrbitControls';
 import keyboardJS from 'keyboardjs';
 import store from 'chl/vue/store';
 import Util from 'chl/util';
-
+import Const from 'chl/const';
 import Hotkey from 'chl/keybindings';
 
 /*
@@ -74,12 +74,39 @@ export function mainViewport() {
 
 keyboardJS.withContext('global', function() {
     keyboardJS.bind(Hotkey.reset_camera, function() {
-        if (mainViewport() !== undefined) {
+        if (mainViewport() !== null) {
             Util.alignWithVector(new THREE.Vector3(0, 0, 1),
                 mainViewport().camera);
         }
     });
 });
+
+export function createRenderer(width, height) {
+    const renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setClearColor(new THREE.Color(0x000000));
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(width, height);
+
+    return renderer;
+}
+
+export function createCamera(projection, width, height) {
+    let camera;
+    if (projection === 'perspective') {
+        camera = new THREE.PerspectiveCamera(
+            45, width / height,
+            1, Const.max_draw_dist);
+    } else {
+        camera = new THREE.OrthographicCamera(
+            width / -2, width / 2,
+            height / 2, height / -2,
+            1, Const.max_draw_dist);
+        camera.zoom /= 2;
+    }
+    camera.position.z = 1000;
+    camera.updateProjectionMatrix();
+    return camera;
+}
 
 export const ViewportMixin = {
     methods: {

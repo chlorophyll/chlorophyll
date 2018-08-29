@@ -402,3 +402,7 @@ registerSaveField('model', {
         setCurrentModel(new Model(model_json));
     }
 });
+
+export function modelPreview(save_object) {
+    return new Model(save_object.model);
+}

@@ -20,9 +20,10 @@ function createWindow() {
    */
   mainWindow = new BrowserWindow({
     width: 1280,
-    height: 720,
+    height: 800,
     useContentSize: true,
     darkTheme: process.platform === 'linux',
+    titleBarStyle: 'hidden',
     webPreferences: {
       experimentalFeatures: true,
     }

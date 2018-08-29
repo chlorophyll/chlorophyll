@@ -1,4 +1,5 @@
 <template>
+    <div>
     <split-pane direction="vertical" :initial-split="[null, Const.dock_size]" class="root">
         <split-pane slot="first"
                     direction="horizontal"
@@ -30,6 +31,7 @@
             <tab title="Sequencer"><timeline-sequencer /></tab>
         </tab-set>
     </split-pane>
+    </div>
 </template>
 
 <script>
@@ -71,6 +73,11 @@ export default {
         Tab,
         Viewport,
     },
+    computed: {
+        is_darwin() {
+            return process.platform == 'darwin';
+        },
+    },
 };
 </script>
 
@@ -82,4 +89,6 @@ export default {
 .dock {
     overflow: hidden;
 }
+
+
 </style>
