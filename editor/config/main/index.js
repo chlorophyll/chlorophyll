@@ -22,6 +22,7 @@ function createWindow() {
     width: 1280,
     height: 720,
     useContentSize: true,
+    darkTheme: process.platform === 'linux',
     webPreferences: {
       experimentalFeatures: true,
     }
