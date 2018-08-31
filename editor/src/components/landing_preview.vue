@@ -1,7 +1,7 @@
 <template>
     <div class="preview">
         <canvas v-show="this.preview !== null" ref="canvas" :width="width" :height="height" />
-        <spinner v-if="this.preview === null" class="spinner" />
+        <spinner v-if="show_spinner" class="spinner" />
     </div>
 </template>
 
@@ -19,7 +19,14 @@ export default {
     data() {
         return {
             preview: null,
+            preview_unavailable: false,
         };
+    },
+
+    computed: {
+        show_spinner() {
+            return this.preview === null && !this.preview_unavailable;
+        }
     },
 
     watch: {
@@ -38,6 +45,11 @@ export default {
                 this.preview = model;
             });
         }
+        setTimeout(() => {
+            if (this.preview === null) {
+                this.preview_unavailable = true;
+            }
+        }, 2500);
     },
 };
 </script>
