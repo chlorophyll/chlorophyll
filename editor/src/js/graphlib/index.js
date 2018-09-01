@@ -54,7 +54,7 @@ export const NodeConfigMixin = {
                 this.$set(this.node.defaults, this.name, val);
 
                 if (old_value === undefined) {
-                    this.node.graph_node.graph.emit('default-added');
+                    this.node.graph_node.graph.emit('node-default-added');
                 }
             }
         }
@@ -234,14 +234,16 @@ function makeNodeVue(graph, node, data) {
             parameters: {
                 deep: true,
                 handler() {
-                    return node.onPropertyChange();
+                    graph.emit('node-property-changed', {node});
+                    node.onPropertyChange();
                 }
             },
 
             defaults: {
                 deep: true,
                 handler() {
-                    return node.onPropertyChange();
+                    graph.emit('node-property-changed', {node});
+                    node.onPropertyChange();
                 }
             }
         }

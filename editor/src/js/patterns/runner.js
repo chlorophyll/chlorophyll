@@ -17,6 +17,15 @@ void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }`;
 
+const GRAPH_EVENTS = [
+    'node-removed',
+    'node-added',
+    'node-property-changed',
+    'node-default-added',
+    'edge-removed',
+    'edge-added',
+];
+
 export class PatternRunner {
     constructor(model, pattern, group, mapping) {
         this.pattern = pattern;
@@ -30,20 +39,16 @@ export class PatternRunner {
             this.createFBO();
         };
         this.refresh();
+        for (const event of GRAPH_EVENTS) {
+            this.graph.addEventListener(event, this.refresh);
+        }
 
-        this.graph.addEventListener('node-removed', this.refresh);
-        this.graph.addEventListener('node-added', this.refresh);
-        this.graph.addEventListener('default-added', this.refresh);
-        this.graph.addEventListener('edge-removed', this.refresh);
-        this.graph.addEventListener('edge-added', this.refresh);
     }
 
     detach() {
-        this.graph.removeEventListener('node-added', this.refresh);
-        this.graph.removeEventListener('node-removed', this.refresh);
-        this.graph.removeEventListener('default-added', this.refresh);
-        this.graph.removeEventListener('edge-removed', this.refresh);
-        this.graph.removeEventListener('edge-added', this.refresh);
+        for (const event of GRAPH_EVENTS) {
+            this.graph.removeEventListener(event, this.refresh);
+        }
     }
 
     mapPositions() {
