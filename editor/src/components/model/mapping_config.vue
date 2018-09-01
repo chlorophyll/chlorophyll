@@ -18,9 +18,13 @@
           </select>
         </div>
         <hr>
-        <div class="control-row">
-          <button @click="configure" class="control full-row">
+        <div class="control-row no-label">
+          <button @click="configure" class="control">
             Configure Mapping
+          </button>
+          <button @click="deleteCurrent"
+                  class="control small-right material-icons warn">
+            delete
           </button>
         </div>
       </div>
@@ -110,6 +114,9 @@ export default {
             }
             this.configuring = false;
             this.working_settings = {};
+        },
+        deleteCurrent() {
+            this.$store.commit('mapping/delete', this.mapping);
         }
     }
 };
