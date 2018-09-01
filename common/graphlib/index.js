@@ -493,10 +493,12 @@ export class GraphNode {
         };
     }
 
-    static parameter(name, type) {
+    // User-facing config values not used by shaders themselves
+    static parameter(name, type, value) {
         return {
             name,
-            type
+            type,
+            value,
         };
     }
 
@@ -529,13 +531,6 @@ export class GraphNode {
                 defaults[input.name] = properties[input.name];
         });
 
-        // User-facing config values not used by shaders themselves
-        const params_vm = parameters.map(param => {
-            if (param.name in properties)
-                return {...param, value: properties[param.name]};
-            else
-                return param;
-        });
 
         let cfg = {...DEFAULT_CONFIG, ...config};
 
@@ -544,7 +539,7 @@ export class GraphNode {
             pos,
             inputs: input_vm,
             outputs: output_vm,
-            parameters: params_vm,
+            parameters,
             defaults,
             config: cfg
         });

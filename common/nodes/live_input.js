@@ -7,20 +7,15 @@ const oscTypeDescs = ['', 'Float', 'Color'];
 
 class LiveInput extends GraphNode {
     constructor(options) {
+        const default_arg_type = new Enum(supportedOscTypes, null, oscTypeDescs);
         options.parameters = [
-            GraphNode.parameter('osc_address', 'string'),
-            GraphNode.parameter('argument_type', 'Enum'),
+            GraphNode.parameter('osc_address', 'string', ''),
+            GraphNode.parameter('argument_type', 'Enum', default_arg_type),
         ];
-
-        options.properties = {
-            osc_address: '',
-            argument_type: new Enum(supportedOscTypes, null, oscTypeDescs),
-            ...options.properties
-        };
 
         // Generate outputs based on the current argument configuration.
         const outputs = [];
-        const argType = options.properties.argument_type.valueOf();
+        const argType = default_arg_type.valueOf();
         if (argType !== null)
             outputs.push(Signal.oscToGraphType(argType));
 
