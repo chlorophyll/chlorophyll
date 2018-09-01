@@ -1,7 +1,8 @@
 <template>
+<div class="dialog-container">
 <div v-show="show"
      class="dialog-box"
-     v-bind:style="{ left: `${x}px`, top: `${y}px`, width }">
+     v-bind:style="{ transform: `translate(${x}px, ${y}px)`, width }">
     <div class="title drag-handle" @mousedown="startDrag">
         {{ title }}
     </div>
@@ -18,6 +19,7 @@
         </button>
     </div>
     </div>
+</div>
 </div>
 </template>
 
@@ -92,13 +94,24 @@ export default {
             document.removeEventListener('mouseup', this.endDrag);
         }
 
-    }
+    },
 };
 </script>
 
-<style scoped>
-.dialog-box {
+<style scoped lang="scss">
+@import "~@/style/aesthetic.scss";
+.platform-darwin .dialog-container {
+    margin-top: $darwin-titlebar-height;
+}
+.dialog-container {
     position: fixed;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 100;
+    top: 0;
+    left: 0;
+}
+.dialog-box {
     width: 100%;
     height: auto;
     min-width: 100px;

@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <div class="header" :class="{realign: !is_osx}">
+        <div class="header">
         <div><img src="~@/assets/chlorophyll-logo.svg" /></div>
     </div>
     <div class="fade-in">
@@ -64,9 +64,6 @@ export default {
         },
         preview_height() {
             return PREVIEW_HEIGHT;
-        },
-        is_osx() {
-            return process.platform === 'darwin';
         },
     },
 
@@ -137,7 +134,9 @@ ul {
         width: 500px;
         height: 200px;
     }
-
+}
+.platform-darwin .header div {
+    margin-top: -$darwin-titlebar-height;
 }
 
 .preview {
@@ -178,8 +177,5 @@ ul {
     }
 }
 
-.realign {
-    margin-top: $darwin-titlebar-height - 1px;
-}
 
 </style>

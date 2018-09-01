@@ -1,6 +1,6 @@
 <template>
-    <div class="container">
-      <div v-if="is_darwin" class="darwin-drag-region">
+    <div class="container" :class="[platform]">
+      <div v-if="platform == 'platform-darwin'" class="darwin-drag-region">
           <template v-if="has_current_model">
           <div>
               <span class="material-icons">insert_drive_file</span>
@@ -32,8 +32,8 @@ export default {
         current_state() {
             return this.has_current_model ? 'app' : 'landing';
         },
-        is_darwin() {
-            return process.platform === 'darwin';
+        platform() {
+            return `platform-${process.platform}`;
         },
         titlebar_text() {
             return `${this.current_save_path} - Chlorophyll`;
@@ -75,5 +75,6 @@ export default {
 
 .main {
     flex: auto;
+    overflow: hidden;
 }
 </style>

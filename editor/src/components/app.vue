@@ -73,11 +73,6 @@ export default {
         Tab,
         Viewport,
     },
-    computed: {
-        is_darwin() {
-            return process.platform == 'darwin';
-        },
-    },
 };
 </script>
 
