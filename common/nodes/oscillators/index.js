@@ -2,16 +2,24 @@ import Range from '@/common/util/range';
 import Units from '@/common/units';
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import * as glsl from '@/common/glsl';
+import Enum from '@/common/util/enum';
 
-import Frequency from './util';
+import Frequency, { FrequencyQuantities, compileQuantities } from './util';
 
 let node_types = [];
+function frequency_default_parameters() {
+    return [
+        GraphNode.parameter('qty', 'Enum', new Enum(FrequencyQuantities, 'hz')),
+    ];
+}
 
 class FrequencyNode extends GraphNode {
     constructor(options) {
         let inputs = [
             GraphNode.input('value', Units.Numeric),
         ];
+
+        options.parameters = frequency_default_parameters();
 
         let outputs = [
             GraphNode.output('hz', 'Frequency')
@@ -20,9 +28,22 @@ class FrequencyNode extends GraphNode {
         super(options, inputs, outputs);
     }
 
+    onPropertyChange() {
+        if (this.vm.parameters.length === 0) {
+            this.vm.parameters = frequency_default_parameters();
+        }
+        const qty = this.vm.parameters[0].value;
+        const c = qty.valueOf();
+
+        const newOutputs = [GraphNode.output(c, 'Frequency')];
+        this.updateIOConfig(null, newOutputs);
+    }
+
     compile(c) {
-        const v = c.getInput(this, 0);
-        c.setOutput(this, 0, v);
+        const qty = this.vm.parameters[0].value;
+        const val = c.getInput(this, 0);
+        const hz = compileQuantities[qty](val);
+        c.setOutput(this, 0, hz);
     }
 }
 

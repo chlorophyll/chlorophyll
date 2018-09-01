@@ -3,7 +3,7 @@
         <label>{{ name }}</label>
         <div class="control">
             <select v-model="quantity">
-                <template v-for="qty in value.quantities">
+                <template v-for="qty in quantities">
                     <option :value="qty">{{ qty }}</option>
                 </template>
             </select>
@@ -15,6 +15,7 @@
 <script>
 import { NodeConfigMixin } from 'chl/graphlib';
 import NumericInput from '@/components/widgets/numeric_input';
+import { FrequencyQuantities } from '@/common/nodes/oscillators/util';
 
 export default {
     name: 'graph-type-frequency',
@@ -39,6 +40,9 @@ export default {
             set(val) {
                 this.value.display_qty = val;
             }
+        },
+        quantities() {
+            return FrequencyQuantities;
         },
         dragscale() {
 

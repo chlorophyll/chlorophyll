@@ -1,6 +1,21 @@
 import { addSerializableType } from '@/common/util/serialization';
 import { Compilation } from '@/common/graphlib/compiler';
+import * as glsl from '@/common/glsl';
 import _ from 'lodash';
+
+export const FrequencyQuantities = ['hz', 'bpm', 'sec'];
+
+export const compileQuantities = {
+    bpm(v) {
+        return glsl.BinOp(v, '/', glsl.Const(60));
+    },
+    sec(v) {
+        return glsl.BinOp(glsl.Const(1), '/', v);
+    },
+    hz(v) {
+        return v;
+    },
+};
 
 export default class Frequency {
     constructor(hz, display_qty='hz') {
@@ -49,10 +64,6 @@ export default class Frequency {
             const {frequency, display_qty} = val;
             return new Frequency(frequency, display_qty);
         }
-    }
-
-    get quantities() {
-        return ['hz', 'sec', 'bpm'];
     }
 
     valueOf() {
