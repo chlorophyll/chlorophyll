@@ -553,11 +553,19 @@ export class GraphNode {
     updateIOConfig(inputs, outputs) {
         if (inputs) {
             this.input_info = inputs.map(({name, type}) => ({name, type, src: null}));
+            const old_states = this.vm.inputs.map(({state}) => state);
+            for (const [i, state] of old_states.entries()) {
+                inputs[i].state = state;
+            }
             this.vm.inputs = inputs.map(({ state, settings }) => ({state, settings}));
         }
 
         if (outputs) {
             this.output_info = outputs.map(({name, type}) => ({name, type}));
+            const old_states = this.vm.outputs.map(({state}) => state);
+            for (const [i, state] of old_states.entries()) {
+                outputs[i].state = state;
+            }
             this.vm.outputs = outputs.map(({ state, settings }) => ({state, settings}));
             this.outgoing_data = [];
         }
