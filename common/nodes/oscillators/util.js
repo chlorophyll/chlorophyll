@@ -1,14 +1,15 @@
 import { addSerializableType } from '@/common/util/serialization';
 import { Compilation } from '@/common/graphlib/compiler';
+import _ from 'lodash';
 
 export default class Frequency {
-    constructor(hz) {
+    constructor(hz, display_qty='hz') {
         this.frequency = hz;
-        this.display_qty = 'hz';
+        this.display_qty = display_qty;
     }
 
     serialize() {
-        return this.frequency;
+        return {frequency: this.frequency, display_qty: this.display_qty};
     }
 
     get bpm() {
@@ -41,8 +42,13 @@ export default class Frequency {
         };
     }
 
-    static deserialize(hz) {
-        return new Frequency(hz);
+    static deserialize(val) {
+        if (_.isNumber(val)) {
+            return new Frequency(val);
+        } else {
+            const {frequency, display_qty} = val;
+            return new Frequency(frequency, display_qty);
+        }
     }
 
     get quantities() {
