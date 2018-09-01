@@ -66,11 +66,13 @@ class LiveInput extends GraphNode {
     }
 
     compile(c) {
-        this.output_info.forEach(({name, type}, i) => {
-            const signalName = this.signal.ident;
-            c.uniform(type, signalName, () => this.signal.getValue());
-            c.setOutput(this, i, c.getGlobalInput(signalName));
-        });
+        if (this.signal !== null) {
+            this.output_info.forEach(({name, type}, i) => {
+                const signalName = this.signal.ident;
+                c.uniform(type, signalName, () => this.signal.getValue());
+                c.setOutput(this, i, c.getGlobalInput(signalName));
+            });
+        }
     }
 }
 LiveInput.title = 'Live input';
