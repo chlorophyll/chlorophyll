@@ -346,13 +346,6 @@ export class GraphBase {
         return this.nodes.get(node_id);
     }
 
-    runStep() {
-        this.step++;
-        for (let id of this.order) {
-            this.getNodeById(id).onExecute();
-        }
-    }
-
     forEachNode(f) {
         for (let id of this.order) {
             f(this.getNodeById(id));
@@ -567,8 +560,6 @@ export class GraphNode {
             defaults,
             config: cfg
         });
-
-        this.outgoing_data = [];
     }
 
     /*
@@ -591,7 +582,6 @@ export class GraphNode {
                 outputs[i].state = state;
             }
             this.vm.outputs = outputs.map(({ state, settings }) => ({state, settings}));
-            this.outgoing_data = [];
         }
     }
 
@@ -605,53 +595,6 @@ export class GraphNode {
     defaultForSlot(slot) {
         const { name } = this.input_info[slot];
         return this.vm.defaults[name];
-    }
-
-    getOutgoingData(slot) {
-        const { type } = this.output_info[slot];
-        const {step, data} = this.outgoing_data[slot];
-        let out = { data, type };
-        return this.graph.step == step ? out : undefined;
-    }
-
-    _isConvertible(outgoing, type) {
-        return outgoing.type && outgoing.type.isUnit && type && type.isUnit;
-    }
-
-    getInputData(slot) {
-        const { autoconvert } = this.vm.inputs[slot].settings;
-        const { type, src } = this.input_info[slot];
-
-        let data = undefined;
-
-        if (src) {
-            let outgoing = src.node.getOutgoingData(src.slot);
-
-            if (autoconvert && this._isConvertible(outgoing, type)) {
-                data = Units.convert(outgoing.data, outgoing.type, type);
-            } else {
-                data = outgoing.data;
-            }
-        }
-
-        if (data == undefined) {
-            data = this.defaultForSlot(slot);
-        }
-
-        return data;
-    }
-
-    setOutputData(slot, data) {
-        const { type } = this.output_info[slot];
-        let Ctor = type;
-        if (data && type && type.isUnit && !Ctor.isPrototypeOf(data)) {
-            data = new Ctor(data.valueOf());
-        }
-        this.outgoing_data[slot] = {data, step: this.graph.step};
-    }
-
-    clearOutputData() {
-        this.outgoing_data = [];
     }
 
     setPosition(x, y) {
