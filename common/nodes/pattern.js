@@ -299,3 +299,26 @@ export default function register_pattern_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };
 
+class LerpNode extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('from', Units.Numeric),
+            GraphNode.input('to', Units.Numeric),
+            GraphNode.input('pct', Units.Percentage),
+        ];
+
+        const outputs = [
+            GraphNode.output('result', Units.Numeric)
+        ];
+        super(options, inputs, outputs);
+    }
+    compile(c) {
+        const a = c.getInput(this, 0);
+        const b = c.getInput(this, 1);
+        const x = c.getInput(this, 2);
+
+        c.setOutput(this, 0, glsl.FunctionCall('mix', [a, b, x]));
+    }
+}
+LerpNode.title = 'Lerp';
+node_types.push(['util/lerp', LerpNode]);
