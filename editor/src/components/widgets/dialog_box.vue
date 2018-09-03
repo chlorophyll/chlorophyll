@@ -110,6 +110,7 @@ export default {
     z-index: 100;
     top: 0;
     left: 0;
+    pointer-events: none;
 }
 .dialog-box {
     width: 100%;
@@ -119,6 +120,7 @@ export default {
     overflow: show;
     display: block;
     z-index: 100;
+    pointer-events:auto;
 }
 
 .content {
