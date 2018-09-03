@@ -113,6 +113,7 @@ function make_oscillator(name, {new_phase, value}) {
             const amplitude = c.getInput(this, 1);
             const cycles = c.getInput(this, 2);
             const context_name = c.context ? c.context.name : null;
+            let phase_texture = 'uCurPhase';
             if (context_name === 'phase_update') {
                 const cur_oscillator = glsl.Ident('cur_oscillator');
                 const cur_phase = glsl.Ident('cur_phase');
@@ -127,23 +128,22 @@ function make_oscillator(name, {new_phase, value}) {
                     glsl.Return(),
                 ]);
                 c.out.push(stmt);
-                c.setOutput(this, 0, this.value(cur_phase, amplitude, cycles));
-            } else {
-                const num_oscillators = this.graph.numOscillators();
-
-                const phase_coords = glsl.FunctionCall('vec2', [
-                    glsl.Dot(glsl.Ident('vUv'), 'x'),
-                    glsl.Const((1+2*oscillator_id) / (2*num_oscillators))
-                ]);
-                const phase_tex = glsl.Ident('uCurPhase');
-
-                const cur_phase = glsl.Dot(
-                    glsl.FunctionCall('texture2D', [phase_tex, phase_coords]),
-                    'r'
-                );
-
-                c.setOutput(this, 0, this.value(cur_phase, amplitude, cycles));
+                phase_texture = 'tPrev';
             }
+            const num_oscillators = this.graph.numOscillators();
+
+            const phase_coords = glsl.FunctionCall('vec2', [
+                glsl.Dot(glsl.Ident('vUv'), 'x'),
+                glsl.Const((1+2*oscillator_id) / (2*num_oscillators))
+            ]);
+            const phase_tex = glsl.Ident(phase_texture);
+
+            const cur_phase = glsl.Dot(
+                glsl.FunctionCall('texture2D', [phase_tex, phase_coords]),
+                'r'
+            );
+
+            c.setOutput(this, 0, this.value(cur_phase, amplitude, cycles));
         }
     };
     Oscillator.is_oscillator = true;
