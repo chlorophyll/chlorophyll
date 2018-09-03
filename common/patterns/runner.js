@@ -59,9 +59,15 @@ export default class RawPatternRunner {
         const {gl} = this;
 
         for (const [idx, pos] of positions) {
-            pos.toArray(this.mappedPositions, idx*4);
-            this.mappedPositions[idx*4+3] = 1; // group mask
+            // handle either vectors and single values
+            if (pos.toArray)
+                pos.toArray(this.mappedPositions, idx*4);
+            else
+                this.mappedPositions[idx*4] = pos;
+
+            this.mappedPositions[idx*4 + 3] = 1; // group mask
         }
+
         glTrace(gl, 'before setTextureFromArray');
         const textureOptions = getFloatingPointTextureOptions(gl, this.model.num_positions, 1);
         twgl.setTextureFromArray(gl, this.uCoords, this.mappedPositions, textureOptions);

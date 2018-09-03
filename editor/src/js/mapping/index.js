@@ -123,6 +123,7 @@ export const mappingUtilsMixin = {
         mappingDisplayName(type) {
             return mappingTypes[type].display_name;
         },
+
         getGroup(id) {
             if (id in this.$store.state.pixels.groups) {
                 return this.$store.state.pixels.groups[id];
@@ -130,6 +131,7 @@ export const mappingUtilsMixin = {
                 return null;
             }
         },
+
         getMapping(id) {
             if (id in this.$store.state.mapping.mappings) {
                 return this.$store.state.mapping.mappings[id];
@@ -137,6 +139,7 @@ export const mappingUtilsMixin = {
                 return null;
             }
         },
+
         copyMappingSettings(mapping) {
             return clone(mapping.settings);
         },

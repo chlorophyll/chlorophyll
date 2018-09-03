@@ -1,4 +1,5 @@
 <template>
+<div>
   <div id="mapping-config" class="panel">
     <section>
       <h1>Mapping settings</h1>
@@ -29,24 +30,25 @@
         </div>
       </div>
     </section>
-    <dialog-box v-if="configuring"
-                title="Configure mapping"
-                :width="configWidth"
-                :pos="{ x: 250, y: 100 }"
-                :show="true"
-                @close="endConfigure">
-        <component v-bind:is="mapping.type"
-                   v-model="working_settings"
-                   />
-    </dialog-box>
   </div>
+  <dialog-box v-if="configuring"
+              title="Configure mapping"
+              :width="configWidth"
+              :pos="{ x: 250, y: 100 }"
+              :show="true"
+              @close="endConfigure">
+      <component v-bind:is="mapping.type"
+                 v-model="working_settings" />
+  </dialog-box>
+</div>
 </template>
 
 <script>
 import { mappingUtilsMixin } from 'chl/mapping';
 
-import ProjectionConfig from '@/components/model/projection_config';
-import TransformConfig from '@/components/model/transform_config';
+import ProjectionConfig from './config/projection';
+import TransformConfig from './config/transform';
+import LinearConfig from './config/linear';
 
 import DialogBox from '@/components/widgets/dialog_box';
 
@@ -58,6 +60,7 @@ export default {
         DialogBox,
         'projection': ProjectionConfig,
         'transform': TransformConfig,
+        'linear': LinearConfig,
     },
 
     data() {
@@ -80,9 +83,9 @@ export default {
         type: {
             get() { return this.mapping.type; },
             set(val) {
-                this.$store.commit('mapping/update_mapping', {
+                this.$store.commit('mapping/set_mapping_type', {
                     id: this.mapping.id,
-                    props: { type: val }
+                    type: val
                 });
             }
         },

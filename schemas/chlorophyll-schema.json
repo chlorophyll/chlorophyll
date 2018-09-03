@@ -104,7 +104,7 @@
                     "color": {
                         "$ref": "#/definitions/types/color"
                     },
-					"visible": { "type": "boolean" }
+                    "visible": { "type": "boolean" }
                 },
                 "additionalProperties": false,
                 "required": ["name", "id", "color", "pixels", "visible"]
@@ -143,7 +143,7 @@
                             "settings": {
                                 "type": "object",
                                 "properties": {
-									"shape": { "type": "string" },
+                                    "shape": { "type": "string" },
                                     "position": {
                                         "$ref": "#/definitions/types/vector3"
                                     },
@@ -179,23 +179,56 @@
                                 "type": "string",
                                 "pattern": "projection"
                             },
-							"settings": {
-								"type": "object",
-								"properties": {
-									"plane_angle": {
-										"$ref": "#/definitions/types/vector2"
-									},
-									"rotation": {
-										"type": "number"
-									},
-									"origin": {
-										"$ref": "#/definitions/types/vector3"
-									}
-								},
-								"required": ["rotation", "plane_angle", "origin"],
-								"additionalProperties": false
-							}
-						}
+                            "settings": {
+                                "type": "object",
+                                "properties": {
+                                    "plane_angle": {
+                                        "$ref": "#/definitions/types/vector2"
+                                    },
+                                    "rotation": {
+                                        "type": "number"
+                                    },
+                                    "origin": {
+                                        "$ref": "#/definitions/types/vector3"
+                                    }
+                                },
+                                "required": ["rotation", "plane_angle", "origin"],
+                                "additionalProperties": false
+                            }
+                        }
+                    }
+                ]
+            },
+            "linearMapping": {
+                "allOf": [{
+                        "$ref": "#/definitions/objects/baseMapping"
+                    },
+                    {
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "pattern": "linear"
+                            },
+                            "settings": {
+                                "type": "object",
+                                "properties": {
+                                    "pixels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "number"
+                                        }
+                                    },
+                                    "groupIds": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "required": ["groupIds", "pixels"],
+                                "additionalProperties": false
+                            }
+                        }
                     }
                 ]
             },
@@ -205,6 +238,9 @@
                     },
                     {
                         "$ref": "#/definitions/objects/projectionMapping"
+                    },
+                    {
+                        "$ref": "#/definitions/objects/linearMapping"
                     }
                 ]
             },

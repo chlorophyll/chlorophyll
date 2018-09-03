@@ -32,7 +32,7 @@ import { mappingUtilsMixin } from 'chl/mapping';
 import { UniqueNameMixin } from 'chl/util';
 import store, { newgid } from 'chl/vue/store';
 
-import MappingConfig from '@/components/model/mapping_config';
+import MappingConfig from './mapping_config';
 
 export default {
     name: 'mapping-browser',

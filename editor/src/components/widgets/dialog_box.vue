@@ -103,16 +103,18 @@ export default {
 .platform-darwin .dialog-container {
     margin-top: $darwin-titlebar-height;
 }
+
 .dialog-container {
     position: fixed;
-    height: 100vh;
-    width: 100vh;
-    overflow: hidden;
+    overflow: visible;
     z-index: 100;
+    height: 0;
+    width: 0;
     top: 0;
     left: 0;
     pointer-events: none;
 }
+
 .dialog-box {
     width: 100%;
     height: auto;

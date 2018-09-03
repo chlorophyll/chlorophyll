@@ -49,7 +49,7 @@ import { currentModel } from 'chl/model';
 
 export default {
   name: 'transform-config',
-  props: ['value', 'group'],
+  props: ['value'],
   components: { VectorInput, ViewportTransformControl },
   data() {
     return {
