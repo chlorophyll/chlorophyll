@@ -28,7 +28,7 @@
         </split-pane>
         <tab-set slot="second" class="dock">
             <tab title="Pattern Editor"><pattern-editor /></tab>
-            <tab title="Sequencer"><timeline-sequencer /></tab>
+            <tab title="Playlist"><playlist-editor /></tab>
         </tab-set>
     </split-pane>
     </div>
@@ -52,14 +52,14 @@ import Tab from '@/components/widgets/tab-set/tab';
 import GroupBrowser from '@/components/model/group_browser';
 import MappingBrowser from '@/components/model/mapping_browser';
 import PatternEditor from '@/components/patterns/editor';
-import TimelineSequencer from '@/components/sequencer/timeline_sequencer';
+import PlaylistEditor from '@/components/sequencer/playlist_editor';
 import Viewport from '@/components/viewport';
 
 export default {
     name: 'app',
     mixins: [ConstMixin, HotkeyMixin],
     components: {
-        TimelineSequencer,
+        PlaylistEditor,
         Camera,
         GroupBrowser,
         MappingBrowser,

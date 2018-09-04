@@ -68,6 +68,8 @@ export default {
 .container {
     width: 100%;
     height: 100%;
+    position: relative;
+    align-items: stretch;
     display: flex;
     flex-direction: column;
     background-color: $bg-dark;
@@ -76,5 +78,6 @@ export default {
 .main {
     flex: auto;
     overflow: hidden;
+    position: relative;
 }
 </style>
