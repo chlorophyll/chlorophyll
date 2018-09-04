@@ -1,7 +1,18 @@
 <template>
-    <div class="container panel">
-        <div class="top-bar">topbar</div>
-        <div class="list-container">
+    <div class="container">
+        <div class="panel inline top-controls">
+            <div class="control-row">
+                <button class="square highlighted material-icons">
+                    {{ runText }}
+                </button>
+                <div class="square" />
+                <button class="square material-icons">skip_previous</button>
+                <button class="square material-icons">stop</button>
+                <button class="square material-icons">skip_next</button>
+
+            </div>
+        </div>
+        <div class="list-container panel">
             <div class="playlist">
                 <draggable class="draggable" v-model="playlistItems" :options="playlistOptions">
                 <playlist-item v-for="item in playlistItems" :key="item.id" :item="item" />
@@ -57,6 +68,9 @@ export default {
                     revertClone: true,
                 },
             };
+        },
+        runText() {
+            return 'play_arrow';
         }
     },
     methods: {
@@ -79,8 +93,8 @@ export default {
     align-items: stretch;
 }
 
-.top-bar {
-    flex: 0 1;
+.top-controls {
+    flex: initial;
 }
 
 .list-container {

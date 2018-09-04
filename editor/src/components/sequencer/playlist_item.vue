@@ -7,9 +7,9 @@
 </template>
 
 <script>
-import {format} from 'd3-format';
+//import * as d3 from 'd3';
 
-const padded = format('02d');
+const padded = x=>x;
 export default {
     name: 'playlist-item',
     props: ['item'],
@@ -17,10 +17,15 @@ export default {
         name() {
             return this.item.pattern.name;
         },
+        minutes() {
+            return Math.floor(this.item.duration / 60);
+        },
+        seconds() {
+            return this.item.duration % 60;
+        },
         duration() {
-            const { duration } = this.item;
-            const minutes = padded(Math.floor(duration / 60));
-            const seconds = padded(duration % 60);
+            const minutes = padded(this.minutes);
+            const seconds = padded(this.seconds);
             return `${minutes}:${seconds}`;
         }
     }
