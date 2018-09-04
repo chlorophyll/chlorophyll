@@ -51,7 +51,6 @@ export default GraphLib;
 
 export class GraphBase {
     constructor(id) {
-        console.log(this);
         this.id = id;
         graphs.set(this.id, this);
 

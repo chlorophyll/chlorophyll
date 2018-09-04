@@ -14,3 +14,7 @@ export function restoreAllPatterns(snapshot) {
     }
     return { new_patterns, new_pattern_ordering };
 }
+
+export function restorePlaylistItems(snapshot) {
+    return snapshot !== undefined ? snapshot : [];
+}

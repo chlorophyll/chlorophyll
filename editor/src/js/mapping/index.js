@@ -1,5 +1,5 @@
 import Vue from 'vue';
-
+import _ from 'lodash';
 import clone from 'clone';
 
 import store from 'chl/vue/store';
@@ -106,6 +106,18 @@ export const mappingUtilsMixin = {
         return {
             mapping_types: types
         };
+    },
+    computed: {
+        mappingsByType() {
+            const mapping_list = this.$store.getters['mapping/mapping_list'];
+            const grouped = _.groupBy(mapping_list, item => item.type);
+            for (const type in mappingTypes) {
+                if (grouped[type] === undefined) {
+                    grouped[type] = [];
+                }
+            }
+            return grouped;
+        },
     },
     methods: {
         mappingDisplayName(type) {

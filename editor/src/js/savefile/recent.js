@@ -29,8 +29,6 @@ function updateWithPreviewsAsync(projects) {
     });
 }
 
-console.log(app_settings);
-
 export function getRecentProjects() {
     const schemaVersion = app_settings.get('schema_version', null);
     const recents = app_settings.get('recent_files', []);

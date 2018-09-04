@@ -6,6 +6,7 @@ import { readSavefile } from './restore';
 import { checkFramebuffer } from '@/common/util/gl_debug';
 import register_nodes from '@/common/nodes/registry';
 import PatternRunner from '@/common/patterns/runner';
+import PlaylistRunner from '@/common/patterns/playlist';
 
 import PixelPusherRegistry from 'pixelpusher-driver';
 
@@ -103,6 +104,57 @@ function runPattern(model, pattern, group, mapping) {
     requestAnimationFrame(frame);
 }
 
+function playPlaylist(model, runner) {
+    let pixels = new Float32Array(model.num_pixels * 4);
+    let prevPixels = new Float32Array(model.num_pixels * 4);
+    let prevStripBufs = undefined;
+
+    const frame = () => {
+        runner.step(pixels);
+        const stripBufs = makeStripBufs(model, pixels);
+        prevStripBufs = stripBufs;
+        [prevPixels, pixels] = [pixels, prevPixels];
+
+        pushPixels(model, stripBufs);
+        requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+}
+
+function runPlaylist(registry, state) {
+    const model = state.model;
+    const playlistItems = state.playlistItems.map(item => ({
+        id: item.id,
+        duration: item.duration,
+        mapping: state.mappings[item.mapping],
+        pattern: state.patterns[item.pattern],
+        group: state.groups[item.group],
+    }));
+    const crossfadeDuration = 5*60;
+
+
+    const runner = new PlaylistRunner({
+        gl,
+        model,
+        playlistItems,
+        crossfadeDuration,
+    });
+
+    registry.on('discovered', (controller) => {
+        addController(controller);
+        let strips_attached = 0;
+
+        for (let controller of controllers) {
+            strips_attached += controller.strips_attached;
+        }
+
+        if (strips_attached == model.num_strips) {
+            playPlaylist(model, runner);
+        }
+    });
+    registry.start();
+}
+
 function main() {
     let registry = new PixelPusherRegistry();
 
@@ -134,45 +186,50 @@ function main() {
             }
             return;
         }
-        for (const p of _.values(state.patterns)) {
-            if(p.name == argv.pattern) {
-                pattern = p;
-                break;
-            }
-        }
 
-        if (pattern === undefined) {
-            console.log(`Unknown pattern ${argv.pattern}`);
-            return;
-        }
-
-        for (let id in state.mappings) {
-            let obj = state.mappings[id];
-            if (obj.name == argv.mapping) {
-                mapping = obj;
-                break;
-            }
-        }
-
-        let group_id = state.group_list[0];
-        let group = state.groups[group_id];
-
-        if (mapping === undefined) {
-            console.log(`Unknown mapping ${argv.mapping}`);
-            return;
-        }
-        registry.on('discovered', (controller) => {
-            addController(controller);
-            let strips_attached = 0;
-
-            for (let controller of controllers) {
-                strips_attached += controller.strips_attached;
+        if (argv.playlist) {
+            runPlaylist(registry, state);
+        } else {
+            for (const p of _.values(state.patterns)) {
+                if(p.name == argv.pattern) {
+                    pattern = p;
+                    break;
+                }
             }
 
-            if (strips_attached == state.model.num_strips)
-                runPattern(state.model, pattern, group, mapping);
-        });
-        registry.start();
+            if (pattern === undefined) {
+                console.log(`Unknown pattern ${argv.pattern}`);
+                return;
+            }
+
+            for (let id in state.mappings) {
+                let obj = state.mappings[id];
+                if (obj.name == argv.mapping) {
+                    mapping = obj;
+                    break;
+                }
+            }
+
+            let group_id = state.group_list[0];
+            let group = state.groups[group_id];
+
+            if (mapping === undefined) {
+                console.log(`Unknown mapping ${argv.mapping}`);
+                return;
+            }
+            registry.on('discovered', (controller) => {
+                addController(controller);
+                let strips_attached = 0;
+
+                for (let controller of controllers) {
+                    strips_attached += controller.strips_attached;
+                }
+
+                if (strips_attached == state.model.num_strips)
+                    runPattern(state.model, pattern, group, mapping);
+            });
+            registry.start();
+        }
     }).catch((err) => {
         console.log(err);
     });

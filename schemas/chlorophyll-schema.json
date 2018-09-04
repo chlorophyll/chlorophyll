@@ -387,6 +387,26 @@
                         }
                     }
                 }
+            },
+            "playlistItem": {
+                "type": "object",
+                "properties": {
+                    "duration": {
+                        "type": "number"
+                    },
+                    "id": {
+                        "type": "number"
+                    },
+                    "pattern": {
+                        "type": "number"
+                    },
+                    "group": {
+                        "type": "number"
+                    },
+                    "mapping": {
+                        "type": "number"
+                    }
+                }
             }
         },
         "chlorophyllSavefile": {
@@ -420,6 +440,12 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/objects/graph"
+                    }
+                },
+                "playlistItems": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/objects/playlistItem"
                     }
                 }
             },
