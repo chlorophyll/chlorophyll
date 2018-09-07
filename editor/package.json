@@ -56,6 +56,7 @@
     "jquery": "^3.2.1",
     "keyboardjs": "^2.3.4",
     "lodash": "^4.17.10",
+    "numeral": "^2.0.6",
     "osc": "^2.2.4",
     "tar-stream": "^1.5.4",
     "three": "^0.96.0",

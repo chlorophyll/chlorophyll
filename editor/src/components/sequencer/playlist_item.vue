@@ -1,15 +1,15 @@
 <template>
-    <div class="playlist-item">
+    <li class="playlist-item">
         <div class="name">{{name}}</div>
         <div class="duration">{{duration}}</div>
         <div class="drag"><div class="handle"/></div>
-    </div>
+    </li>
 </template>
 
 <script>
 //import * as d3 from 'd3';
+import * as numeral from 'numeral';
 
-const padded = x=>x;
 export default {
     name: 'playlist-item',
     props: ['item'],
@@ -24,6 +24,7 @@ export default {
             return this.item.duration % 60;
         },
         duration() {
+            return numeral(this.item.duration).format('00:00');
             const minutes = padded(this.minutes);
             const seconds = padded(this.seconds);
             return `${minutes}:${seconds}`;
@@ -69,6 +70,5 @@ export default {
             width: 1em;
         }
     }
-
 }
 </style>

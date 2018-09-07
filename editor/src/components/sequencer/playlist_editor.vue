@@ -13,11 +13,11 @@
             </div>
         </div>
         <div class="list-container panel">
-            <div class="playlist">
+            <ul class="playlist">
                 <draggable class="draggable" v-model="playlistItems" :options="playlistOptions">
                 <playlist-item v-for="item in playlistItems" :key="item.id" :item="item" />
             </draggable>
-            </div>
+            </ul>
             <div class="patterns flat-list">
                 <ul>
                     <draggable v-model="pattern_list" :options="patternlistOptions" :clone="createPlaylistItem">
