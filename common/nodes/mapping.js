@@ -2,7 +2,6 @@ import { mappingTypes } from '@/common/mapping';
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import * as glsl from '@/common/glsl';
 
-
 function make_nodes(mapping_name, coord_types) {
     let node_types = [];
     for (let coord_name in coord_types) {

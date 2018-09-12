@@ -2,10 +2,9 @@
 /*
  * Debugging functions for OpenGL
  */
-export function checkFramebuffer(msg) {
+export function checkFramebuffer(gl, msg) {
     console.log('checking FBO', msg || '');
 
-    const gl = viewports.getViewport('main').renderer.getContext();
     console.log('Alignment:', gl.getParameter(gl.UNPACK_ALIGNMENT));
 
     const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
@@ -55,4 +54,20 @@ export function checkFramebuffer(msg) {
         break;
     }
 }
+const gldbg = true;
+let _glTrace;
+if (gldbg) {
+    _glTrace = function(gl, ctx) {
+        const err = gl.getError();
+        if (err != 0) {
+            console.info(`${ctx}, error=0x${err.toString(16)}`);
+        }
+        return err;
+    };
+} else {
+    _glTrace = function() {
+        return 0;
+    };
+}
 
+export const glTrace = _glTrace;

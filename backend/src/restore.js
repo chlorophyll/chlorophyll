@@ -27,7 +27,9 @@ function restoreSaveObject(obj) {
 
     state.mappings = restoreAllMappings(obj.mappings).new_mappings;
     state.patterns = restoreAllPatterns(obj.patterns).new_patterns;
-    state.groups = restoreAllGroups(obj.groups).new_groups;
+    const g = restoreAllGroups(obj.groups);
+    state.groups = g.new_groups;
+    state.group_list = g.new_group_list;
     state.model = new Model(obj.model, state.groups);
 
     restoreAllGraphs(obj.graphs);

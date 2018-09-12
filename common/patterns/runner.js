@@ -1,23 +1,12 @@
 import GraphLib from '@/common/graphlib';
-import { GraphCompiler } from '@/common/graphlib/compiler';
+import { Compilation, GraphCompiler } from '@/common/graphlib/compiler';
 import { getMappedPoints, convertPointCoords, mappingTypes } from '@/common/mapping';
 import _ from 'lodash';
 
 import * as glsl from '@/common/glsl';
-
-import {ShaderRunner} from '@/common/util/shader_runner';
+import { glTrace } from '@/common/util/gl_debug';
+import { ShaderRunner, getFloatingPointTextureOptions } from '@/common/util/shader_runner';
 import * as twgl from 'twgl.js';
-
-import viewports from 'chl/viewport';
-
-const GRAPH_EVENTS = [
-    'node-removed',
-    'node-added',
-    'node-property-changed',
-    'node-default-added',
-    'edge-removed',
-    'edge-added',
-];
 
 function extractFromTexture(target, ident, vec2, swizzle) {
     const pos = _.isArray(vec2) ? glsl.FunctionCall('vec2', vec2) : vec2;
@@ -45,15 +34,9 @@ export default class RawPatternRunner {
             this.recompile();
         };
         this.refresh();
-        for (const event of GRAPH_EVENTS) {
-            this.graph.addEventListener(event, () => this.refresh(event));
-        }
     }
 
     detach() {
-        for (const event of GRAPH_EVENTS) {
-            this.graph.removeEventListener(event, this.refresh);
-        }
         if (this.phaseUpdateStage) {
             this.phaseUpdateStage.detach();
         }
@@ -73,29 +56,29 @@ export default class RawPatternRunner {
 
     updatePositions() {
         const positions = this.mapPositions();
+        const {gl} = this;
 
         for (const [idx, pos] of positions) {
             pos.toArray(this.mappedPositions, idx*4);
             this.mappedPositions[idx*4+3] = 1; // group mask
         }
-
-        twgl.setTextureFromArray(this.gl, this.uCoords, this.mappedPositions);
+        glTrace(gl, 'before setTextureFromArray');
+        const textureOptions = getFloatingPointTextureOptions(gl, this.model.num_positions, 1);
+        twgl.setTextureFromArray(gl, this.uCoords, this.mappedPositions, textureOptions);
+        glTrace(gl, 'after setTextureFromArray');
     }
-
 
     _buildSharedTextures() {
         const width = this.model.num_pixels;
         const {gl} = this;
         this.mappedPositions = new Float32Array(width * 4);
-        this.uCoords = twgl.createTexture(gl, {
-            width,
-            height: 1,
-            format: gl.RGBA,
-            minMag: gl.NEAREST,
-            type: gl.FLOAT,
+        glTrace(gl, 'before creating uCoords texture');
+        const textureOptions = {
             src: this.mappedPositions,
-            flipY: false,
-        });
+            ...getFloatingPointTextureOptions(gl, width, 1),
+        };
+        this.uCoords = twgl.createTexture(gl, textureOptions);
+        glTrace(gl, 'after creating uCoords texture');
     }
 
     _compilePhaseUpdateStage() {
@@ -171,7 +154,9 @@ export default class RawPatternRunner {
             glsl.BinOp(
                 glsl.Dot(glsl.Ident('gl_FragColor'), 'rgb'),
                 '=',
-                glsl.FunctionCall('vec3', [glsl.Ident('new_phase')])
+                glsl.FunctionCall('vec3', [
+                    glsl.FunctionCall('fract', [glsl.Ident('new_phase')])
+                ])
             ),
             glsl.BinOp(
                 glsl.Dot(glsl.Ident('gl_FragColor'), 'a'),
@@ -198,8 +183,6 @@ export default class RawPatternRunner {
             ast,
             main
         ]));
-
-        console.log(source);
 
         // ideally, we would copy over the old texture and rearrange it
         // appropriately so that we don't get a discontinuity/phase reset when
@@ -273,6 +256,7 @@ export default class RawPatternRunner {
             ast,
             main
         ]));
+        console.log(source);
 
         this.graphUniforms = compiled.uniforms;
 
@@ -318,7 +302,7 @@ export default class RawPatternRunner {
         return this.cur_oscillators.length;
     }
 
-    step(time) {
+    step(time, pixels=null) {
         this.updateUniforms(this.pixelStage, time);
         let uCurPhase = null;
         if (this.num_oscillators > 0) {
@@ -326,11 +310,11 @@ export default class RawPatternRunner {
             const uColor = this.pixelStage.prevTexture();
             this.phaseUpdateStage.uniforms['uColor'] = uColor;
             this.phaseUpdateStage.step();
-            uCurPhase = this.phaseUpdateStage.curTexture();
+            uCurPhase = this.phaseUpdateStage.prevTexture();
         }
 
         this.pixelStage.uniforms['uCurPhase'] = uCurPhase;
-        this.pixelStage.step();
-        return this.pixelStage.curTexture();
+        this.pixelStage.step(pixels);
+        return this.pixelStage.prevTexture();
     }
 }

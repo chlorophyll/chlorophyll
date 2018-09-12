@@ -17,7 +17,7 @@ export default class Range {
     }
 
     valueOf() {
-        return [this.lower, this.upper];
+        return Float32Array.from([this.lower, this.upper]);
     }
 
     toString() {
