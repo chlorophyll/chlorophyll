@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*
  * Debugging functions for OpenGL
  */

@@ -18,7 +18,7 @@ export default {
         items: Array
     },
     beforeCreate() {
-        this.$options.components.TreeItem = require('./item.vue');
+        this.$options.components.TreeItem = require('./item.vue').default;
     },
     computed: {
         hasChildren() {

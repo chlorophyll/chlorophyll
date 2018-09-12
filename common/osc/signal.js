@@ -5,6 +5,7 @@
  * address.
  */
 import _ from 'lodash';
+import assert from 'assert';
 import Units from '@/common/units';
 import { input } from '@/common/osc';
 

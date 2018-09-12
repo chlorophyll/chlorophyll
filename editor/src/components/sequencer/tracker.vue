@@ -177,7 +177,10 @@ export default {
         zoomed() {
             let t = d3.event.transform;
 
-            const init_scale = d3.scaleLinear().rangeRound([0, this.width]).domain([...initial_domain]);
+            const init_scale = d3.scaleLinear()
+                .rangeRound([0, this.width])
+                .domain([...initial_domain]);
+
             this.domain = t.rescaleX(init_scale).domain();
         },
     }

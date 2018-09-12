@@ -1,6 +1,7 @@
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import { Compilation } from '@/common/graphlib/compiler';
 import Units from '@/common/units';
+import * as glsl from '@/common/glsl';
 
 let node_types = [];
 // vec3 hsv2rgb(vec3 c) {

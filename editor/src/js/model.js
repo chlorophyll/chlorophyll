@@ -269,7 +269,9 @@ export class Model extends ModelBase {
         this.geometry.computeBoundingSphere();
         this.geometry.computeBoundingBox();
 
-        const {x, y, z} = this.geometry.boundingBox.getSize();
+        const boxSize = new THREE.Vector3();
+        this.geometry.boundingBox.getSize(boxSize);
+        const {x, y, z} = boxSize;
         const max = Math.max(x, y, z);
 
         const factor = 750 / max;

@@ -11,7 +11,7 @@ let Util = {
     map: function(value, fromLow, fromHigh, toLow, toHigh) {
         return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
     },
-    clamp: function(val, min, max) {
+    clamp: function(val: number, min: number, max: number): number {
         if (val < min)
             val = min;
         if (val > max)
@@ -201,7 +201,9 @@ let Util = {
     }
 };
 
-Util.EventDispatcher = function() {
+export default Util;
+
+export function EventDispatcher() {
     this.addEventListener = function(type, callback) {
         if (this._listeners === undefined) {
             this._listeners = {};
@@ -240,7 +242,6 @@ Util.EventDispatcher = function() {
     };
 };
 
-export default Util;
 
 export function UniqueNameMixin(objtype, getter) {
     return {

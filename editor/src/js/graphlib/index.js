@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import Util from 'chl/util';
+import Util, { EventDispatcher } from 'chl/util';
 import {cloneDeep} from 'lodash';
 
 import { GraphLib, GraphBase } from '@/common/graphlib';
@@ -68,7 +68,7 @@ export class Graph extends GraphBase {
             id = newgid();
         }
         super(id);
-        Util.EventDispatcher.call(this);
+        EventDispatcher.call(this);
     }
 
     emit(name, detail) {

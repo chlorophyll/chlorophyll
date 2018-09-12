@@ -1,7 +1,7 @@
 import * as Serialization from '@/common/util/serialization';
 
-import Units from '@/common/units';
-
+// Avoid circular dependency between compiler and units
+import Units from '@/common/units'; // eslint-disable-line no-unused-vars
 import { GraphCompiler } from '@/common/graphlib/compiler';
 
 let node_types = new Map();
@@ -107,13 +107,10 @@ export class GraphBase {
         this.emit('global-output-added', { name, type });
     }
 
-    removeGlobalInput(name) {
-        this.global_outputs.delete(name);
-        this.emit('global-output-removed', { name });
-    }
     setGlobalOutputData(name, data) {
         this.global_outputs.get(name).data = data;
     }
+
     getGlobalOutputData(name) {
         return this.global_outputs.get(name).data;
     }

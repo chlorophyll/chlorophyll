@@ -74,7 +74,7 @@ export function crud(shortName, idMap, idList, defaultAttrs) {
       const defaults = {
         id: attrs.id,
         name: `${shortName} ${attrs.id}`,
-        ...defaultAttrs(id)
+        ...defaultAttrs(attrs.id)
       };
       Vue.set(state[idMap], attrs.id, {...defaults, ...attrs});
       state[idList].push(attrs.id);

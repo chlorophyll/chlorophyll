@@ -13,14 +13,14 @@ export function getSaveField(field) {
 
 export function createSaveObject() {
     let out = {};
-    for ([field, { save }] of _saveFields) {
+    for (let [field, { save }] of _saveFields) {
         out[field] = save();
     }
     return out;
 }
 
 export function restoreSaveObject(obj) {
-    for ([field, { restore }] of _saveFields) {
+    for (let [field, { restore }] of _saveFields) {
         restore(obj[field]);
     }
 }

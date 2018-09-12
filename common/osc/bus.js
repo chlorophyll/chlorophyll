@@ -4,6 +4,7 @@ import {Minimatch} from 'minimatch';
 import osc from 'osc';
 
 import LocalPort from './transport_local';
+import UDPPort from './transport_udp';
 import MessageBatch from './batch.js';
 import ot from './types';
 
@@ -25,7 +26,7 @@ export default class OSCBus {
     this.ports = {
       local: new LocalPort({metadata: true}),
 
-      udp: new osc.UDPPort({
+      udp: new UDPPort({
         localAddress: '0.0.0.0',
         localPort: udpPort,
         metadata: true,

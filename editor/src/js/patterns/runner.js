@@ -1,5 +1,5 @@
 import GraphLib from '@/common/graphlib';
-import { GraphCompiler } from '@/common/graphlib/compiler';
+import { GraphCompiler, Compilation } from '@/common/graphlib/compiler';
 import { getMappedPoints, convertPointCoords, mappingTypes } from '@/common/mapping';
 import _ from 'lodash';
 import * as THREE from 'three';
