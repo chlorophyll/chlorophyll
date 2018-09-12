@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "lint": "cd editor && yarn lint"
+  },
   "devDependencies": {
     "babel-plugin-module-resolver": "^3.1.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",

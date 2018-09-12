@@ -42,7 +42,7 @@
     "pack:main": "webpack --mode=production --progress --colors --config config/webpack.main.config.js",
     "pack:renderer": "webpack --mode=production --progress --colors --config config/webpack.renderer.config.js",
     "install": "electron-rebuild",
-    "postinstall": ""
+    "postinstall": "cd .. && yarn install"
   },
   "dependencies": {
     "ajv": "^6.5.3",
