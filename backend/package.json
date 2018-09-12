@@ -30,9 +30,12 @@
     "concat-stream": "^1.6.0",
     "immutable": "^3.8.2",
     "minimatch": "^3.0.4",
+    "osc": "^2.2.4",
+    "pixelpusher-driver": "^0.1.1",
     "tar-stream": "^1.5.4",
     "three": "^0.87.1",
-    "yargs": "^9.0.1",
-    "pixelpusher-driver": "^0.1.1"
+    "twgl.js": "^4.4.0",
+    "wpe-webgl": "git+https://github.com/chlorophyll/node-wpe-webgl.git",
+    "yargs": "^9.0.1"
   }
 }

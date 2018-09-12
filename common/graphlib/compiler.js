@@ -232,7 +232,3 @@ export class GraphCompiler {
         this.declare(type, this.output(node, slot), val);
     }
 };
-
-window.GraphCompiler = GraphCompiler;
-window.glsl = glsl;
-window.Compilation = Compilation;

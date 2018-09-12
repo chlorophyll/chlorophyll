@@ -8,7 +8,7 @@ export default class Model extends ModelBase {
 
     makeStripBuffer(strip) {
         let num_pixels = this.numPixelsInStrip(strip);
-        return new Buffer(3*num_pixels);
+        return Buffer.alloc(3*num_pixels);
     }
 
     getGroupPixels(id) {
