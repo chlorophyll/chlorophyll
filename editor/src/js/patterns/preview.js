@@ -14,7 +14,6 @@ export const PatternPreview = Vue.component('pattern-preview', {
         return {
             time: 0,
             request_id: null,
-            runner: null,
         };
     },
 
@@ -28,13 +27,15 @@ export const PatternPreview = Vue.component('pattern-preview', {
         running() {
             return this.runstate == RunState.Running;
         },
-        runnerParams() {
-            return {
-                pattern: this.pattern,
-                group: this.group,
-                mapping: this.mapping,
-            };
-        },
+
+        runner() {
+            const {pattern, group, mapping} = this;
+            return new PatternRunner(currentModel, pattern, group, mapping);
+        }
+    },
+
+    beforeDestroy() {
+        this.runner.detach();
     },
 
     watch: {
@@ -51,18 +52,12 @@ export const PatternPreview = Vue.component('pattern-preview', {
                     break;
             }
         },
-        runnerParams(newval) {
-            this.createRunner();
-        }
     },
 
     render() {},
 
     methods: {
         run() {
-            if (!this.runner) {
-                this.createRunner();
-            }
             this.step(this.time);
             this.time++;
             if (this.running)
