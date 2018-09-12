@@ -7,6 +7,7 @@ const { dependencies } = require('../package.json')
 const webpack = require('webpack')
 
 let mainConfig = {
+  mode: 'development',
   entry: {
     main: path.join(__dirname, './main/index.js')
   },
@@ -28,10 +29,12 @@ let mainConfig = {
       },
       {
         test: /\.js$/,
-        use: [
-          'cache-loader',
-          'babel-loader',
-        ],
+        use: 'cache-loader',
+        exclude: /node_modules/
+      },
+      {
+        test: /\.ts$/,
+        loader: 'ts-loader',
         exclude: /node_modules/
       },
       {
@@ -53,7 +56,7 @@ let mainConfig = {
     new webpack.NoEmitOnErrorsPlugin()
   ],
   resolve: {
-    extensions: ['.js', '.json', '.node']
+    extensions: ['.js', '.ts', '.json', '.node']
   },
   target: 'electron-main'
 }

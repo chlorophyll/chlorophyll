@@ -5,6 +5,7 @@ npm-debug.log
 npm-debug.log.*
 backend/node_modules/
 editor/node_modules/
+node_modules/
 editor/dist/electron/*
 editor/dist/web/*
 editor/build/*

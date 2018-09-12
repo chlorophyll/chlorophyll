@@ -48,14 +48,11 @@ function startRenderer () {
       heartbeat: 2500 
     })
 
-    compiler.plugin('compilation', compilation => {
-      compilation.plugin('html-webpack-plugin-after-emit', (data, cb) => {
-        hotMiddleware.publish({ action: 'reload' })
-        cb()
-      })
+    compiler.hooks.afterEmit.tap('afterEmit', () => {
+      hotMiddleware.publish({ action: 'reload' })
     })
 
-    compiler.plugin('done', stats => {
+    compiler.hooks.done.tap('done', stats => {
       logStats('Renderer', stats)
     })
 
@@ -82,12 +79,6 @@ function startMain () {
     mainConfig.entry.main = [path.join(__dirname, './main/index.dev.js')].concat(mainConfig.entry.main)
 
     const compiler = webpack(mainConfig)
-
-    compiler.plugin('watch-run', (compilation, done) => {
-      logStats('Main', chalk.white.bold('compiling...'))
-      hotMiddleware.publish({ action: 'compiling' })
-      done()
-    })
 
     compiler.watch({}, (err, stats) => {
       if (err) {

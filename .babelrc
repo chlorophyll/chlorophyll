@@ -1,0 +1,37 @@
+{
+  "comments": false,
+  "env": {
+    "test": {
+      "presets": [
+        ["env", {
+          "modules": "commonjs"
+        }],
+        "stage-0",
+      ],
+      "plugins": [
+        "transform-es2015-modules-commonjs",
+      ]
+    },
+  },
+  "ignore": [
+    "**/*.frag",
+    "**/*.vert"
+  ],
+  "plugins": [
+    "transform-es2015-modules-commonjs",
+    "transform-runtime",
+    ["module-resolver", {
+      "root": ["./editor/src", "./common"],
+      "cwd": "..",
+      "extensions": [".js", ".ts", ".vue"],
+      "alias": {
+        "chl": "./editor/src/js",
+        "@": "./editor/src",
+        "three-examples": "./editor/node_modules/three/examples/js",
+        "models": "./editor/static/models",
+        "^vue$": "vue/dist/vue.common.js",
+        "^osc$": "osc/src/platforms/osc-node.js"
+      }
+    }]
+  ]
+}

@@ -7,8 +7,8 @@ const { dependencies } = require('../package.json')
 const webpack = require('webpack')
 
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 /**
  * List of node_modules to include in webpack bundle
@@ -20,6 +20,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 let whiteListedModules = ['vue']
 
 let rendererConfig = {
+  mode: 'development',
   devtool: '#inline-source-map',
   entry: {
     renderer: path.join(__dirname, '../src/main.js')
@@ -42,14 +43,16 @@ let rendererConfig = {
       },
       {
         test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: 'css-loader'
-        })
+        use: ['vue-style-loader', 'css-loader']
       },
       {
         test: /\.s[ac]ss$/,
-        loaders: ['style-loader', 'css-loader', 'resolve-url-loader', 'sass-loader']
+        loaders: [
+          'vue-style-loader',
+          'css-loader',
+          'resolve-url-loader',
+          'sass-loader'
+        ]
       },
       {
         test: /\.html$/,
@@ -57,10 +60,7 @@ let rendererConfig = {
       },
       {
         test: /\.js$/,
-        use: [
-          'cache-loader',
-          'babel-loader',
-        ],
+        use: 'cache-loader',
         exclude: /node_modules/
       },
       {
@@ -76,12 +76,30 @@ let rendererConfig = {
             options: {
               extractCSS: process.env.NODE_ENV === 'production',
               loaders: {
-                sass: 'vue-style-loader!css-loader!resolve-url-loader!sass-loader?indentedSyntax=1',
-                scss: 'vue-style-loader!css-loader!resolve-url-loader!sass-loader'
+                sass: [
+                  'vue-style-loader',
+                  'css-loader',
+                  'resolve-url-loader',
+                  'sass-loader?indentedSyntax=1'
+                ],
+                scss: [
+                  'vue-style-loader',
+                  'css-loader',
+                  'resolve-url-loader',
+                  'sass-loader'
+                ]
               }
             },
           }
         ]
+      },
+      {
+        test: /\.ts$/,
+        loader: 'ts-loader',
+        exclude: /node_modules/,
+        options: {
+          appendTsSuffixTo: [/\.vue$/],
+        }
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
@@ -120,17 +138,13 @@ let rendererConfig = {
     __filename: process.env.NODE_ENV !== 'production'
   },
   plugins: [
-    new ExtractTextPlugin('styles.css'),
     new HtmlWebpackPlugin({
       filename: 'index.html',
       template: path.resolve(__dirname, '../src/index.ejs'),
-      minify: {
-        collapseWhitespace: true,
-        removeAttributeQuotes: true,
-        removeComments: true
-      },
+      minify: false,
       nodeModules: path.resolve(__dirname, '../node_modules')
     }),
+    new VueLoaderPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     // Automatically inject 'var $ = require('jquery');' if $ is used
@@ -145,7 +159,7 @@ let rendererConfig = {
     path: path.join(__dirname, '../dist/electron')
   },
   resolve: {
-    extensions: ['.js', '.vue', '.json', '.css', '.scss', '.node'],
+    extensions: ['.js', '.ts', '.vue', '.json', '.css', '.scss', '.node'],
     symlinks: false,
     alias: {
       '@': path.join(__dirname, '../src'),
