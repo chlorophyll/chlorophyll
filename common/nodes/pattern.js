@@ -178,8 +178,8 @@ make_function_node('math', 'a % b', 'mod',
 );
 
 make_function_node('math', '|a|', 'abs',
-    [['a', 'float']],
-    'float',
+    [['a', Units.Numeric]],
+    Units.Numeric,
 );
 
 make_function_node('math', 'sin(a)', 'sin',
@@ -322,3 +322,26 @@ class LerpNode extends GraphNode {
 }
 LerpNode.title = 'Lerp';
 node_types.push(['util/lerp', LerpNode]);
+class MirrorNode extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('t', Units.Numeric)
+        ];
+
+        const outputs = [
+            GraphNode.output('mirrored', Units.Numeric),
+        ];
+        super(options, inputs, outputs);
+    }
+
+    compile(c) {
+        const t = c.getInput(this, 0);
+        const mirrored = glsl.BinOp(t,
+            '-',
+            glsl.FunctionCall('floor', [glsl.BinOp(t, '+', glsl.Const(0.5))])
+        );
+        c.setOutput(this, 0, mirrored);
+    }
+}
+MirrorNode.title = 'Mirror';
+node_types.push(['util/mirror', MirrorNode]);

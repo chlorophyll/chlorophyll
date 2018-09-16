@@ -186,6 +186,27 @@ class CRGB extends GraphNode {
 CRGB.title = 'CRGB';
 node_types.push(['CRGB/CRGB', CRGB]);
 
+class Grayscale extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('value', Units.Numeric),
+        ];
+
+        const outputs = [
+            GraphNode.output('output', 'CRGB')
+        ];
+
+        super(options, inputs, outputs);
+    }
+
+    compile(c) {
+        const v = c.getInput(this, 0);
+        c.setOutput(this, 0, glsl.FunctionCall('vec3', [v]));
+    }
+}
+Grayscale.title = 'Grayscale';
+node_types.push(['CRGB/Grayscale', Grayscale]);
+
 export default function register_crgb_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };

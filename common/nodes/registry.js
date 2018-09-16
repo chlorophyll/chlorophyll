@@ -4,6 +4,7 @@ import register_oscillator_nodes from './oscillators';
 import register_crgb_nodes from './color';
 import register_mapping_nodes from './mapping';
 import register_input_nodes from './live_input';
+import register_easing_nodes from './easing';
 
 let registered = false;
 
@@ -16,6 +17,7 @@ export default function register_nodes() {
     register_pattern_nodes();
     register_oscillator_nodes();
     register_input_nodes();
+    register_easing_nodes();
     registered = true;
 };
 
