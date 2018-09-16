@@ -65,7 +65,7 @@ export let Compilation = {
         ]);
         const toplevel = Compilation.global_decls().join('\n');
         const sourceString = toplevel + glsl.generate(ast);
-        return glslify(sourceString);
+        return glslify.compile(sourceString);
     }
 
 };
