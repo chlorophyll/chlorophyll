@@ -233,9 +233,13 @@ export default class RawPatternRunner {
                 glsl.Ident('outcolor')
             ]),
             glsl.BinOp(glsl.Ident('outcolor'), '*=', glsl.Ident('groupmask')),
-            glsl.BinOp(glsl.Ident('gl_FragColor'), '=', glsl.FunctionCall('vec4', [
-                glsl.Ident('outcolor'),
-                glsl.Ident('groupmask'),
+            glsl.BinOp(glsl.Ident('gl_FragColor'), '=', glsl.FunctionCall('clamp', [
+                glsl.FunctionCall('vec4', [
+                    glsl.Ident('outcolor'),
+                    glsl.Ident('groupmask'),
+                ]),
+                glsl.Const(0),
+                glsl.Const(1),
             ])),
         ]);
 
