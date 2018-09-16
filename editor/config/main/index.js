@@ -19,9 +19,11 @@ function createWindow() {
    * Initial window options
    */
   mainWindow = new BrowserWindow({
+    show: false,
     width: 1280,
     height: 800,
     useContentSize: true,
+    backgroundColor: '#222323',
     darkTheme: process.platform === 'linux',
     titleBarStyle: 'hidden',
     webPreferences: {
@@ -30,6 +32,9 @@ function createWindow() {
   });
 
   mainWindow.loadURL(winURL);
+  mainWindow.once('ready-to-show', () => {
+   mainWindow.show()
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;

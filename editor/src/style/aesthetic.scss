@@ -5,6 +5,11 @@
 
 $base-grey: #2e3030;
 
+// this style is hardcoded in a couple places to prevent a style flash
+// the browser window creation background
+// and the main body bg
+$page-bg: #222323;
+
 $base-blue-1: #106BA3;
 $base-blue-2: #137CBD;
 $base-blue-3: #2B95D6;
