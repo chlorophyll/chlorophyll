@@ -9,6 +9,20 @@ export function FunctionDecl(ret_type, name, params, b) {
         no_semicolon: true,
     };
 }
+export function String(value) {
+    return {
+        type: 'string',
+        value,
+    };
+}
+
+export function Pragma(name, stmt) {
+    return {
+        type: 'pragma',
+        name,
+        stmt,
+    };
+}
 
 export function IfStmt(expr, body) {
     return {
@@ -163,6 +177,15 @@ let generator = {
         c.visit(node.body);
         c.dedent();
         c.line('}');
+    },
+
+    pragma(c, node) {
+        c.emit(`#pragma ${node.name}: `);
+        c.visit(node.stmt);
+    },
+
+    string(c, node) {
+        c.emit(`"${node.value}"`);
     },
 
     if_stmt(c, node) {

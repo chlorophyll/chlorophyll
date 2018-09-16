@@ -57,6 +57,7 @@ export let Compilation = {
             ({type, name}) => glsl.UniformDecl(type, glsl.Ident(name))
         );
         const ast = glsl.Root([
+            ...compiled.requirements,
             ...uniforms,
             ...compiledUniforms,
             compiled.source,
@@ -77,8 +78,19 @@ export class GraphCompiler {
     reset() {
         this.out = [];
         this.uniforms = [];
+        this.requirements = new Map();
         this.id = 0;
         this.context = null;
+    }
+
+    import(moduleName) {
+        if (this.requirements.has(moduleName)) {
+            return this.requirements.get(moduleName);
+        }
+
+        const ident = 'importedFunction'+this.id++;
+        this.requirements.set(moduleName, ident);
+        return ident;
     }
 
     ident() {
@@ -143,10 +155,22 @@ export class GraphCompiler {
                 params.push(glsl.OutParam(t, name));
             }
         }
+        const requirements = [];
+
+        for (const [module, ident] of this.requirements.entries()) {
+            requirements.push(glsl.Pragma('glslify',
+                glsl.BinOp(
+                    glsl.Ident(ident),
+                    '=',
+                    glsl.FunctionCall('require', [glsl.String(module)])
+                )
+            ));
+        }
 
         return {
             source: glsl.FunctionDecl('void', this.ident(), params, this.out),
-            uniforms: this.uniforms
+            uniforms: this.uniforms,
+            requirements,
         };
     }
 
