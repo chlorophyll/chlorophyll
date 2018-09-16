@@ -90,7 +90,7 @@ export class ShaderRunner {
         gl.deleteProgram(this.programInfo.program);
         for (const fb of this.framebuffers) {
             gl.deleteTexture(fb.attachments[0]);
-            gl.deleteFramebuffer(fb);
+            gl.deleteFramebuffer(fb.framebuffer);
         }
     }
 

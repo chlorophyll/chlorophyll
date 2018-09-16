@@ -256,7 +256,6 @@ export default class RawPatternRunner {
             ast,
             main
         ]));
-        console.log(source);
 
         this.graphUniforms = compiled.uniforms;
 
@@ -292,9 +291,7 @@ export default class RawPatternRunner {
     updateUniforms(shader, time) {
         shader.uniforms.time = time;
         for (let {name, getValue} of this.graphUniforms) {
-            if (shader.uniforms[name]) {
-                shader.uniforms[name] = getValue();
-            }
+            shader.uniforms[name] = getValue();
         }
     }
 
