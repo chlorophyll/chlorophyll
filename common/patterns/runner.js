@@ -108,11 +108,7 @@ export default class RawPatternRunner {
             glsl.UniformDecl('sampler2D', 'uColor'),
             glsl.UniformDecl('sampler2D', 'tPrev'),
             glsl.UniformDecl('float', 'time'),
-            ...compiled.uniforms.map(
-                ({type, name}) => glsl.UniformDecl(type, glsl.Ident(name))
-            ),
         ];
-        const ast = compiled.source;
 
         const {glsl_type, glsl_swizzle} = mappingTypes[this.pattern.mapping_type];
 
@@ -178,11 +174,7 @@ export default class RawPatternRunner {
             uniforms[name] = getValue();
         }
 
-        const source = Compilation.global_decls().join('\n') + glsl.generate(glsl.Root([
-            ...uniformDecls,
-            ast,
-            main
-        ]));
+        const source = Compilation.generateSource(uniformDecls, compiled, main);
 
         // ideally, we would copy over the old texture and rearrange it
         // appropriately so that we don't get a discontinuity/phase reset when
@@ -220,11 +212,7 @@ export default class RawPatternRunner {
             glsl.UniformDecl('sampler2D', 'uCurPhase'),
             glsl.UniformDecl('sampler2D', 'tPrev'),
             glsl.UniformDecl('float', 'time'),
-            ...compiled.uniforms.map(
-                ({type, name}) => glsl.UniformDecl(type, glsl.Ident(name))
-            ),
         ];
-        const ast = compiled.source;
         const {glsl_type, glsl_swizzle} = mappingTypes[this.pattern.mapping_type];
 
         let coords = glsl.Variable(glsl_type, 'coords');
@@ -251,11 +239,7 @@ export default class RawPatternRunner {
             ])),
         ]);
 
-        const source = Compilation.global_decls().join('\n') + glsl.generate(glsl.Root([
-            ...uniformDecls,
-            ast,
-            main
-        ]));
+        const source = Compilation.generateSource(uniformDecls, compiled, main);
 
         this.graphUniforms = compiled.uniforms;
 

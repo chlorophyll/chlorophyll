@@ -1,6 +1,6 @@
 import Units from '@/common/units';
-
 import * as glsl from '@/common/glsl';
+import * as glslify from 'glslify';
 
 let global_decls = [];
 let types = new Map();
@@ -50,6 +50,21 @@ export let Compilation = {
 
     uniform(type, name) {
         return glsl.UniformDecl(Compilation.glsl_type(type), name);
+    },
+
+    generateSource(uniforms, compiled, main) {
+        const compiledUniforms = compiled.uniforms.map(
+            ({type, name}) => glsl.UniformDecl(type, glsl.Ident(name))
+        );
+        const ast = glsl.Root([
+            ...uniforms,
+            ...compiledUniforms,
+            compiled.source,
+            main
+        ]);
+        const toplevel = Compilation.global_decls().join('\n');
+        const sourceString = toplevel + glsl.generate(ast);
+        return glslify(sourceString);
     }
 
 };
