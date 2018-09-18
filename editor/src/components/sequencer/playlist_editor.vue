@@ -14,13 +14,20 @@
         </div>
         <div class="list-container panel">
             <ul class="playlist">
-                <draggable class="draggable" v-model="playlistItems" :options="playlistOptions">
-                <playlist-item v-for="item in playlistItems" :key="item.id" :item="item" />
+                <draggable
+                    class="draggable"
+                    v-model="playlistItems"
+                    @change="onPlaylistItemChanged"
+                    :options="playlistOptions">
+                <playlist-item v-for="item in playlistItems" :current="item === currentPlaylistItem" :key="item.id" :item="item" />
             </draggable>
             </ul>
             <div class="patterns flat-list">
                 <ul>
-                    <draggable v-model="pattern_list" :options="patternlistOptions" :clone="createPlaylistItem">
+                    <draggable
+                        v-model="pattern_list"
+                        :options="patternlistOptions"
+                        :clone="createPlaylistItem">
                     <li v-for="pattern in pattern_list" :key="pattern.id">
                         {{pattern.name}}
                     </li>
@@ -34,12 +41,13 @@
 <script>
 import * as THREE from 'three';
 import draggable from 'vuedraggable';
-import store from 'chl/vue/store';
+import store, {newgid} from 'chl/vue/store';
 import { currentModel } from 'chl/model';
 import { mapGetters } from 'vuex';
 import viewports from 'chl/viewport';
 import PlaylistItem from './playlist_item';
 import PlaylistRunner from '@/common/patterns/playlist';
+import {RunState} from 'chl/patterns/preview';
 import {bindFramebufferInfo} from 'twgl.js';
 
 export default {
@@ -49,7 +57,14 @@ export default {
     data() {
         return {
             playlistItems: [],
+            runstate: RunState.Stopped,
+            request_id: null,
+            runner: null,
+            currentIndex: null,
         };
+    },
+    mounted() {
+        this.runner = this.makePlaylistRunner(this.playlistItems);
     },
     computed: {
         ...mapGetters('pattern', [
@@ -80,46 +95,97 @@ export default {
             };
         },
         runText() {
-            return 'play_arrow';
+            return this.running ? 'pause' : 'play_arrow';
+        },
+        running() {
+            return this.runstate === RunState.Running;
+        },
+        currentPlaylistItem() {
+            return this.playlistItems[this.currentIndex];
+        },
+
+        step() {
+            const outputTexture = new THREE.Texture();
+            const runner = this.runner;
+            const {renderer} = viewports.getViewport('main');
+            return () => {
+                const {texture} = this.runner.step();
+                const properties = renderer.properties.get(outputTexture);
+                properties.__webglTexture = texture;
+                properties.__webglInit = true;
+                bindFramebufferInfo(renderer.getContext(), null);
+                renderer.state.reset();
+                currentModel.setFromTexture(outputTexture);
+            }
         }
     },
+    beforeDestroy() {
+        this.stop();
+    },
     methods: {
-        createPlaylistItem(pattern) {
-            return {
-                pattern,
-                duration: 20,
-            };
-        },
-        play() {
+        makePlaylistRunner(items) {
             const {renderer} = viewports.getViewport('main');
             const gl = renderer.getContext();
             const model =  currentModel;
             const group = this.group_list[0];
             const mapping = this.mapping_list[0];
             const crossfadeDuration = 5*60;
-            const runner = new PlaylistRunner(
+            const runner = new PlaylistRunner({
                 gl,
                 model,
                 group,
                 mapping,
-                this.playlistItems,
-                crossfadeDuration
-            );
-
-            const outputTexture = new THREE.Texture();
-
-            function step() {
-                const texture = runner.step();
-                const properties = renderer.properties.get(outputTexture);
-                properties.__webglTexture = texture;
-                properties.__webglInit = true;
-                bindFramebufferInfo(gl, null);
-                renderer.state.reset();
-                model.setFromTexture(outputTexture);
-                window.requestAnimationFrame(step);
+                playlistItems: this.playlistItems,
+                crossfadeDuration,
+                onCurrentChanged: (val) => this.onCurrentChanged(val),
+            });
+            bindFramebufferInfo(gl, null);
+            renderer.state.reset();
+            return runner;
+        },
+        onCurrentChanged(val) {
+            this.currentIndex = val;
+            const {renderer} = viewports.getViewport('main');
+            const gl = renderer.getContext();
+            bindFramebufferInfo(gl, null);
+            renderer.state.reset();
+        },
+        createPlaylistItem(pattern) {
+            return {
+                id: newgid(),
+                pattern,
+                duration: 20,
+            };
+        },
+        onPlaylistItemChanged(evt) {
+            const {shouldStop, curIndex} = this.runner.onPlaylistChanged(evt, this.playlistItems);
+            if (shouldStop && this.running) {
+                this.stop();
             }
-            model.display_only = true;
-            step();
+        },
+        run() {
+            this.step();
+            if (this.running) {
+                this.request_id = window.requestAnimationFrame(() => this.run());
+            }
+        },
+        pause() {
+            this.runstate = RunState.Paused;
+            if (this.request_id !== null) {
+                window.cancelAnimationFrame(this.request_id);
+            }
+            this.request_id = null;
+        },
+        stop() {
+            this.runstate = RunState.Stopped;
+            this.pause();
+            currentModel.display_only = false;
+            this.runner.setCurrent(0);
+        },
+        play() {
+            this.runstate = RunState.Running;
+            currentModel.display_only = true;
+            this.run();
         },
     }
 };

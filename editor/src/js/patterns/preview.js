@@ -35,6 +35,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
     },
 
     beforeDestroy() {
+        this.stop();
         this.runner.detach();
     },
 

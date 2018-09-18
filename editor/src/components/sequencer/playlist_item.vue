@@ -1,5 +1,5 @@
 <template>
-    <li class="playlist-item">
+    <li class="playlist-item" :class="{current}">
         <div class="name">{{name}}</div>
         <div class="duration">{{duration}}</div>
         <div class="drag"><div class="handle"/></div>
@@ -12,7 +12,7 @@ import * as numeral from 'numeral';
 
 export default {
     name: 'playlist-item',
-    props: ['item'],
+    props: ['item', 'current'],
     computed: {
         name() {
             return this.item.pattern.name;
@@ -70,5 +70,9 @@ export default {
             width: 1em;
         }
     }
+}
+
+.current {
+    background-color: blue;
 }
 </style>

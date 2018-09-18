@@ -5,8 +5,8 @@ import * as glslify from 'glslify';
 export default class Crossfader {
     constructor(gl, width, height, duration) {
         const uniforms = {
-            uSource: null,
-            uTarget: null,
+            uSource: gl.createTexture(),
+            uTarget: gl.createTexture(),
             time: 0,
         };
 
