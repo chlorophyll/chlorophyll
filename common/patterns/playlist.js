@@ -12,8 +12,11 @@ export default class PlaylistRunner {
         this.onCurrentChanged = onCurrentChanged;
 
         this._curIndex = undefined;
+        this._curRunner = undefined;
+        this.nextRunner = undefined;
 
-        this.setCurrent(0);
+        this.setCurrentRunner(0);
+        this.curTime = 0;
         this.crossfader = new Crossfader(gl, model.num_pixels, 1, crossfadeDuration);
     }
 
@@ -21,49 +24,60 @@ export default class PlaylistRunner {
         return (this.curIndex + 1) % this.playlistItems.length;
     }
 
-    set curIndex(val) {
-        this._curIndex = val;
+    get nextId() {
+        if (this.playlistItems.length > 0) {
+            return this.playlistItems[this.nextIndex].id;
+        } else {
+            return undefined;
+        }
+    }
+
+    updateCurrentIndex(val, detach=true) {
+        this.curIndex = val;
+        this.curId = this.playlistItems[val].id;
+        if (detach && this.nextRunner) {
+            this.nextRunner.detach();
+        }
+        this.nextRunner = this.makeRunner(this.nextIndex);
         if (this.onCurrentChanged) {
             this.onCurrentChanged(val);
         }
     }
 
-    get curIndex() {
-        return this._curIndex;
+    get curRunner() {
+        return this._curRunner;
+    }
+    set curRunner(runner) {
+        if (this._curRunner) {
+            this._curRunner.detach();
+        }
+        this._curRunner = runner;
     }
 
-    setCurrent(index) {
-        if (this.curRunner) {
-            this.curRunner.detach();
-        }
-        if (this.nextRunner) {
-            this.nextRunner.detach();
-        }
+    setCurrentRunner(index) {
         if (this.playlistItems.length > 0) {
-            this.curIndex = index;
-            this.curTime = 0;
             this.curRunner = this.makeRunner(index);
-            this.curId = this.playlistItems[index].id;
-            this.nextRunner = this.makeRunner(this.nextIndex);
-            this.nextId = this.playlistItems[this.nextIndex].id;
+            this.updateCurrentIndex(index);
         }
     }
-
 
     onPlaylistChanged(evt, playlistItems) {
+        const newCurIndex = playlistItems.findIndex(item => item.id === this.curId);
+        const newNextIndex = (playlistItems[newCurIndex] + 1) % playlistItems.length;
+
+        const oldNextId = this.nextId;
+
         this.playlistItems = playlistItems;
-        const newCurIndex = this.playlistItems.indexOf(this.curId);
+
         if (newCurIndex === -1) {
-            this.setCurrent(0);
-            return {shouldStop: true, curIndex: this.curIndex};
-        } else {
-            this.curIndex = newCurIndex;
-            if (this.nextRunner) {
-                this.nextRunner.detach();
-                this.nextRunner = this.makeRunner(this.nextIndex);
-                this.nextId = this.playlistItems[this.nextIndex].id;
-            }
+            this.setCurrentRunner(0);
+            return {shouldStop: true};
+        } else if (newCurIndex !== this.curIndex) {
+            this.updateCurrentIndex(newCurIndex);
+        } else if (oldNextId !== this.nextId) {
+            this.nextRunner = this.makeRunner(this.nextIndex);
         }
+        return {shouldStop: false};
     }
 
     makeRunner(index) {
@@ -93,15 +107,12 @@ export default class PlaylistRunner {
             const target = this.nextRunner.step(this.nextTime);
             texture = this.crossfader.step(nextTime, source, target);
         } else {
-            this.curIndex = this.nextIndex;
-            this.curRunner.detach();
             this.curRunner = this.nextRunner;
+            this.updateCurrentIndex(this.nextIndex, false);
             this.curTime = nextTime;
-            this.nextRunner = this.makeRunner(this.nextIndex);
             texture = this.curRunner.step(this.curTime);
         }
         this.curTime++;
-        const {curTime} = this;
-        return {curTime, nextTime, texture};
+        return {curTime: this.curTime / 60, texture};
     }
 }

@@ -4,7 +4,8 @@ uniform sampler2D uTarget;
 uniform float time;
 
 varying vec2 vUv;
-#pragma glslify: ease = require('glsl-easings/quartic-in')
+#pragma glslify: ease = require('glsl-easings/quartic-in-out')
+#pragma glslify: blend = require('glsl-blend/glow')
 
 vec3 rgb_to_hsv(vec3 c) {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -47,7 +48,12 @@ void main() {
     vec3 source = texture2D(uSource, vUv).rgb;
     vec3 target = texture2D(uTarget, vUv).rgb;
 
-    vec3 result = lerp(source, target, ease(time));
+    vec3 blended = blend(source, target, 1.);
+
+    float t = time;
+    vec3 result = t < 0.5 ?
+        mix(source, blended, ease(t / 0.5)) :
+        mix(blended, target, ease((t - 0.5) / 0.5));
 
     gl_FragColor = vec4(clamp(result, 0., 1.), 1.0);
 }

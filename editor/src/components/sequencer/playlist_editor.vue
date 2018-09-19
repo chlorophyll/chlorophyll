@@ -13,6 +13,7 @@
             </div>
         </div>
         <div class="list-container panel">
+            <span v-if="running">{{remainingTimeFormatted}}</span>
             <ul class="playlist">
                 <draggable
                     class="draggable"
@@ -40,6 +41,7 @@
 
 <script>
 import * as THREE from 'three';
+import * as numeral from 'numeral';
 import draggable from 'vuedraggable';
 import store, {newgid} from 'chl/vue/store';
 import { currentModel } from 'chl/model';
@@ -61,6 +63,8 @@ export default {
             request_id: null,
             runner: null,
             currentIndex: null,
+            currentTime: 0,
+
         };
     },
     mounted() {
@@ -103,19 +107,33 @@ export default {
         currentPlaylistItem() {
             return this.playlistItems[this.currentIndex];
         },
+        currentDuration() {
+            return this.currentPlaylistItem.duration;
+        },
+        currentRemaining() {
+            return this.currentDuration - this.currentTime;
+        },
+        remainingTimeFormatted() {
+            const minutes = numeral(this.currentRemaining / 60).format('00');
+            const seconds = numeral(this.currentRemaining % 60).format('00.0');
+            return `${minutes}:${seconds}`;
+        },
+        outputTexture() {
+            return new THREE.Texture();
+        },
 
         step() {
-            const outputTexture = new THREE.Texture();
             const runner = this.runner;
             const {renderer} = viewports.getViewport('main');
             return () => {
-                const {texture} = this.runner.step();
-                const properties = renderer.properties.get(outputTexture);
+                const {texture, curTime} = this.runner.step();
+                const properties = renderer.properties.get(this.outputTexture);
                 properties.__webglTexture = texture;
                 properties.__webglInit = true;
                 bindFramebufferInfo(renderer.getContext(), null);
                 renderer.state.reset();
-                currentModel.setFromTexture(outputTexture);
+                currentModel.setFromTexture(this.outputTexture);
+                return curTime;
             }
         }
     },
@@ -145,26 +163,27 @@ export default {
         },
         onCurrentChanged(val) {
             this.currentIndex = val;
-            const {renderer} = viewports.getViewport('main');
-            const gl = renderer.getContext();
-            bindFramebufferInfo(gl, null);
-            renderer.state.reset();
         },
         createPlaylistItem(pattern) {
             return {
                 id: newgid(),
                 pattern,
-                duration: 20,
+                duration: 30,
             };
         },
         onPlaylistItemChanged(evt) {
-            const {shouldStop, curIndex} = this.runner.onPlaylistChanged(evt, this.playlistItems);
+            const {shouldStop} = this.runner.onPlaylistChanged(evt, this.playlistItems);
+            const {renderer} = viewports.getViewport('main');
+            const gl = renderer.getContext();
+            bindFramebufferInfo(gl, null);
+            renderer.state.reset();
             if (shouldStop && this.running) {
                 this.stop();
             }
         },
         run() {
-            this.step();
+            const curTime = this.step();
+            this.currentTime = curTime;
             if (this.running) {
                 this.request_id = window.requestAnimationFrame(() => this.run());
             }
