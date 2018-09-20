@@ -26,7 +26,6 @@ export default class Crossfader {
         this.uniforms.uSource = source;
         this.uniforms.uTarget = target;
         this.uniforms.time = time / this.duration;
-        console.log(this.uniforms.time);
         this.runner.step(pixels);
         return this.runner.prevTexture();
     }

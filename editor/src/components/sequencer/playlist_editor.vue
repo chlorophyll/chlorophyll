@@ -2,17 +2,17 @@
     <div class="container">
         <div class="panel inline top-controls">
             <div class="control-row">
-                <button class="square highlighted material-icons" @click="play">
+                <button class="square highlighted material-icons" @click="togglePlay">
                     {{ runText }}
                 </button>
                 <div class="square" />
-                <button class="square material-icons">skip_previous</button>
-                <button class="square material-icons">stop</button>
-                <button class="square material-icons">skip_next</button>
+                <button @click="previous" class="square material-icons">skip_previous</button>
+                <button @click="stop" class="square material-icons">stop</button>
+                <button @click="next" class="square material-icons">skip_next</button>
 
             </div>
         </div>
-        <div class="list-container panel">
+        <div class="list-container panel" @click="selectPlaylistItem(null)">
             <span v-if="running">{{remainingTimeFormatted}}</span>
             <ul class="playlist">
                 <draggable
@@ -20,7 +20,15 @@
                     v-model="playlistItems"
                     @change="onPlaylistItemChanged"
                     :options="playlistOptions">
-                <playlist-item v-for="item in playlistItems" :current="item === currentPlaylistItem" :key="item.id" :item="item" />
+                <template v-for="item in playlistItems">
+                <playlist-item
+                    :current="item === currentPlaylistItem"
+                    :selected="item === selected"
+                    @click.native.stop="selectPlaylistItem(item)"
+                    @duration-changed="val => durationChanged(item, val)"
+                    :key="item.id"
+                    :item="item" />
+                </template>
             </draggable>
             </ul>
             <div class="patterns flat-list">
@@ -64,7 +72,7 @@ export default {
             runner: null,
             currentIndex: null,
             currentTime: 0,
-
+            selected: null,
         };
     },
     mounted() {
@@ -104,10 +112,14 @@ export default {
         running() {
             return this.runstate === RunState.Running;
         },
+        stopped() {
+            return this.runstate === RunState.Stopped;
+        },
         currentPlaylistItem() {
-            return this.playlistItems[this.currentIndex];
+            return this.stopped ? undefined : this.playlistItems[this.currentIndex];
         },
         currentDuration() {
+            return this.stopped ? undefined : this.currentPlaylistItem.duration;
             return this.currentPlaylistItem.duration;
         },
         currentRemaining() {
@@ -121,11 +133,22 @@ export default {
         outputTexture() {
             return new THREE.Texture();
         },
+        firstPlaylistItemForPlayback() {
+            if (this.selected === null) {
+                return 0;
+            } else {
+                return this.playlistItems.findIndex(el => el === this.selected);
+            }
+        },
 
         step() {
             const runner = this.runner;
             const {renderer} = viewports.getViewport('main');
             return () => {
+                if (!this.running) {
+                    console.log('step returning');
+                    return;
+                }
                 const {texture, curTime} = this.runner.step();
                 const properties = renderer.properties.get(this.outputTexture);
                 properties.__webglTexture = texture;
@@ -155,14 +178,14 @@ export default {
                 mapping,
                 playlistItems: this.playlistItems,
                 crossfadeDuration,
-                onCurrentChanged: (val) => this.onCurrentChanged(val),
+                onCurrentChanged: (val, curTime) => this.onCurrentChanged(val, curTime),
             });
-            bindFramebufferInfo(gl, null);
-            renderer.state.reset();
+            this.glReset();
             return runner;
         },
-        onCurrentChanged(val) {
+        onCurrentChanged(val, curTime) {
             this.currentIndex = val;
+            this.currentTime = curTime;
         },
         createPlaylistItem(pattern) {
             return {
@@ -171,12 +194,15 @@ export default {
                 duration: 30,
             };
         },
-        onPlaylistItemChanged(evt) {
-            const {shouldStop} = this.runner.onPlaylistChanged(evt, this.playlistItems);
+        glReset() {
             const {renderer} = viewports.getViewport('main');
             const gl = renderer.getContext();
             bindFramebufferInfo(gl, null);
             renderer.state.reset();
+        },
+        onPlaylistItemChanged(evt) {
+            const {shouldStop} = this.runner.onPlaylistChanged(evt, this.playlistItems);
+            this.glReset();
             if (shouldStop && this.running) {
                 this.stop();
             }
@@ -196,16 +222,43 @@ export default {
             this.request_id = null;
         },
         stop() {
-            this.runstate = RunState.Stopped;
-            this.pause();
+            if (this.runstate === RunState.Stopped) {
+                return;
+            }
             currentModel.display_only = false;
-            this.runner.setCurrent(0);
+            this.pause();
+            this.runstate = RunState.Stopped;
+            window.requestAnimationFrame(() => {
+                this.runner.setCurrentRunner(0);
+                this.glReset();
+            });
         },
         play() {
+            this.runner.setCurrentRunner(this.firstPlaylistItemForPlayback);
             this.runstate = RunState.Running;
             currentModel.display_only = true;
             this.run();
         },
+        togglePlay() {
+            if (this.running) {
+                this.pause();
+            } else {
+                this.play();
+            }
+        },
+        previous() {
+            this.runner.previous();
+        },
+        next() {
+            this.runner.next();
+        },
+        selectPlaylistItem(item) {
+            this.selected = item;
+        },
+        durationChanged(item, val) {
+            console.log(val);
+            item.duration = val;
+        }
     }
 };
 </script>

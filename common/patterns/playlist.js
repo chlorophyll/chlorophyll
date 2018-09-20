@@ -40,7 +40,7 @@ export default class PlaylistRunner {
         }
         this.nextRunner = this.makeRunner(this.nextIndex);
         if (this.onCurrentChanged) {
-            this.onCurrentChanged(val);
+            this.onCurrentChanged(val, this.curTime / 60);
         }
     }
 
@@ -56,6 +56,7 @@ export default class PlaylistRunner {
 
     setCurrentRunner(index) {
         if (this.playlistItems.length > 0) {
+            this.curTime = 0;
             this.curRunner = this.makeRunner(index);
             this.updateCurrentIndex(index);
         }
@@ -87,6 +88,16 @@ export default class PlaylistRunner {
         return new RawPatternRunner(gl, model, pattern, group, mapping);
     }
 
+    previous() {
+        const len = this.playlistItems.length;
+        const previous = (this.curIndex - 1 + len) % len;
+        this.setCurrentRunner(previous);
+    }
+
+    next() {
+        this.setCurrentRunner(this.nextIndex);
+    }
+
     step() {
         if (this.playlistItems.length === 0) {
             return;
@@ -100,17 +111,24 @@ export default class PlaylistRunner {
 
         const nextTime = this.curTime - crossfadeStart;
 
-        if (this.curTime < crossfadeStart) {
+        if (this.playlistItems.length === 1) {
             texture = this.curRunner.step(this.curTime);
-        } else if (this.curTime < crossfadeEnd && this.playlistItems.length > 1) {
-            const source = this.curRunner.step(this.curTime);
-            const target = this.nextRunner.step(this.nextTime);
-            texture = this.crossfader.step(nextTime, source, target);
+            if (this.curTime > crossfadeEnd) {
+                this.curTime = 0;
+            }
         } else {
-            this.curRunner = this.nextRunner;
-            this.updateCurrentIndex(this.nextIndex, false);
-            this.curTime = nextTime;
-            texture = this.curRunner.step(this.curTime);
+            if (this.curTime < crossfadeStart) {
+                texture = this.curRunner.step(this.curTime);
+            } else if (this.curTime < crossfadeEnd) {
+                const source = this.curRunner.step(this.curTime);
+                const target = this.nextRunner.step(this.nextTime);
+                texture = this.crossfader.step(nextTime, source, target);
+            } else {
+                this.curRunner = this.nextRunner;
+                this.updateCurrentIndex(this.nextIndex, false);
+                this.curTime = nextTime;
+                texture = this.curRunner.step(this.curTime);
+            }
         }
         this.curTime++;
         return {curTime: this.curTime / 60, texture};
