@@ -222,6 +222,32 @@ class Rotate2D extends GraphNode {
 Rotate2D.title = '2D rotation';
 node_types.push(['2d/rotate', Rotate2D]);
 
+class Scale2D extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('x', Units.Distance),
+            GraphNode.input('y', Units.Distance),
+            GraphNode.input('scale', Units.Numeric),
+        ];
+        const outputs = [
+            GraphNode.output('x\'', Units.Distance),
+            GraphNode.output('y\'', Units.Distance),
+        ];
+        super(options, inputs, outputs);
+    }
+    compile(c) {
+        let x = c.getInput(this, 0);
+        let y = c.getInput(this, 1);
+        let k = c.getInput(this, 2);
+
+        const vec = glsl.BinOp(k, '*', glsl.FunctionCall('vec2', [x, y]));
+        c.setOutput(this, 0, glsl.Dot(vec, 'x'));
+        c.setOutput(this, 1, glsl.Dot(vec, 'y'));
+    }
+}
+Scale2D.title = '2D scale';
+node_types.push(['2d/scale', Scale2D]);
+
 class RangeNode extends GraphNode {
     constructor(options) {
         let inputs = [
