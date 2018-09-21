@@ -2,11 +2,9 @@ import RawPatternRunner from '@/common/patterns/runner';
 import Crossfader from '@/common/patterns/crossfade';
 
 export default class PlaylistRunner {
-    constructor({gl, model, group, mapping, playlistItems, crossfadeDuration, onCurrentChanged}) {
+    constructor({gl, model, playlistItems, crossfadeDuration, onCurrentChanged}) {
         this.gl = gl;
         this.model = model;
-        this.group = group;
-        this.mapping = mapping;
         this.playlistItems = playlistItems;
         this.crossfadeDuration = crossfadeDuration;
         this.onCurrentChanged = onCurrentChanged;
@@ -62,7 +60,9 @@ export default class PlaylistRunner {
         }
     }
 
-    onPlaylistChanged(evt, playlistItems) {
+    onPlaylistChanged(allItems) {
+        const playlistItems = allItems.filter(item => item.mapping !== null);
+
         const newCurIndex = playlistItems.findIndex(item => item.id === this.curId);
         const newNextIndex = (playlistItems[newCurIndex] + 1) % playlistItems.length;
 
@@ -82,8 +82,8 @@ export default class PlaylistRunner {
     }
 
     makeRunner(index) {
-        const { pattern, id } = this.playlistItems[index];
-        const {gl, model, group, mapping} = this;
+        const { pattern, group, mapping, id } = this.playlistItems[index];
+        const {gl, model} = this;
 
         return new RawPatternRunner(gl, model, pattern, group, mapping);
     }

@@ -9,23 +9,21 @@
                 <button @click="previous" class="square material-icons">skip_previous</button>
                 <button @click="stop" class="square material-icons">stop</button>
                 <button @click="next" class="square material-icons">skip_next</button>
-
+                <div v-if="running" class="topline-text"><div>{{remainingTimeFormatted}}</div></div>
             </div>
         </div>
         <div class="list-container panel" @click="selectPlaylistItem(null)">
-            <span v-if="running">{{remainingTimeFormatted}}</span>
             <ul class="playlist">
                 <draggable
                     class="draggable"
                     v-model="playlistItems"
-                    @change="onPlaylistItemChanged"
                     :options="playlistOptions">
-                <template v-for="item in playlistItems">
+                <template v-for="(item, index) in playlistItems">
                 <playlist-item
                     :current="item === currentPlaylistItem"
+                    :index="index"
                     :selected="item === selected"
                     @click.native.stop="selectPlaylistItem(item)"
-                    @duration-changed="val => durationChanged(item, val)"
                     :key="item.id"
                     :item="item" />
                 </template>
@@ -50,10 +48,13 @@
 <script>
 import * as THREE from 'three';
 import * as numeral from 'numeral';
+import _ from 'lodash';
 import draggable from 'vuedraggable';
 import store, {newgid} from 'chl/vue/store';
 import { currentModel } from 'chl/model';
-import { mapGetters } from 'vuex';
+import { mappingUtilsMixin } from 'chl/mapping';
+import { patternUtilsMixin } from 'chl/patterns';
+import { mapState, mapGetters } from 'vuex';
 import viewports from 'chl/viewport';
 import PlaylistItem from './playlist_item';
 import PlaylistRunner from '@/common/patterns/playlist';
@@ -64,9 +65,9 @@ export default {
     name: 'playlist-editor',
     store,
     components: { draggable, PlaylistItem },
+    mixins: [mappingUtilsMixin, patternUtilsMixin],
     data() {
         return {
-            playlistItems: [],
             runstate: RunState.Stopped,
             request_id: null,
             runner: null,
@@ -88,6 +89,34 @@ export default {
         ...mapGetters('pixels', [
             'group_list',
         ]),
+        ...mapState({
+            playlistState: state => state.playlists.playlistItems,
+        }),
+
+        playlistItems: {
+            get() {
+                return this.playlistState.map(item => {
+                    const patternId = item.pattern;
+                    const mappingId = item.mapping;
+                    const groupId = item.group;
+                    const {id, duration} = item;
+                    const pattern = this.getPattern(patternId);
+                    const mapping = this.getMapping(mappingId);
+                    const group = this.getGroup(groupId);
+                    return {id, duration, pattern, mapping, group};
+                });
+            },
+            set(val) {
+                const stateItems = val.map(item => ({
+                    pattern: item.pattern.id,
+                    group: item.group.id,
+                    mapping: item.mapping !== null ? item.mapping.id : null,
+                    id: item.id,
+                    duration: item.duration
+                }));
+                this.$store.commit('playlists/update', stateItems);
+            },
+        },
         playlistOptions() {
             return {
                 group: 'playlist',
@@ -153,8 +182,7 @@ export default {
                 const properties = renderer.properties.get(this.outputTexture);
                 properties.__webglTexture = texture;
                 properties.__webglInit = true;
-                bindFramebufferInfo(renderer.getContext(), null);
-                renderer.state.reset();
+                this.glReset();
                 currentModel.setFromTexture(this.outputTexture);
                 return curTime;
             }
@@ -163,19 +191,27 @@ export default {
     beforeDestroy() {
         this.stop();
     },
+    watch: {
+        playlistItems: {
+            handler(newval) {
+                const {shouldStop} = this.runner.onPlaylistChanged(this.playlistItems);
+                this.glReset();
+                if (shouldStop && this.running) {
+                    this.stop();
+                }
+            },
+            deep: true,
+        },
+    },
     methods: {
         makePlaylistRunner(items) {
             const {renderer} = viewports.getViewport('main');
             const gl = renderer.getContext();
             const model =  currentModel;
-            const group = this.group_list[0];
-            const mapping = this.mapping_list[0];
             const crossfadeDuration = 5*60;
             const runner = new PlaylistRunner({
                 gl,
                 model,
-                group,
-                mapping,
                 playlistItems: this.playlistItems,
                 crossfadeDuration,
                 onCurrentChanged: (val, curTime) => this.onCurrentChanged(val, curTime),
@@ -188,9 +224,15 @@ export default {
             this.currentTime = curTime;
         },
         createPlaylistItem(pattern) {
+            const group = this.group_list[0]; // hack
+            const availableMappings = this.mappingsByType[pattern.mapping_type] || [];
+
+            const mapping = availableMappings.length === 1 ? availableMappings[0] : null;
             return {
                 id: newgid(),
                 pattern,
+                group,
+                mapping,
                 duration: 30,
             };
         },
@@ -199,13 +241,6 @@ export default {
             const gl = renderer.getContext();
             bindFramebufferInfo(gl, null);
             renderer.state.reset();
-        },
-        onPlaylistItemChanged(evt) {
-            const {shouldStop} = this.runner.onPlaylistChanged(evt, this.playlistItems);
-            this.glReset();
-            if (shouldStop && this.running) {
-                this.stop();
-            }
         },
         run() {
             const curTime = this.step();
@@ -255,10 +290,6 @@ export default {
         selectPlaylistItem(item) {
             this.selected = item;
         },
-        durationChanged(item, val) {
-            console.log(val);
-            item.duration = val;
-        }
     }
 };
 </script>
@@ -274,6 +305,14 @@ export default {
 
 .top-controls {
     flex: initial;
+    position: relative;
+}
+
+.topline-text {
+    display: flex;
+    align-items: center;
+    height: 24px;
+    padding-left: 1em;
 }
 
 .list-container {

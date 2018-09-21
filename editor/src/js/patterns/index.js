@@ -9,7 +9,7 @@ import GraphLib from '@/common/graphlib';
 import store, { newgid } from 'chl/vue/store';
 
 import { Graph } from 'chl/graphlib';
-import { restoreAllPatterns } from '@/common/patterns';
+import { restoreAllPatterns, restorePlaylistItems } from '@/common/patterns';
 import { mappingTypes } from '@/common/mapping';
 import { registerSaveField } from 'chl/savefile';
 
@@ -86,6 +86,33 @@ store.registerModule('pattern', {
     actions: {
     }
 });
+
+store.registerModule('playlists', {
+    namespaced: true,
+    state: {
+        playlistItems: [],
+    },
+
+    mutations: {
+        update(state, items) {
+            state.playlistItems = [...items];
+        },
+        restore(state, snapshot) {
+            state.playlistItems = restorePlaylistItems(snapshot);
+        },
+        updateItem(state, {index, ...updates}) {
+            console.log(index, updates);
+            const cur = state.playlistItems[index];
+            const newItem = {
+                ...cur,
+                ...updates,
+            };
+            console.log(newItem);
+            Vue.set(state.playlistItems, index, newItem);
+        }
+    },
+});
+
 
 export function setCoordType(id, mapping_type, coord_type) {
     const pattern = store.state.pattern.patterns[id];
@@ -181,3 +208,30 @@ registerSaveField('patterns', {
         store.commit('pattern/restore', patterns);
     }
 });
+
+export function savePlaylistItems() {
+    const playlistItems = store.state.playlists.playlistItems;
+    return clone(playlistItems);
+}
+
+registerSaveField('playlistItems', {
+    save() {
+        const ret = savePlaylistItems();
+        return ret;
+    },
+    restore(snap) {
+        store.commit('playlists/restore', snap);
+    },
+});
+
+export const patternUtilsMixin = {
+    methods: {
+        getPattern(id) {
+            if (id in this.$store.state.pattern.patterns) {
+                return this.$store.state.pattern.patterns[id];
+            } else {
+                return null;
+            }
+        },
+    }
+};
