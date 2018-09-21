@@ -1,4 +1,4 @@
-import crossfadeFrag from './crossfader.frag';
+import crossfadeFrag from '@/common/patterns/crossfader.frag';
 import { ShaderRunner } from '@/common/util/shader_runner';
 import * as glslify from 'glslify';
 

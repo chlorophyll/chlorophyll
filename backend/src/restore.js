@@ -4,7 +4,7 @@ import concatStream from 'concat-stream';
 
 import { restoreAllGroups } from '@/common/model';
 import { restoreAllMappings } from '@/common/mapping';
-import { restoreAllPatterns } from '@/common/patterns';
+import { restoreAllPatterns, restorePlaylistItems } from '@/common/patterns';
 
 import { restoreAllGraphs } from './graphlib';
 
@@ -31,6 +31,7 @@ function restoreSaveObject(obj) {
     state.groups = g.new_groups;
     state.group_list = g.new_group_list;
     state.model = new Model(obj.model, state.groups);
+    state.playlistItems = restorePlaylistItems(obj.playlistItems);
 
     restoreAllGraphs(obj.graphs);
 

@@ -98,7 +98,7 @@ export default class PlaylistRunner {
         this.setCurrentRunner(this.nextIndex);
     }
 
-    step() {
+    step(pixels=null) {
         if (this.playlistItems.length === 0) {
             return;
         }
@@ -118,16 +118,16 @@ export default class PlaylistRunner {
             }
         } else {
             if (this.curTime < crossfadeStart) {
-                texture = this.curRunner.step(this.curTime);
+                texture = this.curRunner.step(this.curTime, pixels);
             } else if (this.curTime < crossfadeEnd) {
                 const source = this.curRunner.step(this.curTime);
-                const target = this.nextRunner.step(this.nextTime);
-                texture = this.crossfader.step(nextTime, source, target);
+                const target = this.nextRunner.step(nextTime);
+                texture = this.crossfader.step(nextTime, source, target, pixels);
             } else {
                 this.curRunner = this.nextRunner;
                 this.updateCurrentIndex(this.nextIndex, false);
                 this.curTime = nextTime;
-                texture = this.curRunner.step(this.curTime);
+                texture = this.curRunner.step(this.curTime, pixels);
             }
         }
         this.curTime++;
