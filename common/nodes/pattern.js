@@ -182,6 +182,11 @@ make_function_node('math', '|a|', 'abs',
     Units.Numeric,
 );
 
+make_function_node('math', 'sqrt(a)', 'sqrt',
+    [['a', Units.Numeric]],
+    Units.Numeric,
+);
+
 make_function_node('math', 'sin(a)', 'sin',
     [['a', Units.Angle]],
     Units.Distance,
@@ -190,6 +195,11 @@ make_function_node('math', 'sin(a)', 'sin',
 make_function_node('math', 'cos(a)', 'cos',
     [['a', Units.Angle]],
     Units.Distance,
+);
+
+make_function_node('math', 'floor(a)', 'floor',
+    [['a', Units.Numeric]],
+    Units.Numeric,
 );
 
 class Rotate2D extends GraphNode {
@@ -362,10 +372,13 @@ class MirrorNode extends GraphNode {
 
     compile(c) {
         const t = c.getInput(this, 0);
-        const mirrored = glsl.BinOp(t,
-            '-',
-            glsl.FunctionCall('floor', [glsl.BinOp(t, '+', glsl.Const(0.5))])
-        );
+        const mirrored = glsl.FunctionCall('abs', [
+            glsl.BinOp(
+                t,
+                '-',
+                glsl.FunctionCall('floor', [glsl.BinOp(t, '+', glsl.Const(0.5))])
+            )
+        ]);
         c.setOutput(this, 0, mirrored);
     }
 }
