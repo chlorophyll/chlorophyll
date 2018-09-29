@@ -13,6 +13,8 @@
                      class="square material-icons">
                         stop
                     </button>
+                    <label for="push-to-hardware">Push to hardware</label>
+                    <toggle v-model="pushToHardware" class="toggle" />
                     <label for="preview-map-list">Preview map</label>
                     <select class="control" id="preview-map-list"
                                             v-model="preview_map_id">
@@ -56,6 +58,7 @@
                              :pattern="cur_pattern"
                              :mapping="preview_mapping"
                              :group="preview_group"
+                             :push-to-hardware="pushToHardware"
                              :runstate="runstate" />
         </div>
         <pattern-list slot="second" />
@@ -66,6 +69,7 @@ import { ConstMixin } from 'chl/const';
 import { mapGetters } from 'vuex';
 import { mappingUtilsMixin } from 'chl/mapping';
 import PatternList from '@/components/patterns/list';
+import Toggle from '@/components/widgets/toggle';
 import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graphcanvas';
@@ -100,7 +104,7 @@ function getNodeList() {
 
 export default {
     store,
-    components: {Tree, GraphCanvas, SplitPane, PatternPreview, PatternList},
+    components: {Tree, GraphCanvas, SplitPane, PatternPreview, PatternList, Toggle},
     mixins: [ConstMixin, mappingUtilsMixin],
     computed: {
         run_text() {
@@ -145,6 +149,7 @@ export default {
             time: 0,
             preview_map_id: null,
             preview_group_id: this.$store.state.pixels.group_list[0],
+            pushToHardware: false,
             runstate: RunState.Stopped,
             node_list: getNodeList(),
         };
@@ -232,5 +237,10 @@ label {
 
 .node-browser .tree {
     flex: 1;
+}
+
+.toggle {
+    margin-top: 3px;
+    vertical-align: middle;
 }
 </style>

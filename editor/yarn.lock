@@ -6719,6 +6719,12 @@ pinkie@^2.0.0:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz#72556b80cfa0d48a974e80e77248e80ed4f7f870"
 
+"pixelpusher-driver@https://github.com/chlorophyll/pixelpusher-driver":
+  version "0.1.1"
+  resolved "https://github.com/chlorophyll/pixelpusher-driver#dedb9867738929de95910818d4cd6fcd6f9807a3"
+  dependencies:
+    struct "^0.0.12"
+
 pkg-dir@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-1.0.0.tgz#7a4b508a8d5bb2d629d447056ff4e9c9314cf3d4"
@@ -8187,6 +8193,10 @@ strip-indent@^1.0.1:
 strip-json-comments@^2.0.1, strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
+
+struct@^0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/struct/-/struct-0.0.12.tgz#8330af872664e9a5bd678664524857c50908038a"
 
 style-loader@^0.23.0:
   version "0.23.0"

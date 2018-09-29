@@ -2,6 +2,8 @@ import Vue from 'vue';
 import { PatternRunner } from 'chl/patterns/runner';
 import { currentModel } from 'chl/model';
 
+import {pushPixels, pushBlackFrame} from 'chl/hardware/pixelpusher';
+
 export const RunState = {
     Stopped: 0,
     Running: 1,
@@ -9,7 +11,7 @@ export const RunState = {
 };
 
 export const PatternPreview = Vue.component('pattern-preview', {
-    props: ['pattern', 'mapping', 'group', 'runstate'],
+    props: ['pattern', 'mapping', 'group', 'runstate', 'pushToHardware'],
     data() {
         return {
             time: 0,
@@ -19,9 +21,17 @@ export const PatternPreview = Vue.component('pattern-preview', {
 
     computed: {
         step() {
+            const pixelBuffers = [
+                new Float32Array(currentModel.num_pixels * 4),
+                new Float32Array(currentModel.num_pixels * 4),
+            ];
             return (time) => {
-                const current = this.runner.step(time);
+                const pixels = this.pushToHardware ? pixelBuffers[time % 2] : null;
+                const current = this.runner.step(time, pixels);
                 currentModel.setFromTexture(current);
+                if (this.pushToHardware) {
+                    pushPixels(currentModel, pixels);
+                }
             };
         },
         running() {
@@ -31,7 +41,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
         runner() {
             const {pattern, group, mapping} = this;
             return new PatternRunner(currentModel, pattern, group, mapping);
-        }
+        },
     },
 
     beforeDestroy() {
@@ -50,6 +60,11 @@ export const PatternPreview = Vue.component('pattern-preview', {
                 case RunState.Running:
                     this.start();
                     break;
+            }
+        },
+        pushToHardware(newval) {
+            if (!newval && this.runstate !== RunState.Stopped) {
+                pushBlackFrame(currentModel);
             }
         },
     },
@@ -77,6 +92,9 @@ export const PatternPreview = Vue.component('pattern-preview', {
             this.pause();
             currentModel.display_only = false;
             this.time = 0;
+            if (this.pushToHardware) {
+                pushBlackFrame(currentModel);
+            }
         },
         createRunner() {
             const {pattern, group, mapping} = this;

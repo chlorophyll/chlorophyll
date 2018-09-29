@@ -32,8 +32,8 @@ export class PatternRunner extends RawPatternRunner {
         super.detach();
     }
 
-    step(time) {
-        const texture = super.step(time);
+    step(time, pixels) {
+        const texture = super.step(time, pixels);
         const properties = this.renderer.properties.get(this.outputTexture);
         properties.__webglTexture = texture;
         properties.__webglInit = true;

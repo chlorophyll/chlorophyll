@@ -22,8 +22,12 @@ class IfNode extends GraphNode {
 
     compile(c) {
         let clause = c.getInput(this, 0);
-        let {v: trueBranch, type} = c.getInputAndInferType(this, 1);
+        let {v: trueBranch, type} = c.getInputAndInferType(this, 1, 'number');
         let falseBranch = c.getInput(this, 2);
+
+        if (!type) {
+            type = 'number';
+        }
 
         c.setOutput(this, 0, glsl.TernaryOp(clause, trueBranch, falseBranch), type);
     }
