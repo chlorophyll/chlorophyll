@@ -206,6 +206,33 @@ make_function_node('math', 'floor(a)', 'floor',
     Units.Numeric,
 );
 
+make_function_node('math', 'xʸ', 'pow',
+    [['x', Units.Numeric], ['y', Units.Numeric]],
+    Units.Numeric,
+);
+
+make_function_node('math', 'log₂(x)', 'log2',
+    [['x', Units.Numeric]],
+    Units.Numeric
+);
+
+make_function_node('math', '2ˣ', 'exp2',
+    [['x', Units.Numeric]],
+    Units.Numeric,
+);
+
+
+make_function_node('math', 'ln(x)', 'ln',
+    [['x', Units.Numeric]],
+    Units.Numeric
+);
+
+make_function_node('math', 'eˣ', 'exp',
+    [['x', Units.Numeric]],
+    Units.Numeric,
+);
+
+
 class Rotate2D extends GraphNode {
     constructor(options) {
         const inputs = [
