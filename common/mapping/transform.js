@@ -79,8 +79,8 @@ export const coord_types = {
         mapPoint: transformPoint,
         convertCoords(cart) {
             // x, y, z -> r, theta, z
-            let polar = new Vector2(cart.x, cart.y);
-            return new Vector3(polar.length(), polar.angle(), cart.z);
+            let polar = new Vector2(cart.x, cart.z);
+            return new Vector3(polar.length(), polar.angle(), cart.y);
         }
     },
 
@@ -95,8 +95,15 @@ export const coord_types = {
         mapPoint: transformPoint,
         convertCoords(cart) {
             let r = cart.length();
-            let phi = (r == 0) ? 0 : Math.acos(cart.z / r);
-            let theta = (r == 0) ? 0 : Math.atan2(cart.y, cart.x);
+            if (r === 0)
+                return new Vector3(r, 0, 0);
+
+            // longitude
+            const theta = new Vector2(cart.x, cart.z).angle();
+            // latitude, 0 -> south pole, 1 -> north pole
+            const south = new Vector3(0, -1, 0);
+            const phi = south.angleTo(cart) * 2;
+
             return new Vector3(r, theta, phi);
         }
     },
