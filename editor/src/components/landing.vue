@@ -7,7 +7,7 @@
     <h2>Get Started</h2>
     <ul>
     <li><a @click="showImportDialog">Import New Model...</a></li>
-    <li><a @click="">Open project</a></li>
+    <li><a @click="showOpenDialog">Open project</a></li>
     </ul>
     <h2>Recent Projects</h2>
     <div class="projects">
@@ -33,7 +33,7 @@
 
 <script>
 import { remote } from 'electron';
-import { showImportDialog, readSavefile, } from 'chl/savefile/io';
+import { showImportDialog, showOpenDialog, readSavefile, } from 'chl/savefile/io';
 import { getRecentProjectNames } from 'chl/savefile/recent';
 import { createRenderer, createCamera } from 'chl/viewport';
 import LandingPreview from '@/components/landing_preview';
@@ -46,6 +46,7 @@ export default {
     components: { LandingPreview },
     methods: {
         showImportDialog,
+        showOpenDialog,
         readSave(path) {
             readSavefile(path).catch((err) => {
                 remote.dialog.showErrorBox('Error opening file', err.message);
