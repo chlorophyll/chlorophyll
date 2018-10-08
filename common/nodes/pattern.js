@@ -289,6 +289,37 @@ class Scale2D extends GraphNode {
 Scale2D.title = '2D scale';
 node_types.push(['2d/scale', Scale2D]);
 
+class Scale3D extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('x', Units.Distance),
+            GraphNode.input('y', Units.Distance),
+            GraphNode.input('z', Units.Distance),
+            GraphNode.input('scale', Units.Numeric),
+        ];
+        const outputs = [
+            GraphNode.output('x\'', Units.Distance),
+            GraphNode.output('y\'', Units.Distance),
+            GraphNode.output('z\'', Units.Distance),
+        ];
+        super(options, inputs, outputs);
+    }
+    compile(c) {
+        let x = c.getInput(this, 0);
+        let y = c.getInput(this, 1);
+        let z = c.getInput(this, 2);
+        let k = c.getInput(this, 3);
+
+        const vec = glsl.BinOp(k, '*', glsl.FunctionCall('vec3', [x, y, z]));
+        c.setOutput(this, 0, glsl.Dot(vec, 'x'));
+        c.setOutput(this, 1, glsl.Dot(vec, 'y'));
+        c.setOutput(this, 2, glsl.Dot(vec, 'z'));
+    }
+}
+Scale3D.title = '3D scale';
+node_types.push(['3d/scale', Scale3D]);
+
+
 class RangeNode extends GraphNode {
     constructor(options) {
         let inputs = [
