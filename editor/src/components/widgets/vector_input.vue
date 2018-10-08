@@ -1,7 +1,7 @@
 <template>
   <div class="control-row">
     <label>{{ title }}</label>
-    <div class="control root">
+    <div class="control root fill">
     <template v-for="(val, idx) in vector">
         <numeric-input :value="val"
                        :min="min"

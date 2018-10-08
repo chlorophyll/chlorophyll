@@ -1,5 +1,5 @@
 <template>
-<div class="dialog-container">
+<div v-show="show" class="dialog-container">
 <div v-show="show"
      class="dialog-box"
      v-bind:style="{ transform: `translate(${x}px, ${y}px)`, width }">
@@ -106,6 +106,7 @@ export default {
 .dialog-container {
     position: fixed;
     height: 100vh;
+    width: 100vh;
     overflow: hidden;
     z-index: 100;
     top: 0;

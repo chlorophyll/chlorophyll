@@ -37,7 +37,7 @@
                 @close="endConfigure">
         <component v-bind:is="mapping.type"
                    v-model="working_settings"
-                   :group="mapping.group" />
+                   />
     </dialog-box>
   </div>
 </template>
