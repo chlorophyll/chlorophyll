@@ -1,5 +1,6 @@
 import { addSerializableType } from '@/common/util/serialization';
 import * as glsl from '@/common/glsl';
+import _ from 'lodash';
 import { Compilation } from '@/common/graphlib/compiler';
 
 function mapValue(value, fromLow, fromHigh, toLow, toHigh) {
@@ -36,10 +37,14 @@ let _Units = {
     },
 
     compile(val, fromUnit, toUnit) {
-        let [fromLow, fromHigh] = fromUnit.range.map(glsl.Const);
-        let [toLow, toHigh] = toUnit.range.map(glsl.Const);
+        if (_.isEqual(fromUnit.range, toUnit.range)) {
+            return val;
+        } else {
+            let [fromLow, fromHigh] = fromUnit.range.map(glsl.Const);
+            let [toLow, toHigh] = toUnit.range.map(glsl.Const);
 
-        return glsl.FunctionCall('mapValue', [val, fromLow, fromHigh, toLow, toHigh]);
+            return glsl.FunctionCall('mapValue', [val, fromLow, fromHigh, toLow, toHigh]);
+        }
     }
 
 };

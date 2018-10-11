@@ -1,5 +1,6 @@
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import * as glsl from '@/common/glsl';
+import _ from 'lodash';
 import Units from '@/common/units';
 import Range from '@/common/util/range';
 
@@ -446,3 +447,33 @@ class MirrorNode extends GraphNode {
 }
 MirrorNode.title = 'Mirror';
 node_types.push(['util/mirror', MirrorNode]);
+
+class RemapNode extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('value', Units.Numeric),
+            GraphNode.input('fromLow', Units.Numeric),
+            GraphNode.input('fromHigh', Units.Numeric),
+            GraphNode.input('toLow', Units.Numeric),
+            GraphNode.input('toHigh', Units.Numeric),
+        ];
+
+        const outputs = [
+            GraphNode.output('remapped', Units.Numeric),
+        ];
+
+        super(options, inputs, outputs);
+    }
+
+    compile(c) {
+        const numInputs = this.input_info.length;
+
+        const args = _.range(numInputs).map(i => c.getInput(this, i));
+
+        c.setOutput(this, 0, glsl.FunctionCall('mapValue', args));
+    }
+}
+
+RemapNode.title = 'Remap';
+node_types.push(['util/remap', RemapNode]);
+

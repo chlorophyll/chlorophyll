@@ -83,6 +83,10 @@ export function UnOp(operator, expr) {
     };
 }
 
+export function NoOp() {
+    return {type: 'noop'};
+}
+
 export function TernaryOp(condition, tbranch, fbranch) {
     return {
         type: 'ternary_op',
@@ -225,6 +229,9 @@ let generator = {
     unary_op(c, node) {
         c.emit(node.operator);
         c.visit(node.expr);
+    },
+
+    noop(c, node) {
     },
 
     var_decl(c, node) {
