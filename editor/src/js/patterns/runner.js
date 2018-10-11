@@ -25,6 +25,11 @@ export class PatternRunner extends RawPatternRunner {
         this.renderer = renderer;
         this.outputTexture = new THREE.Texture();
     }
+
+    refresh(event) {
+        setImmediate(() => super.refresh(event));
+    }
+
     detach() {
         for (const event of GRAPH_EVENTS) {
             this.graph.removeEventListener(event, this.refresh);
