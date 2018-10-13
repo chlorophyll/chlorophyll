@@ -290,6 +290,36 @@ class Scale2D extends GraphNode {
 Scale2D.title = '2D scale';
 node_types.push(['2d/scale', Scale2D]);
 
+class Polar2D extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('x', Units.Distance),
+            GraphNode.input('y', Units.Distance),
+        ];
+
+        const outputs = [
+            GraphNode.output('r', Units.Numeric),
+            GraphNode.output('theta', Units.Angle),
+        ];
+        super(options, inputs, outputs);
+    }
+
+    compile(c) {
+        const x = c.getInput(this, 0);
+        const y = c.getInput(this, 1);
+
+        const vec = glsl.FunctionCall('vec2', [x, y]);
+
+        const r = glsl.FunctionCall('length', [vec]);
+        const theta = glsl.FunctionCall('atan', [y, x]);
+
+        c.setOutput(this, 0, r);
+        c.setOutput(this, 1, theta);
+    }
+}
+Polar2D.title = '2D polar';
+node_types.push(['2d/polar', Polar2D]);
+
 class Scale3D extends GraphNode {
     constructor(options) {
         const inputs = [
