@@ -54,6 +54,7 @@ float blue(float hue) {
 
 vec3 hsv2rgb(vec3 c) {
   float h = fract(c.x);
+  c = clamp(c, 0., 1.);
   vec3 u = vec3(1.);
   vec3 o = vec3(red(h), green(h), blue(h));
   return c.z * mix(u, o, c.y);
