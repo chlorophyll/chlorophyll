@@ -208,6 +208,68 @@ class Grayscale extends GraphNode {
 Grayscale.title = 'Grayscale';
 node_types.push(['CRGB/Grayscale', Grayscale]);
 
+class TestPattern extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('x', Units.Distance),
+            GraphNode.input('y', Units.Distance),
+        ];
+        const outputs = [
+            GraphNode.output('output', 'CRGB')
+        ];
+        super(options, inputs, outputs);
+    }
+
+    compile(c) {
+        const mapToUnit = v => {
+            return c.declare('float', c.variable(),
+                glsl.BinOp(glsl.BinOp(v, '/', glsl.Const(2)), '+', glsl.Const(0.5))
+            );
+        };
+
+        const x = mapToUnit(c.getInput(this, 0));
+        const y = mapToUnit(c.getInput(this, 1));
+        const div = c.declare('float', c.variable(), glsl.Const(1 / 14.0));
+        const space = c.declare('float', c.variable(), glsl.Const(1 / 7.5));
+
+        const stride = c.declare('vec2', c.variable(),
+            glsl.FunctionCall('vec2', [
+                glsl.FunctionCall('mod', [x, space]),
+                glsl.FunctionCall('mod', [y, space]),
+            ])
+        );
+
+        const color = c.declare('vec3', c.variable(),
+            glsl.FunctionCall('vec3', [
+                glsl.BinOp(glsl.Const(1), '-', x),
+                glsl.BinOp(glsl.Const(1), '-', y),
+                x
+            ])
+        );
+        const lighten = glsl.FunctionCall('vec3', [
+            glsl.Const(0.8), glsl.Const(0.8), glsl.Const(0.8)
+        ]);
+
+        c.out.push(
+            glsl.IfStmt(glsl.BinOp(glsl.Dot(stride, 'x'), '>', div), [
+                glsl.BinOp(color, '=', glsl.BinOp(
+                    glsl.BinOp(color, '+', lighten), '/', glsl.Const(2)
+                ))
+            ])
+        );
+
+        c.out.push(
+            glsl.IfStmt(glsl.BinOp(glsl.Dot(stride, 'y'), '>', div), [
+                glsl.BinOp(color, '=', glsl.BinOp(color, '/', glsl.Const(1.5)))
+            ])
+        );
+
+        c.setOutput(this, 0, color);
+    }
+}
+TestPattern.title = 'Test Pattern';
+node_types.push(['CRGB/TestPattern', TestPattern]);
+
 export default function register_crgb_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };
