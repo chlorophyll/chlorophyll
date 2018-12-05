@@ -1,4 +1,47 @@
-import Units from '@/common/units';
+import Units from '../units';
+import * as T from '../types'
+
+export class LinearMapping implements T.PixelMapping {
+    readonly className = 'linear';
+    readonly displayName = '1d Linear Map';
+    readonly modes = [
+        {
+            className: 'continuous',
+            displayName: 'Linear (continuous)',
+            coords: [
+                {normalized: false, name: 'x', unit: Units.Distance}
+            ],
+        },
+        {
+            className: 'discrete',
+            displayName: 'Linear (indexed)',
+            coords: [
+                {normalized: false, name: 'x', unit: Units.Numeric}
+            ]
+        }
+    ];
+
+    settings = {};
+
+    constructor(attrs) {
+        this.deserialize(attrs);
+    }
+
+    getMode(className) {
+        const foundMode: T.MapMode = this.modes.find(m => m.className === className);
+        if (!foundMode)
+            throw new Error(`Invalid coordinate mode: ${className}`);
+    }
+
+    serialize() {
+        return {};
+    }
+
+    deserialize(attrs) {
+        this.settings = attrs;
+    }
+}
+
 
 export const coord_types = {
     continuous1d: {

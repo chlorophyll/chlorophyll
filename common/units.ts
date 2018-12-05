@@ -2,6 +2,7 @@ import { addSerializableType } from '@/common/util/serialization';
 import * as glsl from '@/common/glsl';
 import _ from 'lodash';
 import { Compilation } from '@/common/graphlib/compiler';
+import * as T from './types';
 
 function mapValue(value, fromLow, fromHigh, toLow, toHigh) {
     return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
@@ -69,17 +70,21 @@ let Units = new Proxy(_Units, {
     }
 });
 
-class RangeType {
-    constructor(low, high, create) {
+class RangeType implements T.RangeType {
+    readonly range;
+    readonly create = (val) => val;
+    readonly isUnit = true;
+
+    constructor(low, high, create?) {
         this.range = [low, high];
-        this.create = create || ((val) => val);
-        this.isUnit = true;
+        if (create)
+            this.create = create;
     }
 };
 
 Units.Numeric = new RangeType(0, 1);
 Units.Percentage = new RangeType(0, 1);
-Units.UInt8 = new RangeType(0, 0xff, (val) => val & 0xff);
+Units.UInt8 = new RangeType(0, 0xff, (val: number) => val & 0xff);
 
 Units.Distance = new RangeType(-1, 1);
 Units.Angle = new RangeType(0, 2*Math.PI);
