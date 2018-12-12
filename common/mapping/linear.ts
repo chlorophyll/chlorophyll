@@ -3,87 +3,103 @@ import * as T from '../types'
 
 export class LinearMapping implements T.PixelMapping {
     readonly className = 'linear';
-    readonly displayName = '1d Linear Map';
-    readonly modes = [
+    readonly displayName = '1D Linear Map';
+    public settings = {
+        mode: 'continuous',
+        pixelIds: [],
+        groupIds: []
+    };
+    static readonly views = [
         {
             className: 'continuous',
             displayName: 'Linear (continuous)',
             coords: [
-                {normalized: false, name: 'x', unit: Units.Distance}
+                {normalized: false, name: 'x', unit: Units.Numeric}
             ],
+            glslType: 'float',
+            glslSwizzle: 'x'
         },
         {
             className: 'discrete',
             displayName: 'Linear (indexed)',
             coords: [
-                {normalized: false, name: 'x', unit: Units.Numeric}
-            ]
+                {normalized: false, name: 'x', unit: Units.UInt8}
+            ],
+            glslType: 'int',
+            glslSwizzle: 'x'
         }
     ];
-
-    settings = {};
 
     constructor(attrs) {
         this.deserialize(attrs);
     }
 
-    getMode(className) {
-        const foundMode: T.MapMode = this.modes.find(m => m.className === className);
-        if (!foundMode)
+    getView(className: string) {
+        const view: T.MapMode = LinearMapping.views.find(m => m.className === className);
+        if (!view)
             throw new Error(`Invalid coordinate mode: ${className}`);
+
+        return view;
     }
 
     serialize() {
-        return {};
+        return this.settings;
     }
 
     deserialize(attrs) {
         this.settings = attrs;
     }
-}
 
+    mapPixels(pixels: Array<T.Pixel>): Array<T.Pixel> {
+        const nPixels = this.settings.pixelIds.length;
+        const idxToMappedIdx = new Map();
 
-export const coord_types = {
-    continuous1d: {
-        name: 'Linear (continuous)',
+        // Pixels are listed in the settings as their global index
+        this.settings.pixelIds.forEach((globalIdx, mapIdx) => {
+            idxToMappedIdx.set(globalIdx, mapIdx);
+        });
 
-        coords: [
-            // Coords are always already normalized in this case.
-            {normalized: false, name: 'x', unit: Units.Distance}
-        ],
-        precompute: null,
-        mapPoint(settings, pos, idx) {
-            // 0 or 1-length mappings arbitrarily get positioned at 0.
-            // This shouldn't ever get called when we don't have any points,
-            // but just in case.
-            if (settings.pixels.length <= 1)
-                return 0;
+        return pixels.map(pixel => {
+            const globalIdx = pixel.idx;
+            // If the point isn't in the set of pixels, it can't be mapped.
+            if (!idxToMappedIdx.has(globalIdx))
+                return {idx: -1, pos: null};
 
-            return idx / (settings.pixels.length - 1);
-        },
-        convertCoords: (point) => point
+            // 1-length mappings arbitrarily get positioned at 0.
+            if (this.settings.pixelIds.length <= 1)
+                return {idx: 0, pos: {x: 0}};
+
+            // Otherwise, space points evenly along the axis.
+            // The last pixel has x < 1. This prevents the first and last pixel
+            // from overlapping when treating the mapping as a circle.
+            const mappedIdx = idxToMappedIdx.get(globalIdx);
+            return {
+                idx: mappedIdx,
+                pos: {x: mappedIdx / nPixels}
+            };
+        });
     }
-};
 
-export function addGroup(settings, group) {
-    if (settings.groupIds.includes(group.id))
-        return settings;
+    // Add all of a group's pixels to the mapping
+    addGroup(group) {
+        if (this.settings.groupIds.includes(group.id))
+            return;
 
-    const groupPixels = new Set(group.pixels);
-    const withoutGroup = settings.pixels.filter(i => !groupPixels.has(i));
-    return {
-        groupIds: [...settings.groupIds, group.id],
-        pixels: [...withoutGroup, ...group.pixels]
-    };
-}
+        const groupPixels = new Set(group.pixels);
+        const withoutGroup = this.settings.pixelIds.filter(i => !groupPixels.has(i));
 
-export function removeGroup(settings, group) {
-    if (!settings.groupIds.includes(group.id))
-        return settings;
+        this.settings.groupIds = [...this.settings.groupIds, group.id],
+        this.settings.pixelIds = [...withoutGroup, ...group.pixels]
+    }
 
-    const groupPixels = new Set(group.pixels);
-    return {
-        groupIds: settings.groupIds.filter(gid => gid !== group.id),
-        pixels: settings.pixels.filter(i => !groupPixels.has(i))
-    };
+    // Remove all of a group's pixels from the mapping
+    removeGroup(group) {
+        if (!this.settings.groupIds.includes(group.id))
+            return;
+
+        const groupPixels = new Set(group.pixels);
+
+        this.settings.groupIds = this.settings.groupIds.filter(gid => gid !== group.id);
+        this.settings.pixelIds = this.settings.pixelIds.filter(i => !groupPixels.has(i));
+    }
 }

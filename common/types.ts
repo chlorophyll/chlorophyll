@@ -5,13 +5,18 @@
  */
 
 /*
- * Basic types and units
+ * Basic pattern graph types and units
  */
 export interface Point {
     x: number;
-    y: number;
-    z: number;
+    y?: number;
+    z?: number;
 };
+
+export interface Pixel {
+    idx: number;
+    pos: Point;
+}
 
 export interface GraphUnit {
     isUnit: true;
@@ -36,20 +41,22 @@ export interface RangeUnit extends GraphUnit {
 export interface CoordSpec {
     normalized: boolean;
     name: string;
-
+    unit: GraphUnit;
 };
 
 export interface MapMode {
     className: string;
     displayName: string;
     coords: Array<CoordSpec>;
+    glslType: string;
+    glslSwizzle: string;
 };
 
 export interface PixelMapping {
     className: string;
     displayName: string;
-    modes: Array<MapMode>;
     settings: object;
+    getView(string): MapMode;
 
     serialize(): object;
     deserialize(object);

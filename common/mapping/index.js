@@ -1,27 +1,19 @@
 import clone from 'clone';
-import * as Projection from './projection';
-import * as Transform from './transform';
-import * as Linear from './linear';
+import * as ProjectionMapping from './projection';
+import * as TransformMapping from './transform';
+import LinearMapping from './linear';
 
 function coordInfo(map_type, coordType) {
     return mappingTypes[map_type].coord_types[coordType];
 }
 
 export const mappingTypes = {
-    linear: {
-        display_name: 'Linear',
-        coord_types: Linear.coord_types,
-        glsl_type: 'float',
-        glsl_swizzle: 'x',
-        defaultSettings() {
-            return {
-                pixels: [],
-                groupIds: []
-            };
-        },
-    },
+    linear: LinearMapping,
+    projection: ProjectionMapping,
+    transform: TransformMapping
+};
 
-    projection: {
+/*
         display_name: '2D Projection',
         coord_types: Projection.coord_types,
         glsl_type: 'vec2',
@@ -50,7 +42,7 @@ export const mappingTypes = {
             };
         },
     },
-};
+*/
 
 export function restoreAllMappings(snapshot) {
     let new_mapping_list = [];

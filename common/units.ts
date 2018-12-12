@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import * as assert from 'assert';
+
 import * as T from './types';
 import * as glsl from './glsl';
 import { addSerializableType } from './util/serialization';
