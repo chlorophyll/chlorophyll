@@ -13,6 +13,7 @@
     "ts-jest": "^23.1.4"
   },
   "dependencies": {
+    "@types/node": "^10.12.12",
     "glsl-blend": "^1.0.3",
     "glsl-easings": "^1.0.0",
     "glsl-noise": "^0.0.0",
