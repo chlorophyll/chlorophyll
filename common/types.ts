@@ -13,10 +13,20 @@ export interface Point {
     z: number;
 };
 
-export interface RangeType {
-    range: [number, number];
-    create(any): number;
+export interface GraphUnit {
     isUnit: true;
+    name: string;
+    create(any): any;
+    serialize(any): any;
+}
+
+export interface RangeUnit extends GraphUnit {
+    isCastable: true;
+    range: [number, number];
+    // compile a type conversion
+    compile(val: any, castFrom: GraphUnit): any;
+    // convert between types in-editor
+    castFrom(val: any, castFrom: GraphUnit): GraphUnit;
 };
 
 /*

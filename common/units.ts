@@ -1,116 +1,90 @@
-import { addSerializableType } from '@/common/util/serialization';
-import * as glsl from '@/common/glsl';
 import _ from 'lodash';
-import { Compilation } from '@/common/graphlib/compiler';
+import * as assert from 'assert';
 import * as T from './types';
+import * as glsl from './glsl';
+import { addSerializableType } from './util/serialization';
+import { Compilation } from './graphlib/compiler';
 
 function mapValue(value, fromLow, fromHigh, toLow, toHigh) {
     return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
 }
 
-function binop(oper) {
-    return function(a, aUnit, b, bUnit) {
+const Units: {[key: string]: T.GraphUnit} = {};
+export default Units;
 
-        let lhs = Units.convert(a, aUnit, Units.Numeric);
-        let rhs = Units.convert(b, bUnit, Units.Numeric);
+/*
+ * Class for a representable type under the graph language.
+ * Each instantiation is a new type (e.g. Angle), rather than a value of that
+ * type (e.g. 1.5 radians).
+ */
+class GraphUnit {
+    readonly isUnit = true;
+    readonly create = (val) => val;
+    readonly serialize = (val) => val;
+    readonly name = null;
 
-        return oper(lhs, rhs);
+    /*
+     * By default, values are stored with no transformation.
+     * Specify create/serialize functions to apply a transformation to values on
+     * creation or when saving, respectively.
+     */
+    constructor(name: string, create?, serialize?) {
+        assert.ok(!Units[name]);
 
-    };
+        this.name = name;
+        if (create)
+            this.create = create;
+        if (serialize)
+            this.serialize = serialize;
+
+        addSerializableType(name, {
+            serialize: (val) => this.serialize(val),
+            deserialize: (val) => this.create(val)
+        });
+
+        Units[name] = this;
+    }
 };
 
-let _Units = {
-    Operations: {
-        add: binop(function(a, b) { return a+b; }),
-        sub: binop(function(a, b) { return a-b; }),
-        mul: binop(function(a, b) { return a*b; }),
-        div: binop(function(a, b) { return a/b; }),
-        mod: binop(function(a, b) { return a%b; }),
-    },
 
-    convert(val, fromUnit, toUnit) {
-        let [fromLow, fromHigh] = fromUnit.range;
-        let [toLow, toHigh] = toUnit.range;
+class RangeUnit extends GraphUnit implements T.RangeUnit {
+    readonly isCastable = true;
+    readonly range;
+
+    constructor(name: string, low, high, create?) {
+        super(name, create);
+        this.range = [low, high];
+    }
+
+    castFrom(val: number, fromType: RangeUnit) {
+        let [fromLow, fromHigh] = fromType.range;
+        let [toLow, toHigh] = this.range;
 
         let out = mapValue(val, fromLow, fromHigh, toLow, toHigh);
 
-        return toUnit.create(out);
-    },
+        return this.create(out);
+    }
 
-    compile(val, fromUnit, toUnit) {
-        if (_.isEqual(fromUnit.range, toUnit.range)) {
+    compile(val: number, fromType: RangeUnit) {
+        if (_.isEqual(fromType.range, this.range))
             return val;
-        } else {
-            let [fromLow, fromHigh] = fromUnit.range.map(glsl.Const);
-            let [toLow, toHigh] = toUnit.range.map(glsl.Const);
 
-            return glsl.FunctionCall('mapValue', [val, fromLow, fromHigh, toLow, toHigh]);
-        }
+        const [fromLow, fromHigh] = fromType.range.map(glsl.Const);
+        const [toLow, toHigh] = this.range.map(glsl.Const);
+        return glsl.FunctionCall('mapValue', [val, fromLow, fromHigh, toLow, toHigh]);
     }
-
-};
-
-let Units = new Proxy(_Units, {
-    set: function(obj, prop, value) {
-        obj[prop] = value;
-
-        // backwards compatibility
-        let Serializer = class extends Number {
-            serialize() {
-                return this;
-            }
-
-            static deserialize() {
-                return value.create(this);
-            }
-        };
-
-        addSerializableType(prop, Serializer);
-        return true;
-    }
-});
-
-class RangeType implements T.RangeType {
-    readonly range;
-    readonly create = (val) => val;
-    readonly isUnit = true;
-
-    constructor(low, high, create?) {
-        this.range = [low, high];
-        if (create)
-            this.create = create;
-    }
-};
-
-Units.Numeric = new RangeType(0, 1);
-Units.Percentage = new RangeType(0, 1);
-Units.UInt8 = new RangeType(0, 0xff, (val: number) => val & 0xff);
-
-Units.Distance = new RangeType(-1, 1);
-Units.Angle = new RangeType(0, 2*Math.PI);
+}
 
 /*
-Compilation.toplevel(
-    glsl.FunctionDecl('float', 'mapValue', [
-        glsl.Variable('float', 'value'),
-        glsl.Variable('float', 'fromLow'), glsl.Variable('float', 'fromHigh'),
-        glsl.Variable('float', 'toLow'), glsl.Variable('float', 'toHigh'),
-    ], [
-        glsl.Return(glsl.BinOp(
-            glsl.BinOp(
-                glsl.BinOp(glsl.Ident('value'), '-', glsl.Ident('fromLow')),
-                '*',
-                glsl.BinOp(
-                    glsl.BinOp(glsl.Ident('toHigh'), '-', glsl.Ident('toLow')),
-                    '/',
-                    glsl.BinOp(glsl.Ident('fromHigh'), '-', glsl.Ident('fromLow'))
-                )
-            ),
-            '+',
-            glsl.Ident('toLow'))
-        )
-    ]));
-*/
+ * Graph node type definitions
+ */
+Units.Numeric = new RangeUnit('num', 0, 1);
+Units.UInt8 = new RangeUnit('uint8', 0, 0xff, (val: number) => val & 0xff);
+Units.Angle = new RangeUnit('angle', 0, 2*Math.PI);
+Units.Distance = new RangeUnit('dist', -1, 1); // TODO migrate to 0->1
+// Utility Aliases
+Units.Num = Units.Numeric;
+Units.Percentage = Units.Numeric;
 
 Compilation.toplevel(`
 float mapValue(in float value,
@@ -119,4 +93,3 @@ float mapValue(in float value,
     return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
 }
 `);
-export default Units;
