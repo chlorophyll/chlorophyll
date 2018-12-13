@@ -311,7 +311,7 @@ class Polar2D extends GraphNode {
         const vec = glsl.FunctionCall('vec2', [x, y]);
 
         const r = glsl.FunctionCall('length', [vec]);
-        const theta = glsl.FunctionCall('atan', [y, x]);
+        const theta = glsl.BinOp(glsl.FunctionCall('atan', [y, x]), '+', glsl.Const(3.1415962));
 
         c.setOutput(this, 0, r);
         c.setOutput(this, 1, theta);
@@ -506,4 +506,55 @@ class RemapNode extends GraphNode {
 
 RemapNode.title = 'Remap';
 node_types.push(['util/remap', RemapNode]);
+
+class MaxNode extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('a', Units.Numeric),
+            GraphNode.input('b', Units.Numeric),
+        ];
+
+        const outputs = [
+            GraphNode.output('max', Units.Numeric),
+        ];
+
+        super(options, inputs, outputs);
+    }
+
+    compile(c) {
+        const a = c.getInput(this, 0);
+        const b = c.getInput(this, 1);
+
+        c.setOutput(this, 0, glsl.FunctionCall('max', [a, b]));
+    }
+}
+
+MaxNode.title = 'max';
+node_types.push(['util/max', MaxNode]);
+
+class MinNode extends GraphNode {
+    constructor(options) {
+        const inputs = [
+            GraphNode.input('a', Units.Numeric),
+            GraphNode.input('b', Units.Numeric),
+        ];
+
+        const outputs = [
+            GraphNode.output('min', Units.Numeric),
+        ];
+
+        super(options, inputs, outputs);
+
+    }
+
+    compile(c) {
+        const a = c.getInput(this, 0);
+        const b = c.getInput(this, 1);
+
+        c.setOutput(this, 0, glsl.FunctionCall('min', [a, b]));
+    }
+}
+
+MinNode.title = 'min';
+node_types.push(['util/min', MinNode]);
 
