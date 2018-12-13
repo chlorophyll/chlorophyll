@@ -225,7 +225,7 @@ function main() {
                     strips_attached += controller.strips_attached;
                 }
 
-                if (strips_attached == state.model.num_strips)
+                if (strips_attached >= state.model.num_strips)
                     runPattern(state.model, pattern, group, mapping);
             });
             registry.start();
