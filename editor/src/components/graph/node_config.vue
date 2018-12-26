@@ -1,5 +1,5 @@
 <template>
-    <dialog-box title="node config" :show="true" @close="close" width="350px">
+    <dialog-box title="node config" :show="true" @close="close" width="350px" :pos="{x: 40, y: 40}">
       <div class="controls config">
             <template v-for="(component, idx) in parameter_components">
                 <component v-bind:is="component" :parameter="node.parameters[idx]"/>
