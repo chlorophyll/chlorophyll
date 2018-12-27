@@ -1,10 +1,11 @@
-import Units from '@/common/units';
 import {
     Euler,
     Quaternion,
     Vector2,
     Vector3,
 } from 'three';
+
+import Units from '../units';
 
 /*
  * 3d transform mappings

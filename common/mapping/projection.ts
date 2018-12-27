@@ -7,96 +7,122 @@ import {
     Vector3,
 } from 'three';
 
-import Units from '@/common/units';
+import Units from '../units';
+import * as T from '../types';
 
-function projectPoint(plane, pos) {
-    let fromOrigin = pos.clone().sub(plane.origin);
-    return new Vector2(plane.xaxis.dot(fromOrigin),
-                       plane.yaxis.dot(fromOrigin));
-}
+type ProjMode = 'cartesian2d' | 'polar2d';
 
-/*
- * Tools for projecting sets of points from 3d space onto a 2d plane
- */
-export const coord_types = {
-    cartesian2d: {
-        name: '2D Cartesian',
-        coords: [
-            {normalized: true, name: 'x', unit: Units.Distance},
-            {normalized: true, name: 'y', unit: Units.Distance}
-        ],
-        precompute: getProjectedAxes,
-        mapPoint: projectPoint,
-        convertCoords: (point) => point,
-    },
-    polar2d: {
-        name: '2D Polar',
-        coords: [
-            {normalized: true, name: 'r', unit: Units.Percentage},
-            {normalized: false, name: 'theta', unit: Units.Angle}
-        ],
-        precompute: getProjectedAxes,
-        mapPoint: projectPoint,
-        convertCoords(point) {
-            // map from x,y -> r, theta
-            return new Vector2(point.length(), point.angle());
-        }
-    },
-};
-
-export function getCameraProjection(camera, screen_origin) {
-    camera.updateMatrixWorld();
-    let plane_rot = camera.quaternion.clone();
-
-    // Create plane from the camera's look vector
-    let plane_normal = new Vector3(0, 0, -1);
-    plane_normal.applyQuaternion(plane_rot).normalize();
-    let plane = new Plane(plane_normal);
-    // Save angle for later reference
-    let plane_euler = new Euler();
-    plane_euler.setFromQuaternion(plane_rot);
-
-    // Project the screen position of the origin widget onto the proejction
-    // plane.  This is the 3d position of the mapping origin.
-    let raycaster = new Raycaster();
-    let widgetpos = new Vector2(screen_origin.x, screen_origin.y);
-    raycaster.setFromCamera(widgetpos, camera);
-
-    const intersection = raycaster.ray.intersectPlane(plane);
-    return {
-        origin: intersection ? intersection.toArray() : [0, 0, 0],
-        plane_angle: plane_euler.toArray().slice(0, 2),
-        rotation: screen_origin.angle,
+export class ProjectionMapping implements T.PixelMapping {
+    readonly className = 'projection';
+    readonly displayName = '2D Projection';
+    public settings = {
+        origin: [0, 0, 0],
+        plane_angle: [0, 0],
+        rotation: 0
     };
-}
 
-/*
- * Create axes for the projection and rotate them appropriately.
- * To be precomputed at the beginning of mapPoints.
- */
-export function getProjectedAxes(settings) {
-    let up = new Vector3(0, 1, 0);
-    let quat = new Quaternion();
-    // The camera looks along the negative Z axis, so that's the initial
-    // facing direction of the projection plane.
-    const plane_normal = new Vector3(0, 0, -1);
+    static readonly views = [
+        {
+            className: 'cartesian2d',
+            displayName: '2D Cartesian',
+            coords: [
+                {name: 'x', unit: Units.Distance},
+                {name: 'y', unit: Units.Distance}
+            ],
+            glslType: 'vec2',
+            glslSwizzle: 'xy'
+        },
+        {
+            className: 'polar2d',
+            displayName: '2D Polar',
+            coords: [
+                {name: 'r', unit: Units.Percentage},
+                {name: 'theta', unit: Units.Angle}
+            ],
+            glslType: 'vec2',
+            glslSwizzle: 'xy',
+            convertCoords(point) {
+                // map from x,y -> r, theta
+                return new Vector2(point.length(), point.angle());
+            }
+        }
+    ];
 
-    let [ex, ey] = settings.plane_angle;
+    constructor(attrs) {
+        this.deserialize(attrs);
+    }
 
-    let euler = new Euler(ex, ey, 0, 'XYZ');
+    getView(className: ProjMode): T.MapMode {
+        return ProjectionMapping.views.find(m => m.className === className);
+    }
 
-    quat.setFromEuler(euler);
-    plane_normal.applyQuaternion(quat);
+    mapPixels(pixels: Array<T.Pixel>, mode: ProjMode): Array<T.MappedPixel> {
+        // The camera looks along the negative Z axis, so that's the initial
+        // facing direction of the projection plane.
+        const [ex, ey] = this.settings.plane_angle;
+        const origin = new Vector3().fromArray(this.settings.origin);
 
-    const yaxis = up.applyQuaternion(quat);
-    yaxis.applyAxisAngle(plane_normal, settings.rotation);
-    yaxis.normalize();
+        const planeNormal = new Vector3(0, 0, -1);
+        const rot = new Quaternion();
+        rot.setFromEuler(new Euler(ex, ey, 0, 'XYZ'));
+        planeNormal.applyQuaternion(rot);
 
-    const xaxis = plane_normal.clone().cross(yaxis);
-    xaxis.normalize();
+        const up = new Vector3(0, 1, 0);
+        const yaxis = up.applyQuaternion(rot);
+        yaxis.applyAxisAngle(planeNormal, this.settings.rotation).normalize();
 
-    const origin = new Vector3();
-    origin.fromArray(settings.origin);
+        const xaxis = planeNormal.clone().cross(yaxis).normalize();
 
-    return { xaxis, yaxis, origin };
-}
+        return pixels.map((px, i) => {
+            const fromOrigin = px.pos.clone().sub(origin);
+
+            let mappedPos = new Vector2(xaxis.dot(fromOrigin), yaxis.dot(fromOrigin));
+            if (mode === 'polar2d')
+                mappedPos = new Vector2(mappedPos.length(), mappedPos.angle());
+
+            return {idx: i, pos: mappedPos};
+        });
+    }
+
+    /*
+     * Modifying & config methods
+     */
+    projectFromCamera(camera, screenOrigin) {
+        camera.updateMatrixWorld();
+
+        // Create plane orthogonal to the camera's look vector
+        const planeQuat = camera.quaternion.clone();
+        const planeEuler = new Euler().setFromQuaternion(planeQuat);
+        const planeNormal = new Vector3(0, 0, -1);
+        planeNormal.applyQuaternion(planeQuat).normalize();
+
+        // Project the screen position of the origin widget onto the projection
+        // plane.  This is the 3d position of the mapping origin.
+        const plane = new Plane(planeNormal);
+        const {x, y, angle} = screenOrigin;
+        const raycaster = new Raycaster();
+        const intersection = new Vector3(0, 0, 0);
+
+        raycaster.setFromCamera(new Vector2(x, y), camera);
+        raycaster.ray.intersectPlane(plane, intersection);
+
+        this.settings = {
+            origin: intersection.toArray(),
+            plane_angle: planeEuler.toArray().slice(0, 2),
+            rotation: angle,
+        };
+    }
+
+    /*
+     * Serialization
+     */
+
+    serialize() {
+        return this.settings;
+    }
+
+    deserialize(attrs) {
+        this.settings = {...attrs};
+    }
+
+};

@@ -13,9 +13,15 @@ export interface Point {
     z?: number;
 };
 
+export interface MappedPixel {
+    idx: number;
+    // 3, 2, or 1 dimension of coordinates can result from mapping
+    pos: THREE.Vector3 | THREE.Vector2 | number;
+}
+
 export interface Pixel {
     idx: number;
-    pos: Point;
+    pos: THREE.Vector3
 }
 
 export interface GraphUnit {
@@ -39,7 +45,6 @@ export interface RangeUnit extends GraphUnit {
  */
 
 export interface CoordSpec {
-    normalized: boolean;
     name: string;
     unit: GraphUnit;
 };

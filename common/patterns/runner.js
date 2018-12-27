@@ -1,6 +1,6 @@
 import GraphLib from '@/common/graphlib';
 import { Compilation, GraphCompiler } from '@/common/graphlib/compiler';
-import { getMappedPoints, convertPointCoords, mappingTypes } from '@/common/mapping';
+import { mappingTypes } from '@/common/mapping';
 import _ from 'lodash';
 
 import * as glsl from '@/common/glsl';

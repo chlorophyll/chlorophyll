@@ -16,7 +16,7 @@ export class LinearMapping implements T.PixelMapping {
             className: 'continuous',
             displayName: 'Linear (continuous)',
             coords: [
-                {normalized: false, name: 'x', unit: Units.Numeric}
+                {name: 'x', unit: Units.Numeric}
             ],
             glslType: 'float',
             glslSwizzle: 'x'
@@ -25,7 +25,7 @@ export class LinearMapping implements T.PixelMapping {
             className: 'discrete',
             displayName: 'Linear (indexed)',
             coords: [
-                {normalized: false, name: 'x', unit: Units.UInt8}
+                {name: 'x', unit: Units.UInt8}
             ],
             glslType: 'int',
             glslSwizzle: 'x'
@@ -36,11 +36,11 @@ export class LinearMapping implements T.PixelMapping {
         this.deserialize(attrs);
     }
 
-    getView(className: 'continuous' | 'discrete'): T.MapMode {
+    getView(className: LinearMode): T.MapMode {
         return LinearMapping.views.find(m => m.className === className);
     }
 
-    mapPixels(pixels: Array<T.Pixel>, mode: LinearMode): Array<T.Pixel> {
+    mapPixels(pixels: Array<T.Pixel>, mode: LinearMode): Array<T.MappedPixel> {
         const nPixels = this.settings.pixelIds.length;
         const idxToMappedIdx = new Map();
 
@@ -67,13 +67,13 @@ export class LinearMapping implements T.PixelMapping {
                 case 'continuous':
                     return {
                         idx: globalIdx,
-                        pos: {x: mappedIdx / nPixels}
+                        pos: mappedIdx / nPixels
                     };
 
                 case 'discrete':
                     return {
                         idx: globalIdx,
-                        pos: {x: mappedIdx}
+                        pos: mappedIdx
                     };
 
                 default:
