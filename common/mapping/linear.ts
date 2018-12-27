@@ -1,14 +1,16 @@
 import Units from '../units';
 import * as T from '../types'
 
+type LinearMode = 'continuous' | 'discrete';
+
 export class LinearMapping implements T.PixelMapping {
     readonly className = 'linear';
     readonly displayName = '1D Linear Map';
     public settings = {
-        mode: 'continuous',
         pixelIds: [],
         groupIds: []
     };
+
     static readonly views = [
         {
             className: 'continuous',
@@ -34,23 +36,11 @@ export class LinearMapping implements T.PixelMapping {
         this.deserialize(attrs);
     }
 
-    getView(className: string) {
-        const view: T.MapMode = LinearMapping.views.find(m => m.className === className);
-        if (!view)
-            throw new Error(`Invalid coordinate mode: ${className}`);
-
-        return view;
+    getView(className: 'continuous' | 'discrete'): T.MapMode {
+        return LinearMapping.views.find(m => m.className === className);
     }
 
-    serialize() {
-        return this.settings;
-    }
-
-    deserialize(attrs) {
-        this.settings = attrs;
-    }
-
-    mapPixels(pixels: Array<T.Pixel>): Array<T.Pixel> {
+    mapPixels(pixels: Array<T.Pixel>, mode: LinearMode): Array<T.Pixel> {
         const nPixels = this.settings.pixelIds.length;
         const idxToMappedIdx = new Map();
 
@@ -73,12 +63,28 @@ export class LinearMapping implements T.PixelMapping {
             // The last pixel has x < 1. This prevents the first and last pixel
             // from overlapping when treating the mapping as a circle.
             const mappedIdx = idxToMappedIdx.get(globalIdx);
-            return {
-                idx: mappedIdx,
-                pos: {x: mappedIdx / nPixels}
-            };
+            switch (mode) {
+                case 'continuous':
+                    return {
+                        idx: globalIdx,
+                        pos: {x: mappedIdx / nPixels}
+                    };
+
+                case 'discrete':
+                    return {
+                        idx: globalIdx,
+                        pos: {x: mappedIdx}
+                    };
+
+                default:
+                    throw new Error(`Invalid mode: ${mode}`);
+            }
         });
     }
+
+    /*
+     * Modifying & config methods
+     */
 
     // Add all of a group's pixels to the mapping
     addGroup(group) {
@@ -101,5 +107,17 @@ export class LinearMapping implements T.PixelMapping {
 
         this.settings.groupIds = this.settings.groupIds.filter(gid => gid !== group.id);
         this.settings.pixelIds = this.settings.pixelIds.filter(i => !groupPixels.has(i));
+    }
+
+    /*
+     * Serialization
+     */
+
+    serialize() {
+        return this.settings;
+    }
+
+    deserialize(attrs) {
+        this.settings = {...attrs};
     }
 }

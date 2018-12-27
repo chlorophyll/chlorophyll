@@ -48,10 +48,10 @@ export default class RawPatternRunner {
     }
 
     mapPositions() {
-        const { coord_type, mapping_type } = this.pattern;
-        const mapped_points = getMappedPoints(this.model, this.mapping, this.group, coord_type);
+        const pixels = this.model.getGroupPixels(this.group.id);
+        const mappedPoints = this.mapping.mapPoints(pixels, this.pattern.coord_type);
 
-        return convertPointCoords(mapping_type, coord_type, mapped_points);
+        return mappedPoints;
     }
 
     updatePositions() {
@@ -116,9 +116,9 @@ export default class RawPatternRunner {
             glsl.UniformDecl('float', 'time'),
         ];
 
-        const {glsl_type, glsl_swizzle} = mappingTypes[this.pattern.mapping_type];
+        const {glslType, glslSwizzle} = this.mapping.getView(this.pattern.coord_type);
 
-        const coords = glsl.Variable(glsl_type, 'coords');
+        const coords = glsl.Variable(glslType, 'coords');
         const color = glsl.Variable('vec3', 'color');
         const cur_oscillator = glsl.Variable('int', 'cur_oscillator');
         const cur_phase = glsl.Variable('float', 'cur_phase');
@@ -140,7 +140,7 @@ export default class RawPatternRunner {
             extractFromTexture(cur_phase, 'tPrev', glsl.Ident('vUv'), 'r'),
             glsl.BinOp(vC, '=', vCvalue),
             // check if i can just use vUv for these...
-            extractFromTexture(coords, 'uCoords', glsl.Ident('vC'), glsl_swizzle),
+            extractFromTexture(coords, 'uCoords', glsl.Ident('vC'), glslSwizzle),
             extractFromTexture(color, 'uColor', glsl.Ident('vC'), 'rgb'),
             new_phase,
             outcolor,
@@ -219,9 +219,9 @@ export default class RawPatternRunner {
             glsl.UniformDecl('sampler2D', 'tPrev'),
             glsl.UniformDecl('float', 'time'),
         ];
-        const {glsl_type, glsl_swizzle} = mappingTypes[this.pattern.mapping_type];
+        const {glslType, glsl_swizzle} = mappingTypes[this.pattern.mapping_type];
 
-        let coords = glsl.Variable(glsl_type, 'coords');
+        let coords = glsl.Variable(glslType, 'coords');
         let color = glsl.Variable('vec3', 'color');
         let outcolor = glsl.Variable('vec3', 'outcolor');
         let groupmask = glsl.Variable('float', 'groupmask');
