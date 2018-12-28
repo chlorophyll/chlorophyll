@@ -36,7 +36,7 @@ import * as THREE from 'three';
 
 import Util from 'chl/util';
 import store from 'chl/vue/store';
-import { getCameraProjection } from '@/common/mapping/projection';
+import ProjectionMapping from '@/common/mapping/projection';
 
 import VectorInput from '@/components/widgets/vector_input';
 import NumericInput from '@/components/widgets/numeric_input';
@@ -84,6 +84,7 @@ export default {
             this.$refs.viewport.controls.addEventListener('end', this.updateProjection);
             this.setCamera(this.value.plane_angle);
             this.viewport_mounted = true;
+            this.mapping = new ProjectionMapping(this.value);
         });
     },
 
@@ -93,6 +94,7 @@ export default {
     },
 
     methods: {
+
         setCamera(plane_angle) {
             const angle = new THREE.Euler(plane_angle[0],
                                           plane_angle[1],
@@ -100,10 +102,12 @@ export default {
             const cam_up = new THREE.Vector3(0, 0, 1);
             Util.alignWithVector(cam_up.applyEuler(angle), this.$refs.viewport.camera);
         },
+
         updateProjectionAndCamera(plane_angle) {
             this.setCamera(plane_angle);
             this.updateProjection(this.proj_widget);
         },
+
         updateProjection({x, y, angle}) {
             if (x === undefined)
                 x = this.proj_widget.x;
@@ -112,8 +116,8 @@ export default {
             if (angle === undefined)
                 angle = this.proj_widget.angle;
 
-            const proj = getCameraProjection(this.$refs.viewport.camera, {x, y, angle});
-            this.$emit('input', proj);
+            this.mapping.projectFromCamera(this.$refs.viewport.camera, {x, y, angle});
+            this.$emit('input', this.mapping.serialize());
         },
     },
 };

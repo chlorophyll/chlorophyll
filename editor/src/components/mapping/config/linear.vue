@@ -29,10 +29,10 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
 import store from 'chl/vue/store';
+import { mapState } from 'vuex';
 import { mappingUtilsMixin } from 'chl/mapping';
-import { addGroup, removeGroup } from '@/common/mapping/linear';
+import LinearMapping from '@/common/mapping/linear';
 
 export default {
     name: 'linear-config',
@@ -44,6 +44,11 @@ export default {
             selectedGroup: null
         };
     },
+
+    mounted() {
+        this.mapping = new LinearMapping(this.value);
+    },
+
     computed: {
         ...mapState({
             groupIds: (state) => state.pixels.group_list,
@@ -59,18 +64,16 @@ export default {
             if (!this.selectedGroup)
                 return;
 
-            console.log('before', this.value);
-            const newSettings = addGroup(this.value, this.selectedGroup);
-            console.log('after', newSettings);
-            this.$emit('input', newSettings);
+            this.mapping.addGroup(this.selectedGroup);
+            this.$emit('input', this.mapping.serialize());
         },
 
         removeCurrent() {
             if (!this.selectedGroup)
                 return;
 
-            const newSettings = removeGroup(this.value, this.selectedGroup);
-            this.$emit('input', newSettings);
+            this.mapping.removeGroup(this.selectedGroup);
+            this.$emit('input', this.mapping.serialize());
         },
     }
 };
