@@ -3,7 +3,7 @@ import * as T from '../types'
 
 type LinearMode = 'continuous' | 'discrete';
 
-export class LinearMapping implements T.PixelMapping {
+export default class LinearMapping implements T.PixelMapping {
     readonly className = 'linear';
     readonly displayName = '1D Linear Map';
     public settings = {
@@ -16,7 +16,7 @@ export class LinearMapping implements T.PixelMapping {
             className: 'continuous',
             displayName: 'Linear (continuous)',
             coords: [
-                {name: 'x', unit: Units.Numeric}
+                {name: 'x', unit: Units.Percentage}
             ],
             glslType: 'float',
             glslSwizzle: 'x'
