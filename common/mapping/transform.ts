@@ -30,6 +30,8 @@ export default class TransformMapping implements T.PixelMapping {
         rotation: [0, 0, 0],
         scale: [1, 1, 1],
         autoscale: true,
+        // TODO autoscale to specific group
+        // TODO constrain proportions for cylinder / cartesian maps
     };
 
     static readonly views = [
@@ -46,29 +48,25 @@ export default class TransformMapping implements T.PixelMapping {
         },
         {
             className: 'cylinder3d',
-            name: '3D Cylindrical',
+            displayName: '3D Cylindrical',
             coords: [
                 {name: 'r', unit: Units.Percentage},
                 {name: 'theta', unit: Units.Angle},
                 {name: 'z', unit: Units.Distance}
             ],
             glslType: 'vec3',
-            glslSwizzle: 'xyz',
-            convertCoords(cart) {
-            }
+            glslSwizzle: 'xyz'
         },
         {
             className: 'sphere3d',
-            name: '3D Spherical',
+            displayName: '3D Spherical',
             coords: [
                 {name: 'r', unit: Units.Percentage},
                 {name: 'theta', unit: Units.Angle},
                 {name: 'phi', unit: Units.Angle}
             ],
             glslType: 'vec3',
-            glslSwizzle: 'xyz',
-            convertCoords(cart) {
-            }
+            glslSwizzle: 'xyz'
         },
     ];
 
@@ -97,7 +95,7 @@ export default class TransformMapping implements T.PixelMapping {
 
             return {
                 idx: idx,
-                pos: transformed
+                pos: this.convertCoords(transformed, mode)
             };
         });
     }
@@ -110,10 +108,14 @@ export default class TransformMapping implements T.PixelMapping {
             ...this.settings,
             ...settings
         };
+
+        // TODO implement decent autoscaling post-group/map split
+        if (this.settings.autoscale)
+            console.warn('UNIMPLEMENTED: 3d transform mapping autoscaling');
     }
 
     // Take a cartesian coordinate vector vector and express it in the right coordinates
-    private applyCoordType(cart: THREE.Vector3, mode: TransformMode): THREE.Vector3 {
+    private convertCoords(cart: THREE.Vector3, mode: TransformMode): THREE.Vector3 {
         switch (mode) {
             case 'cartesian3d':
                 return cart;
@@ -135,12 +137,10 @@ export default class TransformMapping implements T.PixelMapping {
                 const phi = south.angleTo(cart) * 2;
 
                 return new Vector3(r, theta, phi);
+
             default:
                 throw new Error(`Invalid mode: ${mode}`);
         }
-    }
-
-    settingsToVectors(settings) {
     }
 
     /*
@@ -157,16 +157,4 @@ export default class TransformMapping implements T.PixelMapping {
 }
 
 export function scaleToFitPoints(pixels, position) {
-    const center = new Vector3();
-    center.fromArray(position);
-
-    let furthest = 0;
-    pixels.forEach(({pos}) => {
-        let dist = center.distanceToSquared(pos);
-        if (dist > furthest)
-            furthest = dist;
-    });
-    let scale_factor = 2 * Math.sqrt(furthest);
-
-    return [scale_factor, scale_factor, scale_factor];
 }
