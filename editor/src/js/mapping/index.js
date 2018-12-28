@@ -25,11 +25,13 @@ store.registerModule('mapping', {
             state.mapping_list = [];
         },
         create_mapping(state, params) {
+            const MapConstructor = mappingTypes[params.type];
+
             const defaults = {
                 id: params.id,
                 name: `Mapping ${params.id}`,
                 type: params.type,
-                settings: mappingTypes[params.type].defaultSettings(),
+                settings: new MapConstructor().serialize()
             };
             Vue.set(state.mappings, params.id, {...defaults, ...params, group: undefined});
             state.mapping_list.push(params.id);

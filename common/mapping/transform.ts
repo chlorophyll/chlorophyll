@@ -152,9 +152,9 @@ export default class TransformMapping implements T.PixelMapping {
     }
 
     deserialize(attrs) {
-        this.settings = {...attrs};
+        this.settings = {
+            ...this.settings,
+            ...attrs
+        };
     }
-}
-
-export function scaleToFitPoints(pixels, position) {
 }

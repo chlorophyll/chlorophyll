@@ -118,6 +118,9 @@ export default class LinearMapping implements T.PixelMapping {
     }
 
     deserialize(attrs) {
-        this.settings = {...attrs};
+        this.settings = {
+            ...this.settings,
+            ...attrs
+        };
     }
 }

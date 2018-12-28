@@ -122,7 +122,10 @@ export class ProjectionMapping implements T.PixelMapping {
     }
 
     deserialize(attrs) {
-        this.settings = {...attrs};
+        this.settings = {
+            ...this.settings,
+            ...attrs
+        };
     }
 
 };
