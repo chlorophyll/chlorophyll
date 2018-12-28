@@ -32,9 +32,11 @@
           <div class="control-row">
             <label>Type</label>
             <select v-model="cur_coord_type" class="control">
-              <template v-for="(map_type_info, mapping_type) in available_coord_types">
-                <template v-for="(info, coord_type) in map_type_info.coord_types">
-                  <option :value="{mapping_type, coord_type}">{{ info.name }}</option>
+              <template v-for="Mapping in allMappings">
+                <template v-for="view in Mapping.views">
+                  <option :value="{mapping_type: Mapping.className, coord_type: view.className}">
+                    {{ view.displayName }}
+                  </option>
                 </template>
               </template>
             </select>
@@ -89,8 +91,8 @@ export default {
                 this.$store.commit('pattern/set_name', { id: this.cur_pattern.id, name });
             }
         },
-        available_coord_types() {
-            return mappingTypes;
+        allMappings() {
+            return Object.values(mappingTypes)
         },
         ...mapGetters('pattern', [
             'cur_pattern',

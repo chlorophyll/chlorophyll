@@ -125,7 +125,10 @@ export function setCoordType(id, mapping_type, coord_type) {
     const old_input = graph.getNodeByRef('input_node');
     graph.removeNode(old_input);
 
-    graph.addGlobalInput('coords', mappingTypes[mapping_type].glsl_type);
+    const Mapping = mappingTypes[mapping_type],
+          mappingView = new Mapping().getView(coord_type);
+
+    graph.addGlobalInput('coords', mappingView.glslType);
 
     const path = `mapping/${mapping_type}/${coord_type}`;
     graph.addNode(path, {
@@ -139,11 +142,13 @@ export function setCoordType(id, mapping_type, coord_type) {
 export function createPattern(id, {name, set_current=true} = {}) {
     const mapping_type = Const.default_map_type;
     const coord_type = Const.default_coord_type;
+    const Mapping = mappingTypes[mapping_type],
+          mappingView = new Mapping().getView(coord_type);
     name = name || Util.uniqueName('Pattern ', store.getters['pattern/pattern_list']);
 
     let pixel_stage = new Graph();
 
-    pixel_stage.addGlobalInput('coords', mappingTypes[mapping_type].glsl_type);
+    pixel_stage.addGlobalInput('coords', mappingView.glslType);
     pixel_stage.addGlobalInput('t', 'float');
     pixel_stage.addGlobalInput('color', 'CRGB');
     pixel_stage.addGlobalOutput('outcolor', 'CRGB');

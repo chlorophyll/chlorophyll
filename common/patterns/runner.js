@@ -1,6 +1,5 @@
 import GraphLib from '@/common/graphlib';
 import { Compilation, GraphCompiler } from '@/common/graphlib/compiler';
-import { mappingTypes } from '@/common/mapping';
 import _ from 'lodash';
 
 import * as glsl from '@/common/glsl';
@@ -219,16 +218,15 @@ export default class RawPatternRunner {
             glsl.UniformDecl('sampler2D', 'tPrev'),
             glsl.UniformDecl('float', 'time'),
         ];
-        const {glslType, glsl_swizzle} = mappingTypes[this.pattern.mapping_type];
+        const {glslType, glslSwizzle} = this.mapping.getView(this.pattern.coord_type);
 
         let coords = glsl.Variable(glslType, 'coords');
         let color = glsl.Variable('vec3', 'color');
         let outcolor = glsl.Variable('vec3', 'outcolor');
         let groupmask = glsl.Variable('float', 'groupmask');
 
-
         const main = glsl.FunctionDecl('void', 'main', [], [
-            extractFromTexture(coords, 'uCoords', glsl.Ident('vUv'), glsl_swizzle),
+            extractFromTexture(coords, 'uCoords', glsl.Ident('vUv'), glslSwizzle),
             extractFromTexture(groupmask, 'uCoords', glsl.Ident('vUv'), 'a'),
             extractFromTexture(color, 'tPrev', glsl.Ident('vUv'), 'rgb'),
             outcolor,
