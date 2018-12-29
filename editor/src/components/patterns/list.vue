@@ -92,7 +92,7 @@ export default {
             }
         },
         allMappings() {
-            return Object.values(mappingTypes)
+            return Object.values(mappingTypes);
         },
         ...mapGetters('pattern', [
             'cur_pattern',

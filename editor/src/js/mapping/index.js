@@ -45,8 +45,8 @@ store.registerModule('mapping', {
                 state.mappings[id].type === type) {
                 return;
             }
-            let type_info = mappingTypes[type];
-            if (type_info === undefined) {
+
+            if (!mappingTypes[type]) {
                 console.error('Invalid mapping type: ', type);
                 return;
             }
@@ -103,7 +103,7 @@ export const mappingUtilsMixin = {
         // Generate a list for use in UI selectors
         const types = {};
         for (const prop in mappingTypes)
-            types[prop] = mappingTypes[prop].display_name;
+            types[prop] = mappingTypes[prop].displayName;
 
         return {
             mapping_types: types
@@ -123,7 +123,7 @@ export const mappingUtilsMixin = {
     },
     methods: {
         mappingDisplayName(type) {
-            return mappingTypes[type].display_name;
+            return mappingTypes[type].displayName;
         },
 
         getGroup(id) {

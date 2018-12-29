@@ -4,8 +4,12 @@ import * as T from '../types'
 type LinearMode = 'continuous' | 'discrete';
 
 export default class LinearMapping implements T.PixelMapping {
+    static readonly className = 'linear';
     readonly className = 'linear';
+
+    static readonly displayName = '1D Linear Map';
     readonly displayName = '1D Linear Map';
+
     public settings = {
         pixelIds: [],
         groupIds: []
