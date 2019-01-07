@@ -22,8 +22,11 @@ type TransformMode = 'cartesian3d'
                    | 'sphere3d';
 
 export default class TransformMapping implements T.PixelMapping {
+    static readonly className = 'transform';
     readonly className = 'transform';
+    static readonly displayName = '3D Transform';
     readonly displayName = '3D Transform';
+
     public settings = {
         shape: 'cube',
         position: [0, 0, 0],

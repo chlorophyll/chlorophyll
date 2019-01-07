@@ -40,6 +40,6 @@ export default class Range {
     }
 }
 
-addSerializableType(Range);
+addSerializableType(Range, 'Range');
 
 Compilation.registerType('Range', Range);

@@ -1,6 +1,6 @@
 import clone from 'clone';
-import * as ProjectionMapping from './projection';
-import * as TransformMapping from './transform';
+import ProjectionMapping from './projection';
+import TransformMapping from './transform';
 import LinearMapping from './linear';
 
 export const mappingTypes = {

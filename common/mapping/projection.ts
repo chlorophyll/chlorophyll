@@ -12,9 +12,12 @@ import * as T from '../types';
 
 type ProjMode = 'cartesian2d' | 'polar2d';
 
-export class ProjectionMapping implements T.PixelMapping {
+export default class ProjectionMapping implements T.PixelMapping {
+    static readonly className = 'projection';
     readonly className = 'projection';
+    static readonly displayName = '2D Projection';
     readonly displayName = '2D Projection';
+
     public settings = {
         origin: [0, 0, 0],
         plane_angle: [0, 0],

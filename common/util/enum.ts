@@ -38,4 +38,4 @@ export default class Enum {
     }
 }
 
-addSerializableType(Enum);
+addSerializableType(Enum, 'Enum');

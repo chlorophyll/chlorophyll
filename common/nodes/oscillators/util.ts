@@ -88,5 +88,5 @@ export default class Frequency {
     }
 };
 
-addSerializableType(Frequency);
+addSerializableType(Frequency, 'Frequency');
 Compilation.registerType('Frequency', Frequency);

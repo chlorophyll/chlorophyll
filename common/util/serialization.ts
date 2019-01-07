@@ -3,9 +3,9 @@ import * as T from '../types';
 
 const tags = {};
 
-export function addSerializableType(typeConstructor) {
-    const tag: string = typeConstructor._tag;
-    tags[tag] = typeConstructor;
+export function addSerializableType(typeConstructor, tag?: string) {
+    const tagKey: string = tag ? tag : typeConstructor._tag;
+    tags[tagKey] = typeConstructor;
 }
 
 function reviver(key, val) {
@@ -27,9 +27,10 @@ export function save(obj) {
     if (Array.isArray(obj))
         return obj.map(save);
 
-    if (obj.serialize && obj._tag) {
+    const tag = obj._tag || obj.constructor._tag;
+    if (obj.serialize && tag) {
         return {
-            _tag: obj._tag,
+            _tag: tag,
             value: obj.serialize()
         };
     }
