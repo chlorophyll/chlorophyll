@@ -52,12 +52,18 @@ float blue(float hue) {
   );
 }
 
+float dim(float t) {
+  return (pow(2., 4. * t)-1.)/15.;
+}
+
 vec3 hsv2rgb(vec3 c) {
   float h = fract(c.x);
   c = clamp(c, 0., 1.);
   vec3 u = vec3(1.);
   vec3 o = vec3(red(h), green(h), blue(h));
-  return c.z * mix(u, o, c.y);
+  float val = c.z;
+  float sat = 1. - dim(1. - c.y);
+  return val * mix(u, o, sat);
 }
 `);
 

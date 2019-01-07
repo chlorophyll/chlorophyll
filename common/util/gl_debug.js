@@ -54,7 +54,7 @@ export function checkFramebuffer(gl, msg) {
         break;
     }
 }
-const gldbg = true;
+const gldbg = false;
 let _glTrace;
 if (gldbg) {
     _glTrace = function(gl, ctx) {

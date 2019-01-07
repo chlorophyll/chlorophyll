@@ -18,6 +18,8 @@ gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
 console.log(gl.getParameter(gl.VERSION));
 
+let isPlaying = false;
+
 function requestAnimationFrame(cb) {
     return setTimeout(() => {
         cb();
@@ -65,6 +67,7 @@ function makeStripBufs(model, pixels) {
 }
 
 function runPattern(model, pattern, group, mapping) {
+    isPlaying = true;
     console.log('trying to run pattern');
     console.log(model.strip_offsets);
     console.log(model.num_pixels);
@@ -105,6 +108,7 @@ function runPattern(model, pattern, group, mapping) {
 }
 
 function playPlaylist(model, runner) {
+    isPlaying = true;
     let pixels = new Float32Array(model.num_pixels * 4);
     let prevPixels = new Float32Array(model.num_pixels * 4);
     let prevStripBufs = undefined;
@@ -148,7 +152,7 @@ function runPlaylist(registry, state) {
             strips_attached += controller.strips_attached;
         }
 
-        if (strips_attached == model.num_strips) {
+        if (strips_attached == model.num_strips && !isPlaying) {
             playPlaylist(model, runner);
         }
     });
@@ -225,7 +229,7 @@ function main() {
                     strips_attached += controller.strips_attached;
                 }
 
-                if (strips_attached == state.model.num_strips)
+                if (strips_attached >= state.model.num_strips && !isPlaying)
                     runPattern(state.model, pattern, group, mapping);
             });
             registry.start();
