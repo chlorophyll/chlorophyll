@@ -89,7 +89,7 @@ export default {
 
   mounted() {
     this.mapping = new TransformMapping(this.value);
-  }
+  },
 
   methods: {
     transformUpdated(toUpdate) {

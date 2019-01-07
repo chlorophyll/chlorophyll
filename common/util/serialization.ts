@@ -1,15 +1,11 @@
+import * as assert from 'assert';
+import * as T from '../types';
+
 const tags = {};
 
-export function addSerializableType(tag, constructor) {
-    tags[tag] = constructor;
-
-    constructor.toJSON = function() {
-        return {'_tag': tag};
-    };
-
-    constructor.prototype.toJSON = function() {
-        return {'_tag': tag, value: this.serialize()};
-    };
+export function addSerializableType(typeConstructor) {
+    const tag: string = typeConstructor._tag;
+    tags[tag] = typeConstructor;
 }
 
 function reviver(key, val) {
@@ -25,7 +21,25 @@ function reviver(key, val) {
 }
 
 export function save(obj) {
-    return JSON.parse(JSON.stringify(obj));
+    if (!obj)
+        return obj;
+
+    if (Array.isArray(obj))
+        return obj.map(save);
+
+    if (obj.serialize && obj._tag) {
+        return {
+            _tag: obj._tag,
+            value: obj.serialize()
+        };
+    }
+
+    const ret = {}
+    Object.entries(obj).forEach(([key, value]) => {
+        ret[key] = save(value);
+    });
+    
+    return JSON.parse(JSON.stringify(ret));
 }
 
 export function restore(obj) {

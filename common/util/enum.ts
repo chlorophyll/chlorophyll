@@ -1,8 +1,13 @@
 import _ from 'lodash';
-import assert from 'assert';
+import * as assert from 'assert';
 import { addSerializableType } from './serialization';
 
 export default class Enum {
+    readonly _tag = 'Enum';
+    public value;
+    readonly enumValues;
+    readonly descriptions;
+
     constructor(enumValues, value, descriptions) {
         assert.ok(_.isArray(enumValues));
         assert.ok(enumValues.includes(value));
@@ -33,4 +38,4 @@ export default class Enum {
     }
 }
 
-addSerializableType('Enum', Enum);
+addSerializableType(Enum);

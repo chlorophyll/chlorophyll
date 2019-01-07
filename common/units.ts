@@ -20,35 +20,29 @@ export default Units;
  */
 class GraphUnit {
     readonly isUnit = true;
+    readonly _tag = null;
     readonly create = (val) => val;
-    readonly serialize = (val) => val;
-    readonly name = null;
 
     /*
      * By default, values are stored with no transformation.
      * Specify create/serialize functions to apply a transformation to values on
      * creation or when saving, respectively.
      */
-    constructor(name: string, create?, serialize?) {
+    constructor(name: string, create?) {
         assert.ok(!Units[name]);
 
-        this.name = name;
         if (create)
             this.create = create;
-        if (serialize)
-            this.serialize = serialize;
 
-        addSerializableType(name, {
-            serialize: (val) => this.serialize(val),
-            deserialize: (val) => this.create(val)
-        });
-
+        this._tag = name;
         Units[name] = this;
+
+        addSerializableType(this);
     }
 };
 
 
-class RangeUnit extends GraphUnit implements T.RangeUnit {
+class RangeUnit extends GraphUnit implements T.RangeUnit, T.Serializable {
     readonly isCastable = true;
     readonly range;
 
@@ -73,6 +67,25 @@ class RangeUnit extends GraphUnit implements T.RangeUnit {
         const [fromLow, fromHigh] = fromType.range.map(glsl.Const);
         const [toLow, toHigh] = this.range.map(glsl.Const);
         return glsl.FunctionCall('mapValue', [val, fromLow, fromHigh, toLow, toHigh]);
+    }
+
+    serialize() {
+        return {
+            name: this._tag,
+            range: this.range
+        }
+    }
+
+    static deserialize(blob) {
+        // All usable vars are initialized on first run.
+        // Throw warnings if we see any
+        if (blob.name && !Units[blob.name]) {
+            console.error(
+                `Saw unfamiliar unit: ${blob.name}.`,
+                `Valid units: ${Object.keys(Units)}`,
+                'Corrupted or outdated save file?'
+            );
+        }
     }
 }
 

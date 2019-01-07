@@ -1,6 +1,6 @@
-import { addSerializableType } from '@/common/util/serialization';
-import { Compilation } from '@/common/graphlib/compiler';
-import * as glsl from '@/common/glsl';
+import { addSerializableType } from '../../util/serialization';
+import { Compilation } from '../../graphlib/compiler';
+import * as glsl from '../../glsl';
 import _ from 'lodash';
 
 export const FrequencyQuantities = ['hz', 'bpm', 'sec'];
@@ -18,13 +18,14 @@ export const compileQuantities = {
 };
 
 export default class Frequency {
+    readonly _tag = 'Frequency';
+    public frequency;
+    public display_qty;
+
+
     constructor(hz, display_qty='hz') {
         this.frequency = hz;
         this.display_qty = display_qty;
-    }
-
-    serialize() {
-        return {frequency: this.frequency, display_qty: this.display_qty};
     }
 
     get bpm() {
@@ -57,15 +58,6 @@ export default class Frequency {
         };
     }
 
-    static deserialize(val) {
-        if (_.isNumber(val)) {
-            return new Frequency(val);
-        } else {
-            const {frequency, display_qty} = val;
-            return new Frequency(frequency, display_qty);
-        }
-    }
-
     valueOf() {
         return this.hz;
     }
@@ -81,7 +73,20 @@ export default class Frequency {
         const val = this.current();
         return `${val} ${this.display_qty}`;
     }
+
+    serialize() {
+        return {frequency: this.frequency, display_qty: this.display_qty};
+    }
+
+    static deserialize(val) {
+        if (_.isNumber(val)) {
+            return new Frequency(val);
+        } else {
+            const {frequency, display_qty} = val;
+            return new Frequency(frequency, display_qty);
+        }
+    }
 };
 
-addSerializableType('Frequency', Frequency);
+addSerializableType(Frequency);
 Compilation.registerType('Frequency', Frequency);

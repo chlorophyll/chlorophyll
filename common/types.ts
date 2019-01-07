@@ -7,6 +7,11 @@
 /*
  * Basic pattern graph types and units
  */
+export interface Serializable {
+    _tag: string;
+    serialize(): object;
+}
+
 export interface Point {
     x: number;
     y?: number;
@@ -26,9 +31,7 @@ export interface Pixel {
 
 export interface GraphUnit {
     isUnit: true;
-    name: string;
     create(any): any;
-    serialize(any): any;
 }
 
 export interface RangeUnit extends GraphUnit {
