@@ -35,6 +35,9 @@ export function save(obj) {
         };
     }
 
+    if (typeof obj !== 'object')
+        return obj;
+
     const ret = {}
     Object.entries(obj).forEach(([key, value]) => {
         ret[key] = save(value);
@@ -44,22 +47,23 @@ export function save(obj) {
 }
 
 export function restore(obj) {
-    if (null == obj || 'object' != typeof obj) return obj;
-    let ret = {};
-    if (obj instanceof Array) {
-        ret = obj.map(restore);
-    } else {
-        for (let key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                let val = obj[key];
+    if (obj === null || obj === undefined || typeof obj !== 'object')
+        return obj;
 
-                if (val instanceof Object)
-                    val = restore(val);
+    if (Array.isArray(obj))
+        return obj.map(restore);
 
-                let result = reviver(key, val);
+    const ret = {};
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            let val = obj[key];
 
-                ret[key] = result;
-            }
+            if (val instanceof Object)
+                val = restore(val);
+
+            let result = reviver(key, val);
+
+            ret[key] = result;
         }
     }
     return ret;
