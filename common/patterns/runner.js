@@ -48,7 +48,7 @@ export default class RawPatternRunner {
 
     mapPositions() {
         const pixels = this.model.getGroupPixels(this.group.id);
-        const mappedPoints = this.mapping.mapPoints(pixels, this.pattern.coord_type);
+        const mappedPoints = this.mapping.mapPixels(pixels, this.pattern.coord_type);
 
         return mappedPoints;
     }
@@ -57,7 +57,7 @@ export default class RawPatternRunner {
         const positions = this.mapPositions();
         const {gl} = this;
 
-        for (const [idx, pos] of positions) {
+        for (const {idx, pos} of positions) {
             // handle either vectors and single values
             if (pos.toArray)
                 pos.toArray(this.mappedPositions, idx*4);

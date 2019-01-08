@@ -37,7 +37,10 @@ export default class LinearMapping implements T.PixelMapping {
     ];
 
     constructor(attrs) {
-        this.deserialize(attrs);
+        this.settings = {
+            ...this.settings,
+            ...attrs
+        };
     }
 
     getView(className: LinearMode): T.MapMode {
@@ -121,10 +124,7 @@ export default class LinearMapping implements T.PixelMapping {
         return this.settings;
     }
 
-    deserialize(attrs) {
-        this.settings = {
-            ...this.settings,
-            ...attrs
-        };
+    static deserialize(attrs) {
+        return new LinearMapping(attrs);
     }
 }

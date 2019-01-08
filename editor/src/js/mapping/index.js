@@ -3,7 +3,7 @@ import _ from 'lodash';
 import clone from 'clone';
 
 import store from 'chl/vue/store';
-import { mappingTypes, restoreAllMappings } from '@/common/mapping';
+import { mappingTypes, defaultSettings, restoreAllMappings } from '@/common/mapping';
 import { registerSaveField } from 'chl/savefile';
 
 /*
@@ -51,7 +51,7 @@ store.registerModule('mapping', {
                 return;
             }
 
-            let settings = mappingTypes[type].defaultSettings();
+            const settings = defaultSettings(type);
 
             Vue.set(state.mappings[id], 'type', type);
             Vue.set(state.mappings[id], 'settings', settings);

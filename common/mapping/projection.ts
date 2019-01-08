@@ -52,7 +52,10 @@ export default class ProjectionMapping implements T.PixelMapping {
     ];
 
     constructor(attrs) {
-        this.deserialize(attrs);
+        this.settings = {
+            ...this.settings,
+            ...attrs
+        };
     }
 
     getView(className: ProjMode): T.MapMode {
@@ -124,11 +127,8 @@ export default class ProjectionMapping implements T.PixelMapping {
         return this.settings;
     }
 
-    deserialize(attrs) {
-        this.settings = {
-            ...this.settings,
-            ...attrs
-        };
+    static deserialize(attrs) {
+        return new ProjectionMapping(attrs);
     }
 
 };

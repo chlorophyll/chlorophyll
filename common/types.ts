@@ -67,5 +67,4 @@ export interface PixelMapping {
     getView(string): MapMode;
 
     serialize(): object;
-    deserialize(object);
 };

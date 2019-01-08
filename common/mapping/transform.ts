@@ -74,7 +74,10 @@ export default class TransformMapping implements T.PixelMapping {
     ];
 
     constructor(attrs) {
-        this.deserialize(attrs);
+        this.settings = {
+            ...this.settings,
+            ...attrs
+        };
     }
 
     getView(className: TransformMode): T.MapMode {
@@ -154,10 +157,7 @@ export default class TransformMapping implements T.PixelMapping {
         return this.settings;
     }
 
-    deserialize(attrs) {
-        this.settings = {
-            ...this.settings,
-            ...attrs
-        };
+    static deserialize(attrs) {
+        return new TransformMapping(attrs);
     }
 }
