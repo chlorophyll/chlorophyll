@@ -9,6 +9,7 @@ import {
 
 import Units from '../units';
 import * as T from '../types';
+import * as mapUtil from './util';
 
 type ProjMode = 'cartesian2d' | 'polar2d';
 
@@ -39,7 +40,7 @@ export default class ProjectionMapping implements T.PixelMapping {
             className: 'polar2d',
             displayName: '2D Polar',
             coords: [
-                {name: 'r', unit: Units.Percentage},
+                {name: 'r', unit: Units.Distance},
                 {name: 'theta', unit: Units.Angle}
             ],
             glslType: 'vec2',
@@ -79,7 +80,7 @@ export default class ProjectionMapping implements T.PixelMapping {
 
         const xaxis = planeNormal.clone().cross(yaxis).normalize();
 
-        return pixels.map((px, i) => {
+        const mapped = pixels.map((px, i) => {
             const fromOrigin = px.pos.clone().sub(origin);
 
             let mappedPos = new Vector2(xaxis.dot(fromOrigin), yaxis.dot(fromOrigin));
@@ -88,6 +89,9 @@ export default class ProjectionMapping implements T.PixelMapping {
 
             return {idx: i, pos: mappedPos};
         });
+
+        const ret = mapUtil.normalizePositions(mapped, this.getView(mode).coords);
+        return ret;
     }
 
     /*

@@ -38,7 +38,7 @@ export interface RangeUnit extends GraphUnit {
     isCastable: true;
     range: [number, number];
     // compile a type conversion
-    castFrom(val: object, castFrom: GraphUnit): object;
+    castFrom(val: object, fromUnit: RangeUnit): object;
 };
 
 /*
@@ -47,7 +47,7 @@ export interface RangeUnit extends GraphUnit {
 
 export interface CoordSpec {
     name: string;
-    unit: GraphUnit;
+    unit: RangeUnit;
 };
 
 export interface MapMode {

@@ -53,7 +53,7 @@ export default class TransformMapping implements T.PixelMapping {
             className: 'cylinder3d',
             displayName: '3D Cylindrical',
             coords: [
-                {name: 'r', unit: Units.Percentage},
+                {name: 'r', unit: Units.Distance},
                 {name: 'theta', unit: Units.Angle},
                 {name: 'z', unit: Units.Distance}
             ],
@@ -64,7 +64,7 @@ export default class TransformMapping implements T.PixelMapping {
             className: 'sphere3d',
             displayName: '3D Spherical',
             coords: [
-                {name: 'r', unit: Units.Percentage},
+                {name: 'r', unit: Units.Distance},
                 {name: 'theta', unit: Units.Angle},
                 {name: 'phi', unit: Units.Angle}
             ],
