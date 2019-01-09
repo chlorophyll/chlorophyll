@@ -3,7 +3,7 @@
 
   <div class="flat-list">
     <ul>
-      <li v-for="pixelIdx in value.pixels">
+      <li v-for="pixelIdx in value.pixelIds">
         Pixel {{ pixelIdx }}
       </li>
     </ul>
