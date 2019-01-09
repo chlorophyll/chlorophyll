@@ -38,9 +38,7 @@ export interface RangeUnit extends GraphUnit {
     isCastable: true;
     range: [number, number];
     // compile a type conversion
-    compile(val: any, castFrom: GraphUnit): any;
-    // convert between types in-editor
-    castFrom(val: any, castFrom: GraphUnit): GraphUnit;
+    castFrom(val: object, castFrom: GraphUnit): object;
 };
 
 /*

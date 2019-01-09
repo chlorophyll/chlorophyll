@@ -6,9 +6,13 @@ import * as glsl from './glsl';
 import { addSerializableType } from './util/serialization';
 import { Compilation } from './graphlib/compiler';
 
-function mapValue(value, fromLow, fromHigh, toLow, toHigh) {
+Compilation.toplevel(`
+float mapValue(in float value,
+               in float fromLow, in float fromHigh,
+               in float toLow, in float toHigh) {
     return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
 }
+`);
 
 const Units: {[key: string]: T.GraphUnit} = {};
 export default Units;
@@ -51,16 +55,7 @@ class RangeUnit extends GraphUnit implements T.RangeUnit, T.Serializable {
         this.range = [low, high];
     }
 
-    castFrom(val: number, fromType: RangeUnit) {
-        let [fromLow, fromHigh] = fromType.range;
-        let [toLow, toHigh] = this.range;
-
-        let out = mapValue(val, fromLow, fromHigh, toLow, toHigh);
-
-        return this.create(out);
-    }
-
-    compile(val: number, fromType: RangeUnit) {
+    castFrom(val: object, fromType: RangeUnit) {
         if (_.isEqual(fromType.range, this.range))
             return val;
 
@@ -99,11 +94,3 @@ Units.Distance = new RangeUnit('Distance', -1, 1); // TODO migrate to 0->1
 // Utility Aliases
 Units.Num = Units.Numeric;
 Units.Percentage = Units.Numeric;
-
-Compilation.toplevel(`
-float mapValue(in float value,
-               in float fromLow, in float fromHigh,
-               in float toLow, in float toHigh) {
-    return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
-}
-`);
