@@ -4,6 +4,7 @@ import _ from 'lodash';
 
 import * as glsl from '@/common/glsl';
 import { glTrace } from '@/common/util/gl_debug';
+import { mappingHasView } from '@/common/mapping';
 import { ShaderRunner, getFloatingPointTextureOptions } from '@/common/util/shader_runner';
 import * as twgl from 'twgl.js';
 
@@ -29,6 +30,9 @@ export default class RawPatternRunner {
         this._buildSharedTextures();
 
         this.refresh = (evt) => {
+            if (!this._assignmentValid())
+                return;
+
             this.updatePositions();
             this.recompile();
         };
@@ -71,6 +75,15 @@ export default class RawPatternRunner {
         const textureOptions = getFloatingPointTextureOptions(gl, this.model.num_positions, 1);
         twgl.setTextureFromArray(gl, this.uCoords, this.mappedPositions, textureOptions);
         glTrace(gl, 'after setTextureFromArray');
+    }
+
+    _assignmentValid() {
+        if (!this.mapping || !mappingHasView(this.mapping, this.pattern.coord_type)) {
+            console.warn('Runner: trying to refresh with incompatible mapping/pattern assignment');
+            return false;
+        }
+
+        return true;
     }
 
     _buildSharedTextures() {

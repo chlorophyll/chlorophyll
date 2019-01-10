@@ -118,8 +118,9 @@ store.registerModule('playlists', {
 
 
 export function setCoordType(id, mapping_type, coord_type) {
-    const pattern = store.state.pattern.patterns[id];
+    store.commit('pattern/set_coord_type', { id, mapping_type, coord_type });
 
+    const pattern = store.state.pattern.patterns[id];
     const graph = GraphLib.graphById(pattern.stages.pixel);
 
     const old_input = graph.getNodeByRef('input_node');
@@ -135,8 +136,6 @@ export function setCoordType(id, mapping_type, coord_type) {
         title: 'input',
         ref: 'input_node'
     });
-
-    store.commit('pattern/set_coord_type', { id, mapping_type, coord_type });
 }
 
 export function createPattern(id, {name, set_current=true} = {}) {

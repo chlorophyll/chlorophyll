@@ -29,6 +29,12 @@ export function createFromConfig(config) {
     return Mapping.deserialize(config.settings);
 }
 
+// TODO move methods like this into a common base mapping class
+export function mappingHasView(mapping, viewName) {
+    const views = mapping.constructor.views;
+    return views.some(v => v.className === viewName);
+}
+
 export function restoreAllMappings(snapshot) {
     let new_mapping_list = [];
     let new_mappings = {};
