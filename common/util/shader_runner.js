@@ -2,6 +2,9 @@ import * as twgl from 'twgl.js';
 import { glTrace } from '@/common/util/gl_debug';
 
 const vertexShader = `
+#ifdef GL_ES
+precision highp float;
+#endif
 attribute vec4 position;
 attribute vec2 texcoord;
 

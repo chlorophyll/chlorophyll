@@ -56,26 +56,32 @@ export default class RawPatternRunner {
 
     updatePositions() {
         const positions = this.mapPositions();
-        const {gl} = this;
+        const {gl, width} = this;
 
         for (const [idx, pos] of positions) {
-            pos.toArray(this.mappedPositions, idx*4);
-            this.mappedPositions[idx*4+3] = 1; // group mask
+            const row = Math.floor(idx / width);
+            const col = idx % width;
+            const i = row * width + col;
+            pos.toArray(this.mappedPositions, i*4);
+            this.mappedPositions[i*4+3] = 1; // group mask
         }
         glTrace(gl, 'before setTextureFromArray');
-        const textureOptions = getFloatingPointTextureOptions(gl, this.model.num_positions, 1);
+        const textureOptions = getFloatingPointTextureOptions(gl, width, width);
         twgl.setTextureFromArray(gl, this.uCoords, this.mappedPositions, textureOptions);
         glTrace(gl, 'after setTextureFromArray');
     }
 
+    get width() {
+        return Math.ceil(Math.sqrt(this.model.num_pixels));
+    }
+
     _buildSharedTextures() {
-        const width = this.model.num_pixels;
-        const {gl} = this;
-        this.mappedPositions = new Float32Array(width * 4);
+        const {gl, width} = this;
+        this.mappedPositions = new Float32Array(width * width * 4);
         glTrace(gl, 'before creating uCoords texture');
         const textureOptions = {
             src: this.mappedPositions,
-            ...getFloatingPointTextureOptions(gl, width, 1),
+            ...getFloatingPointTextureOptions(gl, width, width),
         };
         this.uCoords = twgl.createTexture(gl, textureOptions);
         glTrace(gl, 'after creating uCoords texture');
@@ -89,6 +95,7 @@ export default class RawPatternRunner {
             this.cur_oscillators = [];
             return;
         }
+        const {width} = this;
 
         const c = new GraphCompiler(this.graph);
         const context = {
@@ -120,20 +127,27 @@ export default class RawPatternRunner {
         const outcolor = glsl.Variable('vec3', 'outcolor');
         const vC = glsl.Variable('vec2', 'vC');
 
-        const vCvalue = glsl.FunctionCall('vec2', [
-            glsl.Dot(glsl.Ident('vUv'), 'x'),
-            glsl.Const(0.5)
+        const vCx = glsl.Dot(glsl.Ident('vUv'), 'x');
+
+        const vCy = glsl.BinOp(
+            glsl.Dot(glsl.Ident('vUv'), 'y'),
+            '*',
+            glsl.Const(num_oscillators),
+        );
+
+
+        const vCvalue = glsl.FunctionCall('fract', [
+            glsl.FunctionCall('vec2', [vCx, vCy]),
         ]);
 
         const main = glsl.FunctionDecl('void', 'main', [], [
-            glsl.BinOp(cur_oscillator, '=', glsl.FunctionCall('int', [glsl.BinOp(
-                glsl.Dot(glsl.Ident('vUv'), 'y'),
-                '*',
-                glsl.Const(num_oscillators)
-            )])),
+            glsl.BinOp(
+                cur_oscillator,
+                '=',
+                glsl.FunctionCall('int', [vCy])
+            ),
             extractFromTexture(cur_phase, 'tPrev', glsl.Ident('vUv'), 'r'),
             glsl.BinOp(vC, '=', vCvalue),
-            // check if i can just use vUv for these...
             extractFromTexture(coords, 'uCoords', glsl.Ident('vC'), glsl_swizzle),
             extractFromTexture(color, 'uColor', glsl.Ident('vC'), 'rgb'),
             new_phase,
@@ -161,8 +175,7 @@ export default class RawPatternRunner {
             ),
         ]);
 
-        const width = this.model.num_pixels;
-        const height = num_oscillators;
+        const height = num_oscillators * width;
 
         const uniforms = {
             time: 0,
@@ -203,6 +216,7 @@ export default class RawPatternRunner {
     }
 
     _compilePixelStage() {
+        const {width} = this;
         const c = new GraphCompiler(this.graph);
         const compiled = c.compile();
 
@@ -260,8 +274,8 @@ export default class RawPatternRunner {
         if (!this.pixelStage) {
             this.pixelStage =  new ShaderRunner({
                 gl: this.gl,
-                width: this.model.num_pixels,
-                height: 1,
+                width,
+                height: width,
                 numTargets: 3,
                 fragmentShader: source,
                 uniforms

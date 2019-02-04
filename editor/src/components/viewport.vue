@@ -136,6 +136,7 @@ export default {
 
         initControls() {
             this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+
             this.controls.enableDamping = true;
             this.controls.dampingFactor = 0.75;
             this.controls.enableZoom = true;
@@ -158,6 +159,14 @@ export default {
                     this.camera.bottom = -this.height/2;
                 }
                 this.camera.updateProjectionMatrix();
+
+                if (currentModel) {
+                    currentModel.zoomCameraToFit(this.camera);
+
+                    const center = currentModel.getCenter();
+
+                    this.controls.target = center;
+                }
 
                 this.renderer.setSize(this.width, this.height);
             });

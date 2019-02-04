@@ -21,9 +21,10 @@ export const PatternPreview = Vue.component('pattern-preview', {
 
     computed: {
         step() {
+            const width = Math.ceil(Math.sqrt(currentModel.num_pixels));
             const pixelBuffers = [
-                new Float32Array(currentModel.num_pixels * 4),
-                new Float32Array(currentModel.num_pixels * 4),
+                new Float32Array(width * width * 4),
+                new Float32Array(width * width * 4),
             ];
             return (time) => {
                 const pixels = this.pushToHardware ? pixelBuffers[time % 2] : null;

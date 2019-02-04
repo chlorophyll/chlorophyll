@@ -1,8 +1,7 @@
 #define CIRCLE_SIZE 0.25
 #define OUTLINE_WIDTH 0.015
 #define OUTLINE_SIZE (CIRCLE_SIZE - OUTLINE_WIDTH)
-uniform sampler2D computedColors;
-varying float vOffset;
+varying vec3 vComputedColor;
 
 uniform bool displayOnly;
 varying vec3 vOverlayColor;
@@ -25,7 +24,7 @@ vec3 toLinear(vec3 v, float gamma) {
 
 void main() {
   vec3 outcolor;
-  vec2 uv =  vec3( gl_PointCoord.x, 1.0 - gl_PointCoord.y, 1 ).xy;
+  vec2 uv =  gl_PointCoord.xy; //vec3( gl_PointCoord.x, 1.0 - gl_PointCoord.y, 1 ).xy;
   float outline = circle(vec2(0.5)-uv, CIRCLE_SIZE);
   float circ = circle(vec2(0.5)-uv, OUTLINE_SIZE);
   vec3 outlineColor = vec3(0.);
@@ -35,7 +34,7 @@ void main() {
     }
     outcolor = vOverlayColor;
   } else {
-    outcolor = texture2D(computedColors, vec2(vOffset, 0.5)).rgb;
+    outcolor = vComputedColor;
     outcolor *= vec3(1.25, 0.8, 0.95);
     outcolor = toGamma(outcolor, 3.5);
     outcolor.g *= 1.05;
