@@ -35,9 +35,9 @@ void main() {
     outcolor = vOverlayColor;
   } else {
     outcolor = vComputedColor;
-    outcolor *= vec3(1.25, 0.8, 0.95);
-    outcolor = toGamma(outcolor, 3.5);
-    outcolor.g *= 1.05;
+    //outcolor *= vec3(1.25, 0.8, 0.95);
+    outcolor = toGamma(outcolor, 2.5);
+    //outcolor.g *= 1.05;
     outcolor.b *= 1.05;
   }
   outcolor = mix(vec3(outlineColor), outcolor, circ);
