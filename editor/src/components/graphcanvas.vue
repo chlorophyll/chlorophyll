@@ -61,7 +61,9 @@ export default {
     },
 
     mounted() {
-
+        if (this.graph) {
+            this.updateGraph(this.graph);
+        }
         zoom.scaleExtent([0.25, 10])
             .filter(() => {
                 if (d3.event.type == 'dblclick')
@@ -377,6 +379,30 @@ export default {
         },
         clearHighlightNode() {
             this.cur_highlight = null;
+        },
+        updateGraph(newgraph) {
+            this.cur_dst = null;
+            this.endDrag();
+
+            if (this.graph !== null)
+                this.removeListeners(this.graph);
+
+            if (newgraph === null)
+                return;
+
+            this.addListeners(newgraph);
+            let nodeset = {};
+            let edgeset = {};
+            newgraph.forEachNode((node) => {
+                nodeset[node.id] = node.vm;
+            });
+            newgraph.forEachEdge((edge) => {
+                edgeset[edge.id] = edge;
+            });
+
+            this.nodeset = nodeset;
+            this.edgeset = edgeset;
+            this.nodes_configuring = [];
         },
     }
 };
