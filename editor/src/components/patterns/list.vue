@@ -14,7 +14,8 @@
       <ul>
         <li v-for="pattern in pattern_list"
             :class="{ selected : cur_pattern === pattern }"
-            @click="set_current(pattern)">
+            @click="set_current(pattern)"
+            @dblclick="patternDblClick(pattern)">
           {{ pattern.name }}
         </li>
       </ul>
@@ -107,6 +108,9 @@ export default {
         },
         deleteCurrent() {
             this.$store.commit('pattern/delete', this.cur_pattern);
+        },
+        patternDblClick(pattern) {
+            this.$emit('pattern-dblclick', pattern);
         },
         ...mapMutations('pattern', [
             'set_current',

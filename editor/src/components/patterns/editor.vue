@@ -61,7 +61,7 @@
                              :push-to-hardware="pushToHardware"
                              :runstate="runstate" />
         </div>
-        <pattern-list slot="second" />
+        <pattern-list slot="second" @pattern-dblclick="onPatternDblClick"/>
     </split-pane>
 </template>
 <script>
@@ -192,7 +192,10 @@ export default {
         },
         zoomToFit() {
             this.$refs.canvas.zoomToFit();
-        }
+        },
+        onPatternDblClick(pattern) {
+            this.toggleAnimation();
+        },
     }
 };
 </script>
