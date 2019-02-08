@@ -302,6 +302,8 @@ export class Model extends ModelBase {
             },
             vertexShader: modelVertexShader,
             fragmentShader: modelFragmentShader,
+            //depthWrite: false,
+            //depthTest: false,
             transparent: true,
             extensions: {
                 derivatives: true,
@@ -396,10 +398,14 @@ export class Model extends ModelBase {
     }
 
     // ui
-    setStripVisiblity(val) {
+    setStripVisibility(val) {
         for (let model of this.strip_models) {
             model.visible = val;
         }
+    }
+
+    getStripVisibility() {
+        return this.strip_models[0].visible;
     }
 
     get display_only() {
@@ -450,8 +456,9 @@ export class Model extends ModelBase {
         return this.pixelPositions(group);
     }
 
-    setPixelRatio(devicePixelRatio) {
+    refreshUniforms(devicePixelRatio, height) {
         this.material.uniforms.pointSize.value = this.pixelsize * (devicePixelRatio||1);
+        this.material.uniforms.scale.value = height * 0.7;
     }
 }
 

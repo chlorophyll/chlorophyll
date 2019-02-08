@@ -44,7 +44,10 @@ import LineSelection from '@/components/tools/selection/line';
 import PlaneSelection from '@/components/tools/selection/plane';
 import Camera from '@/components/tools/camera';
 
+import Toolbox from '@/components/tools/toolbox';
 import Tool from '@/components/tools/toolbox/tool';
+
+import Toggle from '@/components/widgets/toggle';
 
 import TabSet from '@/components/widgets/tab-set';
 import Tab from '@/components/widgets/tab-set/tab';
@@ -69,9 +72,16 @@ export default {
         PatternEditor,
         SplitPane,
         Tool,
+        Toolbox,
         TabSet,
         Tab,
+        Toggle,
         Viewport,
+    },
+    data() {
+        return {
+            showEffects: true,
+        }
     },
 };
 </script>
@@ -85,5 +95,18 @@ export default {
     overflow: hidden;
 }
 
+.config {
+    display: flex;
+}
+
+.config .panel {
+    flex: auto;
+}
+
+.toggle {
+    margin-top: 3px;
+    vertical-align: middle;
+    margin-right: 1em;
+}
 
 </style>

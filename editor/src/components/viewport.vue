@@ -2,11 +2,41 @@
     <split-pane v-if="showToolbox"
                 direction="vertical"
                 :initial-split="[Const.toolbar_size, null]">
-        <toolbox slot="first">
+        <div class="panel config" slot="first">
+            <div class="t">
+                <button class="smol" @click="openConfig">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+        <toolbox>
             <slot />
         </toolbox>
+        </div>
         <div slot="second" class="viewport" ref="container">
-            <div ref="overlay" />
+            <div ref="overlay">
+                <dialog-box
+                    @close="closeConfig"
+                    v-if="inConfig"
+                    :show="true"
+                    width="350px"
+                    :pos="{x: 120, y: 40}"
+                    title="Demo Settings">
+                    <div class="controls">
+                        <div class="control-row">
+                            <label>Use postprocessing effects</label>
+                            <div><toggle v-model="showEffects" class="toggle"/></div>
+                        </div>
+                        <div class="control-row">
+                            <label>Auto-rotate</label>
+                            <div><toggle v-model="autoRotate" class="toggle"/></div>
+                        </div>
+                        <div class="control-row">
+                            <label>Show strips</label>
+                            <div><toggle v-model="stripVisibility" class="toggle"/></div>
+                        </div>
+                    </div>
+                </dialog-box>
+            </div>
         </div>
     </split-pane>
     <!-- If there's no toolbox, still embed the tools,
@@ -19,21 +49,33 @@
 
 <script>
 
+import { mapState } from 'vuex';
 import * as THREE from 'three';
 import debounce from 'lodash/debounce';
+import 'three-examples/postprocessing/EffectComposer';
+import 'three-examples/postprocessing/renderPass';
+import 'three-examples/postprocessing/shaderPass';
+import 'three-examples/shaders/CopyShader';
+import 'three-examples/shaders/ConvolutionShader';
+import 'three-examples/shaders/LuminosityHighPassShader';
+
+import 'three-examples/postprocessing/BloomPass';
+import 'three-examples/postprocessing/UnrealBloomPass';
 
 import Const, { ConstMixin } from 'chl/const';
 import Util from 'chl/util';
 import store, { newgid } from 'chl/vue/store';
-import { currentModel } from 'chl/model';
+import { currentModel, colorDisplay } from 'chl/model';
 import viewports, {createRenderer, createCamera} from 'chl/viewport';
 
+import DialogBox from '@/components/widgets/dialog_box';
 import SplitPane from '@/components/widgets/split';
+import Toggle from '@/components/widgets/toggle';
 import Toolbox from '@/components/tools/toolbox';
 
 export default {
     store,
-    components: { SplitPane, Toolbox },
+    components: { DialogBox, SplitPane, Toolbox, Toggle },
     name: 'viewport',
     mixins: [ConstMixin],
     props: {
@@ -59,9 +101,16 @@ export default {
 
     data() {
         return {
+            scene: null,
             renderer: null,
             camera: null,
+            renderPass: null,
+            bloomPass: null,
             controls: null,
+            showEffects: true,
+            autoRotate: false,
+            stripVisibility: false,
+            inConfig: false,
             width: 0,
             height: 0,
             active: false,
@@ -76,7 +125,28 @@ export default {
 
         active(val) {
             this.controls.enabled = val && this.controlsEnabled;
-        }
+        },
+        scene(val) {
+            if (this.renderPass) {
+                this.renderPass.scene = val;
+            }
+            this.updateSize();
+        },
+        showEffects(val) {
+            if (this.bloomPass) {
+                this.bloomPass.enabled = val;
+            }
+        },
+        autoRotate(val) {
+            if (this.controls) {
+                this.controls.autoRotate = val;
+            }
+        },
+        stripVisibility(val) {
+            if (currentModel) {
+                currentModel.setStripVisibility(val);
+            }
+        },
     },
 
     mounted() {
@@ -84,9 +154,10 @@ export default {
 
         this.width = container.clientWidth;
         this.height = container.clientHeight;
-
-        this.initRenderer();
+        colorDisplay.$on('refresh_model', this.refreshModel);
         this.initCamera();
+        this.refreshModel();
+        this.initRenderer();
         this.initControls();
         // this.initClippingPlanes();
 
@@ -116,15 +187,46 @@ export default {
         window.removeEventListener('resize', this.resizeDebounce);
         viewports.removeViewport(this.label);
     },
-
+    computed: {
+        ...mapState(['has_current_model']),
+    },
     methods: {
-
+        closeConfig() {
+            this.inConfig = false;
+        },
+        openConfig() {
+            this.inConfig = true;
+        },
+        refreshModel() {
+            if (this.has_current_model) {
+                this.scene = this.preview ? currentModel.previewScene : currentModel.scene;
+                this.stripVisibility = currentModel.getStripVisibility();
+            } else {
+                this.scene = null;
+                this.stripVisibility = false;
+            }
+        },
         mouseEvent(event) {
             this.$emit(event.type, event);
         },
 
         initRenderer() {
             this.renderer = createRenderer(this.width, this.height);
+            this.renderer.autoClear = false;
+            this.composer = new THREE.EffectComposer(this.renderer);
+            this.composer.setSize(this.width, this.height);
+            this.renderPass = new THREE.RenderPass(this.scene, this.camera);
+            //this.bloomPass = new THREE.BloomPass(0.9); //, 16, 10);
+            this.bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2(this.width, this.height), 0.7, 0.2, 0.25);
+
+            if (!this.preview && this.showEffects) {
+                this.bloomPass.enabled = true;
+            }
+            const screenPass = new THREE.ShaderPass(THREE.CopyShader);
+            screenPass.renderToScreen = true;
+            this.composer.addPass(this.renderPass);
+            this.composer.addPass(this.bloomPass);
+            this.composer.addPass(screenPass);
         },
 
         initCamera() {
@@ -167,8 +269,8 @@ export default {
 
                     this.controls.target = center;
                 }
-
                 this.renderer.setSize(this.width, this.height);
+                this.composer.setSize(this.width, this.height);
             });
         },
 
@@ -180,9 +282,8 @@ export default {
         render() {
             this.renderer.setPixelRatio(window.devicePixelRatio);
             if (currentModel) {
-                currentModel.setPixelRatio(window.devicePixelRatio);
-                const scene = this.preview ? currentModel.previewScene : currentModel.scene;
-                this.renderer.render(scene, this.camera);
+                currentModel.refreshUniforms(window.devicePixelRatio, this.height);
+                this.composer.render();
             }
         },
 
@@ -258,5 +359,21 @@ export default {
     width: 100%;
     height: 100%;
     overflow: hidden;
+}
+.config {
+    display: flex;
+}
+
+.config > div {
+    flex: 1 auto;
+}
+
+.config .toggle {
+    vertical-align: middle;
+    margin-top: 3px;
+}
+
+.t {
+    margin-right: 1em;
 }
 </style>
