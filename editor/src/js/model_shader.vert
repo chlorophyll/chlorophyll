@@ -6,11 +6,12 @@ attribute vec3 overlayColor;
 varying vec3 vOverlayColor;
 
 uniform float pointSize;
+uniform float scale;
 
 void main() {
     vOverlayColor = overlayColor;
     vComputedColor = texture2D(computedColors, aOffset).rgb;
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
     gl_Position = projectionMatrix * mvPosition;
-    gl_PointSize = pointSize * ( 350. / - mvPosition.z );
+    gl_PointSize = pointSize * ( scale / - mvPosition.z );
 }

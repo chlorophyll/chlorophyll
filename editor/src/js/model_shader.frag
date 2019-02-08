@@ -1,5 +1,5 @@
 #define CIRCLE_SIZE 0.25
-#define OUTLINE_WIDTH 0.015
+#define OUTLINE_WIDTH 0.
 #define OUTLINE_SIZE (CIRCLE_SIZE - OUTLINE_WIDTH)
 varying vec3 vComputedColor;
 
@@ -41,7 +41,7 @@ void main() {
     outcolor.b *= 1.05;
   }
   outcolor = mix(vec3(outlineColor), outcolor, circ);
-  if (outline == 0.)
+  if (outline < 0.15)
     discard;
   gl_FragColor = vec4(outcolor, outline);
 }

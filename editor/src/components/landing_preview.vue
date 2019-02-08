@@ -31,6 +31,7 @@ export default {
 
     watch: {
         preview(model) {
+            model.zoomCameraToFit(this.camera);
             this.renderer.render(model.scene, this.camera);
             this.$refs.canvas.getContext('2d').drawImage(this.renderer.domElement, 0, 0);
         }
