@@ -11,6 +11,7 @@ import store from 'chl/vue/store';
 
 import { createSaveObject, restoreSaveObject } from 'chl/savefile';
 import { pushRecentFile } from 'chl/savefile/recent';
+import importOBJ from './obj';
 
 let validateSchema = schemas.getSchema(SchemaDefs.definition('chlorophyllSavefile'));
 let validateModel = schemas.getSchema(SchemaDefs.object('model'));
@@ -178,15 +179,30 @@ export function showSaveAsDialog() {
     }, writeSavefile);
 }
 
-export function showImportDialog() {
+export function showImportDialog(format = 'chl') {
+    let exts = [];
+    if (format && format === 'obj')
+        exts = ['obj'];
+    else
+        exts = ['ledmap', 'json'];
+
     remote.dialog.showOpenDialog({
         filters: [
-            { name: 'Model file', extensions: ['ledmap', 'json'] }
+            { name: 'Model file', extensions: exts }
         ]
     }, (filenames) => {
         if (filenames === undefined)
             return;
-        importModelFile(filenames[0]);
+
+        switch (format) {
+            case 'chl':
+                return importModelFile(filenames[0]);
+            case 'obj':
+                return importOBJ(filenames[0], (err, obj) => {
+                    console.log(obj);
+                });
+
+        }
     });
 }
 

@@ -61,6 +61,7 @@
     "pixelpusher-driver": "https://github.com/chlorophyll/pixelpusher-driver",
     "tar-stream": "^1.5.4",
     "three": "^0.96.0",
+    "three-obj-loader": "^1.1.3",
     "tinycolor2": "^1.4.1",
     "twgl.js": "^4.4.0",
     "typescript": "^3.0.3",
@@ -71,7 +72,8 @@
     "vuedraggable": "^2.16.0",
     "vuex": "^3.0.1",
     "webpack": "^4.17.2",
-    "webpack-dev-server": "^3.1.7"
+    "webpack-dev-server": "^3.1.7",
+    "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",
