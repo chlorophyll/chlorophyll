@@ -23,11 +23,17 @@ export default function importOBJ(filename, done) {
 }
 
 function blatPixels(objectGroup) {
+    const zrange = [0, 0];
     const strips = objectGroup.children.map(obj => {
         console.log('processing:', obj);
         const settings = settingsForObject(obj);
         const bbox = new THREE.Box3().setFromObject(obj);
         const originPlane = bbox.min[settings.axis] - 1;
+
+        if (bbox.min.z < zrange[0])
+            zrange[0] = bbox.min.z;
+        if (bbox.max.z > zrange[1])
+            zrange[1] = bbox.max.z;
 
         obj.material.side = THREE.DoubleSide;
         const raycaster = new THREE.Raycaster();
@@ -55,6 +61,7 @@ function blatPixels(objectGroup) {
         console.log(`Generated ${pixels.length} pixels for ${obj.name}`);
         return pixels;
     });
+    console.log(`Min z ${zrange[0]}, max z ${zrange[1]} -> length ${zrange[1] - zrange[0]}`);
 
     return {strips};
 }
