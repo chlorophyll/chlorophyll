@@ -52,7 +52,7 @@ export default function initMenu() {
                     click: showImportDialog,
                 },
                 {
-                    label: 'Import OBJ...',
+                    label: 'Import OBJ (experimental)...',
                     click: () => showImportDialog('obj'),
                 },
                 {

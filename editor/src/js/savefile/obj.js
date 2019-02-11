@@ -15,9 +15,40 @@ export default function importOBJ(filename, done) {
 
         loader.load(
             'data:application/octet-stream;base64,' + data.toString('base64'),
-            object => done(null, object),
+            result => done(null, blatPoints(result)),
             xhr => {},
             err => done(err)
         );
     });
+}
+
+function blatPoints(objectGroup) {
+    const strips = objectGroup.children.map(obj => {
+        console.log('processing:', obj);
+        const settings = settingsForObject(obj);
+        const bbox = new THREE.Box3().setFromObject(obj);
+        console.log('min:', bbox.min.toArray());
+        console.log('max:', bbox.max.toArray());
+    });
+
+    return {strips};
+}
+
+function settingsForObject(object) {
+    const settings = {
+        spacing: 3,
+        axis: 'x',
+        rayDirection: new THREE.Vector3(0, 0, 0)
+    };
+
+    if (/sides/.test(object.name))
+        settings.axis = 'y';
+
+    if (/wing/.test(object.name)) {
+        settings.spacing = 1;
+        settings.axis = 'z';
+    }
+
+    settings.rayDirection[settings.axis] = 1;
+    return settings;
 }
