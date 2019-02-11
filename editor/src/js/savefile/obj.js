@@ -1,23 +1,22 @@
 import * as THREE from 'three';
-import 'three-examples/loaders/OBJLoader';
 import * as fs from 'fs';
+import ObjFile from 'obj-file-parser';
 
 import { remote } from 'electron';
 
 export default function importOBJ(filename, done) {
-    const loader = new THREE.OBJLoader();
-
-    fs.readFile(filename, (err, data) => {
+    return fs.readFile(filename, (err, data) => {
         if (err) {
             remote.dialog.showErrorBox('Error importing model', err.message);
             return;
         }
 
-        loader.load(
-            'data:application/octet-stream;base64,' + data.toString('base64'),
-            object => done(null, object),
-            xhr => {},
-            err => done(err)
-        );
+        const obj = new ObjFile(data.toString());
+        const modelData = obj.parse();
+
+        const {faces, vertices} = modelData.models[0];
+        console.log(modelData.models);
+
+        return done(null, modelData);
     });
 }
