@@ -199,7 +199,9 @@ export function showImportDialog(format = 'chl') {
                 return importModelFile(filenames[0]);
             case 'obj':
                 return importOBJ(filenames[0], (err, obj) => {
-                    console.log(obj);
+                    console.log('LOADED!', obj);
+                    importNewModel(obj);
+                    store.commit('set_current_save_path', null);
                 });
 
         }
