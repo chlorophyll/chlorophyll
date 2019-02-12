@@ -42,7 +42,7 @@ import { createGroup } from 'chl/model';
 import store, { newgid } from 'chl/vue/store';
 
 import ColorpickerInline from '@/components/widgets/colorpicker/inline';
-import GroupConfig from '@/components/model/group_config';
+import GroupConfig from './group_config';
 
 export default {
     store,

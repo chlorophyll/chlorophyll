@@ -32,10 +32,10 @@
 <script>
 
 import * as d3 from 'd3';
-import GraphNode from '@/components/graphnode';
-import GraphEdge from '@/components/graphedge';
+import GraphNode from './node';
+import GraphEdge from './edge';
+import NodeConfig from './node_config';
 import autolayout from 'chl/graphlib/layout';
-import NodeConfig from '@/components/graph/node_config';
 
 import Util from 'chl/util';
 import { GraphConstants } from 'chl/graphlib';

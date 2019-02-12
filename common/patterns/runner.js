@@ -1,10 +1,10 @@
 import GraphLib from '@/common/graphlib';
 import { Compilation, GraphCompiler } from '@/common/graphlib/compiler';
-import { getMappedPoints, convertPointCoords, mappingTypes } from '@/common/mapping';
 import _ from 'lodash';
 
 import * as glsl from '@/common/glsl';
 import { glTrace } from '@/common/util/gl_debug';
+import { mappingHasView } from '@/common/mapping';
 import { ShaderRunner, getFloatingPointTextureOptions } from '@/common/util/shader_runner';
 import * as twgl from 'twgl.js';
 
@@ -30,6 +30,9 @@ export default class RawPatternRunner {
         this._buildSharedTextures();
 
         this.refresh = (evt) => {
+            if (!this._assignmentValid())
+                return;
+
             this.updatePositions();
             this.recompile();
         };
@@ -48,27 +51,42 @@ export default class RawPatternRunner {
     }
 
     mapPositions() {
-        const { coord_type, mapping_type } = this.pattern;
-        const mapped_points = getMappedPoints(this.model, this.mapping, this.group, coord_type);
+        const pixels = this.model.getGroupPixels(this.group.id);
+        const mappedPoints = this.mapping.mapPixels(pixels, this.pattern.coord_type);
 
-        return convertPointCoords(mapping_type, coord_type, mapped_points);
+        return mappedPoints;
     }
 
     updatePositions() {
         const positions = this.mapPositions();
         const {gl, width} = this;
 
-        for (const [idx, pos] of positions) {
+        for (const {idx, pos} of positions) {
             const row = Math.floor(idx / width);
             const col = idx % width;
             const i = row * width + col;
-            pos.toArray(this.mappedPositions, i*4);
+            // handle either vectors and single values
+            if (pos.toArray)
+                pos.toArray(this.mappedPositions, i*4);
+            else
+                this.mappedPositions[i*4] = pos;
+
             this.mappedPositions[i*4+3] = 1; // group mask
         }
+
         glTrace(gl, 'before setTextureFromArray');
         const textureOptions = getFloatingPointTextureOptions(gl, width, width);
         twgl.setTextureFromArray(gl, this.uCoords, this.mappedPositions, textureOptions);
         glTrace(gl, 'after setTextureFromArray');
+    }
+
+    _assignmentValid() {
+        if (!this.mapping || !mappingHasView(this.mapping, this.pattern.coord_type)) {
+            console.warn('Runner: trying to refresh with incompatible mapping/pattern assignment');
+            return false;
+        }
+
+        return true;
     }
 
     get width() {
@@ -117,9 +135,9 @@ export default class RawPatternRunner {
             glsl.UniformDecl('float', 'time'),
         ];
 
-        const {glsl_type, glsl_swizzle} = mappingTypes[this.pattern.mapping_type];
+        const {glslType, glslSwizzle} = this.mapping.getView(this.pattern.coord_type);
 
-        const coords = glsl.Variable(glsl_type, 'coords');
+        const coords = glsl.Variable(glslType, 'coords');
         const color = glsl.Variable('vec3', 'color');
         const cur_oscillator = glsl.Variable('int', 'cur_oscillator');
         const cur_phase = glsl.Variable('float', 'cur_phase');
@@ -148,7 +166,7 @@ export default class RawPatternRunner {
             ),
             extractFromTexture(cur_phase, 'tPrev', glsl.Ident('vUv'), 'r'),
             glsl.BinOp(vC, '=', vCvalue),
-            extractFromTexture(coords, 'uCoords', glsl.Ident('vC'), glsl_swizzle),
+            extractFromTexture(coords, 'uCoords', glsl.Ident('vC'), glslSwizzle),
             extractFromTexture(color, 'uColor', glsl.Ident('vC'), 'rgb'),
             new_phase,
             outcolor,
@@ -227,16 +245,15 @@ export default class RawPatternRunner {
             glsl.UniformDecl('sampler2D', 'tPrev'),
             glsl.UniformDecl('float', 'time'),
         ];
-        const {glsl_type, glsl_swizzle} = mappingTypes[this.pattern.mapping_type];
+        const {glslType, glslSwizzle} = this.mapping.getView(this.pattern.coord_type);
 
-        let coords = glsl.Variable(glsl_type, 'coords');
+        let coords = glsl.Variable(glslType, 'coords');
         let color = glsl.Variable('vec3', 'color');
         let outcolor = glsl.Variable('vec3', 'outcolor');
         let groupmask = glsl.Variable('float', 'groupmask');
 
-
         const main = glsl.FunctionDecl('void', 'main', [], [
-            extractFromTexture(coords, 'uCoords', glsl.Ident('vUv'), glsl_swizzle),
+            extractFromTexture(coords, 'uCoords', glsl.Ident('vUv'), glslSwizzle),
             extractFromTexture(groupmask, 'uCoords', glsl.Ident('vUv'), 'a'),
             extractFromTexture(color, 'tPrev', glsl.Ident('vUv'), 'rgb'),
             outcolor,

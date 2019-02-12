@@ -44,13 +44,14 @@
 <script>
 import VectorInput from '@/components/widgets/vector_input';
 import ViewportTransformControl from '@/components/widgets/viewport_transform_control';
-import { scaleToFitPoints } from '@/common/mapping/transform';
+import TransformMapping from '@/common/mapping/transform';
 import { currentModel } from 'chl/model';
 
 export default {
   name: 'transform-config',
-  props: ['value', 'group'],
+  props: ['value'],
   components: { VectorInput, ViewportTransformControl },
+
   data() {
     return {
       handle_mode: 'translate',
@@ -65,6 +66,7 @@ export default {
       ],
     };
   },
+
   computed: {
     handle_data() {
       return {
@@ -73,31 +75,32 @@ export default {
         scale: this.value.scale,
       };
     },
+
     autoscale: {
       get() { return this.value.autoscale; },
       set(val) { this.transformUpdated({autoscale: val}); }
     },
+
     shape: {
       get() { return this.value.shape; },
       set(val) { this.transformUpdated({shape: val}); }
     }
   },
 
+  mounted() {
+    this.mapping = new TransformMapping(this.value);
+  },
+
   methods: {
     transformUpdated(toUpdate) {
       // Grab any fields provided, defaulting to the existing value.
-      let {
-        autoscale = this.value.autoscale,
-        shape = this.value.shape,
-        position = this.value.position,
-        rotation = this.value.rotation,
-        scale = this.value.scale,
-      } = toUpdate;
+      const updated = {
+        ...this.value,
+        ...toUpdate
+      };
 
-      if (autoscale)
-        scale = scaleToFitPoints(currentModel.allPixelPositions(), position);
-
-      this.$emit('input', {autoscale, shape, position, rotation, scale});
+      this.mapping.setParameters(updated);
+      this.$emit('input', this.mapping.serialize());
     }
   }
 };

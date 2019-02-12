@@ -4,9 +4,21 @@
         "sourceMap": true,
         "strict": false,
         "noImplicitReturns": true,
-        "module": "es2015",
+        "preserveSymlinks": true,
+        "module": "esnext",
         "moduleResolution": "node",
-        "target": "es2017",
+        "target": "es6",
+        "lib": ["dom", "esnext"],
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["./src/*"],
+            "common": ["../common/*"],
+            "chl": ["./src/js/*"],
+            "three-examples": ["node_modules/three/examples/js/*"],
+            "models": ["./static/models/*"],
+            "style": ["./src/style/*"],
+            "vue": ["node_modules/vue/dist/vue.esm.js"]
+        }
     },
     "include": [
         "./src/**/*"

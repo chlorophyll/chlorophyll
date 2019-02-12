@@ -63,6 +63,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
                     break;
             }
         },
+
         pushToHardware(newval) {
             if (!newval && this.runstate !== RunState.Stopped) {
                 pushBlackFrame(currentModel);
@@ -96,10 +97,6 @@ export const PatternPreview = Vue.component('pattern-preview', {
             if (this.pushToHardware) {
                 pushBlackFrame(currentModel);
             }
-        },
-        createRunner() {
-            const {pattern, group, mapping} = this;
-            this.runner = new PatternRunner(currentModel, pattern, group, mapping);
         }
     }
 });

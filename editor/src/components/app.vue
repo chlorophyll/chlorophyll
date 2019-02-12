@@ -52,8 +52,8 @@ import Toggle from '@/components/widgets/toggle';
 import TabSet from '@/components/widgets/tab-set';
 import Tab from '@/components/widgets/tab-set/tab';
 
-import GroupBrowser from '@/components/model/group_browser';
-import MappingBrowser from '@/components/model/mapping_browser';
+import GroupBrowser from '@/components/group/group_browser';
+import MappingBrowser from '@/components/mapping/mapping_browser';
 import PatternEditor from '@/components/patterns/editor';
 import PlaylistEditor from '@/components/sequencer/playlist_editor';
 import Viewport from '@/components/viewport';

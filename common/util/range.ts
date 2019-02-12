@@ -1,8 +1,14 @@
 import { addSerializableType } from './serialization';
 
-import { Compilation } from '@/common/graphlib/compiler';
+import { Compilation } from '../graphlib/compiler';
 
 export default class Range {
+    readonly _tag = 'Range';
+    public min;
+    public max;
+    public lower;
+    public upper;
+
     constructor(min, max, lower, upper) {
         this.min = min;
         this.max = max;
@@ -34,6 +40,6 @@ export default class Range {
     }
 }
 
-addSerializableType('Range', Range);
+addSerializableType(Range, 'Range');
 
 Compilation.registerType('Range', Range);

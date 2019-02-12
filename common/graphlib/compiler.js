@@ -1,12 +1,11 @@
-import Units from '@/common/units';
 import * as glsl from '@/common/glsl';
 import * as glslify from 'glslify';
 
 let global_decls = [];
 let types = new Map();
 
-function isConvertible(t1, t2) {
-    return t1 && t2 && t1.isUnit && t2.isUnit;
+function isCastable(t1, t2) {
+    return t1 && t2 && t1.isCastable && t2.isCastable;
 }
 
 export let Compilation = {
@@ -244,8 +243,8 @@ export class GraphCompiler {
 
             let v_src = this.output(src.node, src.slot);
 
-            if (autoconvert && isConvertible(outgoing_type, type)) {
-                init_expr = Units.compile(v_src, outgoing_type, type);
+            if (autoconvert && isCastable(outgoing_type, type)) {
+                init_expr = type.castFrom(v_src, outgoing_type);
             } else {
                 init_expr = v_src;
             }

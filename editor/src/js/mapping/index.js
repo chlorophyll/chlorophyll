@@ -3,7 +3,7 @@ import _ from 'lodash';
 import clone from 'clone';
 
 import store from 'chl/vue/store';
-import { mappingTypes, restoreAllMappings } from '@/common/mapping';
+import { mappingTypes, defaultSettings, restoreAllMappings } from '@/common/mapping';
 import { registerSaveField } from 'chl/savefile';
 
 /*
@@ -25,11 +25,13 @@ store.registerModule('mapping', {
             state.mapping_list = [];
         },
         create_mapping(state, params) {
+            const MapConstructor = mappingTypes[params.type];
+
             const defaults = {
                 id: params.id,
                 name: `Mapping ${params.id}`,
                 type: params.type,
-                settings: mappingTypes[params.type].defaultSettings(),
+                settings: new MapConstructor().serialize()
             };
             Vue.set(state.mappings, params.id, {...defaults, ...params, group: undefined});
             state.mapping_list.push(params.id);
@@ -43,13 +45,13 @@ store.registerModule('mapping', {
                 state.mappings[id].type === type) {
                 return;
             }
-            let type_info = mappingTypes[type];
-            if (type_info === undefined) {
+
+            if (!mappingTypes[type]) {
                 console.error('Invalid mapping type: ', type);
                 return;
             }
 
-            let settings = mappingTypes[type].defaultSettings();
+            const settings = defaultSettings(type);
 
             Vue.set(state.mappings[id], 'type', type);
             Vue.set(state.mappings[id], 'settings', settings);
@@ -101,7 +103,7 @@ export const mappingUtilsMixin = {
         // Generate a list for use in UI selectors
         const types = {};
         for (const prop in mappingTypes)
-            types[prop] = mappingTypes[prop].display_name;
+            types[prop] = mappingTypes[prop].displayName;
 
         return {
             mapping_types: types
@@ -121,8 +123,9 @@ export const mappingUtilsMixin = {
     },
     methods: {
         mappingDisplayName(type) {
-            return mappingTypes[type].display_name;
+            return mappingTypes[type].displayName;
         },
+
         getGroup(id) {
             if (id in this.$store.state.pixels.groups) {
                 return this.$store.state.pixels.groups[id];
@@ -130,6 +133,7 @@ export const mappingUtilsMixin = {
                 return null;
             }
         },
+
         getMapping(id) {
             if (id in this.$store.state.mapping.mappings) {
                 return this.$store.state.mapping.mappings[id];
@@ -137,6 +141,7 @@ export const mappingUtilsMixin = {
                 return null;
             }
         },
+
         copyMappingSettings(mapping) {
             return clone(mapping.settings);
         },

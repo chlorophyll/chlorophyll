@@ -38,19 +38,22 @@ export default {
     },
 
     mounted() {
-        if (this.project.preview) {
-            const model = new Model(this.project.preview);
-            this.preview = model;
-        } else {
-            previewSavefile(this.project.file).then(model => {
+        this.$nextTick(() => {
+            if (this.project.preview) {
+                const model = new Model(this.project.preview);
                 this.preview = model;
-            });
-        }
-        setTimeout(() => {
-            if (this.preview === null) {
-                this.preview_unavailable = true;
+            } else {
+                previewSavefile(this.project.file).then(model => {
+                    this.preview = model;
+                });
             }
-        }, 2500);
+
+            setTimeout(() => {
+                if (this.preview === null) {
+                    this.preview_unavailable = true;
+                }
+            }, 5000);
+        });
     },
 };
 </script>

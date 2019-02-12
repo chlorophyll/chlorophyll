@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import RawPatternRunner from '@/common/patterns/runner';
+import {createFromConfig} from '@/common/mapping';
 import viewports from 'chl/viewport';
 import {bindFramebufferInfo} from 'twgl.js';
 
@@ -16,7 +17,9 @@ export class PatternRunner extends RawPatternRunner {
     constructor(model, pattern, group, mapping) {
         const { renderer } = viewports.getViewport('main');
         const gl = renderer.getContext();
-        super(gl, model, pattern, group, mapping);
+        const pixelMapping = createFromConfig(mapping);
+
+        super(gl, model, pattern, group, pixelMapping);
 
         for (const event of GRAPH_EVENTS) {
             this.graph.addEventListener(event, () => this.refresh(event));

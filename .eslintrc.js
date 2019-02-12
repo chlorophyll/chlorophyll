@@ -31,6 +31,12 @@ module.exports = {
       '.vue'
     ],
   },
+  overrides: {
+    files: ['**/*.ts'],
+    rules: {
+      'no-undef': 'off'
+    }
+  },
   'rules': {
     // Disable some of the more annoying/unneeded default rules from eslint
     'no-console': 0,

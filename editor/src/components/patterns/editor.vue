@@ -72,7 +72,7 @@ import PatternList from '@/components/patterns/list';
 import Toggle from '@/components/widgets/toggle';
 import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
-import GraphCanvas from '@/components/graphcanvas';
+import GraphCanvas from '@/components/graph/graphcanvas';
 import register_nodes from '@/common/nodes/registry';
 import { RunState, PatternPreview } from 'chl/patterns/preview';
 import GraphLib from '@/common/graphlib';

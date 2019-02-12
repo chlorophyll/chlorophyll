@@ -15,11 +15,13 @@ export const GraphLib = {
         node_types.set(path, constructor);
         constructor.type = path;
     },
+
     registerNodeTypes(node_list) {
         for (let [path, constructor] of node_list) {
             this.registerNodeType(path, constructor);
         }
     },
+
     getNodeTypes() {
         return node_types;
     },
@@ -31,6 +33,7 @@ export const GraphLib = {
     save() {
         return Array.from(graphs.values()).map((graph) => graph.save());
     },
+
     restore(newgraphs) {
         let oldgraphs = graphs;
 

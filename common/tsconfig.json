@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "outDir": "../editor/build/",
+        "sourceMap": true,
+        "strict": false,
+        "noImplicitReturns": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "target": "esnext",
+        "lib": ["dom", "esnext"],
+        "baseUrl": "..",
+        "paths": {
+            "@/*": ["./src/*", "./"],
+            "common": ["./common/*"],
+            "chl": ["./editor/src/js/*"],
+            "three-examples": ["editor/node_modules/three/examples/js/*"],
+            "models": ["./editor/static/models/*"],
+            "style": ["./editor/src/style/*"],
+            "vue": ["editor/node_modules/vue/dist/vue.esm.js"]
+        }
+    },
+    "include": [
+        "./**/*"
+    ]
+}
