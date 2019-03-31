@@ -4,13 +4,36 @@ import * as fs from 'fs';
 
 import { remote } from 'electron';
 
-export default function importOBJ(filename, done) {
+export default async function importOBJ(filename, done) {
+    const match = /\.(\w+)$/.exec(filename);
+    if (match && match[1] === 'json') {
+        return fs.readFile(filename, (err, data) => {
+            if (err) {
+                remote.dialog.showErrorBox('Error importing model', err.message);
+                return done(err);
+            }
+
+            try {
+                const index = JSON.parse(data);
+                index.segments.forEach(({model, pixels}) => {
+                });
+            } catch (e) {
+                remote.dialog.showErrorBox('Error importing model', e);
+                return done(err);
+            }
+        });
+    }
+
+    return loadOBJ(filename, done);
+}
+
+function loadOBJ(filename, done) {
     const loader = new THREE.OBJLoader();
 
     fs.readFile(filename, (err, data) => {
         if (err) {
             remote.dialog.showErrorBox('Error importing model', err.message);
-            return;
+            return done(err);
         }
 
         loader.load(
