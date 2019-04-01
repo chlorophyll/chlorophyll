@@ -55,7 +55,7 @@ module.exports = {
     // variables & assignment
     'no-multi-assign': 0,
     'no-param-reassign': 0,
-    'no-shadow': 1,
+    'no-shadow': 0,
     'one-var': 0,
     'no-unused-vars': [1, {args: 'none', vars: 'local' }],
     'guard-for-in': 0,
