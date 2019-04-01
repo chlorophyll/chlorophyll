@@ -1,12 +1,16 @@
 import * as THREE from 'three';
 import 'three-examples/loaders/OBJLoader';
+import 'three-examples/loaders/SVGLoader';
 
 import * as fs from 'fs';
-import { promisify } from 'util';
+import * as path from 'path';
+import * as Promise from 'bluebird';
 import { remote } from 'electron';
 
+console.log(Promise);
+
 const parseJSON = Promise.method(JSON.parse);
-const readFile = promisify(fs.readFile);
+const readFile = Promise.promisify(fs.readFile);
 
 export default async function importOBJ(filename) {
     const match = /\.(\w+)$/.exec(filename);
@@ -25,9 +29,11 @@ export default async function importOBJ(filename) {
                     throw new Error('Could not find "segments" array in JSON file');
 
                 const allFiles = index.segments.map(seg => {
+                    const workingDir = path.dirname(filename);
+                    console.log(`Looking for ${seg.model} and ${seg.pixels} in ${workingDir}`);
                     return Promise.all([
-                        loadObjFile(seg.model),
-                        loadSvgFile(seg.pixels)
+                        loadObjFile(path.resolve(workingDir, seg.model)),
+                        loadSvgFile(path.resolve(workingDir, seg.pixels))
                     ]);
                 });
                 return Promise.all(allFiles);
@@ -51,10 +57,25 @@ export default async function importOBJ(filename) {
 }
 
 function uvMapStrips(obj, svg) {
-    // Take the OBJ mesh
-    // Read out UV coordinates
-    // For each path in the SVG file:
-    //   - grab pts
+    const geom = new THREE.Geometry();
+    geom.fromBufferGeometry(obj.children[0].geometry);
+    const strips = svg.paths.map(path => {
+        // For each point...
+        return path.map(pt => { // tmp
+            return uvMapPixel(geom, pt);
+        });
+    });
+    return strips;
+}
+
+function uvMapPixel(geometry, point) {
+    return geom.faces.find((face, i) => {
+        console.log(face);
+
+    });
+}
+
+function toBarycentricCoord(triangle, pt) {
 }
 
 async function loadObjFile(filename) {
