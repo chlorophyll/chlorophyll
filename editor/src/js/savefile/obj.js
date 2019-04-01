@@ -56,28 +56,43 @@ export default async function importOBJ(filename) {
         });
 }
 
+/*
+ * 3d math.
+ */
 function uvMapStrips(obj, svg) {
     const geom = new THREE.Geometry();
     geom.fromBufferGeometry(obj.children[0].geometry);
     const strips = svg.paths.map(path => {
         // For each point...
-        return path.map(pt => { // tmp
+        return path.subPaths.map(subPath => {
+            const pt = null; // TODO deconstruct SVG format
             return uvMapPixel(geom, pt);
         });
     });
     return strips;
 }
 
-function uvMapPixel(geometry, point) {
-    return geom.faces.find((face, i) => {
+function uvMapPixel(geometry, uvPos) {
+    const face = geometry.faces.find((face, i) => {
+        // TODO triangle-contains search
         console.log(face);
-
     });
+    return interpolateInFace(geometry, face, uvPos);
+}
+
+function interpolateInFace(geometry, face, uvPos) {
+    const baryPos = toBarycentricCoord(face, uvPos);
+    // TODO weighted avg of vertex positions
+    return null;
 }
 
 function toBarycentricCoord(triangle, pt) {
+    // TODO
 }
 
+/*
+ * File loading.
+ */
 async function loadObjFile(filename) {
     const loader = new THREE.OBJLoader();
     return loadWithThreeLoader(filename, loader);
