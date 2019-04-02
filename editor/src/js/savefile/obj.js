@@ -62,13 +62,24 @@ export default async function importOBJ(filename) {
 function uvMapStrips(obj, svg) {
     const geom = new THREE.Geometry();
     geom.fromBufferGeometry(obj.children[0].geometry);
-    const strips = svg.paths.map(path => {
-        // For each point...
-        return path.subPaths.map(subPath => {
-            const pt = null; // TODO deconstruct SVG format
-            return uvMapPixel(geom, pt);
-        });
+    // Each path in the SVG file becomes an LED strip.
+    const strips = svg.map(shapePath => {
+        const stripPixels = shapePath.subPaths.map(path =>
+            path.curves.map(curve => {
+                if (curve.type !== 'LineCurve')
+                    throw new Error(`Unsupported curve type: ${curve.type}; expected: LineCurve`);
+
+                return [curve.v1, curve.v2];
+            })
+        ).flat(2);
+        // Each path segment will likely overlap the previous one at a vertex.
+        // Remove adjacent duplicates.
+        const deduped = stripPixels.filter((pt, i, pts) => i === 0 || pt.equals(pts[i - 1]));
+
+        // Apply pixels to the mesh.
+        return deduped.map(pt => uvMapPixel(geom, pt));
     });
+
     return strips;
 }
 
