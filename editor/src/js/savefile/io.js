@@ -198,7 +198,7 @@ export function showImportDialog(format = 'chl') {
             case 'chl':
                 return importModelFile(filenames[0]);
             case 'obj':
-                return importOBJ(filenames[0], (err, obj) => {
+                return importOBJ(filenames[0]).then(obj => {
                     console.log('LOADED!', obj);
                     importNewModel(obj);
                     store.commit('set_current_save_path', null);

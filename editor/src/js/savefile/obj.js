@@ -39,7 +39,11 @@ export default async function importOBJ(filename) {
                 return Promise.all(allFiles);
             })
             .then(files => {
-                return files.map(([obj, svg]) => uvMapStrips(obj, svg));
+                let strips = [];
+                files.forEach(([obj, svg]) => {
+                    strips = strips.concat(uvMapStrips(obj, svg));
+                });
+                return {strips};
             })
             .error(err => {
                 remote.dialog.showErrorBox('Error importing model', err.message);
@@ -64,14 +68,15 @@ function uvMapStrips(obj, svg) {
     geom.fromBufferGeometry(obj.children[0].geometry);
     // Each path in the SVG file becomes an LED strip.
     const strips = svg.map(shapePath => {
-        const stripPixels = shapePath.subPaths.map(path =>
-            path.curves.map(curve => {
+        const stripPixels = [];
+        shapePath.subPaths.forEach(path =>
+            path.curves.forEach(curve => {
                 if (curve.type !== 'LineCurve')
                     throw new Error(`Unsupported curve type: ${curve.type}; expected: LineCurve`);
 
-                return [curve.v1, curve.v2];
+                stripPixels.push(curve.v1, curve.v2);
             })
-        ).flat(2);
+        );
         // Each path segment will likely overlap the previous one at a vertex.
         // Remove adjacent duplicates.
         const deduped = stripPixels.filter((pt, i, pts) => i === 0 || pt.equals(pts[i - 1]));
@@ -83,22 +88,48 @@ function uvMapStrips(obj, svg) {
     return strips;
 }
 
-function uvMapPixel(geometry, uvPos) {
-    const face = geometry.faces.find((face, i) => {
-        // TODO triangle-contains search
-        console.log(face);
+function uvMapPixel(geometry, pt) {
+    // First, find the triangle containing the point.
+    const uvPos = new THREE.Vector3(pt.x, pt.y, 0);
+    const uvTris = geometry.faceVertexUvs[0].map(f =>
+        new THREE.Triangle(
+            new THREE.Vector3(f[0].x, f[0].y, 0),
+            new THREE.Vector3(f[1].x, f[1].y, 0),
+            new THREE.Vector3(f[2].x, f[2].y, 0),
+        )
+    );
+
+    const i = uvTris.findIndex(tri => {
+        console.log(tri);
+        return tri.containsPoint(uvPos);
     });
-    return interpolateInFace(geometry, face, uvPos);
+    if (i < 0) {
+        console.warn('Pixel UV coordinates not found on mesh', uvPos, geometry);
+        return null;
+    }
+
+    // Map the coordinates within the found triangle from UV to world coordinates
+    const uvTri = uvTris[i];
+    const tri = new THREE.Triangle(
+        geometry.vertices[geometry.faces[i].a],
+        geometry.vertices[geometry.faces[i].b],
+        geometry.vertices[geometry.faces[i].c],
+    );
+
+    return interpolateInTriangle(uvPos, uvTri, tri);
 }
 
-function interpolateInFace(geometry, face, uvPos) {
-    const baryPos = toBarycentricCoord(face, uvPos);
-    // TODO weighted avg of vertex positions
-    return null;
-}
+function interpolateInTriangle(uvPos, uvTri, tri) {
+    console.log(uvPos, uvTri, tri);
+    const baryPos = new THREE.Vector3();
+    tri.getBarycoord(uvPos, baryPos);
 
-function toBarycentricCoord(triangle, pt) {
-    // TODO
+    const interpolated = new THREE.Vector3(0, 0, 0);
+    interpolated.addScaledVector(tri.a, baryPos.x);
+    interpolated.addScaledVector(tri.b, baryPos.y);
+    interpolated.addScaledVector(tri.c, baryPos.z);
+
+    return interpolated;
 }
 
 /*
