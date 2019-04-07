@@ -52,6 +52,10 @@ export default function initMenu() {
                     click: showImportDialog,
                 },
                 {
+                    label: 'Import OBJ (experimental)...',
+                    click: () => showImportDialog('obj'),
+                },
+                {
                     label: 'Open...',
                     accelerator: 'CommandOrControl+O',
                     click: showOpenDialog,
