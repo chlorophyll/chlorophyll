@@ -61,7 +61,6 @@
     "pixelpusher-driver": "https://github.com/chlorophyll/pixelpusher-driver",
     "tar-stream": "^1.5.4",
     "three": "^0.96.0",
-    "three-obj-loader": "^1.1.3",
     "tinycolor2": "^1.4.1",
     "twgl.js": "^4.4.0",
     "typescript": "^3.0.3",
