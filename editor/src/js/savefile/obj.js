@@ -31,6 +31,8 @@ const readFile = Promise.promisify(fs.readFile);
  * control point in any straight-segment path found will be treated as
  * individual LEDs, and applied onto the mesh as defined by UVs.
  *
+ * Note: the THREE.js SVG loader will ignore any paths with style "fill:none".
+ *
  * 2. A plain OBJ file. (Experimental / hacky): test import, will project LEDs
  * uniformly onto the mesh in a grid.
  */
@@ -85,28 +87,40 @@ export default async function importOBJ(filename) {
 /*
  * 3d math.
  */
+
 function uvMapStrips(obj, svg) {
     const geom = new THREE.Geometry();
     geom.fromBufferGeometry(obj.children[0].geometry);
+
     // Each path in the SVG file becomes an LED strip.
-    const strips = svg.map(shapePath => {
+    const strips = svg.paths.map(shapePath => {
         const stripPixels = [];
         shapePath.subPaths.forEach(path =>
-            path.curves.forEach(curve => {
+            path.curves.forEach((curve, i) => {
                 if (curve.type !== 'LineCurve')
                     throw new Error(`Unsupported curve type: ${curve.type}; expected: LineCurve`);
 
                 stripPixels.push(curve.v1, curve.v2);
             })
         );
-        // Each path segment will likely overlap the previous one at a vertex.
-        // Remove adjacent duplicates.
-        const deduped = stripPixels.filter((pt, i, pts) => i === 0 || pt.equals(pts[i - 1]));
 
-        // Apply pixels to the mesh.
-        return deduped
+        const bounds = new THREE.Vector2(svg.width, svg.height);
+        return stripPixels
+            // Each path segment will likely overlap the previous one at a vertex.
+            // Remove adjacent duplicates.
+            .filter((pt, i, pts) => i === 0 || !pt.equals(pts[i - 1]))
+            // Scale to [0, 1].
+            .map(pt => {
+                pt.divide(bounds);
+                if (svg.invertY)
+                    pt.setY(1 - pt.y);
+                return pt;
+            })
+            // Apply pixels to the mesh.
             .map(pt => uvMapPixel(geom, pt))
+            // Remove any pixels which didn't fall on a mapped face
             .filter(pt => pt)
+            // Serialize from Vector3
             .map(pt => pt.toArray());
     });
 
@@ -156,14 +170,30 @@ function interpolateInTriangle(uvPos, uvTri, tri) {
 /*
  * File loading.
  */
+
 async function loadObjFile(filename) {
     const loader = new THREE.OBJLoader();
-    return loadWithThreeLoader(filename, loader);
+    return loadWithThreeLoader(filename, loader)
+        .then(res => res.parsed);
 }
 
 async function loadSvgFile(filename) {
     const loader = new THREE.SVGLoader();
-    return loadWithThreeLoader(filename, loader);
+    return loadWithThreeLoader(filename, loader)
+        .then(res => {
+            const xml = new DOMParser().parseFromString(res.raw, 'image/svg+xml');
+            const svgRoot = xml.getElementsByTagName('svg')[0];
+            // Inkscape inverts the Y axis coordinates and puts (0,0) at the
+            // bottom-left of the canvas rather than top-left.
+            const inkscape = svgRoot.getAttribute('inkscape:version');
+
+            return {
+                paths: res.parsed,
+                width: parseInt(svgRoot.getAttribute('width'), 10),
+                height: parseInt(svgRoot.getAttribute('height'), 10),
+                invertY: Boolean(inkscape)
+            };
+        });
 }
 
 async function loadWithThreeLoader(filename, loader) {
@@ -175,7 +205,10 @@ async function loadWithThreeLoader(filename, loader) {
 
             loader.load(
                 'data:application/octet-stream;base64,' + data.toString('base64'),
-                result => resolve(result),
+                result => resolve({
+                    parsed: result,
+                    raw: data
+                }),
                 xhr => {},
                 err => reject(err)
             );
