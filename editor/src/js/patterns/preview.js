@@ -56,7 +56,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
                 startChannel: 0,
             }));
             return new ArtnetRegistry(currentModel, [
-                ...stripMapping({host: '127.0.0.1'})
+                ...stripMapping({host: '192.168.7.88'})
             ]);
         },
     },
