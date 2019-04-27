@@ -19,7 +19,6 @@ import modelFragmentShader from 'chl/model_shader.frag';
 export let currentModel = null;
 
 export function setCurrentModel(model) {
-    console.log('setCurrentModel');
     store.commit('update_model', model !== null);
     store.commit('pixels/clear_active_selection');
     currentModel = model;
