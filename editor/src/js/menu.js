@@ -49,7 +49,7 @@ export default function initMenu() {
                 {
                     label: 'Import New Model...',
                     accelerator: 'CommandOrControl+Shift+N',
-                    click: showImportDialog,
+                    click: () => showImportDialog('chl'),
                 },
                 {
                     label: 'Import OBJ (experimental)...',

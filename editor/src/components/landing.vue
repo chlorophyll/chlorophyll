@@ -45,7 +45,9 @@ export default {
     name: 'landing',
     components: { LandingPreview },
     methods: {
-        showImportDialog,
+        showImportDialog() {
+            showImportDialog('chl');
+        },
         showOpenDialog,
         readSave(path) {
             readSavefile(path).catch((err) => {

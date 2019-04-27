@@ -1,8 +1,10 @@
 import Vue from 'vue';
+import _ from 'lodash';
+import { ArtnetRegistry } from '@/common/hardware/artnet';
 import { PatternRunner } from 'chl/patterns/runner';
 import { currentModel } from 'chl/model';
 
-import {pushPixels, pushBlackFrame} from 'chl/hardware/pixelpusher';
+// import {pushPixels, pushBlackFrame} from 'chl/hardware/pixelpusher';
 
 export const RunState = {
     Stopped: 0,
@@ -31,7 +33,8 @@ export const PatternPreview = Vue.component('pattern-preview', {
                 const current = this.runner.step(time, pixels);
                 currentModel.setFromTexture(current);
                 if (this.pushToHardware) {
-                    pushPixels(currentModel, pixels);
+                    this.artnetClient.sendFrame(pixels);
+                    // pushPixels(currentModel, pixels);
                 }
             };
         },
@@ -42,6 +45,19 @@ export const PatternPreview = Vue.component('pattern-preview', {
         runner() {
             const {pattern, group, mapping} = this;
             return new PatternRunner(currentModel, pattern, group, mapping);
+        },
+
+        artnetClient() {
+            // hacks hacks hacks
+            const stripMapping = controller => _.range(32).map(i => ({
+                controller,
+                strip: i,
+                startUniverse: 3*i,
+                startChannel: 0,
+            }));
+            return new ArtnetRegistry(currentModel, [
+                ...stripMapping({host: '127.0.0.1'})
+            ]);
         },
     },
 
@@ -66,7 +82,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
 
         pushToHardware(newval) {
             if (!newval && this.runstate !== RunState.Stopped) {
-                pushBlackFrame(currentModel);
+                this.pushBlackFrame();
             }
         },
     },
@@ -74,6 +90,11 @@ export const PatternPreview = Vue.component('pattern-preview', {
     render() {},
 
     methods: {
+        pushBlackFrame() {
+            const width = Math.ceil(Math.sqrt(currentModel.num_pixels));
+            const pixels = new Float32Array(width * width * 4);
+            this.artnetClient.sendFrame(pixels);
+        },
         run() {
             this.step(this.time);
             this.time++;
@@ -95,7 +116,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
             currentModel.display_only = false;
             this.time = 0;
             if (this.pushToHardware) {
-                pushBlackFrame(currentModel);
+                this.pushBlackFrame();
             }
         }
     }

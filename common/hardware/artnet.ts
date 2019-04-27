@@ -22,7 +22,7 @@ function writePacketHeader(packet: Buffer, op: ArtNetOp) {
 
 
 function initPackets() {
-    const dmxPacket = Buffer.alloc(520);
+    const dmxPacket = Buffer.alloc(512+18);
     writePacketHeader(dmxPacket, ArtNetOp.OpDmx);
 
     const syncPacket = Buffer.alloc(14);
@@ -137,7 +137,10 @@ export class ArtnetRegistry {
             let count = 0;
             for (const {strip, startIndex, startChannel, numChannels} of segments) {
                 const stripOffset = this.model.strip_offsets[strip];
-                dmxPacket.writeUInt16LE(universe, 14);
+                const hUniv = (universe >> 8) & 0xff;
+                const lUniv = universe & 0xff;
+                dmxPacket.writeUInt8(lUniv, 14);
+                dmxPacket.writeUInt8(hUniv, 15);
                 let ptr = 4*stripOffset + startIndex;
                 count += numChannels;
                 for (let channel = startChannel; channel < numChannels; channel++) {
@@ -148,7 +151,10 @@ export class ArtnetRegistry {
                     ptr++;
                 }
             }
-            dmxPacket.writeUInt16BE(count, 16);
+            const hCount = (count >> 8) & 0xff;
+            const lCount = count & 0xff;
+            dmxPacket.writeUInt8(hCount, 16);
+            dmxPacket.writeUInt8(lCount, 17);
             const controller = this.controllerByUniverse[universe];
             this.socket.send(dmxPacket, 0, count+18, ArtnetPort, controller.host);
         }
