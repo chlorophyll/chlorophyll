@@ -1,6 +1,5 @@
 import * as dgram from 'dgram';
 import _ from 'lodash';
-
 import ModelBase from '@/common/model';
 
 const ArtnetPort = 6454;
@@ -18,8 +17,6 @@ function writePacketHeader(packet: Buffer, op: ArtNetOp) {
     packet.writeUInt16LE(op, 8);
     packet.writeUInt16BE(protocolVersion, 10);
 }
-
-
 
 function initPackets() {
     const dmxPacket = Buffer.alloc(512+18);
@@ -55,7 +52,8 @@ const maxChannelsInUniverse = 510;
 const maxPixelsInUniverse = maxChannelsInUniverse / 3;
 function getStripSegments(model: ModelBase, {controller, strip, startUniverse, startChannel}: ArtnetStripMapping): Array<StripSegment> {
     const numPixelsInStrip = model.numPixelsInStrip(strip);
-    const numInFirstUniverse = Math.min(maxPixelsInUniverse - startChannel, numPixelsInStrip);
+    const numChannelsInFirst = Math.min(maxChannelsInUniverse - startChannel, 3*numPixelsInStrip);
+    const numInFirstUniverse = numChannelsInFirst / 3;
 
     const numRemaining = numPixelsInStrip - numInFirstUniverse;
     const segments = [
@@ -99,7 +97,7 @@ function getStripSegments(model: ModelBase, {controller, strip, startUniverse, s
 export class ArtnetRegistry {
     socket: dgram.Socket;
     stripMapping: Array<ArtnetStripMapping>;
-    stripsByUniverse: Map<number, Array<StripSegment>>;
+    stripsByUniverseAndController: Map<string, Map<number, Array<StripSegment>>>;
     seqNumByUniverse: {[key: number]: number};
     controllerByUniverse: {[key: number]: ArtnetController};
     model: ModelBase;
@@ -108,20 +106,25 @@ export class ArtnetRegistry {
         this.stripMapping = stripMapping;
         this.model = model;
 
-        this.stripsByUniverse = new Map();
+        this.stripsByUniverseAndController = new Map();
         this.seqNumByUniverse = {};
         this.controllerByUniverse = {};
 
         for (const mapping of stripMapping) {
+            const {controller} = mapping;
+            let stripsByUniverse = this.stripsByUniverseAndController.get(controller.host);
+            if (stripsByUniverse === undefined) {
+                stripsByUniverse = new Map();
+                this.stripsByUniverseAndController.set(controller.host, stripsByUniverse);
+            }
             for (const segment of getStripSegments(model, mapping)) {
-                const s = this.stripsByUniverse.get(segment.universe);
+                const s = stripsByUniverse.get(segment.universe);
                 if (s === undefined) {
-                    this.stripsByUniverse.set(segment.universe, [segment]);
+                    stripsByUniverse.set(segment.universe, [segment]);
                 } else {
                     s.push(segment);
                 }
                 this.seqNumByUniverse[segment.universe] = 0;
-                this.controllerByUniverse[segment.universe] = mapping.controller;
             }
         }
 
@@ -130,38 +133,62 @@ export class ArtnetRegistry {
 
 
     sendFrame(pixels: Float32Array, sync=true) {
-        for (const [universe, segments] of this.stripsByUniverse.entries()) {
-            const packet = Buffer.from(dmxPacket);
-            const seqNum = this.seqNumByUniverse[universe] + 1;
-            packet.writeUInt8(seqNum, 12);
-            this.seqNumByUniverse[universe] = (seqNum + 1) % 254;
-            let count = 0;
-            for (const {strip, startIndex, startChannel, numChannels} of segments) {
-                const stripOffset = this.model.strip_offsets[strip];
+        for (const [host, stripsByUniverse] of this.stripsByUniverseAndController.entries()) {
+            for (const [universe, segments] of stripsByUniverse.entries()) {
+                const packet = Buffer.from(dmxPacket);
+                const seqNum = 0; //this.seqNumByUniverse[universe] + 1;
+                packet.writeUInt8(seqNum, 12);
                 const hUniv = (universe >> 8) & 0xff;
                 const lUniv = universe & 0xff;
                 packet.writeUInt8(lUniv, 14);
                 packet.writeUInt8(hUniv, 15);
-                let ptr = 4*stripOffset + startIndex;
-                count += numChannels;
-                for (let channel = startChannel; channel < numChannels; channel++) {
-                    if (ptr % 4 == 3) {
+                //this.seqNumByUniverse[universe] = seqNum % 254;
+                let count = 0;
+                for (const {strip, startIndex, startChannel, numChannels} of segments) {
+                    const stripOffset = this.model.strip_offsets[strip];
+                    let ptr = 4*(stripOffset + startIndex);
+                    count += numChannels;
+                    const endChannel = startChannel + numChannels;
+                    for (let channel = startChannel; channel < endChannel; channel++) {
+                        if (ptr % 4 == 3) {
+                            ptr++;
+                        }
+                        packet.writeUInt8(pixels[ptr]*255, channel + 18);
                         ptr++;
                     }
-                    packet.writeUInt8(pixels[ptr]*255, channel + 18);
-                    ptr++;
                 }
+                const hCount = (count >> 8) & 0xff;
+                const lCount = count & 0xff;
+                packet.writeUInt8(hCount, 16);
+                packet.writeUInt8(lCount, 17);
+                this.socket.send(packet, 0, count+18, ArtnetPort, host);
             }
-            const hCount = (count >> 8) & 0xff;
-            const lCount = count & 0xff;
-            packet.writeUInt8(hCount, 16);
-            packet.writeUInt8(lCount, 17);
-            const controller = this.controllerByUniverse[universe];
-            //console.log(packet);
-            this.socket.send(packet, 0, count+18, ArtnetPort, controller.host);
-        }
-        if (sync) {
-            this.socket.send(syncPacket, 0, syncPacket.length, ArtnetPort, '2.255.255.255');
+            if (sync) {
+                this.socket.send(syncPacket, 0, syncPacket.length, ArtnetPort, '2.255.255.255');
+            }
         }
     }
 }
+
+export function parseSettings(settingsStr: string): Array<ArtnetStripMapping> {
+    const lines = settingsStr.split('\n');
+    const mappings = lines.map(line => {
+        const [host, ...values] = line.split(',');
+        const [strip, startUniverse, startChannel] = values.map(parseInt);
+        return {
+            controller: {host},
+            strip,
+            startUniverse,
+            startChannel,
+        };
+    });
+    return mappings;
+}
+
+export function stringifySettings(settings: Array<ArtnetStripMapping>): string {
+    const lines = settings.map(({controller, strip, startUniverse, startChannel}) =>
+        `${controller.host},${strip},${startUniverse},${startChannel}`
+    );
+    return lines.join('\n');
+}
+

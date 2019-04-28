@@ -1,5 +1,9 @@
 <template>
     <div>
+        <hardware-config
+            v-if="hardwareConfigVisible"
+            @close="hideHardwareConfig"
+        />
     <split-pane direction="vertical" :initial-split="[null, Const.dock_size]" class="root">
         <split-pane slot="first"
                     direction="horizontal"
@@ -7,7 +11,16 @@
             <split-pane slot="first"
                         direction="horizontal"
                     :initial-split="[Const.sidebar_size, null]">
-                <group-browser slot="first" />
+                <div class="panel" slot="first">
+                        <div class="control-row">
+                            <button
+                                class="control fill"
+                                @click="showHardwareConfig">
+                                Configure Hardware
+                            </button>
+                        </div>
+                    <group-browser />
+                </div>
                 <viewport slot="second"
                           label="main"
                           projection="perspective"
@@ -37,7 +50,6 @@
 <script>
 import { ConstMixin } from 'chl/const';
 import { HotkeyMixin } from 'chl/keybindings';
-
 import SplitPane from '@/components/widgets/split';
 import MarqueeSelection from '@/components/tools/selection/marquee';
 import LineSelection from '@/components/tools/selection/line';
@@ -52,6 +64,7 @@ import Toggle from '@/components/widgets/toggle';
 import TabSet from '@/components/widgets/tab-set';
 import Tab from '@/components/widgets/tab-set/tab';
 
+import HardwareConfig from '@/components/hardware_config';
 import GroupBrowser from '@/components/group/group_browser';
 import MappingBrowser from '@/components/mapping/mapping_browser';
 import PatternEditor from '@/components/patterns/editor';
@@ -64,6 +77,7 @@ export default {
     components: {
         PlaylistEditor,
         Camera,
+        HardwareConfig,
         GroupBrowser,
         MappingBrowser,
         MarqueeSelection,
@@ -81,8 +95,17 @@ export default {
     data() {
         return {
             showEffects: true,
+            hardwareConfigVisible: false,
         }
     },
+    methods: {
+        showHardwareConfig() {
+            this.hardwareConfigVisible = true;
+        },
+        hideHardwareConfig() {
+            this.hardwareConfigVisible = false;
+        },
+    }
 };
 </script>
 

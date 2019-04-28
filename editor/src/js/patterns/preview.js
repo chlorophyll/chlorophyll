@@ -48,16 +48,35 @@ export const PatternPreview = Vue.component('pattern-preview', {
         },
 
         artnetClient() {
-            // hacks hacks hacks
-            const stripMapping = controller => _.range(32).map(i => ({
-                controller,
-                strip: i,
-                startUniverse: 3*i,
+            const tailConfig = [
+                [1, 1, 81],
+                [2, 1, 74],
+                [3, 1, 64],
+                [1, 244, 16],
+            ];
+            const wingMapping = _.range(13).map(strip => ({
+                controller: {host: '192.168.31.215'},
+                strip: strip+4,
+                startUniverse: strip*3,
                 startChannel: 0,
             }));
-            return new ArtnetRegistry(currentModel, [
-                ...stripMapping({host: '192.168.7.88'})
+
+            const tailMapping = tailConfig.map(([univ, channel, _unused], i) => ({
+                controller: {host: '192.168.31.207'},
+                strip: i,
+                startUniverse: univ-1,
+                startChannel: channel-1,
+            }));
+            // hacks hacks hacks
+            const registry = new ArtnetRegistry(currentModel, [
+                ...tailMapping, ...wingMapping
             ]);
+            console.log(registry);
+            return registry;
+
+            //    ...stripMapping({host: '192.168.7.88'})
+            //    //...stripMapping({host: '127.0.0.1'})
+            //]);
         },
     },
 

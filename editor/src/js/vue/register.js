@@ -7,3 +7,4 @@ import 'chl/patterns';
 import 'chl/mapping';
 import 'chl/viewport';
 import 'chl/model';
+import 'chl/hardware';
