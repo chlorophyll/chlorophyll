@@ -131,32 +131,34 @@ export class ArtnetRegistry {
 
     sendFrame(pixels: Float32Array, sync=true) {
         for (const [universe, segments] of this.stripsByUniverse.entries()) {
+            const packet = Buffer.from(dmxPacket);
             const seqNum = this.seqNumByUniverse[universe] + 1;
-            dmxPacket.writeUInt8(seqNum, 12);
+            packet.writeUInt8(seqNum, 12);
             this.seqNumByUniverse[universe] = (seqNum + 1) % 254;
             let count = 0;
             for (const {strip, startIndex, startChannel, numChannels} of segments) {
                 const stripOffset = this.model.strip_offsets[strip];
                 const hUniv = (universe >> 8) & 0xff;
                 const lUniv = universe & 0xff;
-                dmxPacket.writeUInt8(lUniv, 14);
-                dmxPacket.writeUInt8(hUniv, 15);
+                packet.writeUInt8(lUniv, 14);
+                packet.writeUInt8(hUniv, 15);
                 let ptr = 4*stripOffset + startIndex;
                 count += numChannels;
                 for (let channel = startChannel; channel < numChannels; channel++) {
                     if (ptr % 4 == 3) {
                         ptr++;
                     }
-                    dmxPacket.writeUInt8(pixels[ptr]*255, channel + 18);
+                    packet.writeUInt8(pixels[ptr]*255, channel + 18);
                     ptr++;
                 }
             }
             const hCount = (count >> 8) & 0xff;
             const lCount = count & 0xff;
-            dmxPacket.writeUInt8(hCount, 16);
-            dmxPacket.writeUInt8(lCount, 17);
+            packet.writeUInt8(hCount, 16);
+            packet.writeUInt8(lCount, 17);
             const controller = this.controllerByUniverse[universe];
-            this.socket.send(dmxPacket, 0, count+18, ArtnetPort, controller.host);
+            //console.log(packet);
+            this.socket.send(packet, 0, count+18, ArtnetPort, controller.host);
         }
         if (sync) {
             this.socket.send(syncPacket, 0, syncPacket.length, ArtnetPort, '2.255.255.255');
