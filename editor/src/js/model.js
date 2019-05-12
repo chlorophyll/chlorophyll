@@ -368,6 +368,8 @@ export class Model extends ModelBase {
             this.pixelsize = potentialPointSize / (3*ratio);
         }
         this.material.uniforms.pointSize.value = this.pixelsize;
+
+        this.stripStats();
     }
 
     zoomCameraToFit(camera) {
@@ -459,6 +461,12 @@ export class Model extends ModelBase {
     refreshUniforms(devicePixelRatio, height) {
         this.material.uniforms.pointSize.value = this.pixelsize * (devicePixelRatio||1);
         this.material.uniforms.scale.value = height * 0.7;
+    }
+
+    stripStats() {
+        for (let i = 0; i < this.num_strips; i++) {
+            console.log(`STRIP ${i}:\t${this.numPixelsInStrip(i)} pixels`);
+        }
     }
 }
 
