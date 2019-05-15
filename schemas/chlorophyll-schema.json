@@ -232,6 +232,33 @@
                     }
                 ]
             },
+            "transformMapping": {
+                "allOf": [
+                    { "$ref": "#/definitions/objects/baseMapping" },
+                    {
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "pattern": "uv"
+                            },
+                            "settings": {
+                                "type": "object",
+                                "properties": {
+                                    "uvCoords": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/definitions/types/vector2"
+                                        }
+                                    },
+                                    "dimension": {
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
             "mapping": {
                 "anyOf": [{
                         "$ref": "#/definitions/objects/transformMapping"
@@ -241,6 +268,9 @@
                     },
                     {
                         "$ref": "#/definitions/objects/linearMapping"
+                    },
+                    {
+                        "$ref": "#/definitions/objects/uvMapping"
                     }
                 ]
             },

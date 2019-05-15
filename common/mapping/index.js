@@ -3,11 +3,13 @@ import * as assert from 'assert';
 import ProjectionMapping from './projection';
 import TransformMapping from './transform';
 import LinearMapping from './linear';
+import UVMapping from './uv';
 
 export const mappingTypes = {
     linear: LinearMapping,
     projection: ProjectionMapping,
-    transform: TransformMapping
+    transform: TransformMapping,
+    uv: UVMapping
 };
 
 export function defaultSettings(type) {
