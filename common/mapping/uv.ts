@@ -44,6 +44,7 @@ export default class UVMapping implements T.PixelMapping {
             ...this.settings,
             ...attrs
         };
+        console.log(`Init ${this.className} mapping:`, this.settings);
     }
 
     getView(): T.MapMode {

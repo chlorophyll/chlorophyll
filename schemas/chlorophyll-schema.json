@@ -232,7 +232,7 @@
                     }
                 ]
             },
-            "transformMapping": {
+            "uvMapping": {
                 "allOf": [
                     { "$ref": "#/definitions/objects/baseMapping" },
                     {
