@@ -22,6 +22,8 @@ interface ExpectedArgs {
 }
 
 interface Listener {
+  id: number;
+  address: string;
   patterns: Array<RegExp>;
   spec: ExpectedArgs;
   callback(args: MessageArgs, tt: OT.TimeTag, addr: string);
@@ -150,6 +152,7 @@ export default class OSCBus {
     // Register the new callback.
     const route = this.listeners.get(address);
     const handle = new ListenerHandle(this, {
+      address: address,
       patterns: parts.map(addressPartToRegExp),
       spec: toCanonicalSpec(spec),
       callback: cb,
@@ -186,10 +189,13 @@ export default class OSCBus {
 
   /*
    * Remove all listeners for the given pattern.
-   * TODO allow deleting a single listener for an address
    */
-  stop(address) {
+  stopAll(address) {
     return this.listeners.delete(address);
+  }
+
+  stop(listener: ListenerHandle) {
+    this.listeners.get(listener.address)
   }
 
   /*
@@ -205,18 +211,25 @@ export default class OSCBus {
 }
 
 class ListenerHandle implements Listener {
-  private bus;
   readonly id;
-  public patterns;
-  public spec;
-  public callback;
+  readonly address;
+  readonly patterns;
+  readonly spec;
+  readonly callback;
+
+  private bus;
 
   constructor(bus, attrs) {
     this.bus = bus;
     this.patterns = attrs.patterns;
+    this.address = attrs.address;
     this.spec = attrs.spec;
     this.callback = attrs.callback;
     this.id = `${bus.domain}:${bus.ids.next().value}`
+  }
+
+  stop() {
+    this.bus.stop(this);
   }
 }
 
