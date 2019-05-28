@@ -9,7 +9,7 @@ import assert from 'assert';
 import Units from '@/common/units';
 import { input } from '@/common/osc';
 
-// TODO(cwill) export this from osc/types
+// TODO(cwill) export this from osc/osc_types
 const typeMap = {
     f: {
         unit: Units.Numeric,
