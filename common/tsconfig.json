@@ -16,7 +16,7 @@
             "three-examples": ["editor/node_modules/three/examples/js/*"],
             "models": ["./editor/static/models/*"],
             "style": ["./editor/src/style/*"],
-            "vue": ["editor/node_modules/vue/dist/vue.esm.js"]
+            "vue": ["./editor/node_modules/vue/dist/vue.esm.js"]
         }
     },
     "include": [
