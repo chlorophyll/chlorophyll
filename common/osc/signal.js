@@ -22,9 +22,10 @@ const typeMap = {
 };
 
 export default class Signal {
-    constructor(address, args) {
+    constructor(address, args, name) {
         this.oscTypes = args || [];
         this.graphTypes = this.oscTypes.map(Signal.oscToGraphType);
+        this.name = name || address;
 
         this._address = address;
         this._currentValue = null;
@@ -125,12 +126,13 @@ export default class Signal {
 
     serialize() {
         return {
-            address: this.address,
+            name: this.name,
+            address: this._address,
             args: this.oscTypes
         };
     }
 
     static deserialize(attrs) {
-        return new Signal(attrs.address, attrs.args);
+        return new Signal(attrs.address, attrs.args, attrs.name);
     }
 }
