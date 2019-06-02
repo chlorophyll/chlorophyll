@@ -35,7 +35,7 @@
  *
  */
 import osc from 'osc';
-import Units from 'common/units';
+import Units from '../units';
 
 export enum OSCType {
   INT32 = 'i',

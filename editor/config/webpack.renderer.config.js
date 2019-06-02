@@ -165,6 +165,7 @@ let rendererConfig = {
     symlinks: false,
     alias: {
       '@': path.join(__dirname, '../src'),
+      'common': path.join(__dirname, '../common'),
       'chl': path.join(__dirname, '../src/js'),
       'three-examples': path.join(__dirname, '../node_modules/three/examples/js'),
       'models': path.join(__dirname, '../static/models'),

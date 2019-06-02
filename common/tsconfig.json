@@ -10,8 +10,8 @@
         "lib": ["dom", "esnext"],
         "baseUrl": "..",
         "paths": {
-            "@/*": ["./src/*", "./"],
-            "common/*": ["./common/*"],
+            "@/*": ["./editor/src/*", "./"],
+            "common/*": ["./common/*", "./"],
             "chl/*": ["./editor/src/js/*"],
             "three-examples/*": ["editor/node_modules/three/examples/js/*"],
             "models/*": ["./editor/static/models/*"],
