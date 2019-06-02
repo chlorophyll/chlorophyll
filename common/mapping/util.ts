@@ -1,5 +1,5 @@
 import { Vector2, Vector3 } from 'three';
-import * as T from '../types';
+import * as T from 'common/types';
 
 // TODO support constrained proportions (lock 2/3 coordinates scale together)
 export function normalizePositions(points: Array<T.MappedPixel>, spec: Array<T.CoordSpec>): Array<T.MappedPixel> {

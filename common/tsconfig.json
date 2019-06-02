@@ -11,11 +11,11 @@
         "baseUrl": "..",
         "paths": {
             "@/*": ["./src/*", "./"],
-            "common": ["./common/*"],
-            "chl": ["./editor/src/js/*"],
-            "three-examples": ["editor/node_modules/three/examples/js/*"],
-            "models": ["./editor/static/models/*"],
-            "style": ["./editor/src/style/*"],
+            "common/*": ["./common/*"],
+            "chl/*": ["./editor/src/js/*"],
+            "three-examples/*": ["editor/node_modules/three/examples/js/*"],
+            "models/*": ["./editor/static/models/*"],
+            "style/*": ["./editor/src/style/*"],
             "vue": ["./editor/node_modules/vue/dist/vue.esm.js"]
         }
     },

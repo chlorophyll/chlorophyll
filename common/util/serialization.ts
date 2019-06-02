@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import * as T from '../types';
+import * as T from 'common/types';
 
 const tags = {};
 

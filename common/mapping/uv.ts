@@ -1,7 +1,7 @@
 import {Vector2} from 'three';
 
-import Units from '../units';
-import * as T from '../types';
+import Units from 'common/units';
+import * as T from 'common/types';
 
 type UVMode = 'uv2d';
 
@@ -58,7 +58,7 @@ export default class UVMapping implements T.PixelMapping {
     getView(): T.MapMode {
         return UVMapping.views[0];
     }
-    
+
     mapPixels(pixels: Array<T.Pixel>): Array<T.MappedPixel> {
         return pixels.map(px => {
             if (!(px.idx in this.settings.uvCoords))

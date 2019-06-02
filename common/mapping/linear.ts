@@ -1,5 +1,5 @@
-import Units from '../units';
-import * as T from '../types'
+import Units from 'common/units';
+import * as T from 'common/types'
 
 type LinearMode = 'continuous' | 'discrete';
 

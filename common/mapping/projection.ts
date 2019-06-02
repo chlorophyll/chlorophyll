@@ -7,8 +7,8 @@ import {
     Vector3,
 } from 'three';
 
-import Units from '../units';
-import * as T from '../types';
+import Units from 'common/units';
+import * as T from 'common/types';
 import * as mapUtil from './util';
 
 type ProjMode = 'cartesian2d' | 'polar2d';

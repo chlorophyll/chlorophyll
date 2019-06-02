@@ -5,8 +5,8 @@ import {
     Vector3,
 } from 'three';
 
-import Units from '../units';
-import * as T from '../types';
+import Units from 'common/units';
+import * as T from 'common/types';
 
 /*
  * 3d transform mappings
@@ -83,12 +83,12 @@ export default class TransformMapping implements T.PixelMapping {
     getView(className: TransformMode): T.MapMode {
         return TransformMapping.views.find(m => m.className === className);
     }
-    
+
     mapPixels(pixels: Array<T.Pixel>, mode: TransformMode): Array<T.MappedPixel> {
         const position = new Vector3().fromArray(this.settings.position);
         const rotation = new Euler().fromArray([...this.settings.rotation, 'XYZ']);
         const scale = new Vector3().fromArray(this.settings.scale);
-        
+
         const rotInv = new Quaternion()
             .setFromEuler(rotation)
             .inverse();

@@ -1,7 +1,7 @@
-import { addSerializableType } from '../../util/serialization';
-import { Compilation } from '../../graphlib/compiler';
-import * as glsl from '../../glsl';
 import _ from 'lodash';
+import { addSerializableType } from 'common/util/serialization';
+import { Compilation } from 'common/graphlib/compiler';
+import * as glsl from 'common/glsl';
 
 export const FrequencyQuantities = ['hz', 'bpm', 'sec'];
 
