@@ -35,6 +35,7 @@
  *
  */
 import osc from 'osc';
+import Units from 'common/units';
 
 export enum OSCType {
   INT32 = 'i',
@@ -83,5 +84,42 @@ const typeConstructors: {[t: string]: TypeConstructor} = {
   COLOR:    (r, g, b, a) => ({ type: 'r', value: {r, g, b, a}}),
   TIME:     (s, now) => ({ type: 't', value: osc.timeTag(s, now)})
 };
+
+
+export function toGraphUnit(t: OSCType): any {
+    switch (t) {
+        case OSCType.INT32:
+        case OSCType.INT64:
+        case OSCType.FLOAT32:
+        case OSCType.TIME:
+            return Units.Numeric;
+
+        case OSCType.CHAR:
+            return Units.UInt8;
+
+        case OSCType.COLOR:
+            return 'CRGB';
+
+        default:
+            throw new Error('Invalid unit type for shader graph');
+    }
+}
+
+export function zeroValue(t: OSCType): any {
+    switch (t) {
+        case OSCType.INT32:
+        case OSCType.INT64:
+        case OSCType.FLOAT32:
+        case OSCType.TIME:
+        case OSCType.CHAR:
+            return 0;
+
+        case OSCType.COLOR:
+            return [0, 0, 0];
+
+        default:
+            throw new Error('Invalid unit type for shader graph');
+    }
+}
 
 export default typeConstructors;

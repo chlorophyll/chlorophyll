@@ -6,25 +6,13 @@
  */
 import _ from 'lodash';
 import * as assert from 'assert';
-import Units from '../units';
-import { input } from '../osc';
-
-// TODO(cwill) export this from osc/osc_types
-const typeMap = {
-    f: {
-        unit: Units.Numeric,
-        zeroValue: 0
-    },
-    r: {
-        unit: 'CRGB',
-        zeroValue: [0, 0, 0]
-    }
-};
+import { input } from 'common/osc';
+import * as OT from './osc_types';
 
 export default class Signal {
     constructor(address, args, name) {
         this.oscTypes = args || [];
-        this.graphTypes = this.oscTypes.map(Signal.oscToGraphType);
+        this.graphTypes = this.oscTypes.map(OT.toGraphUnit);
         this.name = name || address;
 
         this._address = address;
@@ -34,17 +22,12 @@ export default class Signal {
         this._startListener();
     }
 
-    static oscToGraphType(ot) {
-        return typeMap[ot] ? typeMap[ot].unit : null;
-    }
-
     getValue() {
         if (this._currentValue === null) {
             if (this.graphTypes.length > 1)
                 assert.fail('multiple signal args unimplemented');
 
-            const zero = typeMap[this.oscTypes[0]].zeroValue;
-            return zero;
+            return OT.zeroValue(this.oscTypes[0]);
         }
 
         return this._currentValue;
@@ -63,7 +46,7 @@ export default class Signal {
 
         if (args) {
             this.oscTypes = args;
-            this.graphTypes = args.map(Signal.oscToGraphType);
+            this.graphTypes = args.map(OT.toGraphUnit);
         }
         this._startListener();
     }
