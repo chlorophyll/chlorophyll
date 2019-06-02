@@ -1,9 +1,9 @@
-import clone from 'clone';
 import * as assert from 'assert';
 import ProjectionMapping from './projection';
 import TransformMapping from './transform';
 import LinearMapping from './linear';
 import UVMapping from './uv';
+import {restoreAll} from '../util/serialization';
 
 export const mappingTypes = {
     linear: LinearMapping,
@@ -38,16 +38,9 @@ export function mappingHasView(mapping, viewName) {
 }
 
 export function restoreAllMappings(snapshot) {
-    let new_mapping_list = [];
-    let new_mappings = {};
-
-    for (let mapping of snapshot) {
-        new_mappings[mapping.id] = restoreMapping(mapping);
-        new_mapping_list.push(mapping.id);
-    }
-    return { new_mappings, new_mapping_list };
-}
-
-export function restoreMapping(mappingsnap) {
-    return clone(mappingsnap);
+    const {resourcesById, idList} = restoreAll(snapshot);
+    return {
+        new_mappings: resourcesById,
+        new_mapping_list: idList
+    };
 }
