@@ -22,8 +22,7 @@ const typeMap = {
 };
 
 export default class Signal {
-    constructor(node, address, args) {
-        this.node = node;
+    constructor(address, args) {
         this.oscTypes = args || [];
         this.graphTypes = this.oscTypes.map(Signal.oscToGraphType);
 
@@ -32,14 +31,6 @@ export default class Signal {
         this._listener = null;
 
         this._startListener();
-
-        // Clean up the OSC listener if the node is removed.
-        this.node.graph.addEventListener('node-removed', event => {
-            if (!event.node || event.node.id !== this.node.id)
-                return;
-
-            this._stopListener();
-        });
     }
 
     static oscToGraphType(ot) {
@@ -130,5 +121,16 @@ export default class Signal {
 
     get args() {
         return this.oscTypes;
+    }
+
+    serialize() {
+        return {
+            address: this.address,
+            args: this.oscTypes
+        };
+    }
+
+    static deserialize(attrs) {
+        return new Signal(attrs.address, attrs.args);
     }
 }
