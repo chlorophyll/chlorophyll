@@ -1,7 +1,7 @@
 import {Vector2} from 'three';
 
-import Units from 'common/units';
-import * as T from 'common/types';
+import Units from '../units';
+import * as T from '../types';
 
 type UVMode = 'uv2d';
 

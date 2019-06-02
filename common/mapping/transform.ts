@@ -5,8 +5,8 @@ import {
     Vector3,
 } from 'three';
 
-import Units from 'common/units';
-import * as T from 'common/types';
+import Units from '../units';
+import * as T from '../types';
 
 /*
  * 3d transform mappings

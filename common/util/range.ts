@@ -1,5 +1,5 @@
-import { addSerializableType } from 'common/util/serialization';
-import { Compilation } from 'common/graphlib/compiler';
+import { addSerializableType } from './serialization';
+import { Compilation } from '../graphlib/compiler';
 
 export default class Range {
     readonly _tag = 'Range';

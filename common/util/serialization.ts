@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import * as T from 'common/types';
+import * as T from '../types';
 
 const tags = {};
 
@@ -42,7 +42,7 @@ export function save(obj) {
     Object.entries(obj).forEach(([key, value]) => {
         ret[key] = save(value);
     });
-    
+
     return JSON.parse(JSON.stringify(ret));
 }
 

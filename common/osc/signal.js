@@ -6,8 +6,8 @@
  */
 import _ from 'lodash';
 import * as assert from 'assert';
-import Units from 'common/units';
-import { input } from 'common/osc';
+import Units from '../units';
+import { input } from '../osc';
 
 // TODO(cwill) export this from osc/osc_types
 const typeMap = {
