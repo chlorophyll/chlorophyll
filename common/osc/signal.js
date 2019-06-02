@@ -14,12 +14,16 @@ export default class Signal {
         this.oscTypes = args || [];
         this.graphTypes = this.oscTypes.map(OT.toGraphUnit);
         this.name = name || address;
+        // TODO support other sources
+        this.source = 'osc';
 
         this._address = address;
         this._currentValue = null;
         this._listener = null;
+    }
 
-        this._startListener();
+    enable() {
+        return this._startListener();
     }
 
     getValue() {
@@ -111,7 +115,8 @@ export default class Signal {
         return {
             name: this.name,
             address: this._address,
-            args: this.oscTypes
+            args: this.oscTypes,
+            source: this.source
         };
     }
 
