@@ -1,6 +1,10 @@
 import {SyphonRegistry} from 'SyphonBuffer';
-
 import {getFloatingPointTextureOptions} from '@/common/util/shader_runner';
+import GraphLib, { GraphNode } from '@/common/graphlib';
+import Units from '@/common/units';
+import * as glsl from '@/common/glsl';
+import * as twgl from 'twgl.js';
+
 let node_types = [];
 
 const registry = new SyphonRegistry();
@@ -11,6 +15,7 @@ let textureInfo = {
     width: null,
     height: null,
     texture: null,
+    gl: null,
 };
 
 
@@ -19,56 +24,49 @@ registry.on('servers-updated', () => {
     if (servers.length === 1) {
         client = registry.createClientForServer(servers[0]);
         client.on('disconnected', () => client = null);
+        client.on('frame', (frame, width, height) => {
+            if (!textureInfo.gl) {
+                return;
+            }
+            const {gl} = textureInfo;
+            const textureOptions = {
+                width,
+                height,
+                format: gl.RGBA,
+                type: gl.UNSIGNED_BYTE,
+                minMag: gl.NEAREST,
+                wrap: gl.CLAMP_TO_EDGE,
+                auto: false,
+            };
+            if (textureInfo.width !== width || textureInfo.height !== height) {
+                if (!textureInfo.texture) {
+                    textureInfo.texture = twgl.createTexture(textureInfo.gl, textureOptions);
+                }
+            }
+            textureInfo.width = width;
+            textureInfo.height = height;
+            twgl.setTextureFromArray(textureInfo.gl, textureInfo.texture, frame, textureOptions);
+        });
+
+        client.on('connected', () => {
+            console.log('connected');
+        });
 
         client.connectAsync().catch(e => console.error(e));
     }
 });
 
+registry.start();
+
 function initClient(gl) {
-    client.on('frame', (frame, width, height) => {
-        if (textureInfo.width !== width || textureInfo.height !== height) {
-            const textureOptions = {
-                ...getFloatingPointTextureOptions(gl, width, height),
-            };
-            if (!textureInfo.texture) {
-                textureInfo.texture = twgl.createTexture(gl, textureOptions);
-            }
-        }
-        textureInfo.width = width;
-        textureInfo.height = height;
-        twgl.setTextureFromArray(gl, textureInfo.texture, frame, textureOptions);
-    });
+    textureInfo.gl = gl;
 }
-
-class SyphonSourceNode extends GraphNode {
-
-    constructor(options) {
-        const inputs = [];
-        const outputs = [
-            GraphNode.output('output', 'texture'),
-        ];
-
-        super(options, inputs, outputs);
-    }
-
-    compile(c) {
-        initClient(c.gl);
-
-        const ident = c.variable();
-        c.uniform('sampler2D', ident, () => textureInfo.texture);
-        c.setOutput(0, ident);
-    }
-}
-
-SyphonSourceNode.title = 'Syphon Source';
-node_types.push(['input/syphon', SyphonSourceNode]);
 
 class SampleNode extends GraphNode {
 
     constructor(options) {
 
         const inputs = [
-            GraphNode.input('texture', 'texture'),
             GraphNode.input('x', Units.Numeric),
             GraphNode.input('y', Units.Numeric),
         ];
@@ -81,19 +79,22 @@ class SampleNode extends GraphNode {
     }
 
     compile(c) {
-        const texture = c.getInput(this, 0);
-        const x = c.getInput(this, 1);
-        const y = c.getInput(this, 2);
+        initClient(c.gl);
+        const texture = c.variable();
+        c.uniform('sampler2D', texture.name, () => textureInfo.texture);
+        const x = c.getInput(this, 0);
+        const y = c.getInput(this, 1);
 
         const pos = glsl.FunctionCall('vec2', [x, y]);
 
-        const output = glsl.Dot(glsl.FunctionCall('texture2D', [texture, pos]), 'rgb');
+        const output = glsl.Dot(glsl.FunctionCall('texture2D', [texture, pos]), 'bgr');
 
         c.setOutput(this, 0, output);
     }
 }
+SampleNode.title = 'Read Syphon Source';
 
-node_types.push(['input/sampleTexture', SampleNode]);
+node_types.push(['input/syphon', SampleNode]);
 
 export default function register_syphon_nodes() {
     GraphLib.registerNodeTypes(node_types);

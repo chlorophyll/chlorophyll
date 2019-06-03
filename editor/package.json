@@ -45,6 +45,7 @@
     "postinstall": "cd .. && yarn install"
   },
   "dependencies": {
+    "SyphonBuffer": "https://github.com/chlorophyll/SyphonBuffer",
     "ajv": "^6.5.3",
     "clone": "^2.1.1",
     "concat-stream": "^1.6.0",
