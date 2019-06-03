@@ -111,6 +111,10 @@ export default class Signal {
         return this.oscTypes;
     }
 
+    get enabled() {
+        return Boolean(this._listener);
+    }
+
     serialize() {
         return {
             name: this.name,

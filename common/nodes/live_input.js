@@ -1,5 +1,6 @@
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import Signal from '@/common/osc/signal';
+import OT from '@/common/osc/osc_types';
 import Enum from '@/common/util/enum';
 
 const supportedOscTypes = [null, 'f', 'r'];
@@ -17,7 +18,7 @@ class LiveInput extends GraphNode {
         const outputs = [];
         const argType = default_arg_type.valueOf();
         if (argType !== null)
-            outputs.push(Signal.oscToGraphType(argType));
+            outputs.push(OT.toGraphUnit(argType));
 
         super(options, [], outputs, {
             config: { color: '#7496a6', boxcolor: '#69a4bf' }
@@ -31,7 +32,7 @@ class LiveInput extends GraphNode {
         this._updateSignal(oscAddress, argType);
 
         // Reconfigure outputs to match any argument type changes
-        const outputType = Signal.oscToGraphType(argType);
+        const outputType = OT.toGraphUnit(argType);
         if (!outputType)
             return;
 
@@ -52,8 +53,10 @@ class LiveInput extends GraphNode {
 
         if (this.signal)
             this.signal.update(oscAddress, [argType]);
-        else if (argType !== null)
+        else if (argType !== null) {
             this.signal = new Signal(this, oscAddress, [argType]);
+            this.signal.enable();
+        }
 
         // Mark the node with part of the OSC address to distinguish it
         if (this.signal)
