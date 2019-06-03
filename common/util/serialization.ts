@@ -1,3 +1,4 @@
+import {cloneDeep} from 'lodash';
 import * as assert from 'assert';
 import * as T from '../types';
 
@@ -69,3 +70,26 @@ export function restore(obj) {
     return ret;
 }
 
+interface Serializable {
+    serialize(): object;
+}
+
+interface Deserializable {
+    deserialize(object): Serializable;
+}
+
+interface IdBlob {
+    id: number;
+    [field: string]: any;
+}
+
+/*
+ * Standard method for extracting an id map & id list from a snapshot.
+ */
+export function restoreAll(snapshotBlobs: Array<IdBlob>) {
+    const resourcesById = {};
+    const idList = snapshotBlobs.map(blob => blob.id);
+    snapshotBlobs.forEach(blob => resourcesById[blob.id] = cloneDeep(blob));
+
+    return {resourcesById, idList};
+};

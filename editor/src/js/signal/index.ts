@@ -1,6 +1,8 @@
 import store, {newgid, crud} from 'chl/vue/store';
 import {OSCType} from '@/common/osc/osc_types';
 import Signal from '@/common/osc/signal';
+import {registerSaveField} from 'chl/savefile';
+import {restoreAll} from '@/common/util/serialization';
 
 interface SignalBlob {
     name: string;
@@ -27,6 +29,16 @@ store.registerModule('signal', {
                 source: 'osc'
             })
         ),
+        restore(state, signals) {
+            const {resourcesById, idList} = restoreAll(signals);
+            state.signals = resourcesById;
+            state.signal_list = idList;
+        }
+    },
+    getters: {
+        signal_list(state) {
+            return state.signal_list.map(id => state.signals[id]);
+        },
     }
 });
 
@@ -40,19 +52,27 @@ export function createNewSignal(name: string, address?, args?) {
     store.commit('signal/create_signal', signalBlob);
 }
 
-export function saveSignal(signalBlob) {
-    const signal = new Signal(signalBlob.address, signalBlob.args, signalBlob.name);
-    return signal.serialize();
-}
-
 export function saveAllSignals() {
-    // TODO
+    return store.getters['signal/signal_list'].map(blob => {
+        const signal = new Signal(blob);
+        return signal.serialize();
+    });
 }
 
 registerSaveField('signals', {
-    // TODO
+    save() {
+        return saveAllSignals();
+    },
+    restore(signals) {
+        store.commit('signal/restore', signals);
+    }
 });
 
 export const signalUtilsMixin = {
-    // TODO
+    getSignal(id) {
+        if (id in this.$store.state.signal.signals)
+            return this.$store.state.signal.signals[id];
+        else
+            return null;
+    }
 };

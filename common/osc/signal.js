@@ -10,14 +10,15 @@ import { input } from 'common/osc';
 import * as OT from './osc_types';
 
 export default class Signal {
-    constructor(address, args, name) {
-        this.oscTypes = args || [];
+    constructor(attrs) {
+        this.id = attrs.id;
+        this.oscTypes = attrs.args || [];
         this.graphTypes = this.oscTypes.map(OT.toGraphUnit);
-        this.name = name || address;
+        this.name = attrs.name || attrs.address;
         // TODO support other sources
         this.source = 'osc';
 
-        this._address = address;
+        this._address = attrs.address;
         this._currentValue = null;
         this._listener = null;
     }
@@ -117,6 +118,7 @@ export default class Signal {
 
     serialize() {
         return {
+            id: this.id,
             name: this.name,
             address: this._address,
             args: this.oscTypes,
@@ -125,6 +127,6 @@ export default class Signal {
     }
 
     static deserialize(attrs) {
-        return new Signal(attrs.address, attrs.args, attrs.name);
+        return new Signal(attrs);
     }
 }

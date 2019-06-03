@@ -54,7 +54,10 @@ class LiveInput extends GraphNode {
         if (this.signal)
             this.signal.update(oscAddress, [argType]);
         else if (argType !== null) {
-            this.signal = new Signal(this, oscAddress, [argType]);
+            this.signal = new Signal({
+                address: oscAddress,
+                args: [argType]
+            });
             this.signal.enable();
         }
 
