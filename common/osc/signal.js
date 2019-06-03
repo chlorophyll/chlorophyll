@@ -27,6 +27,10 @@ export default class Signal {
         return this._startListener();
     }
 
+    disable() {
+        return this._stopListener();
+    }
+
     getValue() {
         if (this._currentValue === null) {
             if (this.graphTypes.length > 1)

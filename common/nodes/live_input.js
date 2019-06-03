@@ -23,6 +23,14 @@ class LiveInput extends GraphNode {
         super(options, [], outputs, {
             config: { color: '#7496a6', boxcolor: '#69a4bf' }
         });
+
+        // Clean up the OSC listener if the node is removed.
+        this.graph.addEventListener('node-removed', event => {
+            if (!event.node || event.node.id !== this.id || !this.signal)
+                return;
+
+            this.signal.disable();
+        });
     }
 
     onPropertyChange() {
@@ -54,6 +62,7 @@ class LiveInput extends GraphNode {
         if (this.signal)
             this.signal.update(oscAddress, [argType]);
         else if (argType !== null) {
+            // Use an anonymous signal to handle the input.
             this.signal = new Signal({
                 address: oscAddress,
                 args: [argType]
@@ -63,7 +72,7 @@ class LiveInput extends GraphNode {
 
         // Mark the node with part of the OSC address to distinguish it
         if (this.signal)
-            this.vm.title = `Live input (${this.signal.shortName})`;
+            this.vm.title = `OSC address (${this.signal.shortName})`;
     }
 
     compile(c) {
@@ -76,8 +85,8 @@ class LiveInput extends GraphNode {
         }
     }
 }
-LiveInput.title = 'Live input';
+LiveInput.title = 'OSC address';
 
 export default function register_input_nodes() {
-    GraphLib.registerNodeType('input/OSC input', LiveInput);
+    GraphLib.registerNodeType('input/OSC address', LiveInput);
 };
