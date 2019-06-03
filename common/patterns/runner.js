@@ -113,9 +113,9 @@ export default class RawPatternRunner {
             this.cur_oscillators = [];
             return;
         }
-        const {width} = this;
+        const {width, gl} = this;
 
-        const c = new GraphCompiler(this.graph);
+        const c = new GraphCompiler(this.graph, gl);
         const context = {
             name: 'phase_update',
             inputs: [
@@ -234,8 +234,8 @@ export default class RawPatternRunner {
     }
 
     _compilePixelStage() {
-        const {width} = this;
-        const c = new GraphCompiler(this.graph);
+        const {width, gl} = this;
+        const c = new GraphCompiler(this.graph, gl);
         const compiled = c.compile();
 
         const uniformDecls = [
