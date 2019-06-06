@@ -3,6 +3,8 @@ import Signal from '@/common/osc/signal';
 import OT from '@/common/osc/osc_types';
 import Enum from '@/common/util/enum';
 
+// TODO: COPY THIS FILE, AND USE THE NEW TYPE FOR THE INSTANTIATED SIGNALS.
+
 const supportedOscTypes = [null, 'f', 'r'];
 const oscTypeDescs = ['', 'Float', 'Color'];
 
