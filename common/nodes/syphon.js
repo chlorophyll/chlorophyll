@@ -8,48 +8,54 @@ import * as twgl from 'twgl.js';
 let node_types = [];
 
 const registry = new SyphonRegistry();
-
 let client = null;
-
-let textureInfo = {
+let syphonData = {
     width: null,
     height: null,
     texture: null,
     gl: null,
 };
 
+function updateTexture(gl, width, height, frame) {
+    const textureOptions = {
+        width,
+        height,
+        format: gl.RGBA,
+        type: gl.UNSIGNED_BYTE,
+        minMag: gl.NEAREST,
+        wrap: gl.CLAMP_TO_EDGE,
+        auto: false,
+    };
+    if (!syphonData.texture) {
+        syphonData.texture = twgl.createTexture(gl, textureOptions);
+    }
+
+    syphonData.width = width;
+    syphonData.height = height;
+    syphonData.gl = gl;
+    twgl.setTextureFromArray(gl, syphonData.texture, frame, textureOptions);
+}
+
 
 registry.on('servers-updated', () => {
     const servers = Array.from(registry.serversById.values());
-    if (servers.length === 1) {
+    if (!client && servers.length > 0) {
         client = registry.createClientForServer(servers[0]);
-        client.on('disconnected', () => client = null);
         client.on('frame', (frame, width, height) => {
-            if (!textureInfo.gl) {
+            const {gl} = syphonData;
+            if (!gl) {
                 return;
             }
-            const {gl} = textureInfo;
-            const textureOptions = {
-                width,
-                height,
-                format: gl.RGBA,
-                type: gl.UNSIGNED_BYTE,
-                minMag: gl.NEAREST,
-                wrap: gl.CLAMP_TO_EDGE,
-                auto: false,
-            };
-            if (textureInfo.width !== width || textureInfo.height !== height) {
-                if (!textureInfo.texture) {
-                    textureInfo.texture = twgl.createTexture(textureInfo.gl, textureOptions);
-                }
-            }
-            textureInfo.width = width;
-            textureInfo.height = height;
-            twgl.setTextureFromArray(textureInfo.gl, textureInfo.texture, frame, textureOptions);
+            updateTexture(gl, width, height, frame);
         });
 
-        client.on('connected', () => {
-            console.log('connected');
+        client.on('disconnected', () => {
+            client = null;
+            const {gl} = syphonData;
+            if (!gl) {
+                return;
+            }
+            resetClient(gl);
         });
 
         client.connectAsync().catch(e => console.error(e));
@@ -58,12 +64,12 @@ registry.on('servers-updated', () => {
 
 registry.start();
 
-function initClient(gl) {
-    textureInfo.gl = gl;
+function resetClient(gl) {
+    const sz = 16;
+    updateTexture(gl, sz, sz, new Uint8Array(sz*sz*4));
 }
 
 class SampleNode extends GraphNode {
-
     constructor(options) {
 
         const inputs = [
@@ -79,9 +85,9 @@ class SampleNode extends GraphNode {
     }
 
     compile(c) {
-        initClient(c.gl);
+        resetClient(c.gl);
         const texture = c.variable();
-        c.uniform('sampler2D', texture.name, () => textureInfo.texture);
+        c.uniform('sampler2D', texture.name, () => syphonData.texture);
         const x = c.getInput(this, 0);
         const y = c.getInput(this, 1);
 
