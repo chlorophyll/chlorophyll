@@ -381,11 +381,19 @@ export class Model extends ModelBase {
         const {x, y, z} = boxSize;
         const maxDim = Math.max(x, y, z);
 
-        const fov = camera.fov * ( Math.PI / 180 );
+        const oversizeFactor = 1.1;
 
-        let cameraZ = Math.abs( maxDim / 2 / Math.tan( fov / 2 ) );
-
-        camera.position.z = 1.1*(center.z + cameraZ);
+        if (camera.isPerspectiveCamera) {
+            const fov = camera.fov * ( Math.PI / 180 );
+            const cameraZ = Math.abs( maxDim / 2 / Math.tan( fov / 2 ) );
+            camera.position.z = oversizeFactor * (center.z + cameraZ);
+        } else if (camera.isOrthographicCamera) {
+            const maxCameraDim = Math.max(
+                camera.right - camera.left,
+                camera.top - camera.bottom
+            );
+            camera.zoom = camera.zoom * (maxCameraDim / maxDim) / oversizeFactor;
+        }
 
         camera.lookAt(center);
         camera.updateProjectionMatrix();
