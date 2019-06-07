@@ -48,35 +48,35 @@ export const PatternPreview = Vue.component('pattern-preview', {
         },
 
         artnetClient() {
-            const tailConfig = [
-                [1, 1, 81],
-                [2, 1, 74],
-                [3, 1, 64],
-                [1, 244, 16],
+            // Universe, channel, number of pixels
+            const legConfig = [
+                [1, 1, 452]
             ];
+            /*
             const wingMapping = _.range(13).map(strip => ({
                 controller: {host: '192.168.31.215'},
                 strip: strip+4,
                 startUniverse: strip*3,
                 startChannel: 0,
             }));
+            */
 
-            const tailMapping = tailConfig.map(([univ, channel, _unused], i) => ({
-                controller: {host: '192.168.31.207'},
+            const legMapping = legConfig.map(([univ, channel, _unused], i) => ({
+                controller: {host: '192.168.1.241'},
                 strip: i,
                 startUniverse: univ-1,
                 startChannel: channel-1,
             }));
             // hacks hacks hacks
             const registry = new ArtnetRegistry(currentModel, [
-                ...tailMapping, ...wingMapping
+                ...legMapping // , ...wingMapping
             ]);
             console.log(registry);
             return registry;
 
             //    ...stripMapping({host: '192.168.7.88'})
             //    //...stripMapping({host: '127.0.0.1'})
-            //]);
+            // ]);
         },
     },
 
