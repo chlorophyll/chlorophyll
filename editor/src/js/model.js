@@ -367,6 +367,8 @@ export class Model extends ModelBase {
             this.pixelsize = potentialPointSize / (3*ratio);
         }
         this.material.uniforms.pointSize.value = this.pixelsize;
+
+        this.stripStats();
     }
 
     zoomCameraToFit(camera) {
@@ -378,11 +380,19 @@ export class Model extends ModelBase {
         const {x, y, z} = boxSize;
         const maxDim = Math.max(x, y, z);
 
-        const fov = camera.fov * ( Math.PI / 180 );
+        const oversizeFactor = 1.1;
 
-        let cameraZ = Math.abs( maxDim / 2 / Math.tan( fov / 2 ) );
-
-        camera.position.z = 1.1*(center.z + cameraZ);
+        if (camera.isPerspectiveCamera) {
+            const fov = camera.fov * ( Math.PI / 180 );
+            const cameraZ = Math.abs( maxDim / 2 / Math.tan( fov / 2 ) );
+            camera.position.z = oversizeFactor * (center.z + cameraZ);
+        } else if (camera.isOrthographicCamera) {
+            const maxCameraDim = Math.max(
+                camera.right - camera.left,
+                camera.top - camera.bottom
+            );
+            camera.zoom = camera.zoom * (maxCameraDim / maxDim) / oversizeFactor;
+        }
 
         camera.lookAt(center);
         camera.updateProjectionMatrix();
@@ -458,6 +468,12 @@ export class Model extends ModelBase {
     refreshUniforms(devicePixelRatio, height) {
         this.material.uniforms.pointSize.value = this.pixelsize * (devicePixelRatio||1);
         this.material.uniforms.scale.value = height * 0.7;
+    }
+
+    stripStats() {
+        for (let i = 0; i < this.num_strips; i++) {
+            console.log(`STRIP ${i}:\t${this.numPixelsInStrip(i)} pixels`);
+        }
     }
 }
 

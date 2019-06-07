@@ -84,7 +84,9 @@ export default {
             return Object.values(this.nodeset);
         },
         configuring() {
-            return this.nodes_configuring.map((id) => this.nodeset[id]);
+            return this.nodes_configuring
+                .map(id => this.nodeset[id])
+                .filter(Boolean);
         },
         edges() {
             return Object.values(this.edgeset);
@@ -367,11 +369,19 @@ export default {
         },
 
         configureNode(node) {
+            if (!node)
+                return;
+
             this.nodes_configuring.push(node.id);
         },
 
         endConfigure(node) {
-            this.nodes_configuring.splice(this.nodes_configuring.indexOf(node.id), 1);
+            // If the node has since been removed, may need to clean up the configuring array.
+            if (!node) {
+                this.nodes_configuring = this.nodes_configuring.filter(id => Boolean(this.nodeset[id]));
+            } else {
+                this.nodes_configuring.splice(this.nodes_configuring.indexOf(node.id), 1);
+            }
         },
 
         highlightNode(node) {

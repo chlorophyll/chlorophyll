@@ -18,6 +18,7 @@
     "glsl-blend": "^1.0.3",
     "glsl-easings": "^1.0.0",
     "glsl-noise": "^0.0.0",
-    "glslify": "^6.3.1"
+    "glslify": "^6.3.1",
+    "osc": "^2.3.1"
   }
 }

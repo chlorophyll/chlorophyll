@@ -2,7 +2,7 @@ import Vue from 'vue';
 import _ from 'lodash';
 import clone from 'clone';
 
-import store from 'chl/vue/store';
+import store, { newgid } from 'chl/vue/store';
 import { mappingTypes, defaultSettings, restoreAllMappings } from '@/common/mapping';
 import { registerSaveField } from 'chl/savefile';
 
@@ -75,6 +75,10 @@ store.registerModule('mapping', {
     },
 });
 
+export function createNewMapping(type, name, settings) {
+    const id = newgid();
+    store.commit('mapping/create_mapping', {id, name, type, settings});
+}
 
 export function saveMapping(mapping) {
     let out = clone(mapping);

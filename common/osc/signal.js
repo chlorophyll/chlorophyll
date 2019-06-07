@@ -5,11 +5,11 @@
  * address.
  */
 import _ from 'lodash';
-import assert from 'assert';
-import Units from '@/common/units';
-import { input } from '@/common/osc';
+import * as assert from 'assert';
+import Units from '../units';
+import { input } from '../osc';
 
-// TODO(cwill) export this from osc/types
+// TODO(cwill) export this from osc/osc_types
 const typeMap = {
     f: {
         unit: Units.Numeric,
@@ -22,21 +22,15 @@ const typeMap = {
 };
 
 export default class Signal {
-    constructor(node, address, args) {
-        this.node = node;
+    constructor(address, args) {
         this.oscTypes = args || [];
         this.graphTypes = this.oscTypes.map(Signal.oscToGraphType);
 
         this._address = address;
         this._currentValue = null;
+        this._listener = null;
 
         this._startListener();
-
-        // Clean up the OSC listener if the node is removed.
-        this.node.graph.addEventListener('node-removed', event => {
-            if (event.node && event.node.id === this.node.id)
-                input.stop(this._address);
-        });
     }
 
     static oscToGraphType(ot) {
@@ -74,9 +68,26 @@ export default class Signal {
     }
 
     _startListener() {
-        input.listen(this._address, this.oscTypes, payload => {
-            this._currentValue = payload[0];
-        });
+        if (this._listener) {
+            console.warn(`SIGNAL: restarting listener for ${this._address}`);
+            this._stopListener();
+        }
+
+        this._listener = input.listen(
+            this._address,
+            this.oscTypes,
+            payload => {
+                this._currentValue = payload[0];
+            }
+        );
+    }
+
+    _stopListener() {
+        if (!this._listener)
+            return;
+
+        this._listener.stop();
+        this._listener = null;
     }
 
     get ident() {
@@ -110,5 +121,16 @@ export default class Signal {
 
     get args() {
         return this.oscTypes;
+    }
+
+    serialize() {
+        return {
+            address: this.address,
+            args: this.oscTypes
+        };
+    }
+
+    static deserialize(attrs) {
+        return new Signal(attrs.address, attrs.args);
     }
 }

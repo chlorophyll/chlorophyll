@@ -12,11 +12,11 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["./src/*"],
-            "common": ["../common/*"],
-            "chl": ["./src/js/*"],
-            "three-examples": ["node_modules/three/examples/js/*"],
-            "models": ["./static/models/*"],
-            "style": ["./src/style/*"],
+            "common/*": ["../common/*"],
+            "chl/*": ["./src/js/*"],
+            "three-examples/*": ["node_modules/three/examples/js/*"],
+            "models/*": ["./static/models/*"],
+            "style/*": ["./src/style/*"],
             "vue": ["node_modules/vue/dist/vue.esm.js"]
         }
     },

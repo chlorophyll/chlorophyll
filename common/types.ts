@@ -63,6 +63,7 @@ export interface PixelMapping {
     displayName: string;
     settings: object;
     getView(string): MapMode;
+    mapPixels(pixels: Array<Pixel>, ...args: any[]): Array<MappedPixel>;
 
     serialize(): object;
 };

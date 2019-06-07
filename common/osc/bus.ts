@@ -1,20 +1,74 @@
 import _ from 'lodash';
-import assert from 'assert';
+import * as assert from 'assert';
 import {Minimatch} from 'minimatch';
-import osc from 'osc';
+import * as osc from 'osc';
 
 import LocalPort from './transport_local';
 import UDPPort from './transport_udp';
 import MessageBatch from './batch.js';
-import ot from './types';
+import * as OT from './osc_types';
+
+// TODO more detailed type for OSC arguments
+type MessageArgs = Array<any> | {[arg: string]: any};
+
+interface ArgSpec {
+  name: string | null;
+  type: OT.TypeTag;
+}
+
+interface ExpectedArgs {
+  format: 'array' | 'keyword';
+  types: Array<ArgSpec>;
+}
+
+interface Listener {
+  id: number;
+  address: string;
+  patterns: Array<RegExp>;
+  spec: ExpectedArgs;
+  callback(args: MessageArgs, tt: OT.TimeTag, addr: string);
+}
+
+interface OSCPacket {
+  address: string;
+  args: OT.Value;
+}
+
+interface SingleMessage {
+  timeTag: OT.TimeTag;
+  args: OSCPacket;
+}
+
+interface BundledMessage {
+  timeTag: OT.TimeTag;
+  packets: Array<OSCPacket>;
+}
+
+type OSCMessage = SingleMessage | BundledMessage;
+
+type EventCallback = (...args: any[]) => void;
+interface OSCPort {
+  new(object);
+  open();
+  on(event: string, cb: EventCallback);
+  send(m: OSCMessage);
+  close?();
+}
 
 /*
  * Handles OSC message delivery etc.
  */
 export default class OSCBus {
-  constructor(domain) {
-    assert.ok(_.isString(domain));
+  readonly domain: string;
+  readonly pubsubPattern: string;
 
+  private ports: {[name: string]: OSCPort};
+  private listeners: Map<string, Array<Listener>>;
+  private nReady;
+
+  public ids = idGenerator();
+
+  constructor(domain) {
     this.domain = domain;
     this.pubsubPattern = `${domain}:*`;
 
@@ -50,7 +104,7 @@ export default class OSCBus {
   }
 
   get ready() {
-    return (this.nReady === this.listeners.size);
+    return this.nReady === Object.keys(this.ports).length;
   }
 
   /*
@@ -97,11 +151,15 @@ export default class OSCBus {
 
     // Register the new callback.
     const route = this.listeners.get(address);
-    route.push({
+    const handle = new ListenerHandle(this, {
+      address: address,
       patterns: parts.map(addressPartToRegExp),
       spec: toCanonicalSpec(spec),
       callback: cb,
-    });
+    })
+    route.push(handle);
+
+    return handle;
   }
 
   /*
@@ -131,23 +189,57 @@ export default class OSCBus {
 
   /*
    * Remove all listeners for the given pattern.
-   * TODO allow deleting a single listener for an address
    */
-  stop(address) {
+  stopAll(address) {
     return this.listeners.delete(address);
+  }
+
+  stop(listener: ListenerHandle) {
+    this.listeners.get(listener.address)
   }
 
   /*
    * Teardown the bus, removing all registered listeners & inflight events.
    */
   destroy() {
-    this.listeners = [];
+    this.listeners = new Map();
     Object.values(this.ports).forEach(port => {
       if (port.close)
         port.close();
     });
   }
 }
+
+class ListenerHandle implements Listener {
+  readonly id;
+  readonly address;
+  readonly patterns;
+  readonly spec;
+  readonly callback;
+
+  private bus;
+
+  constructor(bus, attrs) {
+    this.bus = bus;
+    this.patterns = attrs.patterns;
+    this.address = attrs.address;
+    this.spec = attrs.spec;
+    this.callback = attrs.callback;
+    this.id = `${bus.domain}:${bus.ids.next().value}`
+  }
+
+  stop() {
+    this.bus.stop(this);
+  }
+}
+
+function *idGenerator() {
+  let next = 0;
+  while (true)
+    yield next++;
+}
+
+
 
 let lastUsedPort = 57120;
 function getOpenPort() {
@@ -206,7 +298,7 @@ function parseSingleArg(spec, arg) {
     return arg.map((subArg, i) => parseSingleArg({ type: spec.type[i] }, arg));
 
   // untyped / null argument: match any type.
-  if (!spec || !spec.type || !arg.type || arg.type === ot.NULL)
+  if (!spec || !spec.type || !arg.type || arg.type === OT.OSCType.NULL)
     return arg.value;
 
   if (spec.type !== arg.type)
@@ -215,20 +307,19 @@ function parseSingleArg(spec, arg) {
   return arg.value;
 }
 
-function toCanonicalSpec(spec) {
+function toCanonicalSpec(spec: Array<OT.TypeTag> | {[name: string]: OT.TypeTag}): ExpectedArgs {
   if (!spec)
     return null;
 
-  const format = Array.isArray(spec) ? 'array' : 'keyword';
-
   // TODO handle nested arrays
-  let types;
-  if (format === 'array') {
+  let types: Array<ArgSpec>;
+  if (Array.isArray(spec)) {
     types = spec.map(type => ({name: null, type}));
   } else {
     const lex = Object.keys(spec).sort();
     types = lex.map(key => ({name: key, type: spec[key]}));
   }
 
+  const format = Array.isArray(spec) ? 'array' : 'keyword';
   return {format, types};
 }

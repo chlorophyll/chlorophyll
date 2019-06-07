@@ -1,5 +1,4 @@
 import { addSerializableType } from './serialization';
-
 import { Compilation } from '../graphlib/compiler';
 
 export default class Range {

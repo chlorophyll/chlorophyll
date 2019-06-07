@@ -63,11 +63,17 @@ export default async function importOBJ(filename) {
                 return Promise.all(allFiles);
             })
             .then(files => {
-                let strips = [];
+                let allStrips = [];
+                let allUvs = [];
                 files.forEach(([obj, svg]) => {
-                    strips = strips.concat(uvMapStrips(obj, svg));
+                    const {strips, uvCoords} = uvMapStrips(obj, svg);
+                    allStrips = allStrips.concat(strips);
+                    allUvs = allUvs.concat(uvCoords);
                 });
-                return {strips};
+                return {
+                    strips: allStrips,
+                    uvCoords: allUvs
+                };
             })
             .error(err => {
                 remote.dialog.showErrorBox('Error importing model', err.message);
@@ -92,6 +98,7 @@ function uvMapStrips(obj, svg) {
     const geom = new THREE.Geometry();
     geom.fromBufferGeometry(obj.children[0].geometry);
 
+    const allMappedUvs = [];
     // Each path in the SVG file becomes an LED strip.
     const strips = svg.paths.map(shapePath => {
         const stripPixels = [];
@@ -105,7 +112,7 @@ function uvMapStrips(obj, svg) {
         );
 
         const bounds = new THREE.Vector2(svg.width, svg.height);
-        return stripPixels
+        const uvs = stripPixels
             // Each path segment will likely overlap the previous one at a vertex.
             // Remove adjacent duplicates.
             .filter((pt, i, pts) => i === 0 || !pt.equals(pts[i - 1]))
@@ -115,16 +122,29 @@ function uvMapStrips(obj, svg) {
                 if (svg.invertY)
                     pt.setY(1 - pt.y);
                 return pt;
+            });
+
+        // Apply pixels to the mesh.
+        const mapped = uvs
+            .map(uv => {
+                const pos = uvMapPixel(geom, uv);
+                if (pos)
+                    allMappedUvs.push(uv.toArray());
+
+                return pos;
             })
-            // Apply pixels to the mesh.
-            .map(pt => uvMapPixel(geom, pt))
             // Remove any pixels which didn't fall on a mapped face
             .filter(pt => pt)
             // Serialize from Vector3
             .map(pt => pt.toArray());
+
+        return mapped;
     });
 
-    return strips;
+    return {
+        strips: strips,
+        uvCoords: allMappedUvs
+    };
 }
 
 function uvMapPixel(geometry, pt) {

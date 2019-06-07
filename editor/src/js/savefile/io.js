@@ -6,6 +6,7 @@ import { remote } from 'electron';
 import schemas, { SchemaDefs } from 'chl/schemas';
 
 import { importNewModel, modelPreview } from 'chl/model';
+import { createNewMapping } from 'chl/mapping';
 
 import store from 'chl/vue/store';
 
@@ -198,12 +199,18 @@ export function showImportDialog(format = 'chl') {
             case 'chl':
                 return importModelFile(filenames[0]);
             case 'obj':
-                return importOBJ(filenames[0]).then(obj => {
-                    console.log('Loading strip data:', obj);
-                    importNewModel(obj);
+                return importOBJ(filenames[0]).then(({strips, uvCoords}) => {
+                    console.log('Loading strip data:', strips);
+                    importNewModel({strips});
+                    // TODO handle multiple maps
+                    createNewMapping('uv', 'Imported UV map', {
+                        uvCoords,
+                        dimension: 2
+                    });
                     store.commit('set_current_save_path', null);
                 });
-
+            default:
+                throw new Error('invalid load format');
         }
     });
 }

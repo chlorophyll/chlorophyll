@@ -42,7 +42,7 @@ export function save(obj) {
     Object.entries(obj).forEach(([key, value]) => {
         ret[key] = save(value);
     });
-    
+
     return JSON.parse(JSON.stringify(ret));
 }
 

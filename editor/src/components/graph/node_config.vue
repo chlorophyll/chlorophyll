@@ -84,6 +84,13 @@ export default {
             return this.node.parameters.map(param => componentForInputType(param.type));
         }
     },
+    watch: {
+        node(newNode) {
+            // Close the window if the node is removed.
+            if (!newNode)
+                this.close(false);
+        }
+    },
     methods: {
         close(save) {
             if (!save) {
