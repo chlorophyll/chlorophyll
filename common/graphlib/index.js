@@ -70,11 +70,6 @@ export class GraphBase {
         this.step = 0;
     }
 
-    compile() {
-        const compiler = new GraphCompiler(this);
-        return compiler.compile();
-    }
-
     emit(name, detail) {
     }
 

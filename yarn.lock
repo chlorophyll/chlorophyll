@@ -83,6 +83,13 @@
   version "0.93.14"
   resolved "https://registry.yarnpkg.com/@types/three/-/three-0.93.14.tgz#59d6a1483502beb2cd1aaf1976ad23900b3770cc"
 
+"SyphonBuffer@https://github.com/chlorophyll/SyphonBuffer":
+  version "1.0.0"
+  resolved "https://github.com/chlorophyll/SyphonBuffer#578f489dc9c2b5757c9f8f31002510f25e876568"
+  dependencies:
+    mmap.js "^1.0.3"
+    nodeshm "https://github.com/chlorophyll/nodeshm.git"
+
 acorn@^5.0.0:
   version "5.7.3"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.7.3.tgz#67aa231bf8812974b85235a96771eb6bd07ea279"
@@ -720,7 +727,7 @@ balanced-match@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
 
-bindings@^1.3.0:
+bindings@^1.2.1, bindings@^1.3.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.5.0.tgz#10353c9e945334bc0511a6d90b38fbc7c9c504df"
   integrity sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==
@@ -1356,6 +1363,14 @@ mkdirp@^0.5.1:
   dependencies:
     minimist "0.0.8"
 
+mmap.js@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/mmap.js/-/mmap.js-1.0.3.tgz#f485a5f7a9efd5220eb196a9e99c01a51109f5d8"
+  integrity sha1-9IWl96nv1SIOsZap6ZwBpREJ9dg=
+  dependencies:
+    bindings "^1.2.1"
+    nan "^2.5.0"
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -1369,7 +1384,7 @@ murmurhash-js@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/murmurhash-js/-/murmurhash-js-1.0.0.tgz#b06278e21fc6c37fa5313732b0412bcb6ae15f51"
 
-nan@^2.13.2:
+nan@^2.13.2, nan@^2.5.0:
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
   integrity sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==
@@ -1385,6 +1400,10 @@ node-abi@^2.7.0:
   integrity sha512-1/aa2clS0pue0HjckL62CsbhWWU35HARvBDXcJtYKbYR7LnIutmpxmXbuDMV9kEviD2lP/wACOgWmmwljghHyQ==
   dependencies:
     semver "^5.4.1"
+
+"nodeshm@https://github.com/chlorophyll/nodeshm.git":
+  version "0.1.1"
+  resolved "https://github.com/chlorophyll/nodeshm.git#a95f5e86f6908a9453baeda0252cf18cf9791491"
 
 noop-logger@^0.1.1:
   version "0.1.1"

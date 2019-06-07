@@ -70,8 +70,9 @@ export let Compilation = {
 };
 
 export class GraphCompiler {
-    constructor(graph) {
+    constructor(graph, gl) {
         this.graph = graph;
+        this.gl = gl;
     }
 
     reset() {
