@@ -253,3 +253,50 @@ export function UniqueNameMixin(objtype, getter) {
         }
     };
 }
+
+function partitionInPlace(arr, left, right) {
+    const pivotIndex = randomInt(left, right);
+    const pivotValue = arr[pivotIndex];
+    arr[pivotIndex] = arr[right];
+    arr[right] = pivotValue;
+
+    let storeIndex = left;
+
+    for (let i = left; i < right; i++) {
+        const val = arr[i];
+        if (val < pivotValue) {
+            arr[i] = arr[storeIndex];
+            arr[storeIndex] = val;
+            storeIndex++;
+        }
+    }
+
+    const tmp = arr[right];
+    arr[right] = arr[storeIndex];
+    arr[storeIndex] = tmp;
+    return storeIndex;
+}
+
+function randomInt(min: number, max: number): number {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
+export function quickSelect(original: Array<number>, stat: number): number {
+    const k = Math.floor(original.length * stat);
+    const arr = [...original];
+    let left = 0;
+    let right = arr.length;
+    let pivotIndex = partitionInPlace(arr, left, right);
+
+    while (pivotIndex !== k) {
+        if (pivotIndex < k) {
+            left = k;
+        } else if (pivotIndex > k) {
+            right = k;
+        }
+        pivotIndex = partitionInPlace(arr, left, right);
+    }
+    return arr[pivotIndex];
+}

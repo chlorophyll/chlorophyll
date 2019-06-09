@@ -59,6 +59,7 @@
     "numeral": "^2.0.6",
     "osc": "^2.2.4",
     "pixelpusher-driver": "https://github.com/chlorophyll/pixelpusher-driver",
+    "static-kdtree": "^1.0.2",
     "tar-stream": "^1.5.4",
     "three": "^0.96.0",
     "tinycolor2": "^1.4.1",

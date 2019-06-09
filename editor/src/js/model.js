@@ -1,15 +1,15 @@
 import Vue from 'vue';
 import * as THREE from 'three';
-import 'three-examples/Octree';
 import clone from 'clone';
 import _ from 'lodash';
+import createKDTree from 'static-kdtree';
 
 import { registerSaveField } from 'chl/savefile';
 
 import Const from 'chl/const';
 import store, { newgid } from 'chl/vue/store';
 
-import Util from 'chl/util';
+import Util, {quickSelect} from 'chl/util';
 import ColorPool from 'chl/colors';
 
 import ModelBase, { restoreAllGroups } from '@/common/model';
@@ -225,13 +225,6 @@ export class Model extends ModelBase {
         this._display_only = false;
         this.show_without_overlays = true;
 
-        this.octree = new THREE.Octree({
-            undeferred: true,
-            depthMax: Infinity,
-            objectsThreshold: 8,
-        });
-
-
         const strip_material = new THREE.LineBasicMaterial({
             color: 0xffffff,
             linewidth: 1,
@@ -251,8 +244,6 @@ export class Model extends ModelBase {
             offsets[2*i] = (2*col+1) / (2*width);
             offsets[2*i+1] = (2*row+1) / (2*width);
         }
-        let totalDist = 0;
-        let numDistances = 0;
 
         for (let strip = 0; strip < this.num_strips; strip++) {
             let strip_geometry = new THREE.Geometry();
@@ -262,8 +253,6 @@ export class Model extends ModelBase {
                 if (prevPos !== undefined) {
                     strip_geometry.vertices.push(prevPos);
                     strip_geometry.vertices.push(pos);
-                    totalDist += pos.distanceTo(prevPos);
-                    numDistances++;
                 }
                 prevPos = pos;
             });
@@ -271,8 +260,6 @@ export class Model extends ModelBase {
             strip_model.visible = false;
             this.strip_models.push(strip_model);
         }
-
-        let avgDist = totalDist / numDistances;
 
         this.geometry = new THREE.BufferGeometry();
         this.geometry.addAttribute('position', new THREE.BufferAttribute(this.positions, 3));
@@ -328,47 +315,28 @@ export class Model extends ModelBase {
             this.scene.add(model);
         }
 
-        for (let i = 0; i < this.num_pixels; i++) {
-            this.octree.addObjectData(this.particles, this.getPosition(i));
-            this.octree.objectsData[i].index = i;
-        }
+        const allPositions = this.allPixelPositions().map(({pos}) => pos.toArray());
+        this.tree = createKDTree(allPositions);
 
-        // randomly sample points, find the neighbors of minimum distance
-        let potentialPointSize = avgDist;
-        let done = false;
-        let delta = avgDist;
-        let iters = 0;
-        totalDist = 0;
-        let num = 0;
-        while (!done) {
-            const i = _.sample(_.range(this.num_pixels));
-            const pos = this.getPosition(i);
-            const points = this.pointsWithinRadius(pos, potentialPointSize);
-            const distances = points.map(point => pos.distanceTo(point)).filter(d => d > 0);
-            const best = _.min(distances);
-            totalDist += _.sum(distances);
-            num += distances.length;
-            if (best < potentialPointSize) {
-                delta = potentialPointSize - best;
-                potentialPointSize -= (delta / 2);
+        const minDistances = allPositions.map((pos, i) => {
+            const pts = this.tree.knn(pos, 2);
+            const nearest = allPositions[pts[1]];
+            let distsq = 0;
+            for (let i = 0; i < pos.length; i++) {
+                const d = nearest[i] - pos[i];
+                distsq += d*d;
             }
-            done = delta < 0.001 || iters > 100;
-            iters++;
-        }
-        this.pixelsize = 0.9 * potentialPointSize;
-        const gapForAverageDist = (totalDist / num) - this.pixelsize;
-        const ratio = this.pixelsize / gapForAverageDist;
-        console.log(ratio);
-        if (ratio > 0.25) {
-            console.log('rescaling down');
-            this.pixelsize = potentialPointSize * 0.5;
-        } else if (ratio < 0.05) {
-            console.log('rescaling up');
-            this.pixelsize = potentialPointSize / (3*ratio);
-        }
+            return distsq;
+        });
+
+        const distsq = quickSelect(minDistances, 0.75);
+        const dist = Math.sqrt(distsq);
+
+        this.pixelsize = 0.75 * dist;
+
         this.material.uniforms.pointSize.value = this.pixelsize;
 
-        this.stripStats();
+        //this.stripStats();
     }
 
     zoomCameraToFit(camera) {
@@ -428,7 +396,11 @@ export class Model extends ModelBase {
     }
 
     pointsWithinRadius(point, radius) {
-        return this.octree.search(point, radius, true)[0].vertices;
+        const points = [];
+        this.tree.rnn(point.toArray(), radius, (idx) => {
+            points.push(this.getPosition(idx));
+        });
+        return points;
     }
 
     setColorsFromOverlays() {
