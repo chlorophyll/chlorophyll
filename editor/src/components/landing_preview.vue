@@ -9,12 +9,11 @@
 import { previewSavefile } from 'chl/savefile/io';
 import { Model } from 'chl/model';
 
-import Viewport from '@/components/viewport';
 import Spinner from '@/components/widgets/spinner';
 
 export default {
     name: 'landing-preview',
-    components: { Viewport, Spinner },
+    components: { Spinner },
     props: ['project', 'width', 'height', 'renderer', 'camera'],
     data() {
         return {
