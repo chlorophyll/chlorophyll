@@ -262,26 +262,22 @@ export class Model extends ModelBase {
             this.model_info.tree = this.tree.serialize();
         }
 
-        if (this.model_info.pixelsize) {
-            this.pixelsize = this.model_info.pixelsize;
-        } else {
-            const minDistances = allPositions.map(pos => {
-                const pts = this.tree.knn(pos, 2);
-                const nearest = allPositions[pts[1]];
-                let distsq = 0;
-                for (let i = 0; i < pos.length; i++) {
-                    const d = nearest[i] - pos[i];
-                    distsq += d*d;
-                }
-                return distsq;
-            });
+        const minDistances = allPositions.map(pos => {
+            const pts = this.tree.knn(pos, 2);
+            const nearest = allPositions[pts[1]];
+            let distsq = 0;
+            for (let i = 0; i < pos.length; i++) {
+                const d = nearest[i] - pos[i];
+                distsq += d*d;
+            }
+            return distsq;
+        });
 
-            const distsq = quickSelect(minDistances, 0.75);
-            const dist = Math.sqrt(distsq);
+        const distsq = quickSelect(minDistances, 0.75);
+        const dist = Math.sqrt(distsq);
 
-            this.pixelsize = 0.75 * dist;
-            this.model_info.pixelsize = this.pixelsize;
-        }
+        this.pixelsize = 1.5 * dist;
+        this.model_info.pixelsize = this.pixelsize;
 
         this.material = new THREE.ShaderMaterial({
             uniforms: {
@@ -444,7 +440,6 @@ export class Model extends ModelBase {
     }
 
     refreshUniforms(devicePixelRatio, height) {
-        this.material.uniforms.pointSize.value = this.pixelsize * (devicePixelRatio||1);
         this.material.uniforms.scale.value = height * 0.7;
     }
 
