@@ -5,7 +5,7 @@ import Const from 'chl/const';
 
 import {previewSavefile} from 'chl/savefile/io';
 
-const CUR_SCHEMA_VERSION = 2;
+const CUR_SCHEMA_VERSION = 3;
 
 export function pushRecentFile(file, { preview }) {
     let recent_projects = getRecentProjects();
@@ -36,7 +36,12 @@ export function getRecentProjects() {
 
     if (schemaVersion === CUR_SCHEMA_VERSION) {
         recentProjects = recents;
-    } else {
+    } else if (schemaVersion === 2) {
+        // just loading some extra data built as part of the model construction
+        recentProjects = recents;
+        app_settings.set('schema_version', CUR_SCHEMA_VERSION);
+        updateWithPreviewsAsync(recentProjects);
+    } else if (schemaVersion === 1) {
         recentProjects = recents.map(file => ({file, preview: null}));
         app_settings.set('recent_files', recentProjects);
         app_settings.set('schema_version', CUR_SCHEMA_VERSION);

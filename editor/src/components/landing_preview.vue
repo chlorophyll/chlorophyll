@@ -39,7 +39,7 @@ export default {
     mounted() {
         this.$nextTick(() => {
             if (this.project.preview) {
-                const model = new Model(this.project.preview);
+                const model = new Model(this.project.preview, true);
                 this.preview = model;
             } else {
                 previewSavefile(this.project.file).then(model => {

@@ -219,18 +219,11 @@ export const colorDisplay = new Vue({
 });
 
 export class Model extends ModelBase {
-    constructor(json) {
+    constructor(json, isLanding = false) {
         super(json);
 
         this._display_only = false;
         this.show_without_overlays = true;
-
-        const strip_material = new THREE.LineBasicMaterial({
-            color: 0xffffff,
-            linewidth: 1,
-            opacity: 0.50,
-            transparent: true
-        });
 
         this.colors = new Float32Array(this.num_pixels * 3);
         let offsets = new Float32Array(this.num_pixels * 2);
@@ -245,31 +238,12 @@ export class Model extends ModelBase {
             offsets[2*i+1] = (2*row+1) / (2*width);
         }
 
-        for (let strip = 0; strip < this.num_strips; strip++) {
-            let strip_geometry = new THREE.Geometry();
-            let prevPos = undefined;
-            this.forEachPixelInStrip(strip, (idx) => {
-                const pos = this.getPosition(idx);
-                if (prevPos !== undefined) {
-                    strip_geometry.vertices.push(prevPos);
-                    strip_geometry.vertices.push(pos);
-                }
-                prevPos = pos;
-            });
-            let strip_model = new THREE.LineSegments(strip_geometry, strip_material);
-            strip_model.visible = false;
-            this.strip_models.push(strip_model);
-        }
-
         this.geometry = new THREE.BufferGeometry();
         this.geometry.addAttribute('position', new THREE.BufferAttribute(this.positions, 3));
         this.geometry.addAttribute('overlayColor', new THREE.BufferAttribute(this.colors, 3));
         this.geometry.addAttribute('aOffset', new THREE.BufferAttribute(offsets, 2));
 
         this.updateColors();
-
-        this.geometry.computeBoundingSphere();
-        this.geometry.computeBoundingBox();
 
         const texture = new THREE.DataTexture(
             new Float32Array(3*width*width),
@@ -278,6 +252,36 @@ export class Model extends ModelBase {
             THREE.RGBFormat,
             THREE.FloatType
         );
+
+        const allPositions = this.allPixelPositions().map(({pos}) => pos.toArray());
+
+        if (this.model_info.tree) {
+            this.tree = createKDTree.deserialize(this.model_info.tree);
+        } else {
+            this.tree = createKDTree(allPositions);
+            this.model_info.tree = this.tree.serialize();
+        }
+
+        if (this.model_info.pixelsize) {
+            this.pixelsize = this.model_info.pixelsize;
+        } else {
+            const minDistances = allPositions.map(pos => {
+                const pts = this.tree.knn(pos, 2);
+                const nearest = allPositions[pts[1]];
+                let distsq = 0;
+                for (let i = 0; i < pos.length; i++) {
+                    const d = nearest[i] - pos[i];
+                    distsq += d*d;
+                }
+                return distsq;
+            });
+
+            const distsq = quickSelect(minDistances, 0.75);
+            const dist = Math.sqrt(distsq);
+
+            this.pixelsize = 0.75 * dist;
+            this.model_info.pixelsize = this.pixelsize;
+        }
 
         this.material = new THREE.ShaderMaterial({
             uniforms: {
@@ -288,55 +292,57 @@ export class Model extends ModelBase {
             },
             vertexShader: modelVertexShader,
             fragmentShader: modelFragmentShader,
-            //depthWrite: false,
-            //depthTest: false,
             transparent: true,
             extensions: {
                 derivatives: true,
             }
         });
 
-
         this.particles = new THREE.Points(this.geometry, this.material);
-
-        const previewMaterial = this.material.clone();
-        const previewGeometry = this.geometry.clone();
-        const previewMesh = new THREE.Points(previewGeometry, previewMaterial);
 
         this.scene = new THREE.Scene();
         this.scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
         this.scene.add(this.particles);
 
-        this.previewScene = new THREE.Scene();
-        this.previewScene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
-        this.previewScene.add(previewMesh);
-
-        for (let model of this.strip_models) {
-            this.scene.add(model);
+        if (!isLanding) {
+            this._initStripModels();
+            const previewMaterial = this.material.clone();
+            const previewGeometry = this.geometry.clone();
+            const previewMesh = new THREE.Points(previewGeometry, previewMaterial);
+            this.previewScene = new THREE.Scene();
+            this.previewScene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
+            this.previewScene.add(previewMesh);
+            this.geometry.computeBoundingSphere();
+            this.geometry.computeBoundingBox();
         }
 
-        const allPositions = this.allPixelPositions().map(({pos}) => pos.toArray());
-        this.tree = createKDTree(allPositions);
+        //this.stripStats();
+    }
 
-        const minDistances = allPositions.map((pos, i) => {
-            const pts = this.tree.knn(pos, 2);
-            const nearest = allPositions[pts[1]];
-            let distsq = 0;
-            for (let i = 0; i < pos.length; i++) {
-                const d = nearest[i] - pos[i];
-                distsq += d*d;
-            }
-            return distsq;
+    _initStripModels() {
+        const stripMaterial = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            linewidth: 1,
+            opacity: 0.50,
+            transparent: true
         });
 
-        const distsq = quickSelect(minDistances, 0.75);
-        const dist = Math.sqrt(distsq);
-
-        this.pixelsize = 0.75 * dist;
-
-        this.material.uniforms.pointSize.value = this.pixelsize;
-
-        //this.stripStats();
+        for (let strip = 0; strip < this.num_strips; strip++) {
+            let stripGeometry = new THREE.Geometry();
+            let prevPos = undefined;
+            this.forEachPixelInStrip(strip, (idx) => {
+                const pos = this.getPosition(idx);
+                if (prevPos !== undefined) {
+                    stripGeometry.vertices.push(prevPos);
+                    stripGeometry.vertices.push(pos);
+                }
+                prevPos = pos;
+            });
+            let strip_model = new THREE.LineSegments(stripGeometry, stripMaterial);
+            strip_model.visible = false;
+            this.strip_models.push(strip_model);
+            this.scene.add(strip_model);
+        }
     }
 
     zoomCameraToFit(camera) {
@@ -459,5 +465,5 @@ registerSaveField('model', {
 });
 
 export function modelPreview(save_object) {
-    return new Model(save_object.model);
+    return new Model(save_object.model, true);
 }
