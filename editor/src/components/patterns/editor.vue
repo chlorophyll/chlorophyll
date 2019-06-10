@@ -163,10 +163,11 @@ export default {
             if (newval.length == 1)
                 this.preview_group_id = newval[0].id;
         },
-        //cur_pattern(newval, oldval) {
-        //    if (!newval || !oldval || newval.id != oldval.id)
-        //        this.runstate = RunState.Stopped;
-        //},
+        cur_pattern(newval, oldval) {
+            if (newval && oldval && newval.id != oldval.id && this.runstate == RunState.PAUSED) {
+                this.runstate = RunState.Stopped;
+            }
+        },
     },
 
     methods: {
