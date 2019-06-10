@@ -94,7 +94,7 @@ class SampleNode extends GraphNode {
         const pos = glsl.FunctionCall('vec2', [x, y]);
 
         const output = glsl.Dot(glsl.FunctionCall('texture2D', [texture, pos]), 'bgr');
-        const toLinear = glsl.FunctionCall('pow', [output, glsl.FunctionCall('vec3', [glsl.Const(2.5)])]);
+        const toLinear = glsl.FunctionCall('pow', [output, glsl.FunctionCall('vec3', [glsl.Const(2.2)])]);
 
         c.setOutput(this, 0, toLinear);
     }
