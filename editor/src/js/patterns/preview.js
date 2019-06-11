@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import _ from 'lodash';
+import Const from 'chl/const';
 import { ArtnetRegistry } from '@/common/hardware/artnet';
 import { PatternRunner } from 'chl/patterns/runner';
 import { currentModel } from 'chl/model';
@@ -18,6 +18,8 @@ export const PatternPreview = Vue.component('pattern-preview', {
         return {
             time: 0,
             request_id: null,
+            fpsSampleStartTime: null,
+            framesForSample: 0,
         };
     },
 
@@ -114,17 +116,36 @@ export const PatternPreview = Vue.component('pattern-preview', {
             const pixels = new Float32Array(width * width * 4);
             this.artnetClient.sendFrame(pixels);
         },
-        run() {
+        countFps(timestamp) {
+            this.framesForSample++;
+            if (!this.fpsSampleStartTime) {
+                this.fpsSampleStartTime = timestamp;
+            } else {
+                const d = timestamp - this.fpsSampleStartTime;
+                if (d > Const.fps_sample_interval) {
+                    const fps = 1000*(this.framesForSample-1) / d;
+                    this.$emit('fps-sample-updated', fps);
+                    this.resetFpsCounter();
+                }
+            }
+        },
+        resetFpsCounter() {
+            this.fpsSampleStartTime = null;
+            this.framesForSample = null;
+        },
+        run(timestamp) {
             this.step(this.time);
+            this.countFps(timestamp);
             this.time++;
             if (this.running)
-                this.request_id = window.requestAnimationFrame(() => this.run());
+                this.request_id = window.requestAnimationFrame((timestamp) => this.run(timestamp));
         },
         start() {
             currentModel.display_only = true;
             this.run();
         },
         pause() {
+            this.resetFpsCounter();
             if (this.request_id !== null) {
                 window.cancelAnimationFrame(this.request_id);
             }

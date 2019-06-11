@@ -20,7 +20,8 @@ const Const = {
     max_draw_dist: 1000000,
     fog_start: 1000,
     max_clip_plane: 1000,
-
+    num_fps_samples: 20,
+    fps_sample_interval: 250,
 };
 export default Const;
 

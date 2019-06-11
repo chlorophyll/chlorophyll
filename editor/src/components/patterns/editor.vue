@@ -32,6 +32,8 @@
                     <button @click="autolayout">Autolayout</button>
                     <button @click="resetZoom">Reset</button>
                     <button @click="zoomToFit">Zoom to fit</button>
+                    <span class="cur-fps" v-if="curFpsSample !== null">FPS: {{curFpsSample}}</span>
+                    <sparkline class="fps-graph" :width="100" :height="14" :samples="fpsSamples" />
                 </div>
             </div>
             <div class="panel" id="mainview">
@@ -59,13 +61,15 @@
                              :mapping="preview_mapping"
                              :group="preview_group"
                              :push-to-hardware="pushToHardware"
-                             :runstate="runstate" />
+                             :runstate="runstate"
+                             @fps-sample-updated="pushFpsSample"
+                             />
         </div>
         <pattern-list slot="second" @pattern-dblclick="onPatternDblClick"/>
     </split-pane>
 </template>
 <script>
-import { ConstMixin } from 'chl/const';
+import Const, { ConstMixin } from 'chl/const';
 import { mapGetters } from 'vuex';
 import { mappingUtilsMixin } from 'chl/mapping';
 import PatternList from '@/components/patterns/list';
@@ -73,10 +77,12 @@ import Toggle from '@/components/widgets/toggle';
 import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graph/graphcanvas';
+import Sparkline from '@/components/widgets/sparkline';
 import register_nodes from '@/common/nodes/registry';
 import { RunState, PatternPreview } from 'chl/patterns/preview';
 import GraphLib from '@/common/graphlib';
 import store from 'chl/vue/store';
+import * as numeral from 'numeral';
 
 function getNodeList() {
     register_nodes();
@@ -104,7 +110,7 @@ function getNodeList() {
 
 export default {
     store,
-    components: {Tree, GraphCanvas, SplitPane, PatternPreview, PatternList, Toggle},
+    components: {Tree, GraphCanvas, SplitPane, PatternPreview, PatternList, Toggle, Sparkline},
     mixins: [ConstMixin, mappingUtilsMixin],
     computed: {
         run_text() {
@@ -142,11 +148,19 @@ export default {
         },
         preview_group() {
             return this.preview_group_id !== null ? this.getGroup(this.preview_group_id) : null;
-        }
+        },
+        curFpsSample() {
+            const last = this.fpsSamples[this.fpsSamples.length-1];
+            if (last !== 0) {
+                return Math.ceil(last);
+            } else {
+                return null;
+            }
+        },
     },
     data() {
         return {
-            time: 0,
+            fpsSamples: new Array(Const.num_fps_samples).fill(0),
             preview_map_id: null,
             preview_group_id: this.$store.state.pixels.group_list[0],
             pushToHardware: false,
@@ -171,6 +185,10 @@ export default {
     },
 
     methods: {
+        pushFpsSample(sample) {
+            this.fpsSamples.shift();
+            this.fpsSamples.push(sample);
+        },
         toggleAnimation() {
             if (this.runstate == RunState.Running) {
                 this.runstate = RunState.Paused;
@@ -180,6 +198,7 @@ export default {
         },
         stopAnimation() {
             this.runstate = RunState.Stopped;
+            this.fpsSamples = new Array(Const.num_fps_samples).fill(0);
         },
         dragNode(item, event) {
             event.dataTransfer.setData('text/plain', item.path);
@@ -211,11 +230,20 @@ export default {
     user-select: none;
 }
 
-label {
+label, .fps-graph, .cur-fps {
     display: inline-block;
     vertical-align: middle;
     padding-top: 5px;
 }
+
+.fps-graph {
+    padding-bottom: 5px;
+}
+
+.cur-fps {
+    padding-left: 5px;
+}
+
 
 #top-controls {
     flex: initial;
