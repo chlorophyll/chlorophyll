@@ -8,12 +8,17 @@ import store from 'chl/vue/store';
 import { ViewportMixin } from 'chl/viewport';
 import { currentModel } from 'chl/model';
 
-const centerpoint_mat = new THREE.PointsMaterial({size: 30, sizeAttenuation: true});
+const centerpoint_mat = new THREE.PointsMaterial({
+  size: 0,
+  sizeAttenuation: false
+});
+
 const bounds_mat = new THREE.MeshBasicMaterial({
   wireframe: true,
   wireframeLinewidth: 1,
   color: 0x808080
 });
+
 const centerpoint_geom = new THREE.Geometry();
 centerpoint_geom.vertices.push(new THREE.Vector3(0, 0, 0));
 
@@ -87,8 +92,11 @@ export default {
   },
 
   mounted() {
-    const camera = this.mainViewport().camera;
-    const renderer = this.mainViewport().renderer;
+    const viewport = this.mainViewport();
+    const {camera, renderer} = viewport;
+    // Bloom & post-processing make controls hard to interact with.
+    // Disable them while configuring mappings.
+    viewport.playbackMode = false;
 
     this.control = new THREE.TransformControls(camera, renderer.domElement);
     this.centerpoint = new THREE.Points(centerpoint_geom, centerpoint_mat);
@@ -101,18 +109,22 @@ export default {
     this.control.setMode(this.mode);
     this.setPreviewShape(this.shape);
 
-    this.mainViewport().controls.addEventListener('change', this.update);
+    viewport.controls.addEventListener('change', this.update);
     this.control.addEventListener('objectChange', this.onChange);
   },
 
   beforeDestroy() {
-    this.mainViewport().controls.removeEventListener('change', this.update);
+    const viewport = this.mainViewport();
+    viewport.controls.removeEventListener('change', this.update);
+
     this.control.removeEventListener('objectChange', this.onChange);
 
     if (this.bounding_mesh)
       this.centerpoint.remove(this.bounding_mesh);
     this.scene.remove(this.centerpoint);
     this.scene.remove(this.control);
+    // Re-enable post-processing effects.
+    viewport.playbackMode = true;
   }
 };
 </script>

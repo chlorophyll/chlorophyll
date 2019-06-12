@@ -24,7 +24,7 @@
                     <div class="controls">
                         <div class="control-row">
                             <label>Use postprocessing effects</label>
-                            <div><toggle v-model="showEffects" class="toggle"/></div>
+                            <div><toggle v-model="enableEffects" class="toggle"/></div>
                         </div>
                         <div class="control-row">
                             <label>Auto-rotate</label>
@@ -87,7 +87,7 @@ export default {
             default() {
                 return `viewport-${newgid()}`;
             }
-        },
+        }
     },
     /*
      * Allow any descendent of the viewport component to reference it via inject(),
@@ -107,7 +107,8 @@ export default {
             renderPass: null,
             bloomPass: null,
             controls: null,
-            showEffects: true,
+            enableEffects: true,
+            playbackMode: true,
             autoRotate: false,
             stripVisibility: false,
             inConfig: false,
@@ -117,6 +118,15 @@ export default {
             controlsEnabled: false
         };
     },
+
+    computed: {
+        ...mapState(['has_current_model']),
+
+        showEffects() {
+            return this.enableEffects && this.playbackMode;
+        }
+    },
+
     watch: {
         controlsEnabled(val) {
             if (this.active && this.controls)
@@ -187,9 +197,7 @@ export default {
         window.removeEventListener('resize', this.resizeDebounce);
         viewports.removeViewport(this.label);
     },
-    computed: {
-        ...mapState(['has_current_model']),
-    },
+
     methods: {
         closeConfig() {
             this.inConfig = false;
@@ -216,8 +224,10 @@ export default {
             this.composer = new THREE.EffectComposer(this.renderer);
             this.composer.setSize(this.width, this.height);
             this.renderPass = new THREE.RenderPass(this.scene, this.camera);
-            //this.bloomPass = new THREE.BloomPass(0.9); //, 16, 10);
-            this.bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2(this.width, this.height), 0.7, 0.2, 0.25);
+            this.bloomPass = new THREE.UnrealBloomPass(
+                new THREE.Vector2(this.width, this.height),
+                0.7, 0.2, 0.25
+            );
 
             if (!this.preview && this.showEffects) {
                 this.bloomPass.enabled = true;
