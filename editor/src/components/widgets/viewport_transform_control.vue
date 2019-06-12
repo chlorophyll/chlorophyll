@@ -44,7 +44,6 @@ export default {
         this.centerpoint.position.fromArray(this.value.position);
         this.centerpoint.setRotationFromEuler(rot.fromArray(this.value.rotation));
         this.centerpoint.scale.set(...this.value.scale);
-        this.control.update();
       }
     },
 
@@ -59,16 +58,20 @@ export default {
   },
 
   methods: {
-    update() {
-      this.control.update();
-    },
-
     onChange() {
       this.$emit('input', {
         position: this.centerpoint.position.toArray(),
         rotation: this.centerpoint.rotation.toArray().slice(0, 3),
         scale: this.value.scale
       });
+    },
+
+    onStartManipulate() {
+      this.mainViewport().controls.enabled = false;
+    },
+
+    onEndManipulate() {
+      this.mainViewport().controls.enabled = true;
     },
 
     setPreviewShape(shape) {
@@ -110,15 +113,17 @@ export default {
     this.control.setMode(this.mode);
     this.setPreviewShape(this.shape);
 
-    viewport.controls.addEventListener('change', this.update);
     this.control.addEventListener('objectChange', this.onChange);
+    this.control.addEventListener('mouseDown', this.onStartManipulate);
+    this.control.addEventListener('mouseUp', this.onEndManipulate);
   },
 
   beforeDestroy() {
     const viewport = this.mainViewport();
-    viewport.controls.removeEventListener('change', this.update);
 
     this.control.removeEventListener('objectChange', this.onChange);
+    this.control.removeEventListener('mouseDown', this.onStartManipulate);
+    this.control.removeEventListener('mouseUp', this.onEndManipulate);
 
     if (this.bounding_mesh)
       this.centerpoint.remove(this.bounding_mesh);
