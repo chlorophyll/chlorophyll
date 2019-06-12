@@ -95,8 +95,9 @@ export default {
     const viewport = this.mainViewport();
     const {camera, renderer} = viewport;
     // Bloom & post-processing make controls hard to interact with.
-    // Disable them while configuring mappings.
+    // Disable them while configuring mappings and shrink points.
     viewport.playbackMode = false;
+    currentModel.setPixelScaleFactor(0.4);
 
     this.control = new THREE.TransformControls(camera, renderer.domElement);
     this.centerpoint = new THREE.Points(centerpoint_geom, centerpoint_mat);
@@ -123,8 +124,9 @@ export default {
       this.centerpoint.remove(this.bounding_mesh);
     this.scene.remove(this.centerpoint);
     this.scene.remove(this.control);
-    // Re-enable post-processing effects.
+    // Reset the viewport.
     viewport.playbackMode = true;
+    currentModel.resetPixelScaleFactor();
   }
 };
 </script>

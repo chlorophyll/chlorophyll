@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import * as THREE from 'three';
 import clone from 'clone';
-import _ from 'lodash';
 import createKDTree from 'static-kdtree';
 
 import { registerSaveField } from 'chl/savefile';
@@ -312,7 +311,7 @@ export class Model extends ModelBase {
             this.geometry.computeBoundingBox();
         }
 
-        //this.stripStats();
+        // this.stripStats();
     }
 
     _initStripModels() {
@@ -437,6 +436,18 @@ export class Model extends ModelBase {
             return undefined;
 
         return this.pixelPositions(group);
+    }
+
+    setPixelScaleFactor(scale) {
+        if (scale <= 0 || scale > 2) {
+            console.warn('MODEL', `tried to set invalid point scale factor: ${scale}`);
+            return this.resetPixelScaleFactor();
+        }
+        this.material.uniforms.pointSize.value = this.pixelsize * scale;
+    }
+
+    resetPixelScaleFactor() {
+        this.material.uniforms.pointSize.value = this.pixelsize;
     }
 
     refreshUniforms(devicePixelRatio, height) {
