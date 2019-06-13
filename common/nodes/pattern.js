@@ -194,12 +194,12 @@ make_function_node('math', 'sqrt(a)', 'sqrt',
 
 make_function_node('math', 'sin(a)', 'sin',
     [['a', Units.Angle]],
-    Units.Distance,
+    Units.SignedNumeric,
 );
 
 make_function_node('math', 'cos(a)', 'cos',
     [['a', Units.Angle]],
-    Units.Distance,
+    Units.SignedNumeric,
 );
 
 make_function_node('math', 'floor(a)', 'floor',

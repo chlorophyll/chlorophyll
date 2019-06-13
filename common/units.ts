@@ -90,7 +90,9 @@ class RangeUnit extends GraphUnit implements T.RangeUnit, T.Serializable {
 Units.Numeric = new RangeUnit('Numeric', 0, 1);
 Units.UInt8 = new RangeUnit('UInt8', 0, 0xff, (val: number) => val & 0xff);
 Units.Angle = new RangeUnit('Angle', 0, 2*Math.PI);
-Units.Distance = new RangeUnit('Distance', 0, 1); // TODO migrate to 0->1
+Units.Distance = new RangeUnit('Distance', 0, 1);
+//mostly used for sin/cos; for other use-cases you typically want a 0-1 value
+Units.SignedNumeric = new RangeUnit('SignedNumeric', -1, 1);
 // Utility Aliases
 Units.Num = Units.Numeric;
 Units.Percentage = Units.Numeric;
