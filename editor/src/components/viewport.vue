@@ -273,9 +273,7 @@ export default {
                 this.camera.updateProjectionMatrix();
 
                 if (currentModel) {
-                    currentModel.zoomCameraToFit(this.camera);
-
-                    const center = currentModel.getCenter();
+                    const center = currentModel.zoomCameraToFit(this.camera);
 
                     this.controls.target = center;
                 }

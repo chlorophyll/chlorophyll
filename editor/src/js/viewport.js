@@ -82,7 +82,7 @@ keyboardJS.withContext('global', function() {
 });
 
 export function createRenderer(width, height) {
-    const renderer = new THREE.WebGLRenderer({antialias: true});
+    const renderer = new THREE.WebGLRenderer({antialias: true, sortObjects: false});
     renderer.setClearColor(new THREE.Color(0x000000));
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);

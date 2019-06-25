@@ -1,17 +1,41 @@
-attribute vec2 aOffset;
-uniform sampler2D computedColors;
-varying vec3 vComputedColor;
+precision highp float;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
 
-attribute vec3 overlayColor;
-varying vec3 vOverlayColor;
+attribute vec3 position;
+attribute vec2 uv;
+
+attribute vec2 aOffset;
+attribute vec3 aTranslate;
+uniform sampler2D computedColors;
+
+attribute vec3 aOverlayColor;
+varying vec3 vColor;
 
 uniform float pointSize;
 uniform float scale;
+uniform bool displayOnly;
+
+varying vec2 vUv;
+
+vec3 toGamma(vec3 v, float gamma) {
+    return pow(v, vec3(1.0 / gamma));
+}
 
 void main() {
-    vOverlayColor = overlayColor;
-    vComputedColor = texture2D(computedColors, aOffset).rgb;
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+    vUv = uv;
+
+    if (!displayOnly) {
+        vColor = aOverlayColor;
+    } else {
+        vec3 color = texture2D(computedColors, aOffset).rgb;
+        color = toGamma(color, 2.5);
+        color.b *= 1.05;
+        vColor = color;
+    }
+
+    vec4 mvPosition = modelViewMatrix * vec4(aTranslate, 1.);
+    float pSize = pointSize;
+    mvPosition.xyz += position * pointSize;
     gl_Position = projectionMatrix * mvPosition;
-    gl_PointSize = pointSize * ( scale / - mvPosition.z );
 }

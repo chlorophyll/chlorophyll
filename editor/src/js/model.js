@@ -237,10 +237,34 @@ export class Model extends ModelBase {
             offsets[2*i+1] = (2*row+1) / (2*width);
         }
 
-        this.geometry = new THREE.BufferGeometry();
-        this.geometry.addAttribute('position', new THREE.BufferAttribute(this.positions, 3));
-        this.geometry.addAttribute('overlayColor', new THREE.BufferAttribute(this.colors, 3));
-        this.geometry.addAttribute('aOffset', new THREE.BufferAttribute(offsets, 2));
+
+        const geometry = new THREE.InstancedBufferGeometry();
+        // const circleGeometry = new THREE.CircleBufferGeometry(1, 6);
+        // geometry.index = circleGeometry.index;
+        // geometry.attributes = circleGeometry.attributes;
+
+        const geometryCoords = new THREE.BufferAttribute(new Float32Array(4 * 3), 3);
+        geometryCoords.setXYZ(0, -0.5, 0.5, 0.0);
+        geometryCoords.setXYZ(1, 0.5, 0.5, 0.0);
+        geometryCoords.setXYZ(2, -0.5, -0.5, 0.0);
+        geometryCoords.setXYZ(3, 0.5, -0.5, 0.0);
+        geometry.addAttribute('position', geometryCoords);
+
+        const uvs = new THREE.BufferAttribute(new Float32Array(4 * 2), 2);
+        uvs.setXYZ(0, 0.0, 0.0);
+        uvs.setXYZ(1, 1.0, 0.0);
+        uvs.setXYZ(2, 0.0, 1.0);
+        uvs.setXYZ(3, 1.0, 1.0);
+        geometry.addAttribute('uv', uvs);
+
+        geometry.setIndex(new THREE.BufferAttribute(new Uint16Array([0, 2, 1, 2, 3, 1]), 1));
+        const aTranslate = new THREE.InstancedBufferAttribute(this.positions, 3, false);
+        const aOverlayColor = new THREE.InstancedBufferAttribute(this.colors, 3, false);
+        const aOffset = new THREE.InstancedBufferAttribute(offsets, 2, false);
+        geometry.addAttribute('aTranslate', aTranslate);
+        geometry.addAttribute('aOverlayColor', aOverlayColor);
+        geometry.addAttribute('aOffset', aOffset);
+        this.geometry = geometry;
 
         this.updateColors();
 
@@ -275,10 +299,10 @@ export class Model extends ModelBase {
         const distsq = quickSelect(minDistances, 0.75);
         const dist = Math.sqrt(distsq);
 
-        this.pixelsize = 1.5 * dist;
+        this.pixelsize = 0.8 * dist;
         this.model_info.pixelsize = this.pixelsize;
 
-        this.material = new THREE.ShaderMaterial({
+        this.material = new THREE.RawShaderMaterial({
             uniforms: {
                 pointSize: { value: this.pixelsize },
                 computedColors: { value: texture },
@@ -288,16 +312,27 @@ export class Model extends ModelBase {
             vertexShader: modelVertexShader,
             fragmentShader: modelFragmentShader,
             transparent: true,
+            depthWrite: true,
+            defines: {
+                ALPHATEST: 0.999,
+            },
             extensions: {
                 derivatives: true,
             }
         });
 
-        this.particles = new THREE.Points(this.geometry, this.material);
+        this.edgeMaterial = this.material.clone();
+        this.edgeMaterial.depthTest = true;
+        this.edgeMaterial.depthWrite = false;
+        this.edgeMaterial.defines.ALPHATEST = 0.15;
+
+        this.particles = new THREE.Mesh(this.geometry, this.material);
+        this.edges = new THREE.Mesh(this.geometry, this.edgeMaterial);
 
         this.scene = new THREE.Scene();
         this.scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
         this.scene.add(this.particles);
+        this.scene.add(this.edges);
 
         if (!isLanding) {
             this._initStripModels();
@@ -343,9 +378,12 @@ export class Model extends ModelBase {
     zoomCameraToFit(camera) {
         const boxSize = new THREE.Vector3();
         const center = new THREE.Vector3();
-        this.geometry.computeBoundingBox();
-        this.geometry.boundingBox.getSize(boxSize);
-        this.geometry.boundingBox.getCenter(center);
+        const boundingBox = new THREE.Box3();
+        for (const {pos} of this.allPixelPositions()) {
+            boundingBox.expandByPoint(pos);
+        }
+        boundingBox.getSize(boxSize);
+        boundingBox.getCenter(center);
         const {x, y, z} = boxSize;
         const maxDim = Math.max(x, y, z);
 
@@ -365,14 +403,7 @@ export class Model extends ModelBase {
 
         camera.lookAt(center);
         camera.updateProjectionMatrix();
-
-    }
-
-    getCenter() {
-        const center = new THREE.Vector3();
-        this.geometry.boundingBox.getCenter(center);
         return center;
-
     }
 
     // ui
@@ -393,6 +424,7 @@ export class Model extends ModelBase {
     set display_only(val) {
         this._display_only = val;
         this.material.uniforms.displayOnly.value = val;
+        this.edgeMaterial.uniforms.displayOnly.value = val;
         this.updateColors();
     }
 
@@ -419,11 +451,12 @@ export class Model extends ModelBase {
         if (!this.display_only) {
             this.setColorsFromOverlays();
         }
-        this.geometry.attributes.overlayColor.needsUpdate = true;
+        this.geometry.attributes.aOverlayColor.needsUpdate = true;
     }
 
     setFromTexture(texture) {
         this.material.uniforms.computedColors.value = texture;
+        this.edgeMaterial.uniforms.computedColors.value = texture;
     }
 
     save() {
@@ -444,14 +477,17 @@ export class Model extends ModelBase {
             return this.resetPixelScaleFactor();
         }
         this.material.uniforms.pointSize.value = this.pixelsize * scale;
+        this.edgeMaterial.uniforms.pointSize.value = this.pixelsize * scale;
     }
 
     resetPixelScaleFactor() {
         this.material.uniforms.pointSize.value = this.pixelsize;
+        this.edgeMaterial.uniforms.pointSize.value = this.pixelsize;
     }
 
     refreshUniforms(devicePixelRatio, height) {
         this.material.uniforms.scale.value = height * 0.7;
+        this.edgeMaterial.uniforms.scale.value = height * 0.7;
     }
 
     stripStats() {
