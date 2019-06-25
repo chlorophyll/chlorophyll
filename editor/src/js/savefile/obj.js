@@ -45,67 +45,76 @@ export default async function importOBJ(filename) {
      *
      * OBJ files should be one object per file; any after the first will be ignored.
      */
-    if (match && match[1] === 'json')
-        return readFile(filename)
-            .then(data => parseJSON(data))
-            .then(index => {
-                if (!index || !index.segments)
-                    throw new Error('Could not find "segments" array in JSON file');
+    try {
+        if (match && match[1] === 'json') {
+            const workingDir = path.dirname(filename);
+            const data = await readFile(filename);
+            const index = await parseJSON(data);
 
-                const allFiles = index.segments.map(seg => {
-                    const workingDir = path.dirname(filename);
-                    console.log(`Looking for ${seg.model} and ${seg.pixels} in ${workingDir}`);
-                    return Promise.all([
-                        loadObjFile(path.resolve(workingDir, seg.model)),
-                        loadSvgFile(path.resolve(workingDir, seg.pixels))
-                    ]);
-                });
-                return Promise.all(allFiles);
-            })
-            .then(files => {
-                let allStrips = [];
-                let allUvs = [];
-                files.forEach(([obj, svg]) => {
-                    const {strips, uvCoords} = uvMapStrips(obj, svg);
-                    allStrips = allStrips.concat(strips);
-                    allUvs = allUvs.concat(uvCoords);
-                });
-                return {
-                    strips: allStrips,
-                    uvCoords: allUvs
-                };
-            })
-            .error(err => {
-                remote.dialog.showErrorBox('Error importing model', err.message);
-                return null;
-            });
+            if (!index || !index.segments)
+                throw new Error('Could not find "segments" array in JSON file');
 
-    return loadObjFile(filename)
-        .then(objData => {
+            let allStrips = [];
+            let allUvs = [];
+            for (let seg of index.segments) {
+                console.log(`Looking for ${seg.model} and ${seg.pixels} in ${workingDir}`);
+                const obj = await loadObjFile(path.resolve(workingDir, seg.model));
+                const svg = await loadSvgFile(path.resolve(workingDir, seg.pixels));
+
+                const ignoreUnmapped = Boolean(seg.drop_unmapped);
+                const {strips, uvCoords} = uvMapStrips(obj, svg, {ignoreUnmapped});
+
+                // Connect the first strip of the just-mapped segment to the
+                // end of the previous one, if needed.
+                if (seg.join_prev) {
+                    if (allStrips.length === 0)
+                        throw new Error('Cannot join first segment to a previous strip');
+
+                    const last = allStrips.pop();
+                    const next = strips.shift();
+                    allStrips = [...allStrips, [...last, ...next], ...strips];
+                } else {
+                    allStrips = [...allStrips, ...strips];
+                }
+                allUvs = [...allUvs, ...uvCoords];
+            }
+
+            return {
+                strips: allStrips,
+                uvCoords: allUvs
+            };
+
+        } else {
+            const objData = await loadObjFile(filename);
             return blatPixels(objData);
-        })
-        .error(err => {
-            remote.dialog.showErrorBox('Error importing model', err.message);
-            return null;
-        });
+        }
+
+    } catch (err) {
+        console.error(err.stack);
+        remote.dialog.showErrorBox('Error importing model', err.message);
+        return null;
+    }
 }
 
 /*
  * 3d math.
  */
 
-function uvMapStrips(obj, svg) {
+function uvMapStrips(obj, svg, options = {}) {
     const geom = new THREE.Geometry();
     geom.fromBufferGeometry(obj.children[0].geometry);
 
     const allMappedUvs = [];
     // Each path in the SVG file becomes an LED strip.
+    const unmappedUvs = [];
     const strips = svg.paths.map(shapePath => {
         const stripPixels = [];
         shapePath.subPaths.forEach(path =>
             path.curves.forEach((curve, i) => {
-                if (curve.type !== 'LineCurve')
+                if (curve.type !== 'LineCurve') {
+                    console.log(path);
                     throw new Error(`Unsupported curve type: ${curve.type}; expected: LineCurve`);
+                }
 
                 stripPixels.push(curve.v1, curve.v2);
             })
@@ -127,9 +136,11 @@ function uvMapStrips(obj, svg) {
         // Apply pixels to the mesh.
         const mapped = uvs
             .map(uv => {
-                const pos = uvMapPixel(geom, uv);
+                const pos = uvMapPixel(geom, uv, options);
                 if (pos)
                     allMappedUvs.push(uv.toArray());
+                else
+                    unmappedUvs.push(uv.toArray());
 
                 return pos;
             })
@@ -141,13 +152,16 @@ function uvMapStrips(obj, svg) {
         return mapped;
     });
 
+    if (!options.ignoreUnmapped && unmappedUvs.length > 0)
+        console.log(`Missing: ${unmappedUvs.length} from`, obj, unmappedUvs);
+
     return {
         strips: strips,
         uvCoords: allMappedUvs
     };
 }
 
-function uvMapPixel(geometry, pt) {
+function uvMapPixel(geometry, pt, options = {}) {
     // First, find the triangle containing the point.
     const uvPos = new THREE.Vector3(pt.x, pt.y, 0);
     const uvTris = geometry.faceVertexUvs[0].map(f =>
@@ -160,7 +174,9 @@ function uvMapPixel(geometry, pt) {
 
     const i = uvTris.findIndex(tri => tri.containsPoint(uvPos));
     if (i < 0) {
-        console.warn('Pixel UV coordinates not found on mesh', uvPos, geometry);
+        if (!options.ignoreUnmapped)
+            console.warn('Pixel UV coordinates not found on mesh', uvPos, geometry, uvTris);
+
         return null;
     }
 
