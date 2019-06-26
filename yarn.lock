@@ -84,8 +84,8 @@
   resolved "https://registry.yarnpkg.com/@types/three/-/three-0.93.14.tgz#59d6a1483502beb2cd1aaf1976ad23900b3770cc"
 
 "SyphonBuffer@https://github.com/chlorophyll/SyphonBuffer":
-  version "1.0.0"
-  resolved "https://github.com/chlorophyll/SyphonBuffer#578f489dc9c2b5757c9f8f31002510f25e876568"
+  version "1.0.1"
+  resolved "https://github.com/chlorophyll/SyphonBuffer#f6f0c64837db5983443ec6a9ad032aaf60efa1dd"
   dependencies:
     mmap.js "^1.0.3"
     nodeshm "https://github.com/chlorophyll/nodeshm.git"
