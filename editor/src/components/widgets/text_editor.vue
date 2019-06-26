@@ -13,7 +13,7 @@ export default {
   name: 'text-editor',
   props: {
     value: {
-      type: String,
+      type: [String, Object],
       default: '',
     },
     format: {
@@ -23,11 +23,20 @@ export default {
   },
 
   mounted() {
+    let stringValue;
+    if (typeof this.value === 'object') {
+      if (this.format === 'json')
+        stringValue = JSON.stringify(this.value, null, 2);
+      else if (this.format === 'yaml')
+        stringValue = yaml.safeDump(this.value);
+    } else {
+      stringValue = this.value;
+    }
     //const JSONMode = ace.require('ace/mode/javascript').Mode;
     this.editor = ace.edit(this.$refs.editor.id);
     this.editor.setTheme('ace/theme/monokai');
     this.editor.session.setMode(`ace/mode/${this.format}`);
-    this.editor.session.setValue(this.value);
+    this.editor.session.setValue(stringValue);
 
     this.editor.on('change', this.onChange);
   },
@@ -89,7 +98,7 @@ export default {
 }
 
 .text-editor-container {
-  width: 450px;
-  height: 400px;
+  width: 100%;
+  height: 100%;
 }
 </style>
