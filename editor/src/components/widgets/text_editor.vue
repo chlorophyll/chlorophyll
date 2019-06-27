@@ -26,12 +26,16 @@ export default {
     return {
       modified: false
     }
-  }
+  },
 
   mounted() {
     this.editor = ace.edit(this.$refs.editor.id);
     this.editor.setTheme('ace/theme/monokai');
     this.editor.session.setMode(`ace/mode/${this.format}`);
+    this.editor.session.setOptions({
+      tabSize: 2,
+      useSoftTabs: true
+    });
     this.editor.session.setValue(this.stringValue);
 
     this.editor.on('change', this.onChange);
@@ -57,11 +61,11 @@ export default {
         return this.value;
 
       if (this.format === 'yaml')
-        return yaml.safeDump(this.value);
+        return yaml.dump(this.value);
 
       return JSON.stringify(this.value, null, 2);
     }
-  }
+  },
 
   methods: {
     onChange(event) {
