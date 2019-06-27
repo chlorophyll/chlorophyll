@@ -22,6 +22,11 @@ export default {
     },
   },
 
+  model: {
+    prop: 'value',
+    event: 'parsed',
+  },
+
   data() {
     return {
       modified: false
@@ -48,10 +53,8 @@ export default {
         return;
 
       // Don't overwrite the user's view of the data if they're currently editing.
-      if (this.editor.isFocused() && this.modified)
-        return;
-
-      this.editor.session.setValue(this.stringValue);
+      if (!this.editor.isFocused() && !this.modified)
+        this.editor.session.setValue(this.stringValue);
     }
   },
 

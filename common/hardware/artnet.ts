@@ -181,6 +181,9 @@ export class ArtnetRegistry {
 }
 
 export function settingsFromUserConfig(config: UserConfig): Array<ArtnetStripMapping> {
+    if (!config)
+        return [];
+
     const mappings = [];
     Object.entries(config).forEach(([host, strips]) => {
         Object.entries(strips).forEach(([strip, params]) => {
@@ -197,6 +200,9 @@ export function settingsFromUserConfig(config: UserConfig): Array<ArtnetStripMap
 }
 
 export function userConfigFromSettings(settings: Array<ArtnetStripMapping>): UserConfig {
+    if (!settings)
+        return {};
+
     const config = {};
     const controllers = new Set(settings.map(s => s.controller.host));
     controllers.forEach(host => {

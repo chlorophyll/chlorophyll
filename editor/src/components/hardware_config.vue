@@ -12,7 +12,7 @@
                 <hr />
                 <div class="control-row">
                     <label>Settings</label>
-                    <text-editor id="editor" format="yaml" :value="settings" @parsed="onUpdated" />
+                    <text-editor id="editor" format="yaml" v-model="settings" />
                 </div>
             </template>
         </div>
@@ -61,9 +61,10 @@ export default {
 
     watch: {
         protocol(newProtocol) {
-            if (protocol !== 'artnet')
+            if (newProtocol !== 'artnet')
                 return;
 
+            const storedSettings = this.$store.state.hardware.settings;
             if (storedSettings.artnet)
                 this.settings = userConfigFromSettings(storedSettings.artnet);
             else
@@ -77,14 +78,13 @@ export default {
         }),
 
         onUpdated(newValue) {
-            console.log(newValue);
             this.settings = newValue;
         },
 
         close(shouldSave) {
             if (shouldSave) {
                 const arg = {protocol: this.protocol};
-                if (protocol === 'artnet')
+                if (this.protocol === 'artnet')
                     arg.settings = settingsFromUserConfig(this.settings);
 
                 this.saveProtocol(arg);
