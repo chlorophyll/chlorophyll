@@ -48,6 +48,16 @@ interface StripSegment {
     numChannels: number;
 };
 
+// User-facing human readable config format
+interface UserStripConfig {
+  startUniverse: number;
+  startChannel: number;
+}
+
+interface UserConfig {
+  [host: string]: Array<UserStripConfig>
+}
+
 const maxChannelsInUniverse = 510;
 const maxPixelsInUniverse = maxChannelsInUniverse / 3;
 function getStripSegments(model: ModelBase, {controller, strip, startUniverse, startChannel}: ArtnetStripMapping): Array<StripSegment> {
@@ -170,25 +180,33 @@ export class ArtnetRegistry {
     }
 }
 
-export function parseSettings(settingsStr: string): Array<ArtnetStripMapping> {
-    const lines = settingsStr.split('\n');
-    const mappings = lines.map(line => {
-        const [host, ...values] = line.split(',');
-        const [strip, startUniverse, startChannel] = values.map(parseInt);
-        return {
-            controller: {host},
-            strip,
-            startUniverse,
-            startChannel,
-        };
+export function settingsFromUserConfig(config: UserConfig): Array<ArtnetStripMapping> {
+    const mappings = [];
+    Object.entries(config).forEach(([host, strips]) => {
+        Object.entries(strips).forEach(([strip, params]) => {
+            mappings.push({
+                controller: {host},
+                strip: parseInt(strip, 10),
+                startUniverse: params.startUniverse,
+                startChannel: params.startChannel
+            });
+        });
     });
+
     return mappings;
 }
 
-export function stringifySettings(settings: Array<ArtnetStripMapping>): string {
-    const lines = settings.map(({controller, strip, startUniverse, startChannel}) =>
-        `${controller.host},${strip},${startUniverse},${startChannel}`
-    );
-    return lines.join('\n');
+export function userConfigFromSettings(settings: Array<ArtnetStripMapping>): UserConfig {
+    const config = {};
+    const controllers = new Set(settings.map(s => s.controller.host));
+    controllers.forEach(host => {
+        config[host] = {};
+    });
+    settings.forEach(({controller, strip, startUniverse, startChannel}) => {
+        // Use string keys to make the syntax a bit friendlier in YAML
+        config[controller.host][String(strip)] = {startUniverse, startChannel};
+    });
+
+    return config;
 }
 
