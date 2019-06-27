@@ -22,35 +22,64 @@ export default {
     },
   },
 
-  mounted() {
-    let stringValue;
-    if (typeof this.value === 'object') {
-      if (this.format === 'json')
-        stringValue = JSON.stringify(this.value, null, 2);
-      else if (this.format === 'yaml')
-        stringValue = yaml.safeDump(this.value);
-    } else {
-      stringValue = this.value;
+  data() {
+    return {
+      modified: false
     }
-    //const JSONMode = ace.require('ace/mode/javascript').Mode;
+  }
+
+  mounted() {
     this.editor = ace.edit(this.$refs.editor.id);
     this.editor.setTheme('ace/theme/monokai');
     this.editor.session.setMode(`ace/mode/${this.format}`);
-    this.editor.session.setValue(stringValue);
+    this.editor.session.setValue(this.stringValue);
 
     this.editor.on('change', this.onChange);
+    this.editor.on('blur', this.onBlur);
   },
+
+  watch: {
+    value() {
+      if (!this.editor)
+        return;
+
+      // Don't overwrite the user's view of the data if they're currently editing.
+      if (this.editor.isFocused() && this.modified)
+        return;
+
+      this.editor.session.setValue(this.stringValue);
+    }
+  },
+
+  computed: {
+    stringValue() {
+      if (typeof this.value === 'string')
+        return this.value;
+
+      if (this.format === 'yaml')
+        return yaml.safeDump(this.value);
+
+      return JSON.stringify(this.value, null, 2);
+    }
+  }
 
   methods: {
     onChange(event) {
+      this.modified = true;
       this.$emit('input', this.editor.getValue());
       const parsedObject = this.getParsed();
       if (parsedObject)
         this.$emit('parsed', parsedObject);
     },
 
+    onBlur(event) {
+      this.editor.session.setValue(this.stringValue);
+      this.modified = false;
+    },
+
     /**
      * Retrieve the current text contents from the editor and convert to a js object.
+     * This isn't a computed property because the editor's state is not reactive.
      */
     getParsed() {
       const raw = this.editor.getValue();
@@ -62,9 +91,11 @@ export default {
         } catch (err) {
           parsed = null;
         }
-        return parsed;
 
-      } else if (this.format === 'yaml') {
+        return parsed;
+      }
+
+      if (this.format === 'yaml') {
         try {
           parsed = yaml.safeLoad(this.editor.getValue());
           this.editor.session.clearAnnotations();
@@ -79,13 +110,12 @@ export default {
           }
           parsed = null;
         }
+
         return parsed;
-
-      } else {
-        return raw;
       }
-    }
 
+      return raw;
+    }
   }
 };
 </script>
