@@ -11,14 +11,24 @@ store.registerModule('hardware', {
             state.protocol = arg.protocol;
             switch (arg.protocol) {
                 case 'pixelpusher':
-                    state.settings = {};
+                    state.settings = {
+                        ...state.settings,
+                        pixelpusher: {},
+                    };
                     break;
-                case 'art-net':
-                    state.settings = arg.settings;
+                case 'artnet':
+                    state.settings = {
+                        ...state.settings,
+                        artnet: arg.settings,
+                    };
                     break;
                 default:
                     throw new Error(`unknown protocol: ${arg.protocol}`);
             }
+        },
+
+        updateSettings(state, settings) {
+            state.settings = settings;
         },
     },
 });

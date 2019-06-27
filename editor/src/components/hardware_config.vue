@@ -1,5 +1,5 @@
 <template>
-    <dialog-box title="hardware config" :show="true" @close="close" width="350px" :pos="{x: 100, y: 100}">
+    <dialog-box title="hardware config" :show="true" @close="close" width="500px" :pos="{x: 100, y: 100}">
         <div class="controls config">
             <div class="control-row">
                 <label>Protocol</label>
@@ -8,45 +8,91 @@
                     <option value="artnet">Art-Net</option>
                 </select>
             </div>
-            <hr />
-            <div class="control-row textbox">
-                <label>Settings</label>
-                <textarea class="control" rows="10" v-model="settingsStr"/>
-            </div>
+            <template v-if="protocol === 'artnet'">
+                <hr />
+                <div class="control-row">
+                    <label>Settings</label>
+                    <text-editor id="editor" format="yaml" :value="settings" @parsed="onUpdated" />
+                </div>
+            </template>
         </div>
     </dialog-box>
 </template>
 
 <script>
 import DialogBox from '@/components/widgets/dialog_box';
+import TextEditor from '@/components/widgets/text_editor';
 import store from 'chl/vue/store';
-import { mapGetters } from 'vuex';
+import {mapGetters, mapMutations} from 'vuex';
 import _ from 'lodash';
-import {stringifySettings, parseSettings} from '@/common/hardware/artnet';
+import {userConfigFromSettings, settingsFromUserConfig} from '@/common/hardware/artnet';
+
+const dummyConfig = {
+    '0.0.0.0': {
+        '1': {
+            startUniverse: 1,
+            startChannel: 1,
+        }
+    }
+}
 
 export default {
     store,
     name: 'hardware-config',
-    components: { DialogBox },
+    components: { DialogBox, TextEditor },
     data() {
+        const protocol = this.$store.state.hardware.protocol;
+        const storedSettings = this.$store.state.hardware.settings;
+
+        let startingConfig = {};
+        if (protocol === 'artnet') {
+            if (storedSettings.artnet)
+                startingConfig = userConfigFromSettings(storedSettings.artnet);
+            else
+                startingConfig = dummyConfig;
+        }
+
         return {
-            protocol: _.cloneDeep(this.$store.state.hardware.protocol),
-            settings: _.cloneDeep(this.$store.state.hardware.settings),
+            protocol,
+            settings: startingConfig,
+            initialSettings: startingConfig
         };
     },
-    computed: {
-        settingsStr: {
-            get() {
-                return stringifySettings(this.settings);
-            },
-            set(val) {
-                return parseSettings(val);
-            },
-        },
+
+    watch: {
+        protocol(newProtocol) {
+            if (protocol !== 'artnet')
+                return;
+
+            if (storedSettings.artnet)
+                this.settings = userConfigFromSettings(storedSettings.artnet);
+            else
+                this.settings = dummyConfig;
+        }
     },
+
     methods: {
-        close(ok) {
-            this.$emit('close', ok);
+        ...mapMutations({
+            saveProtocol: 'hardware/useProtocol',
+        }),
+
+        onUpdated(newValue) {
+            console.log(newValue);
+            this.settings = newValue;
+        },
+
+        close(shouldSave) {
+            if (shouldSave) {
+                const arg = {protocol: this.protocol};
+                if (protocol === 'artnet')
+                    arg.settings = settingsFromUserConfig(this.settings);
+
+                this.saveProtocol(arg);
+            } else {
+                this.settings = this.initialSettings;
+            }
+
+            this.$emit('close', shouldSave);
         }
     },
 };
@@ -59,5 +105,10 @@ export default {
 
 .textbox * {
     height: 10em;
+}
+
+#editor {
+    width: 400px;
+    height: 500px;
 }
 </style>
