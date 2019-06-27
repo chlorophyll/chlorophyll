@@ -4,7 +4,7 @@ import { ArtnetRegistry } from '@/common/hardware/artnet';
 import { PatternRunner } from 'chl/patterns/runner';
 import { currentModel } from 'chl/model';
 
-// import {pushPixels, pushBlackFrame} from 'chl/hardware/pixelpusher';
+import * as pixelpusher from 'chl/hardware/pixelpusher';
 
 export const RunState = {
     Stopped: 0,
@@ -13,7 +13,16 @@ export const RunState = {
 };
 
 export const PatternPreview = Vue.component('pattern-preview', {
-    props: ['pattern', 'mapping', 'group', 'runstate', 'pushToHardware'],
+    props: [
+        'pattern',
+        'mapping',
+        'group',
+        'runstate',
+        'pushToHardware',
+        'hardwareSettings',
+        'hardwareProtocol',
+    ],
+
     data() {
         return {
             time: 0,
@@ -35,8 +44,16 @@ export const PatternPreview = Vue.component('pattern-preview', {
                 const current = this.runner.step(time, pixels);
                 currentModel.setFromTexture(current);
                 if (this.pushToHardware) {
-                    this.artnetClient.sendFrame(pixels);
-                    // pushPixels(currentModel, pixels);
+                    switch (this.hardwareProtocol) {
+                        case 'artnet':
+                            this.artnetClient.sendFrame(pixels);
+                            break;
+                        case 'pixelpusher':
+                            pixelpusher.pushPixels(currentModel, pixels);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             };
         },
@@ -50,35 +67,12 @@ export const PatternPreview = Vue.component('pattern-preview', {
         },
 
         artnetClient() {
-            // Universe, channel, number of pixels
-            const legConfig = [
-                [1, 1, 452]
-            ];
-            /*
-            const wingMapping = _.range(13).map(strip => ({
-                controller: {host: '192.168.31.215'},
-                strip: strip+4,
-                startUniverse: strip*3,
-                startChannel: 0,
-            }));
-            */
+            if (this.hardwareProtocol !== 'artnet')
+                return null;
 
-            const legMapping = legConfig.map(([univ, channel, _unused], i) => ({
-                controller: {host: '192.168.1.241'},
-                strip: i,
-                startUniverse: univ-1,
-                startChannel: channel-1,
-            }));
-            // hacks hacks hacks
-            const registry = new ArtnetRegistry(currentModel, [
-                ...legMapping // , ...wingMapping
-            ]);
+            const registry = new ArtnetRegistry(currentModel, this.hardwareSettings);
             console.log(registry);
             return registry;
-
-            //    ...stripMapping({host: '192.168.7.88'})
-            //    //...stripMapping({host: '127.0.0.1'})
-            // ]);
         },
     },
 
@@ -112,9 +106,22 @@ export const PatternPreview = Vue.component('pattern-preview', {
 
     methods: {
         pushBlackFrame() {
-            const width = Math.ceil(Math.sqrt(currentModel.num_pixels));
-            const pixels = new Float32Array(width * width * 4);
-            this.artnetClient.sendFrame(pixels);
+            switch (this.hardwareProtocol) {
+                case 'pixelpusher': {
+                    pixelpusher.pushBlackFrame(currentModel);
+                    break;
+                }
+
+                case 'artnet': {
+                    const width = Math.ceil(Math.sqrt(currentModel.num_pixels));
+                    const pixels = new Float32Array(width * width * 4);
+                    this.artnetClient.sendFrame(pixels);
+                    break;
+                }
+
+                default:
+                    break;
+            }
         },
         countFps(timestamp) {
             this.framesForSample++;

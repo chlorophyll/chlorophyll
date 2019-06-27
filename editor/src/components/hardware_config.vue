@@ -28,7 +28,7 @@ import _ from 'lodash';
 import {userConfigFromSettings, settingsFromUserConfig} from '@/common/hardware/artnet';
 
 const dummyConfig = {
-    '0.0.0.0': {
+    '192.168.1.241': {
         '1': {
             startUniverse: 1,
             startChannel: 1,

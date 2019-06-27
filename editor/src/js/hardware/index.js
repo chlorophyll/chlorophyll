@@ -6,6 +6,20 @@ store.registerModule('hardware', {
         protocol: 'pixelpusher',
         settings: {},
     },
+
+    getters: {
+        activeHardwareSettings(state) {
+            if (state.protocol === 'pixelpusher')
+                return {};
+
+            return state.settings[state.protocol];
+        },
+
+        activeProtocol(state) {
+            return state.protocol;
+        },
+    },
+
     mutations: {
         useProtocol(state, arg) {
             state.protocol = arg.protocol;

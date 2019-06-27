@@ -62,6 +62,8 @@
                              :group="preview_group"
                              :push-to-hardware="pushToHardware"
                              :runstate="runstate"
+                             :hardware-settings="activeHardwareSettings"
+                             :hardware-protocol="activeProtocol"
                              @fps-sample-updated="pushFpsSample"
                              />
         </div>
@@ -134,6 +136,10 @@ export default {
         ]),
         ...mapGetters('pixels', [
             'group_list',
+        ]),
+        ...mapGetters('hardware', [
+            'activeProtocol',
+            'activeHardwareSettings',
         ]),
         mappings() {
             if (this.cur_pattern === null)
