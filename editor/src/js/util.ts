@@ -4,6 +4,7 @@ import {
     Spherical,
     Vector3,
 } from 'three';
+import _ from 'lodash';
 
 let _scratchCanvas = null;
 
@@ -254,49 +255,45 @@ export function UniqueNameMixin(objtype, getter) {
     };
 }
 
-function partitionInPlace(arr, left, right) {
-    const pivotIndex = randomInt(left, right);
-    const pivotValue = arr[pivotIndex];
-    arr[pivotIndex] = arr[right];
-    arr[right] = pivotValue;
-
-    let storeIndex = left;
-
-    for (let i = left; i < right; i++) {
-        const val = arr[i];
-        if (val < pivotValue) {
-            arr[i] = arr[storeIndex];
-            arr[storeIndex] = val;
-            storeIndex++;
-        }
-    }
-
-    const tmp = arr[right];
-    arr[right] = arr[storeIndex];
-    arr[storeIndex] = tmp;
-    return storeIndex;
-}
 
 function randomInt(min: number, max: number): number {
     min = Math.ceil(min);
     max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function swap(arr, i, j) {
+    const temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+}
+
+function partitionInPlace(arr, left, right) {
+    const pivotIndex = randomInt(left, right);
+    let storeIndex = left;
+    const pivotValue = arr[pivotIndex];
+    for (let i = left; i <= right; i++) {
+        if (arr[i] < pivotValue) {
+            swap(arr, storeIndex, i);
+            storeIndex++;
+        }
+    }
+    return storeIndex;
 }
 
 export function quickSelect(original: Array<number>, stat: number): number {
-    const k = Math.floor(original.length * stat);
-    const arr = [...original];
+    const arr = _.uniq(original);
+    const k = Math.floor(arr.length * stat);
     let left = 0;
-    let right = arr.length;
-    let pivotIndex = partitionInPlace(arr, left, right);
+    let right = arr.length - 1;
 
-    while (pivotIndex !== k) {
-        if (pivotIndex < k) {
-            left = k;
-        } else if (pivotIndex > k) {
-            right = k;
+    while (right !== left) {
+        const pivotIndex = partitionInPlace(arr, left, right);
+        if (k < pivotIndex) {
+            right = pivotIndex - 1;
+        } else {
+            left = pivotIndex;
         }
-        pivotIndex = partitionInPlace(arr, left, right);
     }
-    return arr[pivotIndex];
+    return arr[k];
 }
