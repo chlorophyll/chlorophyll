@@ -3,15 +3,15 @@ import store from 'chl/vue/store';
 store.registerModule('hardware', {
     namespaced: true,
     state: {
-        protocol: 'pixelpusher',
-        settings: {},
+        protocol: 'artnet',
+        settings: {
+            pixelpusher: defaultConfig('pixelpusher'),
+            artnet: defaultConfig('artnet'),
+        }
     },
 
     getters: {
         activeHardwareSettings(state) {
-            if (state.protocol === 'pixelpusher')
-                return {};
-
             return state.settings[state.protocol];
         },
 
@@ -46,3 +46,23 @@ store.registerModule('hardware', {
         },
     },
 });
+
+function defaultConfig(protocol) {
+    switch (protocol) {
+        case 'pixelpusher':
+            return {};
+
+        case 'artnet':
+            return [{
+                controller: {
+                    host: '192.168.1.241'
+                },
+                strip: 0,
+                startUniverse: 0,
+                startChannel: 0,
+            }];
+
+        default:
+            return {};
+    }
+}

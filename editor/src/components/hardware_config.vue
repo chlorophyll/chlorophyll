@@ -27,15 +27,6 @@ import {mapGetters, mapMutations} from 'vuex';
 import _ from 'lodash';
 import {userConfigFromSettings, settingsFromUserConfig} from '@/common/hardware/artnet';
 
-const dummyConfig = {
-    '192.168.1.241': {
-        '0': {
-            startUniverse: 0,
-            startChannel: 0,
-        }
-    }
-}
-
 export default {
     store,
     name: 'hardware-config',
@@ -49,7 +40,7 @@ export default {
             if (storedSettings.artnet)
                 startingConfig = userConfigFromSettings(storedSettings.artnet);
             else
-                startingConfig = dummyConfig;
+                startingConfig = {};
         }
 
         return {

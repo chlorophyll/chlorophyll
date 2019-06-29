@@ -1,6 +1,6 @@
 import * as dgram from 'dgram';
 import _ from 'lodash';
-import ModelBase from '@/common/model';
+import ModelBase from '../model';
 
 const ArtnetPort = 6454;
 
