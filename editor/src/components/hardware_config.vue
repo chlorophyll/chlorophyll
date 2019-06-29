@@ -29,9 +29,9 @@ import {userConfigFromSettings, settingsFromUserConfig} from '@/common/hardware/
 
 const dummyConfig = {
     '192.168.1.241': {
-        '1': {
-            startUniverse: 1,
-            startChannel: 1,
+        '0': {
+            startUniverse: 0,
+            startChannel: 0,
         }
     }
 }
