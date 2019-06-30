@@ -1,4 +1,5 @@
 import store from 'chl/vue/store';
+import { registerSaveField } from 'chl/savefile';
 
 store.registerModule('hardware', {
     namespaced: true,
@@ -44,6 +45,14 @@ store.registerModule('hardware', {
         updateSettings(state, settings) {
             state.settings = settings;
         },
+
+        restore(state, blob) {
+            if (blob.protocol)
+                state.protocol = blob.protocol;
+
+            if (blob.settings)
+                state.settings = blob.settings;
+        },
     },
 });
 
@@ -66,3 +75,16 @@ function defaultConfig(protocol) {
             return {};
     }
 }
+
+registerSaveField('hardwareSettings', {
+    save() {
+        return {...store.state.hardware};
+    },
+
+    restore(hardwareSettings) {
+        if (!hardwareSettings)
+            return;
+
+        store.commit('hardware/restore', hardwareSettings);
+    },
+});

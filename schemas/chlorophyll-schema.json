@@ -473,6 +473,17 @@
                         "type": "number"
                     }
                 }
+            },
+            "hardwareSettings": {
+                "type": "object",
+                "properties": {
+                    "protocol": {
+                        "type": "string"
+                    },
+                    "settings": {
+                        "type": ["object", "array"]
+                    }
+                }
             }
         },
         "chlorophyllSavefile": {
