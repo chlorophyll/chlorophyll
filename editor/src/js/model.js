@@ -300,10 +300,14 @@ export class Model extends ModelBase {
         const dist = Math.sqrt(distsq);
 
         this.pixelsize = 0.8 * dist;
+        if (isLanding && this.num_pixels > 1000) {
+            this.pixelsize *= 2;
+        }
         this.model_info.pixelsize = this.pixelsize;
 
         this.material = new THREE.RawShaderMaterial({
             uniforms: {
+                outlineWidth: {value: isLanding ? 0 : 0.025},
                 pointSize: { value: this.pixelsize },
                 computedColors: { value: texture },
                 displayOnly: { value: false },
@@ -330,9 +334,9 @@ export class Model extends ModelBase {
         this.edges = new THREE.Mesh(this.geometry, this.edgeMaterial);
 
         this.scene = new THREE.Scene();
-        this.scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
         this.scene.add(this.particles);
         this.scene.add(this.edges);
+        this.scene.fog = new THREE.Fog(0x000000, Const.fog_start, Const.max_draw_dist);
 
         if (!isLanding) {
             this._initStripModels();
@@ -375,7 +379,7 @@ export class Model extends ModelBase {
         }
     }
 
-    zoomCameraToFit(camera) {
+    zoomCameraToFit(camera, oversizeFactor = 1.1) {
         const boxSize = new THREE.Vector3();
         const center = new THREE.Vector3();
         const boundingBox = new THREE.Box3();
@@ -386,8 +390,6 @@ export class Model extends ModelBase {
         boundingBox.getCenter(center);
         const {x, y, z} = boxSize;
         const maxDim = Math.max(x, y, z);
-
-        const oversizeFactor = 1.1;
 
         if (camera.isPerspectiveCamera) {
             const fov = camera.fov * ( Math.PI / 180 );

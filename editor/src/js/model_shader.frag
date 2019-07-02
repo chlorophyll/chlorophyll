@@ -1,11 +1,10 @@
 #define CIRCLE_SIZE 0.225
-#define OUTLINE_WIDTH 0.025
-#define OUTLINE_SIZE (CIRCLE_SIZE + OUTLINE_WIDTH)
 
 precision highp float;
 varying vec2 vUv;
 
 uniform bool displayOnly;
+uniform float outlineWidth;
 varying vec3 vColor;
 
 float aastep(float threshold, float value) {
@@ -25,7 +24,8 @@ vec3 toLinear(vec3 v, float gamma) {
 void main() {
   vec3 outcolor;
   vec2 uv =  vUv;
-  float outline = circle(vec2(0.5)-uv, OUTLINE_SIZE);
+  float outlineSize = CIRCLE_SIZE + outlineWidth;
+  float outline = circle(vec2(0.5)-uv, outlineSize);
   float circ = circle(vec2(0.5)-uv, CIRCLE_SIZE);
 
   if (!displayOnly && vColor == vec3(0.)) {
@@ -33,5 +33,10 @@ void main() {
   }
   if (outline < ALPHATEST)
     discard;
-  gl_FragColor = vec4(mix(vec3(0.), vColor, circ), outline);
+  if (outlineWidth > 0.) {
+      outcolor = mix(vec3(0.), vColor, circ);
+  } else {
+      outcolor = vColor;
+  }
+  gl_FragColor = vec4(outcolor, outline);
 }
