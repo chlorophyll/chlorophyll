@@ -5,7 +5,6 @@
  * address.
  */
 import _ from 'lodash';
-import slugify from 'slugify';
 import * as assert from 'assert';
 import * as OT from './osc_types';
 import * as T from '../types';
@@ -44,6 +43,10 @@ export default class Signal {
         this._address = attrs.address;
         this._currentValue = null;
         this._listener = null;
+    }
+
+    static argsToGraphTypes(args: Array<string>) {
+        return args.map(t => OT.toGraphUnit(OT.OSCType[t]));
     }
 
     enable() {
@@ -105,7 +108,11 @@ export default class Signal {
     }
 
     get ident() {
-        return `osc_signal_${this.id || slugify(this.name) || slugify(this._address)}`;
+        const uniqueSlug = this.id
+            || _.snakeCase(this.name)
+            || _.snakeCase(this._address);
+
+        return `osc_signal_${uniqueSlug}`;
     }
 
     get shortName() {

@@ -2,28 +2,35 @@ import * as Serialization from '@/common/util/serialization';
 
 // Avoid circular dependency between compiler and units
 import Units from '@/common/units'; // eslint-disable-line no-unused-vars
-import { GraphCompiler } from '@/common/graphlib/compiler';
 
-let node_types = new Map();
+let nodeTypes = new Map();
 let graphs = new Map();
 
 export const GraphLib = {
-    registerNodeType(path, constructor) {
-        if (!GraphNode.isPrototypeOf(constructor))
+    /**
+     * Add a new type to the list of usable graph editor nodes.
+     *
+     * @param {String} path - slash-separated path, unique per-node.
+     * @param {GraphNode} Constructor - Class for the node itself.
+     * @param {Object} [presets] - Additional parameters object to pass to the
+     *                             constructor for parameterized nodes.
+     */
+    registerNodeType(path, Constructor, presets) {
+        if (!GraphNode.isPrototypeOf(Constructor))
             throw new Error('All registered node types must inherit from GraphNode');
 
-        node_types.set(path, constructor);
-        constructor.type = path;
+        nodeTypes.set(path, {Constructor, presets});
+        Constructor.type = path;
     },
 
-    registerNodeTypes(node_list) {
-        for (let [path, constructor] of node_list) {
-            this.registerNodeType(path, constructor);
+    registerNodeTypes(nodeList) {
+        for (let [path, Constructor, presets] of nodeList) {
+            this.registerNodeType(path, Constructor, presets);
         }
     },
 
     getNodeTypes() {
-        return node_types;
+        return nodeTypes;
     },
 
     graphById(id) {
@@ -113,7 +120,8 @@ export class GraphBase {
     }
 
     addNode(path, id, vm_factory, options = {}) {
-        let Ctor = node_types.get(path);
+        const nodeDef = nodeTypes.get(path);
+        const Ctor = nodeDef.Constructor;
 
         if (!Ctor) {
             throw new Error('unknown node type' + path);
@@ -124,7 +132,9 @@ export class GraphBase {
         const graph = this;
         const title = options.title || Ctor.title || path;
 
-        let node = new Ctor({graph, id, title, pos, path, properties, vm_factory});
+        const nodeAttrs = {graph, id, title, pos, path, properties, vm_factory};
+        const nodeTypePresets = nodeDef.presets;
+        const node = new Ctor(nodeAttrs, nodeTypePresets);
 
         this.nodes.set(node.id, node);
 
