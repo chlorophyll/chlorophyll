@@ -105,7 +105,11 @@ export default class Signal {
     }
 
     get ident() {
-        return `osc_signal_${this.id || slugify(this.name) || slugify(this._address)}`;
+        const uniqueSlug = this.id
+            || slugify(this.name, '_')
+            || slugify(this._address, '_');
+
+        return `osc_signal_${uniqueSlug}`;
     }
 
     get shortName() {
