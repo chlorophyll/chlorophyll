@@ -46,6 +46,10 @@ export default class Signal {
         this._listener = null;
     }
 
+    static argsToGraphTypes(args: Array<string>) {
+        return args.map(t => OT.toGraphUnit(OT.OSCType[t]));
+    }
+
     enable() {
         return this._startListener();
     }

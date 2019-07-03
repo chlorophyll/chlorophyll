@@ -4,6 +4,7 @@ import register_oscillator_nodes from './oscillators';
 import register_crgb_nodes from './color';
 import register_mapping_nodes from './mapping';
 import register_input_nodes from './osc_address';
+import register_signal_nodes from './signals';
 import register_syphon_nodes from './syphon';
 import register_easing_nodes from './easing';
 import register_noise_nodes from './noise';
@@ -12,9 +13,12 @@ import register_complex_nodes from './complex';
 let registered = false;
 
 export default function register_nodes() {
+    // First, regenerate any dynamically generated nodes.
+    register_signal_nodes();
     if (registered)
         return;
 
+    // Statically defined nodes: These only need to be registered once.
     register_crgb_nodes();
     register_pixel_stage_nodes();
     register_mapping_nodes();
