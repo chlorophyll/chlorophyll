@@ -5,14 +5,37 @@
  * address.
  */
 import _ from 'lodash';
+import slugify from 'slugify';
 import * as assert from 'assert';
-import { input } from 'common/osc';
 import * as OT from './osc_types';
+import * as T from '../types';
+import { input } from './index';
+
+export interface SignalBlob {
+    id?: number;
+    name: string;
+    address: string;
+    args: Array<string>;
+    source: 'osc';
+}
 
 export default class Signal {
-    constructor(attrs) {
+    id: number;
+    oscTypes: Array<OT.OSCType>;
+    graphTypes: Array<T.GraphUnit>;
+    name: string;
+    source: 'osc';
+
+    private _address: string;
+    private _currentValue: any;
+    private _listener;
+
+    constructor(attrs: SignalBlob) {
         this.id = attrs.id;
-        this.oscTypes = attrs.args || [];
+        this.oscTypes = [];
+        if (attrs.args)
+            this.oscTypes = attrs.args.map(t => OT.OSCType[t]);
+
         this.graphTypes = this.oscTypes.map(OT.toGraphUnit);
         this.name = attrs.name || attrs.address;
         // TODO support other sources
@@ -46,9 +69,7 @@ export default class Signal {
         if (address === this._address && _.isEqual(args, this.oscTypes))
             return;
 
-        // TODO let listener creation return an object which can be used to
-        // update the listener, pause, or stop it.
-        input.stop(this._address);
+        this._stopListener();
 
         if (address)
             this._address = address;
@@ -84,7 +105,7 @@ export default class Signal {
     }
 
     get ident() {
-        return `osc_signal_${this.node.id}`;
+        return `osc_signal_${this.id || slugify(this.name) || slugify(this._address)}`;
     }
 
     get shortName() {
@@ -102,11 +123,12 @@ export default class Signal {
         return this._address;
     }
 
-    set args(args) {
+    set args(args: Array<string>) {
         if (!args)
             args = [];
 
-        if (_.isEqual(args, this.oscTypes))
+        const newArgs = args.map(t => OT.OSCType[t]);
+        if (_.isEqual(newArgs, this.oscTypes))
             return;
 
         this.update(null, args);
@@ -120,17 +142,17 @@ export default class Signal {
         return Boolean(this._listener);
     }
 
-    serialize() {
+    serialize(): SignalBlob {
         return {
             id: this.id,
             name: this.name,
             address: this._address,
-            args: this.oscTypes,
+            args: this.oscTypes.map(t => OT.OSCType[t]),
             source: this.source
         };
     }
 
-    static deserialize(attrs) {
+    static deserialize(attrs: SignalBlob) {
         return new Signal(attrs);
     }
 }

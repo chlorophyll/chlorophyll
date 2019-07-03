@@ -1,15 +1,7 @@
 import store, {newgid, crud} from 'chl/vue/store';
-import {OSCType} from '@/common/osc/osc_types';
 import Signal from '@/common/osc/signal';
 import {registerSaveField} from 'chl/savefile';
 import {restoreAll} from '@/common/util/serialization';
-
-interface SignalBlob {
-    name: string;
-    address: string;
-    args: Array<string | OSCType>;
-    source: 'osc' | 'syphon';
-}
 
 store.registerModule('signal', {
     namespaced: true,
