@@ -1,6 +1,6 @@
 <template>
   <div class="text-editor-container">
-    <div id="ace-editor" ref="editor"></div>
+    <div class="ace-editor" ref="editor"></div>
   </div>
 </template>
 
@@ -13,13 +13,21 @@ export default {
   name: 'text-editor',
   props: {
     value: {
-      type: [String, Object],
+      type: [String, Object, Array],
       default: '',
     },
     format: {
       type: String,
       default: 'json',
     },
+    readonly: {
+      type: Boolean,
+      default: false
+    },
+    linenumbers: {
+      type: Boolean,
+      default: true
+    }
   },
 
   model: {
@@ -34,13 +42,18 @@ export default {
   },
 
   mounted() {
-    this.editor = ace.edit(this.$refs.editor.id);
+    this.editor = ace.edit(this.$refs.editor);
     this.editor.setTheme('ace/theme/monokai');
     this.editor.session.setMode(`ace/mode/${this.format}`);
     this.editor.session.setOptions({
       tabSize: 2,
       useSoftTabs: true
     });
+    if (this.readonly)
+      this.editor.setReadOnly(true);
+    if (!this.linenumbers)
+      this.editor.renderer.setShowGutter(false);
+
     this.editor.session.setValue(this.stringValue);
 
     this.editor.on('change', this.onChange);
@@ -72,7 +85,8 @@ export default {
 
   methods: {
     onChange(event) {
-      this.modified = true;
+      if (!this.readonly)
+          this.modified = true;
       this.$emit('input', this.editor.getValue());
       const parsedObject = this.getParsed();
       if (parsedObject)
@@ -128,7 +142,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-#ace-editor {
+.ace-editor {
   position: relative;
   width: 100%;
   height: 100%;

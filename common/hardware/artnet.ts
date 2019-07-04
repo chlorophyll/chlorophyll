@@ -38,6 +38,11 @@ interface ArtnetStripMapping {
     strip: number;
     startUniverse: number;
     startChannel: number;
+    // Extra info, unused for generating output but useful for debugging
+    endUniverse?: number;
+    endChannel?: number;
+    numPixels?: number;
+    outputIdx?: number;
 }
 
 interface StripSegment {
@@ -49,13 +54,8 @@ interface StripSegment {
 };
 
 // User-facing human readable config format
-interface UserStripConfig {
-  startUniverse: number;
-  startChannel: number;
-}
-
 interface UserConfig {
-  [host: string]: Array<UserStripConfig>
+  [host: string]: Array<number>
 }
 
 const maxChannelsInUniverse = 510;
@@ -180,19 +180,33 @@ export class ArtnetRegistry {
     }
 }
 
-export function settingsFromUserConfig(config: UserConfig): Array<ArtnetStripMapping> {
+export function settingsFromUserConfig(config: UserConfig, model: ModelBase): Array<ArtnetStripMapping> {
     if (!config)
         return [];
 
     const mappings = [];
     Object.entries(config).forEach(([host, strips]) => {
-        Object.entries(strips).forEach(([strip, params]) => {
+        let curChannel = 0;
+        if (!strips)
+            return;
+
+        strips.forEach((stripIdx, outputIdx) => {
+            if (!_.isInteger(stripIdx) || stripIdx >= model.num_strips)
+                return;
+
+            const numPixels = model.numPixelsInStrip(stripIdx);
+            const nextStartChannel = curChannel + numPixels * 3;
             mappings.push({
                 controller: {host},
-                strip: parseInt(strip, 10),
-                startUniverse: params.startUniverse,
-                startChannel: params.startChannel
+                strip: stripIdx,
+                startUniverse: Math.floor(curChannel / maxChannelsInUniverse),
+                startChannel: curChannel % maxChannelsInUniverse,
+                endUniverse: Math.floor((nextStartChannel - 1) / maxChannelsInUniverse),
+                endChannel: (nextStartChannel - 1) % maxChannelsInUniverse,
+                numPixels,
+                outputIdx
             });
+            curChannel = nextStartChannel;
         });
     });
 
@@ -203,16 +217,23 @@ export function userConfigFromSettings(settings: Array<ArtnetStripMapping>): Use
     if (!settings)
         return {};
 
-    const config = {};
+    const stripsByHost = {};
     const controllers = new Set(settings.map(s => s.controller.host));
     controllers.forEach(host => {
-        config[host] = {};
-    });
-    settings.forEach(({controller, strip, startUniverse, startChannel}) => {
-        // Use string keys to make the syntax a bit friendlier in YAML
-        config[controller.host][String(strip)] = {startUniverse, startChannel};
+        stripsByHost[host] = [];
     });
 
-    return config;
+    settings.forEach(({controller, strip, startUniverse, startChannel}) => {
+        stripsByHost[controller.host].push({strip, startUniverse, startChannel});
+    });
+
+    // The start universe and channel for the strip can be safely discarded if
+    // outputs always start from Output 1 and there are no gaps.
+    for (let host in stripsByHost) {
+        const orderedOutputs = _.sortBy(stripsByHost[host], ['startUniverse', 'startChannel']);
+        stripsByHost[host] = orderedOutputs.map(s => s.strip);
+    }
+
+    return stripsByHost;
 }
 

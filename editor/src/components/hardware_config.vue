@@ -1,5 +1,5 @@
 <template>
-    <dialog-box title="hardware config" :show="true" @close="close" width="500px" :pos="{x: 100, y: 100}">
+    <dialog-box title="hardware config" :show="true" @close="close" width="900px" :pos="{x: 100, y: 100}">
         <div class="controls config">
             <div class="control-row">
                 <label>Protocol</label>
@@ -13,6 +13,11 @@
                 <div class="control-row">
                     <label>Settings</label>
                     <text-editor id="editor" format="yaml" v-model="settings" />
+                    <text-editor id="tabledisplay"
+                        format="plain_text"
+                        :readonly="true"
+                        :linenumbers="false"
+                        :value="outputSettingsResult" />
                 </div>
             </template>
         </div>
@@ -20,12 +25,14 @@
 </template>
 
 <script>
-import DialogBox from '@/components/widgets/dialog_box';
-import TextEditor from '@/components/widgets/text_editor';
+import _ from 'lodash';
+import columnify from 'columnify';
 import store from 'chl/vue/store';
 import {mapGetters, mapMutations} from 'vuex';
-import _ from 'lodash';
 import {userConfigFromSettings, settingsFromUserConfig} from '@/common/hardware/artnet';
+import DialogBox from '@/components/widgets/dialog_box';
+import TextEditor from '@/components/widgets/text_editor';
+import {currentModel} from 'chl/model';
 
 export default {
     store,
@@ -50,6 +57,34 @@ export default {
         };
     },
 
+    computed: {
+        outputSettingsResult() {
+            if (!this.settings || !currentModel || this.protocol !== 'artnet')
+                return '';
+
+            let settingsResult;
+            try {
+                settingsResult = settingsFromUserConfig(this.settings, currentModel);
+            } catch (e) {
+                return 'Invalid input.'
+            }
+
+            return columnify(
+                settingsResult.map(out => ({
+                    ...out,
+                    startUniverse: out.startUniverse + 1,
+                    startChannel: out.startChannel + 1,
+                    output: `Output ${out.outputIdx + 1}`,
+                    host: out.controller.host
+                })),
+                {
+                    columns: ['host', 'output', 'startUniverse', 'startChannel', 'numPixels'],
+                    columnSplitter: '  '
+                }
+            );
+        }
+    },
+
     watch: {
         protocol(newProtocol) {
             if (newProtocol !== 'artnet')
@@ -68,15 +103,11 @@ export default {
             saveProtocol: 'hardware/useProtocol',
         }),
 
-        onUpdated(newValue) {
-            this.settings = newValue;
-        },
-
         close(shouldSave) {
             if (shouldSave) {
                 const arg = {protocol: this.protocol};
                 if (this.protocol === 'artnet')
-                    arg.settings = settingsFromUserConfig(this.settings);
+                    arg.settings = settingsFromUserConfig(this.settings, currentModel);
 
                 this.saveProtocol(arg);
             } else {
@@ -92,6 +123,7 @@ export default {
 <style scoped>
 .config >>> .control {
     display: flex;
+    max-width: 20em;
 }
 
 .textbox * {
@@ -99,7 +131,12 @@ export default {
 }
 
 #editor {
-    width: 400px;
+    width: 300px;
+    height: 500px;
+}
+
+#tabledisplay {
+    width: 500px;
     height: 500px;
 }
 </style>
