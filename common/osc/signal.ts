@@ -5,7 +5,6 @@
  * address.
  */
 import _ from 'lodash';
-import slugify from 'slugify';
 import * as assert from 'assert';
 import * as OT from './osc_types';
 import * as T from '../types';
@@ -110,8 +109,8 @@ export default class Signal {
 
     get ident() {
         const uniqueSlug = this.id
-            || slugify(this.name, '_')
-            || slugify(this._address, '_');
+            || _.snakeCase(this.name)
+            || _.snakeCase(this._address);
 
         return `osc_signal_${uniqueSlug}`;
     }
