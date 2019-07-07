@@ -1,11 +1,12 @@
 import * as fs from 'fs';
+import * as util from 'util';
 import * as tar from 'tar-stream';
 import * as concatStream from 'concat-stream';
 
 import { remote } from 'electron';
 import schemas, { SchemaDefs } from 'chl/schemas';
 
-import { importNewModel, modelPreview } from 'chl/model';
+import { importNewModel, modelPreview, currentModel } from 'chl/model';
 import { createNewMapping } from 'chl/mapping';
 
 import store from 'chl/vue/store';
@@ -14,8 +15,11 @@ import { createSaveObject, restoreSaveObject } from 'chl/savefile';
 import { pushRecentFile } from 'chl/savefile/recent';
 import importOBJ from './obj';
 
-let validateSchema = schemas.getSchema(SchemaDefs.definition('chlorophyllSavefile'));
-let validateModel = schemas.getSchema(SchemaDefs.object('model'));
+// Promisified in Electron 5+ but patched in until we upgrade.
+const showMessageBoxAsync = util.promisify(remote.dialog.showMessageBox);
+
+const validateSchema = schemas.getSchema(SchemaDefs.definition('chlorophyllSavefile'));
+const validateModel = schemas.getSchema(SchemaDefs.object('model'));
 
 const SAVE_VERSION = '1';
 
@@ -196,19 +200,30 @@ export function showImportDialog(format = 'chl') {
             return;
 
         switch (format) {
-            case 'chl':
+            case 'chl': {
                 return importModelFile(filenames[0]);
-            case 'obj':
-                return importOBJ(filenames[0]).then(({strips, uvCoords}) => {
-                    console.log('Loading strip data:', strips);
-                    importNewModel({strips});
-                    // TODO handle multiple maps
-                    createNewMapping('uv', 'Imported UV map', {
-                        uvCoords,
-                        dimension: 2
+            }
+
+            case 'obj': {
+                const load = importOBJ(filenames[0]);
+                const prompt = promptReplace();
+                return Promise.all([load, prompt])
+                    .then(([{strips, uvCoords}, action]) => {
+                        if (action === 'cancel') {
+                            console.log('Cancelled import.');
+                            return;
+                        }
+                        console.log('Loading strip data:', strips);
+                        const newProject = action === 'new';
+                        importNewModel({strips}, {newProject});
+                        // TODO handle multiple maps
+                        createNewMapping('uv', 'Imported UV map', {
+                            uvCoords,
+                            dimension: 2
+                        });
                     });
-                    store.commit('set_current_save_path', null);
-                });
+            }
+
             default:
                 throw new Error('invalid load format');
         }
@@ -221,4 +236,22 @@ export function saveCurrentProject() {
     } else {
         showSaveAsDialog();
     }
+}
+
+async function promptReplace() {
+    if (!currentModel)
+        return 'new';
+
+    const response = await showMessageBoxAsync({
+        type: 'question',
+        title: 'Import New Project',
+        message: [
+            'A project is already open.',
+            'Start a new project with the imported model, or replace the current project\'s model?'
+        ].join('\n'),
+        buttons: ['Create New Project', 'Replace Current Model', 'Cancel'],
+        defaultId: 0,
+    });
+    const options = ['new', 'replace', 'abort'];
+    return options[response];
 }

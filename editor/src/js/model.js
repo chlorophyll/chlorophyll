@@ -39,12 +39,12 @@ function createStripGroup(strip) {
     createGroup({id, name, pixels});
 }
 
-export function importNewModel(json, fromScratch = true) {
+export function importNewModel(json, options = {}) {
     // Always destroy state connected to the model itself.
     store.commit('pixels/clear_groups');
     ColorPool.reset();
 
-    if (fromScratch) {
+    if (options.newProject) {
         store.commit('set_current_save_path', null);
         store.commit('mapping/clear');
         store.commit('pattern/clear');
