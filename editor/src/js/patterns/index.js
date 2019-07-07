@@ -30,11 +30,13 @@ store.registerModule('pattern', {
             Vue.set(state.patterns, pattern.id, pattern);
             state.pattern_ordering.push(pattern.id);
         },
-        clear_patterns(state) {
+
+        clear(state) {
             state.patterns = {};
             state.pattern_ordering = [];
             state.cur_pattern_id = null;
         },
+
         set_current(state, { id }) {
             state.cur_pattern_id = id;
         },
@@ -97,9 +99,11 @@ store.registerModule('playlists', {
         update(state, items) {
             state.playlistItems = [...items];
         },
+
         restore(state, snapshot) {
             state.playlistItems = restorePlaylistItems(snapshot);
         },
+
         updateItem(state, {index, ...updates}) {
             console.log(index, updates);
             const cur = state.playlistItems[index];
@@ -110,9 +114,14 @@ store.registerModule('playlists', {
             console.log(newItem);
             Vue.set(state.playlistItems, index, newItem);
         },
+
         deleteItem(state, {index}) {
             state.playlistItems.splice(index, 1);
-        }
+        },
+
+        clear(state) {
+            state.playlistItems = [];
+        },
     },
 });
 

@@ -53,6 +53,14 @@ store.registerModule('hardware', {
             if (blob.settings)
                 state.settings = blob.settings;
         },
+
+        clear(state) {
+            state.protocol = 'artnet';
+            state.settings = {
+                pixelpusher: defaultConfig('pixelpusher'),
+                artnet: defaultConfig('artnet'),
+            };
+        },
     },
 });
 

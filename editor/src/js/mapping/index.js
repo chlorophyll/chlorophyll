@@ -20,7 +20,7 @@ store.registerModule('mapping', {
         mapping_list: [],
     },
     mutations: {
-        clear_mappings(state) {
+        clear(state) {
             state.mappings = {};
             state.mapping_list = [];
         },

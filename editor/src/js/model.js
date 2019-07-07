@@ -25,25 +25,32 @@ export function setCurrentModel(model) {
 }
 
 function createStripGroup(strip) {
+    const id = newgid();
+
     let pixels = [];
-    let id = newgid();
-    currentModel.forEachPixelInStrip(strip, function(pixel) {
+    currentModel.forEachPixelInStrip(strip, pixel => {
         pixels.push(pixel);
     });
 
-    createGroup({
-        id,
-        name: `Strip ${strip+1}`,
-        pixels: pixels,
-    });
+    let name = currentModel.stripLabel(strip);
+    if (!name)
+        name = `Strip ${strip + 1}`;
 
+    createGroup({id, name, pixels});
 }
 
-export function importNewModel(json) {
+export function importNewModel(json, fromScratch = true) {
+    // Always destroy state connected to the model itself.
     store.commit('pixels/clear_groups');
-    store.commit('mapping/clear_mappings');
-    store.commit('pattern/clear_patterns');
     ColorPool.reset();
+
+    if (fromScratch) {
+        store.commit('set_current_save_path', null);
+        store.commit('mapping/clear');
+        store.commit('pattern/clear');
+        store.commit('playlists/clear');
+        store.commit('hardware/clear');
+    }
 
     let model = new Model(json);
     setCurrentModel(model);
