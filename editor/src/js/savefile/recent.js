@@ -30,7 +30,7 @@ function updateWithPreviewsAsync(projects) {
 }
 
 export function getRecentProjects() {
-    const schemaVersion = app_settings.get('schema_version', null);
+    const schemaVersion = app_settings.get('schema_version', 1);
     const recents = app_settings.get('recent_files', []);
     let recentProjects;
 
