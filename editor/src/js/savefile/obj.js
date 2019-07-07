@@ -62,7 +62,8 @@ export default async function importOBJ(filename) {
                 const svg = await loadSvgFile(path.resolve(workingDir, seg.pixels));
 
                 const ignoreUnmapped = Boolean(seg.drop_unmapped);
-                const {strips, uvCoords} = uvMapStrips(obj, svg, {ignoreUnmapped});
+                let {strips, uvCoords} = uvMapStrips(obj, svg, {ignoreUnmapped});
+                strips = labelStrips(seg.model, strips);
 
                 // Connect the first strip of the just-mapped segment to the
                 // end of the previous one, if needed.
@@ -72,7 +73,7 @@ export default async function importOBJ(filename) {
 
                     const last = allStrips.pop();
                     const next = strips.shift();
-                    allStrips = [...allStrips, [...last, ...next], ...strips];
+                    allStrips = [...allStrips, concatStrips(last, next), ...strips];
                 } else {
                     allStrips = [...allStrips, ...strips];
                 }
@@ -315,4 +316,26 @@ function settingsForObject(object) {
 
     settings.rayDirection[settings.axis] = 1;
     return settings;
+}
+
+function labelStrips(meshFilename, strips) {
+    const base = path.parse(meshFilename).name;
+    if (strips.length === 1) {
+        return [{
+            label: base,
+            pixels: strips[0]
+        }];
+    }
+
+    return strips.map((strip, i) => ({
+        label: `${base}_${i}`,
+        pixels: strip
+    }));
+}
+
+function concatStrips(dest, ...others) {
+    return {
+        label: dest.label,
+        pixels: dest.pixels.concat(...others)
+    };
 }

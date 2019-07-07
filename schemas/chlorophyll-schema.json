@@ -440,16 +440,21 @@
             "model": {
                 "type": "object",
                 "properties": {
-                    "mapper": {
-                        "type": "string"
-                    },
-                    "num_pixels": {
-                        "type": "number"
-                    },
+                    "mapper": {"type": "string"},
+                    "num_pixels": {"type": "number"},
                     "strips": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/definitions/types/coordList"
+                            "anyOf": [
+                                {"$ref": "#/definitions/types/coordList"},
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "label": {"type": "string"},
+                                        "pixels": {"$ref": "#/definitions/types/coordList"}
+                                    }
+                                }
+                            ]
                         }
                     }
                 }

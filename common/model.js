@@ -7,8 +7,20 @@ export default class ModelBase {
         this.strip_models = [];
         this.num_pixels = 0;
         this.model_info = json;
+        this.strip_labels = [];
 
-        const { strips } = this.model_info;
+        let { strips } = this.model_info;
+        strips = strips.map((s, i) => {
+            if (Array.isArray(s)) {
+                // Plain format: Strip as an array of pixel positions.
+                this.strip_labels.push(null);
+                return s;
+            } else {
+                // Labeled format: Strip as a {label, pixels} object.
+                this.strip_labels.push(s.label || `strip_${i}`);
+                return s.pixels;
+            }
+        });
 
         for (const strip of strips) {
             this.num_pixels += strip.length;
@@ -69,6 +81,14 @@ export default class ModelBase {
 
     numPixelsInStrip(strip) {
         return this.strip_offsets[strip+1] - this.strip_offsets[strip];
+    }
+
+    stripLabel(strip) {
+        return this.strip_labels[strip];
+    }
+
+    getStripByLabel(label) {
+        return this.strip_labels.findIndex(l => l === label);
     }
 }
 
