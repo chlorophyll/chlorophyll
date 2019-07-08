@@ -336,6 +336,6 @@ function labelStrips(meshFilename, strips) {
 function concatStrips(dest, ...others) {
     return {
         label: dest.label,
-        pixels: dest.pixels.concat(...others)
+        pixels: dest.pixels.concat(...(others.map(s => s.pixels)))
     };
 }
