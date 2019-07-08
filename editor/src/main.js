@@ -13,6 +13,10 @@ import RootComponent from '@/components/root';
 
 import viewports from 'chl/viewport';
 
+/*
+ * Electron config
+ */
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = true;
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
 
 Vue.config.productionTip = false;

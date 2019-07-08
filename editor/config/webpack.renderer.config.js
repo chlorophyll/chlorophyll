@@ -29,6 +29,8 @@ let rendererConfig = {
     ...Object.keys(dependencies || {}).filter(d => !whiteListedModules.includes(d))
   ],
   module: {
+    // Squash dynamic-require errors
+    exprContextCritical: false,
     rules: [
       {
         test: /\.(js|vue)$/,
