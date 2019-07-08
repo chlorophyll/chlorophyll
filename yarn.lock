@@ -85,7 +85,7 @@
 
 "SyphonBuffer@https://github.com/chlorophyll/SyphonBuffer":
   version "1.0.1"
-  resolved "https://github.com/chlorophyll/SyphonBuffer#f6f0c64837db5983443ec6a9ad032aaf60efa1dd"
+  resolved "https://github.com/chlorophyll/SyphonBuffer#efa11d8898d4989fec23a5ac3fcf900322f903ae"
   dependencies:
     mmap.js "^1.0.3"
     nodeshm "https://github.com/chlorophyll/nodeshm.git"

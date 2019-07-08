@@ -1,5 +1,5 @@
+import * as os from 'os';
 import {SyphonRegistry} from 'SyphonBuffer';
-import {getFloatingPointTextureOptions} from '@/common/util/shader_runner';
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import Units from '@/common/units';
 import * as glsl from '@/common/glsl';
@@ -62,6 +62,14 @@ registry.on('servers-updated', () => {
     }
 });
 
+registry.on('error', err => {
+    if (os.platform() === 'darwin')
+        console.error('Syphon client process unable to start:', err);
+    else
+        console.warn(`NOTE: Syphon client nodes not supported on ${os.platform()}`);
+
+});
+
 registry.start();
 
 function resetClient(gl) {
@@ -94,7 +102,11 @@ class SampleNode extends GraphNode {
         const pos = glsl.FunctionCall('vec2', [x, y]);
 
         const output = glsl.Dot(glsl.FunctionCall('texture2D', [texture, pos]), 'bgr');
-        const toLinear = glsl.FunctionCall('pow', [output, glsl.FunctionCall('vec3', [glsl.Const(2.2)])]);
+        const gamma = glsl.Const(2.2);
+        const toLinear = glsl.FunctionCall('pow', [
+            output,
+            glsl.FunctionCall('vec3', [gamma])
+        ]);
 
         c.setOutput(this, 0, toLinear);
     }
