@@ -7,6 +7,7 @@ export default class ModelBase {
         this.strip_models = [];
         this.num_pixels = 0;
         this.model_info = json;
+        // TODO guarantee that strip labels are unique
         this.strip_labels = [];
 
         let { strips } = this.model_info;

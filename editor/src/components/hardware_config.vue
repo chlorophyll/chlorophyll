@@ -45,7 +45,7 @@ export default {
         let startingConfig = {};
         if (protocol === 'artnet') {
             if (storedSettings.artnet)
-                startingConfig = userConfigFromSettings(storedSettings.artnet);
+                startingConfig = userConfigFromSettings(storedSettings.artnet, currentModel);
             else
                 startingConfig = {};
         }
@@ -92,7 +92,7 @@ export default {
 
             const storedSettings = this.$store.state.hardware.settings;
             if (storedSettings.artnet)
-                this.settings = userConfigFromSettings(storedSettings.artnet);
+                this.settings = userConfigFromSettings(storedSettings.artnet, currentModel);
             else
                 this.settings = dummyConfig;
         }

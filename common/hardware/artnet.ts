@@ -55,7 +55,7 @@ interface StripSegment {
 
 // User-facing human readable config format
 interface UserConfig {
-  [host: string]: Array<number>
+  [host: string]: Array<string>
 }
 
 const maxChannelsInUniverse = 510;
@@ -190,8 +190,9 @@ export function settingsFromUserConfig(config: UserConfig, model: ModelBase): Ar
         if (!strips)
             return;
 
-        strips.forEach((stripIdx, outputIdx) => {
-            if (!_.isInteger(stripIdx) || stripIdx >= model.num_strips)
+        strips.forEach((stripLabel, outputIdx) => {
+            const stripIdx = model.getStripByLabel(stripLabel);
+            if (stripIdx < 0 || stripIdx >= model.num_strips)
                 return;
 
             const numPixels = model.numPixelsInStrip(stripIdx);
@@ -213,7 +214,7 @@ export function settingsFromUserConfig(config: UserConfig, model: ModelBase): Ar
     return mappings;
 }
 
-export function userConfigFromSettings(settings: Array<ArtnetStripMapping>): UserConfig {
+export function userConfigFromSettings(settings: Array<ArtnetStripMapping>, model: ModelBase): UserConfig {
     if (!settings)
         return {};
 
@@ -231,7 +232,7 @@ export function userConfigFromSettings(settings: Array<ArtnetStripMapping>): Use
     // outputs always start from Output 1 and there are no gaps.
     for (let host in stripsByHost) {
         const orderedOutputs = _.sortBy(stripsByHost[host], ['startUniverse', 'startChannel']);
-        stripsByHost[host] = orderedOutputs.map(s => s.strip);
+        stripsByHost[host] = orderedOutputs.map(s => model.stripLabel(s.strip));
     }
 
     return stripsByHost;
