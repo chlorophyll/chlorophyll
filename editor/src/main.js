@@ -1,16 +1,22 @@
+/*
+ * Stylesheets
+ */
 import '@/style/chlorophyll.css';
 import '@/style/material-icons.css';
 import '@/style/controlpanel.scss';
 
+/*
+ * UI Components
+ */
 import Vue from 'vue';
 import 'chl/patches';
 import 'chl/vue/register';
-
-import initMenu from 'chl/menu';
-
-
 import RootComponent from '@/components/root';
 
+/*
+ * Services / state managers
+ */
+import initMenu from 'chl/menu';
 import viewports from 'chl/viewport';
 
 /*
