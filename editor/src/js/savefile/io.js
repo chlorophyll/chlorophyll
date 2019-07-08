@@ -131,7 +131,7 @@ export async function previewSavefile(path) {
     return modelPreview(obj);
 }
 
-function importModelFile(path) {
+function importModelFile(path, options) {
     fs.readFile(path, (err, data) => {
         if (err) {
             remote.dialog.showErrorBox('Error importing model', err.message);
@@ -155,7 +155,7 @@ function importModelFile(path) {
             return;
         }
 
-        importNewModel(obj);
+        importNewModel(obj, options);
         store.commit('set_current_save_path', null);
     });
 }
@@ -192,33 +192,39 @@ export function showImportDialog(format = 'chl') {
         filters: [
             { name: 'Model file', extensions: exts }
         ]
-    }, (filenames) => {
+    }, async (filenames) => {
         if (filenames === undefined)
             return;
 
+        const action = await promptReplace();
+        if (action === 'cancel') {
+            console.log('Cancelled import.');
+            return;
+        }
+        const opts = {
+            newProject: action === 'new'
+        };
+
         switch (format) {
             case 'chl': {
-                return importModelFile(filenames[0]);
+                return importModelFile(filenames[0], opts);
             }
 
             case 'obj': {
-                const load = importOBJ(filenames[0]);
-                const prompt = promptReplace();
-                return Promise.all([load, prompt])
-                    .then(([{strips, uvCoords}, action]) => {
-                        if (action === 'cancel') {
-                            console.log('Cancelled import.');
-                            return;
-                        }
-                        console.log('Loading strip data:', strips);
-                        const newProject = action === 'new';
-                        importNewModel({strips}, {newProject});
-                        // TODO handle multiple maps
-                        createNewMapping('uv', 'Imported UV map', {
-                            uvCoords,
-                            dimension: 2
-                        });
+                try {
+                    const {strips, uvCoords} = await importOBJ(filenames[0]);
+                    console.log('Loading strip data:', strips);
+                    const newProject = action === 'new';
+                    importNewModel({strips}, {newProject});
+                    // TODO handle multiple maps
+                    createNewMapping('uv', 'Imported UV map', {
+                        uvCoords,
+                        dimension: 2
                     });
+                } catch (e) {
+                    console.error('Error during import:', e);
+                }
+                return;
             }
 
             default:
