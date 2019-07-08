@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as util from 'util';
 import * as tar from 'tar-stream';
 import * as concatStream from 'concat-stream';
 
@@ -16,8 +15,6 @@ import { pushRecentFile } from 'chl/savefile/recent';
 import importOBJ from './obj';
 
 // Promisified in Electron 5+ but patched in until we upgrade.
-const showMessageBoxAsync = util.promisify(remote.dialog.showMessageBox);
-
 const validateSchema = schemas.getSchema(SchemaDefs.definition('chlorophyllSavefile'));
 const validateModel = schemas.getSchema(SchemaDefs.object('model'));
 
@@ -242,16 +239,21 @@ async function promptReplace() {
     if (!currentModel)
         return 'new';
 
-    const response = await showMessageBoxAsync({
-        type: 'question',
-        title: 'Import New Project',
-        message: [
-            'A project is already open.',
-            'Start a new project with the imported model, or replace the current project\'s model?'
-        ].join('\n'),
-        buttons: ['Create New Project', 'Replace Current Model', 'Cancel'],
-        defaultId: 0,
+    return new Promise(resolve => {
+        remote.dialog.showMessageBox({
+            type: 'question',
+            title: 'Import New Project',
+            message: [
+                'A project is already open.',
+                'Start a new project with the imported model, or replace the current project\'s model?'
+            ].join('\n'),
+            buttons: ['Create New Project', 'Replace Current Model', 'Cancel'],
+            defaultId: 0,
+            cancelId: 2,
+        }, response => {
+            console.log('DIALOG RESPONSE', response);
+            const options = ['new', 'replace', 'cancel'];
+            return resolve(options[response]);
+        });
     });
-    const options = ['new', 'replace', 'abort'];
-    return options[response];
 }

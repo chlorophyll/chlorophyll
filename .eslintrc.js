@@ -72,7 +72,7 @@ module.exports = {
 
     // General style, braces, & whitespace
     'max-len': [1, {
-      code: 100,
+      code: 120,
       tabWidth: 4,
       ignoreUrls: true,
       ignorePattern: '^import .*',
