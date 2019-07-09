@@ -1,34 +1,75 @@
-import register_pattern_nodes from './pattern';
-import register_pixel_stage_nodes from './pixel_stage';
-import register_oscillator_nodes from './oscillators';
-import register_crgb_nodes from './color';
-import register_mapping_nodes from './mapping';
-import register_input_nodes from './osc_address';
-import register_signal_nodes from './signals';
-import register_syphon_nodes from './syphon';
-import register_easing_nodes from './easing';
-import register_noise_nodes from './noise';
-import register_complex_nodes from './complex';
+import * as assert from 'assert';
+
+import patternNodes from './pattern';
+import pixelStageNodes from './pixel_stage';
+import oscillatorNodes from './oscillators';
+import crgbNodes from './color';
+import mappingNodes from './mapping';
+import inputNodes from './osc_address';
+import signalNodes from './signals';
+import syphonNodes from './syphon';
+import easingNodes from './easing';
+import noiseNodes from './noise';
+import complexNodes from './complex';
+
+const staticNodes = [
+    patternNodes,
+    pixelStageNodes,
+    oscillatorNodes,
+    crgbNodes,
+    mappingNodes,
+    inputNodes,
+    syphonNodes,
+    easingNodes,
+    noiseNodes,
+    complexNodes,
+];
+
+const generatedNodes = [
+    {
+        register: signalNodes,
+        getDeps: d => d.signals
+    }
+];
 
 let registered = false;
 
-export default function register_nodes() {
+export function refreshFromStore(vuexStore) {
+    assert.ok(vuexStore);
+    assert.ok(vuexStore.getters);
+
+    const deps = {
+        signals: vuexStore.getters['signals/signal_list'],
+    };
+
+    return refreshNodes(deps);
+};
+
+export function refreshFromSavedState(state) {
+    assert.ok(state);
+    const deps = {
+        signals: state.signals || [],
+    };
+
+    return refreshNodes(deps);
+};
+
+function refreshNodes(deps) {
+    assert.ok(deps);
+
     // First, regenerate any dynamically generated nodes.
-    register_signal_nodes();
+    // Always refresh these nodes
+    for (const {register, getDeps} of generatedNodes) {
+        register(getDeps(deps));
+    }
+
     if (registered)
         return;
 
     // Statically defined nodes: These only need to be registered once.
-    register_crgb_nodes();
-    register_pixel_stage_nodes();
-    register_mapping_nodes();
-    register_pattern_nodes();
-    register_complex_nodes();
-    register_oscillator_nodes();
-    register_input_nodes();
-    register_syphon_nodes();
-    register_easing_nodes();
-    register_noise_nodes();
+    for (const register of staticNodes) {
+        register();
+    }
+
     registered = true;
 };
-

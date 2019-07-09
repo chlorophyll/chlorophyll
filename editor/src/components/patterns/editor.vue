@@ -80,14 +80,14 @@ import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graph/graphcanvas';
 import Sparkline from '@/components/widgets/sparkline';
-import register_nodes from '@/common/nodes/registry';
+import * as nodeRegistry from '@/common/nodes/registry';
 import { RunState, PatternPreview } from 'chl/patterns/preview';
 import GraphLib from '@/common/graphlib';
 import store from 'chl/vue/store';
 import * as numeral from 'numeral';
 
-function getNodeList() {
-    register_nodes();
+function getNodeList(store) {
+    nodeRegistry.refreshFromStore(store);
     let node_types = GraphLib.getNodeTypes();
     let root = {children: []};
     node_types.forEach(function(node_type, path) {
@@ -171,7 +171,7 @@ export default {
             preview_group_id: this.$store.state.pixels.group_list[0],
             pushToHardware: false,
             runstate: RunState.Stopped,
-            node_list: getNodeList(),
+            node_list: getNodeList(this.$store),
         };
     },
     watch: {

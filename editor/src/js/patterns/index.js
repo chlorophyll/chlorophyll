@@ -13,10 +13,6 @@ import { restoreAllPatterns, restorePlaylistItems } from '@/common/patterns';
 import { mappingTypes } from '@/common/mapping';
 import { registerSaveField } from 'chl/savefile';
 
-import register_nodes from '@/common/nodes/registry';
-
-register_nodes();
-
 store.registerModule('pattern', {
     namespaced: true,
     state: {
