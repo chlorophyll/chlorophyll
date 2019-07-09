@@ -7,6 +7,7 @@ import schemas, { SchemaDefs } from 'chl/schemas';
 
 import { importNewModel, modelPreview, currentModel } from 'chl/model';
 import { createNewMapping } from 'chl/mapping';
+import * as nodeRegistry from '@/common/nodes/registry.js';
 
 import store from 'chl/vue/store';
 
@@ -123,6 +124,8 @@ export async function readSavefile(path) {
     restoreSaveObject(obj);
     pushRecentFile(path, {preview: obj.model});
     store.commit('set_current_save_path', path);
+    // TODO(cwill) use an event emitter or listener to handle triggers on file load
+    nodeRegistry.refreshFromStore(store);
 }
 
 export async function previewSavefile(path) {

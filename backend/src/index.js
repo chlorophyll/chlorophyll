@@ -4,7 +4,8 @@ import _ from 'lodash';
 
 import { readSavefile } from './restore';
 import { checkFramebuffer } from '@/common/util/gl_debug';
-import register_nodes from '@/common/nodes/registry';
+import { createFromConfig } from '@/common/mapping';
+import nodeRegistry from '@/common/nodes/registry';
 import PatternRunner from '@/common/patterns/runner';
 import PlaylistRunner from '@/common/patterns/playlist';
 
@@ -26,8 +27,6 @@ function requestAnimationFrame(cb) {
         WebGL.nextFrame();
     }, 14);
 }
-
-register_nodes();
 
 const controllers = new Array();
 
@@ -183,6 +182,8 @@ function main() {
     readSavefile(argv.filename).then((state) => {
         let pattern = undefined;
         let mapping = undefined;
+
+        nodeRegistry.refreshFromSavedState(state);
 
         if (argv.command == 'list-patterns') {
             for (const p of _.values(state.patterns)) {

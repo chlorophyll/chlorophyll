@@ -1,13 +1,13 @@
 import 'chl/testing';
 
 import GraphLib from '@/common/graphlib';
-import register_nodes from '@/common/nodes/registry';
+import * as registry from '@/common/nodes/registry';
 
 import { Graph } from 'chl/graphlib';
 import { SchemaDefs } from 'chl/schemas';
 
 
-beforeAll(() => register_nodes());
+beforeAll(() => registry.refreshFromSavedState({}));
 
 describe('GraphLib', () => {
     test('every registered node type meets the schema', () => {
