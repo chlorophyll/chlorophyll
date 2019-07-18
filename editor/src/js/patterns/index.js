@@ -142,7 +142,7 @@ export function setCoordType(id, mapping_type, coord_type) {
 
     const path = `mapping/${mapping_type}/${coord_type}`;
     graph.addNode(path, {
-        title: 'input',
+        title: 'coordinates',
         ref: 'input_node'
     });
 }
@@ -162,7 +162,7 @@ export function createPattern(id, {name, set_current=true} = {}) {
     pixel_stage.addGlobalOutput('outcolor', 'CRGB');
 
     let path = `mapping/${mapping_type}/${coord_type}`;
-    pixel_stage.addNode(path, {title: 'input', ref: 'input_node'});
+    pixel_stage.addNode(path, {title: 'coordinates', ref: 'input_node'});
 
     pixel_stage.addNode('lowlevel/output/color', {
         title: 'output',
