@@ -249,15 +249,27 @@ class Rotate2D extends GraphNode {
     }
 
     compile(c) {
-        let x = c.getInput(this, 0);
-        let y = c.getInput(this, 1);
-        let theta = c.getInput(this, 2);
+        const x = c.getInput(this, 0);
+        const y = c.getInput(this, 1);
+        const theta = c.getInput(this, 2);
 
-        let sv = c.declare('float', c.variable(), glsl.FunctionCall('sin', [theta]));
-        let cv = c.declare('float', c.variable(), glsl.FunctionCall('cos', [theta]));
+        const sv = c.declare('float', c.variable(), glsl.FunctionCall('sin', [theta]));
+        const cv = c.declare('float', c.variable(), glsl.FunctionCall('cos', [theta]));
 
-        c.setOutput(this, 0, glsl.BinOp(glsl.BinOp(x, '*', cv), '-', glsl.BinOp(y, '*', sv)));
-        c.setOutput(this, 1, glsl.BinOp(glsl.BinOp(x, '*', sv), '+', glsl.BinOp(y, '*', cv)));
+        const origin = glsl.FunctionCall('vec2', [glsl.Const(0.5)]);
+
+        const vec = glsl.BinOp(glsl.FunctionCall('vec2', [x, y]), '-', origin);
+
+        const mat = c.declare('mat2', c.variable(), glsl.FunctionCall('mat2', [
+            cv, glsl.UnOp('-', sv),
+            sv, cv
+        ]));
+
+        const rotated = glsl.BinOp(mat, '*', vec);
+        const final = c.declare('vec2', c.variable(), glsl.BinOp(rotated, '+', origin));
+
+        c.setOutput(this, 0, glsl.Dot(final, 'x'));
+        c.setOutput(this, 1, glsl.Dot(final, 'y'));
     }
 };
 
@@ -308,10 +320,15 @@ class Polar2D extends GraphNode {
         const x = c.getInput(this, 0);
         const y = c.getInput(this, 1);
 
-        const vec = glsl.FunctionCall('vec2', [x, y]);
-
-        const r = glsl.FunctionCall('length', [vec]);
-        const theta = glsl.BinOp(glsl.FunctionCall('atan', [y, x]), '+', glsl.Const(3.1415962));
+        const vec = c.declare('vec2', c.variable(), glsl.BinOp(
+            glsl.FunctionCall('vec2', [x, y]),
+            '-',
+            glsl.FunctionCall('vec2', [glsl.Const(0.5)])
+        ));
+        const vx = glsl.Dot(vec, 'x');
+        const vy = glsl.Dot(vec, 'y');
+        const r = glsl.BinOp(glsl.Const(2), '*', glsl.FunctionCall('length', [vec]));
+        const theta = glsl.BinOp(glsl.FunctionCall('atan', [vy, vx]), '+', glsl.Const(3.1415962));
 
         c.setOutput(this, 0, r);
         c.setOutput(this, 1, theta);
@@ -465,13 +482,16 @@ class MirrorNode extends GraphNode {
 
     compile(c) {
         const t = c.getInput(this, 0);
-        const mirrored = glsl.FunctionCall('abs', [
+        const mirrored = glsl.BinOp(
+            glsl.Const(2),
+            '*',
+            glsl.FunctionCall('abs', [
             glsl.BinOp(
                 t,
                 '-',
                 glsl.FunctionCall('floor', [glsl.BinOp(t, '+', glsl.Const(0.5))])
             )
-        ]);
+        ]));
         c.setOutput(this, 0, mirrored);
     }
 }
