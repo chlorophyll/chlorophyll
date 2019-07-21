@@ -51,6 +51,7 @@ export default {
         showOpenDialog,
         readSave(path) {
             readSavefile(path).catch((err) => {
+                console.error(err);
                 remote.dialog.showErrorBox('Error opening file', err.message);
             });
         }

@@ -27,7 +27,11 @@ export default {
     linenumbers: {
       type: Boolean,
       default: true
-    }
+    },
+    tabstop: {
+      type: Number,
+      default: 2
+    },
   },
 
   model: {
@@ -46,13 +50,14 @@ export default {
     this.editor.setTheme('ace/theme/monokai');
     this.editor.session.setMode(`ace/mode/${this.format}`);
     this.editor.session.setOptions({
-      tabSize: 2,
+      tabSize: this.tabstop,
       useSoftTabs: true
     });
     if (this.readonly)
       this.editor.setReadOnly(true);
     if (!this.linenumbers)
       this.editor.renderer.setShowGutter(false);
+    this.editor.setShowPrintMargin(false);
 
     this.editor.session.setValue(this.stringValue);
 

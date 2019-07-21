@@ -200,6 +200,7 @@ export function settingsFromUserConfig(config: UserConfig, model: ModelBase): Ar
             mappings.push({
                 controller: {host},
                 strip: stripIdx,
+                label: stripLabel,
                 startUniverse: Math.floor(curChannel / maxChannelsInUniverse),
                 startChannel: curChannel % maxChannelsInUniverse,
                 endUniverse: Math.floor((nextStartChannel - 1) / maxChannelsInUniverse),

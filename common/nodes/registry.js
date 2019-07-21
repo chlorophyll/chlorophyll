@@ -14,6 +14,7 @@ let registered = false;
 export default function register_nodes() {
     if (registered)
         return;
+
     register_crgb_nodes();
     register_pixel_stage_nodes();
     register_mapping_nodes();

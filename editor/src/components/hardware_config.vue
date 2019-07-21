@@ -1,5 +1,5 @@
 <template>
-    <dialog-box title="hardware config" :show="true" @close="close" width="900px" :pos="{x: 100, y: 100}">
+    <dialog-box title="hardware config" :show="true" @close="close" width="1150px" :pos="{x: 100, y: 100}">
         <div class="controls config">
             <div class="control-row">
                 <label>Protocol</label>
@@ -15,6 +15,7 @@
                     <text-editor id="editor" format="yaml" v-model="settings" />
                     <text-editor id="tabledisplay"
                         format="plain_text"
+                        :tabstop="8"
                         :readonly="true"
                         :linenumbers="false"
                         :value="outputSettingsResult" />
@@ -68,9 +69,20 @@ export default {
             } catch (e) {
                 return 'Invalid input.'
             }
+            // Insert a blank line between controllers
+            settingsResult = settingsResult.reduce(
+                (acc, next) => {
+                    if (acc.length > 0 && acc[acc.length - 1].controller.host !== next.controller.host) {
+                        return [...acc, null, next];
+                    } else {
+                        return [...acc, next];
+                    }
+                },
+                []
+            );
 
             return columnify(
-                settingsResult.map(out => ({
+                settingsResult.map(out => (!out ? {} : {
                     ...out,
                     startUniverse: out.startUniverse + 1,
                     startChannel: out.startChannel + 1,
@@ -78,8 +90,8 @@ export default {
                     host: out.controller.host
                 })),
                 {
-                    columns: ['host', 'output', 'startUniverse', 'startChannel', 'numPixels'],
-                    columnSplitter: '  '
+                    columns: ['label', 'host', 'output', 'startUniverse', 'startChannel', 'numPixels'],
+                    columnSplitter: '\t'
                 }
             );
         }
@@ -136,7 +148,8 @@ export default {
 }
 
 #tabledisplay {
-    width: 500px;
+    margin-left: 5px;
+    width: 62em;
     height: 500px;
 }
 </style>
