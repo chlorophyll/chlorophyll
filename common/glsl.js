@@ -33,6 +33,14 @@ export function IfStmt(expr, body) {
     };
 }
 
+export function AssignStmt(lhs, rhs) {
+    return {
+        type: 'assign_stmt',
+        lhs,
+        rhs,
+    };
+}
+
 export function Comment(text) {
     return {
         type: 'comment',
@@ -200,6 +208,12 @@ let generator = {
         c.visit(node.body);
         c.dedent();
         c.line('}');
+    },
+
+    assign_stmt(c, node) {
+        c.visit(node.lhs);
+        c.emit(' = ');
+        c.visit(node.rhs);
     },
 
     binary_op(c, node) {

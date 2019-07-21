@@ -204,6 +204,10 @@ export class GraphCompiler {
         return v;
     }
 
+    assign(v, expr) {
+        this.out.push(glsl.AssignStmt(v, expr));
+    }
+
     default_name(node, slot) {
         const { name } = node.input_info[slot];
         if (node.vm.defaults[name] === undefined || node.vm.defaults[name] == null) {
