@@ -8,3 +8,4 @@ import 'chl/mapping';
 import 'chl/viewport';
 import 'chl/model';
 import 'chl/hardware';
+import 'chl/signal';
