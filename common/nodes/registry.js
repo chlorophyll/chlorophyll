@@ -39,7 +39,7 @@ export function refreshFromStore(vuexStore) {
     assert.ok(vuexStore.getters);
 
     const deps = {
-        signals: vuexStore.getters['signals/signal_list'],
+        signals: vuexStore.getters['signals/signal_list'] || [],
     };
 
     return refreshNodes(deps);
@@ -60,7 +60,8 @@ function refreshNodes(deps) {
     // First, regenerate any dynamically generated nodes.
     // Always refresh these nodes
     for (const {register, getDeps} of generatedNodes) {
-        register(getDeps(deps));
+        const nodeDeps = getDeps(deps);
+        register(nodeDeps);
     }
 
     if (registered)

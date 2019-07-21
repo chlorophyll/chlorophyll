@@ -22,6 +22,9 @@ store.registerModule('signal', {
             })
         ),
         restore(state, signals) {
+            if (!signals)
+                return;
+
             const {resourcesById, idList} = restoreAll(signals);
             state.signals = resourcesById;
             state.signal_list = idList;

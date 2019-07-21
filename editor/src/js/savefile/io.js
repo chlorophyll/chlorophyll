@@ -121,11 +121,11 @@ export async function test() {
 export async function readSavefile(path) {
     const {version, content} = await readSaveFileAsync(path);
     const obj = validateSave(path, version, content);
+    // TODO(cwill) use an event emitter or listener to handle triggers on file load
+    nodeRegistry.refreshFromSavedState(obj);
     restoreSaveObject(obj);
     pushRecentFile(path, {preview: obj.model});
     store.commit('set_current_save_path', path);
-    // TODO(cwill) use an event emitter or listener to handle triggers on file load
-    nodeRegistry.refreshFromStore(store);
 }
 
 export async function previewSavefile(path) {
