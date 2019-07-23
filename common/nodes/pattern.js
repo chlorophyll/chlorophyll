@@ -441,6 +441,23 @@ class ClampNode extends GraphNode {
 ClampNode.title = 'Clamp';
 node_types.push(['util/clamp', ClampNode]);
 
+make_function_node('util', 'step', 'step',
+    [
+        ['edge', Units.Numeric],
+        ['x', Units.Numeric],
+    ],
+    Units.Numeric
+);
+
+make_function_node('util', 'smoothstep', 'smoothstep',
+    [
+        ['startEdge', Units.Numeric],
+        ['endEdge', Units.Numeric],
+        ['x', Units.Numeric],
+    ],
+    Units.Numeric
+);
+
 export default function register_pattern_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };

@@ -55,6 +55,12 @@ export function Const(value) {
         value,
     };
 }
+export function Bool(value) {
+    return {
+        type: 'bool',
+        value,
+    };
+}
 
 export function Scope(statements) {
     return {
@@ -272,7 +278,11 @@ let generator = {
     },
 
     const(c, node) {
-        c.emit(node.value.toPrecision(3));
+        c.emit(node.value.toPrecision(4));
+    },
+
+    bool(c, node) {
+        c.emit(node.value ? 'true' : 'false');
     },
 
     return(c, node) {

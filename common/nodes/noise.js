@@ -99,6 +99,65 @@ function makeTimeFractalNoise(fullDimension) {
     return [`noise/time/fractal${dimension}d`, node];
 }
 
+function makeWorleyNoise(dimension) {
+    const node = class extends GraphNode {
+        constructor(options) {
+            const inputs = [
+                ...getInputs(dimension),
+                GraphNode.input('jitter', Units.Percentage),
+            ];
+            const outputs = [
+                GraphNode.output('F1', Units.Numeric),
+                GraphNode.output('F2', Units.Numeric),
+            ];
+            super(options, inputs, outputs);
+        }
+
+        compile(c) {
+            const args = _.range(dimension).map(i => c.getInput(this, i));
+            const jitter = c.getInput(this, dimension);
+            const func = c.import(`glsl-worley/worley${dimension}D`);
+            const vec = glsl.FunctionCall(`vec${dimension}`, args);
+            const F = c.declare('vec2', c.variable(), glsl.FunctionCall(func, [vec, jitter, glsl.Bool(false)]));
+            c.setOutput(this, 0, glsl.Dot(F, 'x'));
+            c.setOutput(this, 1, glsl.Dot(F, 'y'));
+        }
+    };
+    node.title = `${dimension}d worley noise`;
+    return [`noise/worley${dimension}d`, node];
+};
+function makeTimeWorleyNoise(fullDimension) {
+    const dimension = fullDimension-1;
+    const node = class extends GraphNode {
+        constructor(options) {
+            const inputs = [
+                ...getInputs(dimension),
+                GraphNode.input('jitter', Units.Percentage),
+                GraphNode.input('speed', Units.Percentage),
+            ];
+            const outputs = [
+                GraphNode.output('F1', Units.Numeric),
+                GraphNode.output('F2', Units.Numeric),
+            ];
+            super(options, inputs, outputs);
+        }
+
+        compile(c) {
+            const args = _.range(dimension).map(i => c.getInput(this, i));
+            const jitter = c.getInput(this, dimension);
+            const speed = c.getInput(this, dimension+1);
+            args.push(glsl.BinOp(speed, '*', c.getGlobalInput('time')));
+            const func = c.import(`glsl-worley/worley${fullDimension}D`);
+            const vec = glsl.FunctionCall(`vec${fullDimension}`, args);
+            const F = c.declare('vec2', c.variable(), glsl.FunctionCall(func, [vec, jitter, glsl.Bool(false)]));
+            c.setOutput(this, 0, glsl.Dot(F, 'x'));
+            c.setOutput(this, 1, glsl.Dot(F, 'y'));
+        }
+    };
+    node.title = `${dimension}d time worley noise`;
+    return [`noise/time/worley${dimension}d`, node];
+};
+
 function makeNoiseNode(type, dimension) {
     const staticNode = class extends GraphNode {
         constructor(options) {
@@ -158,6 +217,12 @@ for (const type of noiseTypes) {
 for (const dimension of noiseDimensions) {
     node_types.push(makeFractalNoise(dimension));
     node_types.push(makeTimeFractalNoise(dimension));
+}
+
+const worleyDimensions = [2, 3];
+for (const dimension of worleyDimensions) {
+    node_types.push(makeWorleyNoise(dimension));
+    node_types.push(makeTimeWorleyNoise(dimension));
 }
 
 export default function register_noise_nodes() {
