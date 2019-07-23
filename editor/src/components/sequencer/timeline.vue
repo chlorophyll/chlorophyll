@@ -786,6 +786,10 @@ export default {
         const gl = renderer.getContext();
         this.runner = new Timeline(gl, currentModel);
         this.glReset();
+
+        if (this.timelines.length === 0) {
+            this.addNewTimeline();
+        }
     },
     beforeDestroy() {
         window.removeEventListener('resize', this.resize);
