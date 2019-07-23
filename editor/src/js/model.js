@@ -21,6 +21,7 @@ export function setCurrentModel(model) {
     store.commit('update_model', model !== null);
     store.commit('pixels/clear_active_selection');
     currentModel = model;
+    console.log(currentModel);
     colorDisplay.$emit('refresh_model');
 }
 
@@ -234,7 +235,7 @@ export class Model extends ModelBase {
         this.colors = new Float32Array(this.num_pixels * 3);
         let offsets = new Float32Array(this.num_pixels * 2);
 
-        const width = Math.ceil(Math.sqrt(this.num_pixels));
+        const width = this.textureWidth;
         // if 3, then
         // 1/6, (2/6), 3/6, (4/6), 5/6
         for (let i = 0; i < this.num_pixels; i++) {
@@ -395,6 +396,7 @@ export class Model extends ModelBase {
         }
         boundingBox.getSize(boxSize);
         boundingBox.getCenter(center);
+        console.log(boundingBox);
         const {x, y, z} = boxSize;
         const maxDim = Math.max(x, y, z);
 

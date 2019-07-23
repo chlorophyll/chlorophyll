@@ -113,7 +113,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
                 }
 
                 case 'artnet': {
-                    const width = Math.ceil(Math.sqrt(currentModel.num_pixels));
+                    const width = currentModel.textureWidth;
                     const pixels = new Float32Array(width * width * 4);
                     this.artnetClient.sendFrame(pixels);
                     break;

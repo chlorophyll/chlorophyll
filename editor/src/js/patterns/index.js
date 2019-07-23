@@ -89,6 +89,149 @@ store.registerModule('pattern', {
     }
 });
 
+store.registerModule('timeline', {
+    namespaced: true,
+    state: {
+        curTimelineId: null,
+        timelineOrder: [],
+        timelinesById: {},
+        outputsById: {},
+        layersById: {},
+        clipsById: {},
+    },
+    mutations: {
+        setCurTimelineId(state, timelineId) {
+            state.curTimelineId = timelineId;
+        },
+        addTimeline(state, {timelineId, name}) {
+            Vue.set(state.timelinesById, timelineId, {
+                id: timelineId,
+                name,
+                outputOrder: [],
+                clipIdSet: {},
+            });
+            state.timelineOrder.push(timelineId);
+        },
+        restoreTimelines(state, {timelines}) {
+            const timelineOrder = [];
+            const timelinesById = {};
+            for (const snap of timelines) {
+                timelineOrder.push(snap.id);
+                const {outputOrder, id, name} = snap;
+                const clipIdSet = {};
+                for (const clipId of snap.clipIds) {
+                    clipIdSet[clipId] = true;
+                }
+
+                const timeline = {
+                    id,
+                    outputOrder,
+                    name,
+                    clipIdSet: clipIdSet,
+                };
+                timelinesById[timeline.id] = timeline;
+            }
+            state.timelineOrder = timelineOrder;
+            state.timelinesById = timelinesById;
+        },
+
+        setTimelineName(state, {timelineId, name}) {
+            const timeline = state.timelinesById[timelineId];
+            timeline.name = name;
+        },
+
+        restoreOutputs(state, {outputs}) {
+            const outputsById = {};
+            for (const output of outputs) {
+                outputsById[output.id] = output;
+            }
+            state.outputsById = outputsById;
+        },
+
+        restoreLayers(state, {layers}) {
+            const layersById = {};
+            for (const layer of layers) {
+                layersById[layer.id] = layer;
+            }
+            state.layersById = layersById;
+        },
+
+        restoreClips(state, {clips}) {
+            const clipsById = {};
+            for (const clip of clips) {
+                clipsById[clip.id] = clip;
+            }
+            state.clipsById = clipsById;
+        },
+
+        reorderOutputs(state, {timelineId, outputOrder}) {
+            state.timelinesById[timelineId].outputOrder = [...outputOrder];
+        },
+        addOutput(state, {timelineId, output}) {
+            Vue.set(state.outputsById, output.id, output);
+            const timeline = state.timelinesById[timelineId];
+            timeline.outputOrder.push(output.id);
+        },
+        setOutputGroups(state, {outputId, groupIds}) {
+            const output = state.outputsById[outputId];
+            output.groupIds = groupIds;
+        },
+        addLayer(state, {layerIndex, outputId, layer}) {
+            Vue.set(state.layersById, layer.id, layer);
+            const output = state.outputsById[outputId];
+            output.layerIds.splice(layerIndex, 0, layer.id);
+        },
+        reorderLayers(state, {outputId, layerIds}) {
+            const output = state.outputsById[outputId];
+            output.layerIds = [...layerIds];
+        },
+        setLayerMode(state, {layerId, blendingMode}) {
+            const layer = state.layersById[layerId];
+            layer.blendingMode = blendingMode;
+        },
+        setLayerOpacity(state, {layerId, opacity}) {
+            const layer = state.layersById[layerId];
+            layer.opacity = opacity;
+        },
+        deleteLayer(state, {layerId}) {
+            const layer = state.layersById[layerId];
+            const output = state.outputsById[layer.outputId];
+            output.layerIds.splice(output.layerIds.indexOf(layerId), 1);
+            Vue.delete(state.layersById, layerId);
+        },
+        addClip(state, {timelineId, clip}) {
+            const timeline = state.timelinesById[timelineId];
+            Vue.set(state.clipsById, clip.id, clip);
+            Vue.set(timeline.clipIdSet, clip.id, true);
+        },
+        deleteClipIds(state, {timelineId, clipIds}) {
+            const timeline = state.timelinesById[timelineId];
+            for (const clipId of clipIds) {
+                Vue.delete(state.clipsById, clipId);
+                Vue.delete(timeline.clipIdSet, clipId);
+            }
+        },
+        changeClipLayer(state, {clipId, layerId}) {
+            const clip = state.clipsById[clipId];
+            clip.layerId = layerId;
+        },
+        setClipTime(state, {clipId, startTime, endTime}) {
+            const clip = state.clipsById[clipId];
+            clip.startTime = startTime;
+            clip.endTime = endTime;
+        },
+        setClipMapping(state, {clipId, mappingId}) {
+            const clip = state.clipsById[clipId];
+            clip.mappingId = mappingId;
+        },
+    },
+    getters: {
+        timelines(state) {
+            return state.timelineOrder.map(timelineId => state.timelinesById[timelineId]);
+        }
+    },
+});
+
 store.registerModule('playlists', {
     namespaced: true,
     state: {
@@ -239,6 +382,66 @@ registerSaveField('playlistItems', {
         store.commit('playlists/restore', snap);
     },
 });
+
+registerSaveField('timelines', {
+    save() {
+        const timelineIds = store.state.timeline.timelineOrder;
+        const timelines = timelineIds.map(timelineId => {
+            const timeline = store.state.timeline.timelinesById[timelineId];
+            const clipIds = [...Object.keys(timeline.clipIdSet)].map(x => parseInt(x));
+            return {
+                id: timeline.id,
+                name: timeline.name || 'Unnamed Timeline',
+                outputOrder: timeline.outputOrder,
+                clipIds,
+            };
+        });
+        return timelines;
+    },
+    restore(timelines) {
+        if (!timelines) {
+            return;
+        }
+        store.commit('timeline/restoreTimelines', {timelines});
+    },
+});
+
+registerSaveField('outputs', {
+    save() {
+        return [...Object.values(store.state.timeline.outputsById)];
+    },
+    restore(outputs) {
+        if (!outputs) {
+            return;
+        }
+        store.commit('timeline/restoreOutputs', {outputs});
+    },
+});
+
+registerSaveField('layers', {
+    save() {
+        return [...Object.values(store.state.timeline.layersById)];
+    },
+    restore(layers) {
+        if (!layers) {
+            return;
+        }
+        store.commit('timeline/restoreLayers', {layers});
+    },
+});
+
+registerSaveField('clips', {
+    save() {
+        return [...Object.values(store.state.timeline.clipsById)];
+    },
+    restore(clips) {
+        if (!clips) {
+            return;
+        }
+        store.commit('timeline/restoreClips', {clips});
+    },
+});
+
 
 export const patternUtilsMixin = {
     methods: {

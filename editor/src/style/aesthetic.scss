@@ -15,12 +15,23 @@ $base-blue-2: #137CBD;
 $base-blue-3: #2B95D6;
 $base-blue-4: #48AFF0;
 
+$base-green-1: #0D8050;
+$base-green-2: #0F9960;
+$base-green-3: #15B371;
+$base-green-4: #3DCC91;
+
+$base-orange-1: #BF7326;
+$base-orange-2: #D9822B;
+$base-orange-3: #F29D49;
+$base-orange-4: #FFB366;
+
 $base-red:  #EC514E;
 
 $panel-text:  #a9a9a9;
 $panel-bg:    $base-grey;
 
 $panel-dark:  darken($panel-bg, 10%);
+$panel-darker:  darken($panel-bg, 15%);
 $panel-light: lighten($panel-bg, 15%);
 
 $highlight: $base-blue-3;

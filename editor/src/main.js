@@ -9,6 +9,8 @@ import '@/style/controlpanel.scss';
  * UI Components
  */
 import Vue from 'vue';
+import VTooltip from 'v-tooltip';
+
 import 'chl/patches';
 import 'chl/vue/register';
 import RootComponent from '@/components/root';
@@ -26,6 +28,8 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = true;
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
 
 Vue.config.productionTip = false;
+Vue.use(VTooltip);
+
 initMenu();
 new Vue(RootComponent).$mount('#app');
 

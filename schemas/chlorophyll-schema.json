@@ -489,6 +489,92 @@
                         "type": ["object", "array"]
                     }
                 }
+            },
+            "timeline": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "number"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "outputOrder": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        }
+                    },
+                    "clipIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        }
+                    }
+                }
+            },
+            "output": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "number"
+                    },
+                    "groupIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        }
+                    },
+                    "layerIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        }
+                    }
+                }
+            },
+            "layer": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "number"
+                    },
+                    "opacity": {
+                        "type": "number"
+                    },
+                    "blendingMode": {
+                        "type": "number"
+                    }
+                }
+            },
+            "clip": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "number"
+                    },
+                    "patternId": {
+                        "type": "number"
+                    },
+                    "mappingId": {
+                        "type": "number"
+                    },
+                    "layerId": {
+                        "type": "number"
+                    },
+                    "startTIme": {
+                        "type": "number"
+                    },
+                    "endTime": {
+                        "type": "number"
+                    },
+                    "fadeInTime": {
+                        "type": "number"
+                    },
+                    "fadeOutTime": {
+                        "type": "number"
+                    }
+                }
             }
         },
         "chlorophyllSavefile": {
@@ -528,6 +614,30 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/objects/playlistItem"
+                    }
+                },
+                "timelines": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/objects/timeline"
+                    }
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/objects/output"
+                    }
+                },
+                "layers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/objects/layer"
+                    }
+                },
+                "clips": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/objects/clip"
                     }
                 }
             },

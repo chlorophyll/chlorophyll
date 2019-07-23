@@ -43,6 +43,10 @@ export default class ModelBase {
         return this.strip_offsets.length-1;
     }
 
+    get textureWidth() {
+        return Math.ceil(Math.sqrt(this.num_pixels));
+    }
+
     getPosition(i) {
         return new Vector3().fromArray(this.positions, 3*i);
     }

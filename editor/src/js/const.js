@@ -9,10 +9,6 @@ const Const = {
     group_smallbutton_width: 40,
     max_name_len: 40,
     num_recent_files: 10,
-    timeline_frame_width: 16,
-    timeline_track_height: 16,
-    timeline_track_padding: 4,
-    timeline_track_header: 200,
     // Mapping type to choose when an arbitrary one is needed
     default_map_type: 'projection',
     default_coord_type: 'cartesian2d',
@@ -22,6 +18,8 @@ const Const = {
     max_clip_plane: 1000,
     num_fps_samples: 20,
     fps_sample_interval: 250,
+    timeline_track_height: 32,
+    timeline_track_padding: 4,
 };
 export default Const;
 

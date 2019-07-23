@@ -4,7 +4,6 @@ import _ from 'lodash';
 
 import { readSavefile } from './restore';
 import { checkFramebuffer } from '@/common/util/gl_debug';
-import { createFromConfig } from '@/common/mapping';
 import register_nodes from '@/common/nodes/registry';
 import PatternRunner from '@/common/patterns/runner';
 import PlaylistRunner from '@/common/patterns/playlist';
@@ -73,8 +72,7 @@ function runPattern(model, pattern, group, mapping) {
     console.log(model.strip_offsets);
     console.log(model.num_pixels);
     console.log(`number of pushers: ${controllers.length}`);
-    const pixelMapping = createFromConfig(mapping);
-    const patternRunner = new PatternRunner(gl, model, pattern, group, pixelMapping);
+    const patternRunner = new PatternRunner(gl, model, pattern, group, mapping);
     let time = 0;
 
     let pixels = new Float32Array(model.num_pixels * 4);

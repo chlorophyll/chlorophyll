@@ -162,6 +162,10 @@ let Util = {
         return Math.round(parsed) / multiplier;
     },
 
+    roundToInterval(n, interval) {
+        return Math.round(n / interval) * interval;
+    },
+
     uniqueName: function(prefix, objlist) {
         const names = objlist.map(({name}) => name);
         let candidate;

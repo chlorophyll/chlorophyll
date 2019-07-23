@@ -90,6 +90,7 @@ export function createRenderer(width, height) {
     // (the default) to 1 in order to support NPO2 framebuffer textures
     const gl = renderer.getContext();
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    console.log(renderer, gl);
 
     return renderer;
 }

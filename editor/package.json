@@ -69,6 +69,7 @@
     "twgl.js": "^4.4.0",
     "typescript": "^3.0.3",
     "url-pattern": "^1.0.3",
+    "v-tooltip": "^2.0.2",
     "vue": "^2.5.13",
     "vue-electron": "^1.0.6",
     "vue-text-mask": "^6.1.2",
