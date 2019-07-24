@@ -75,6 +75,8 @@ export default class RawPatternRunner {
         const positions = this.mapPositions();
         const {gl, width} = this;
 
+        this.mappedPositions.fill(0);
+
         for (const {idx, pos} of positions) {
             const row = Math.floor(idx / width);
             const col = idx % width;

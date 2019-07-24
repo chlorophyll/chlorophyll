@@ -262,6 +262,10 @@ label, .fps-graph, .cur-fps {
     height: 100%;
 }
 
+#preview-group-list {
+    max-width: 10em;
+}
+
 .item {
     cursor: pointer;
     padding: 0;

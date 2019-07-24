@@ -749,6 +749,7 @@ export default {
                 this.runner.updateClips(clipList);
                 this.glReset();
             },
+            deep: true,
         },
         clipsById() {
             const clipId = this.selectedClipId;
