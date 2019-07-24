@@ -16,11 +16,13 @@
     "@types/node": "^10.12.12",
     "@types/three": "^0.93.14",
     "SyphonBuffer": "https://github.com/chlorophyll/SyphonBuffer",
+    "fluent-ffmpeg": "^2.1.2",
     "glsl-blend": "^1.0.3",
     "glsl-easings": "^1.0.0",
     "glsl-noise": "^0.0.0",
     "glsl-worley": "^1.0.2",
     "glslify": "^6.3.1",
-    "osc": "^2.3.1"
+    "osc": "^2.3.1",
+    "pipe2pam": "^0.6.2"
   }
 }

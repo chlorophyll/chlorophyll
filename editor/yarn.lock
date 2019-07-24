@@ -3688,6 +3688,11 @@ fd-slicer@~1.0.1:
   dependencies:
     pend "~1.2.0"
 
+ffmpeg-static@^2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/ffmpeg-static/-/ffmpeg-static-2.5.0.tgz#310fbd7f55bcb55d6dec04eb96dc0953851f5076"
+  integrity sha512-4HI5aUFq9As3vNOm/0p4Pj47D8AxUqg0qnzaOuXwFMQ6uYhaLXGneUX/8b3C6gbU4ljASI+Ne7WKHpYFnLtK3A==
+
 figures@^1.4.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/figures/-/figures-1.7.0.tgz#cbe1e3affcf1cd44b80cadfed28dc793a9701d2e"

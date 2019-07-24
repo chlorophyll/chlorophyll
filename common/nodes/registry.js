@@ -8,6 +8,7 @@ import mappingNodes from './mapping';
 import inputNodes from './osc_address';
 import signalNodes from './signals';
 import syphonNodes from './syphon';
+import videoNodes from './video';
 import easingNodes from './easing';
 import noiseNodes from './noise';
 import complexNodes from './complex';
@@ -20,6 +21,7 @@ const staticNodes = [
     mappingNodes,
     inputNodes,
     syphonNodes,
+    videoNodes,
     easingNodes,
     noiseNodes,
     complexNodes,
@@ -31,8 +33,6 @@ const generatedNodes = [
         getDeps: d => d.signals
     }
 ];
-
-let registered = false;
 
 export function refreshFromStore(vuexStore) {
     assert.ok(vuexStore);
