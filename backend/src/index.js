@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { readSavefile } from './restore';
 import { checkFramebuffer } from '@/common/util/gl_debug';
 import { createFromConfig } from '@/common/mapping';
-import nodeRegistry from '@/common/nodes/registry';
+import * as nodeRegistry from '@/common/nodes/registry';
 import PatternRunner from '@/common/patterns/runner';
 import PlaylistRunner from '@/common/patterns/playlist';
 

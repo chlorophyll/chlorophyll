@@ -53,6 +53,27 @@ export enum OSCType {
   TIME = 't',
 }
 
+export function fromTag(tag: string): OSCType {
+    const t = tag as TypeTag;
+    switch (t) {
+        case 'i': return OSCType.INT32;
+        case 'h': return OSCType.INT64;
+        case 'f': return OSCType.FLOAT32;
+        case 's': return OSCType.STRING;
+        case 'c': return OSCType.CHAR;
+        case 'T': return OSCType.TRUE;
+        case 'F': return OSCType.FALSE;
+        case 'N': return OSCType.NULL;
+        case 'I': return OSCType.IMPULSE;
+        case 'b': return OSCType.BLOB;
+        case 'm': return OSCType.MIDI;
+        case 'r': return OSCType.COLOR;
+        case 't': return OSCType.TIME;
+        default:
+            throw new Error(`Invalid type tag: ${tag}`);
+    }
+}
+
 export type TypeTag = 'i' | 'h' | 'f' | 's' | 'c' | 'T' | 'F' | 'N' | 'I' | 'b' | 'm' | 'r' | 't';
 export type TimeTag = [number, number];
 export interface Value {
@@ -101,7 +122,7 @@ export function toGraphUnit(t: OSCType): any {
             return 'CRGB';
 
         default:
-            throw new Error('Invalid unit type for shader graph');
+            throw new Error(`Invalid unit type for shader graph: ${t}`);
     }
 }
 
