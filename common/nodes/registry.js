@@ -39,7 +39,7 @@ export function refreshFromStore(vuexStore) {
     assert.ok(vuexStore.getters);
 
     const deps = {
-        signals: vuexStore.getters['signals/signal_list'] || [],
+        signals: vuexStore.getters['signal/signal_list'] || [],
     };
 
     return refreshNodes(deps);
@@ -58,7 +58,7 @@ function refreshNodes(deps) {
     assert.ok(deps);
 
     // First, regenerate any dynamically generated nodes.
-    // Always refresh these nodes
+    // Always refresh these nodes when calculating the list, in case the backing state changed.
     for (const {register, getDeps} of generatedNodes) {
         const nodeDeps = getDeps(deps);
         register(nodeDeps);

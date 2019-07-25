@@ -13,6 +13,7 @@ import store from 'chl/vue/store';
 
 import { createSaveObject, restoreSaveObject } from 'chl/savefile';
 import { pushRecentFile } from 'chl/savefile/recent';
+import { createStockResources } from 'chl/savefile/project';
 import importOBJ from './obj';
 
 // Promisified in Electron 5+ but patched in until we upgrade.
@@ -121,9 +122,12 @@ export async function test() {
 export async function readSavefile(path) {
     const {version, content} = await readSaveFileAsync(path);
     const obj = validateSave(path, version, content);
+
     // TODO(cwill) use an event emitter or listener to handle triggers on file load
     nodeRegistry.refreshFromSavedState(obj);
     restoreSaveObject(obj);
+    createStockResources(store);
+
     pushRecentFile(path, {preview: obj.model});
     store.commit('set_current_save_path', path);
 }
@@ -159,6 +163,8 @@ function importModelFile(path, options) {
         }
 
         importNewModel(obj, options);
+        createStockResources(store);
+
         store.commit('set_current_save_path', null);
     });
 }
@@ -224,6 +230,7 @@ export function showImportDialog(format = 'chl') {
                         uvCoords,
                         dimension: 2
                     });
+                    createStockResources(store);
                 } catch (e) {
                     console.error('Error during import:', e);
                 }
