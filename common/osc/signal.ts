@@ -33,7 +33,7 @@ export default class Signal {
         this.id = attrs.id;
         this.oscTypes = [];
         if (attrs.args)
-            this.oscTypes = attrs.args.map(t => OT.OSCType[t]);
+            this.oscTypes = attrs.args.map(t => OT.fromTag(t));
 
         this.graphTypes = this.oscTypes.map(OT.toGraphUnit);
         this.name = attrs.name || attrs.address;
@@ -46,7 +46,7 @@ export default class Signal {
     }
 
     static argsToGraphTypes(args: Array<string>) {
-        return args.map(t => OT.toGraphUnit(OT.OSCType[t]));
+        return args.map(t => OT.toGraphUnit(OT.fromTag(t)));
     }
 
     enable() {
@@ -134,7 +134,7 @@ export default class Signal {
         if (!args)
             args = [];
 
-        const newArgs = args.map(t => OT.OSCType[t]);
+        const newArgs = args.map(t => OT.fromTag(t));
         if (_.isEqual(newArgs, this.oscTypes))
             return;
 
@@ -154,7 +154,7 @@ export default class Signal {
             id: this.id,
             name: this.name,
             address: this._address,
-            args: this.oscTypes.map(t => OT.OSCType[t]),
+            args: this.oscTypes.map(t => OT.fromTag(t)),
             source: this.source
         };
     }
