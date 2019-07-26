@@ -1,20 +1,25 @@
 import PipeToPam from 'pipe2pam';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegBin from 'ffmpeg-static';
+import ffprobeBin from 'ffprobe-static';
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import * as glsl from '@/common/glsl';
 import * as twgl from 'twgl.js';
 import Units from '@/common/units';
 
 ffmpeg.setFfmpegPath(ffmpegBin.path);
+ffmpeg.setFfprobePath(ffprobeBin.path);
 
-//const file = '/Users/rpearl/Downloads/4k-ultra-hd-abstract-nebula-space-creative-galaxy-background_nybzvmxi__D.mp4';
-//
 class VideoSource {
-    constructor(file) {
+    constructor(gl, file) {
+        this.gl = gl;
+        this.start = this.start.bind(this);
+        this.stop = this.stop.bind(this);
+        this.pause = this.pause.bind(this);
+        this.initPlaceholderTexture();
+
         const pam = new PipeToPam();
         pam.on('pam', data => this.processFrame(data));
-        this.texture = null;
 
         const cmd = ffmpeg(file)
             .format('image2pipe')
@@ -29,6 +34,17 @@ class VideoSource {
         this.cmd = cmd;
     }
 
+    initPlaceholderTexture() {
+        const {gl} = this;
+        this.texture = twgl.createTexture(gl, {
+            width: 1,
+            height: 1,
+            format: gl.RGB,
+            src: [0, 0, 0],
+        });
+        this.laoded = false;
+    }
+
     processFrame(data) {
         const {gl} = this;
         const {width, height} = data;
@@ -41,23 +57,34 @@ class VideoSource {
             wrap: gl.CLAMP_TO_EDGE,
             auto: false,
         };
-        if (!this.texture) {
+        if (!this.loaded) {
+            this.loaded = true;
             this.texture = twgl.createTexture(gl, textureOptions);
-            console.log(data);
         }
 
         twgl.setTextureFromArray(gl, this.texture, data.pixels, textureOptions);
     }
 
     start() {
-        if (!this.started) {
-            this.started = true;
-            this.cmd.pipe(this.pam);
+        if (this.runningCmd) {
+            this.runningCmd.kill('SIGCONT');
+        } else {
+            this.runningCmd = this.cmd.clone();
+            this.runningCmd.pipe(this.pam);
         }
+    }
+
+    stop() {
+        this.runningCmd.on('error', () => undefined);
+        this.runningCmd.kill('SIGKILL');
+        this.runningCmd = undefined;
+    }
+
+    pause() {
+        this.runningCmd.kill('SIGSTOP');
     }
 }
 
-const vid = new VideoSource('/Users/rpearl/Dropbox/chlorophyll-dragon/videos/Loops/abstract-bright-green-form-visualization-5_zjqjotoxr__D.mp4');
 
 class VideoNode extends GraphNode {
     constructor(options) {
@@ -70,13 +97,33 @@ class VideoNode extends GraphNode {
             GraphNode.output('color', 'CRGB'),
         ];
         super(options, inputs, outputs);
+
+    }
+
+    addGraphEventListeners() {
+        const vid = this.vid;
+
+        this.graph.addEventListener('start', vid.start);
+        this.graph.addEventListener('stop',  vid.stop);
+        this.graph.addEventListener('pause', vid.pause);
+
+        this.graph.addEventListener('node-removed', ({node}) => {
+            if (node.id === this.id) {
+                vid.stop();
+                this.graph.removeEventListener('start', vid.start);
+                this.graph.removeEventListener('stop',  vid.stop);
+                this.graph.removeEventListener('pause', vid.pause);
+            }
+        });
     }
 
     compile(c) {
-        vid.gl = c.gl;
-        vid.start();
+        this.vid = new VideoSource(c.gl, '/Users/rpearl/Dropbox/chlorophyll-dragon/videos/Loops/abstract-bright-green-form-visualization-5_zjqjotoxr__D.mp4');
+
+        this.addGraphEventListeners();
+
         const texture = c.variable();
-        c.uniform('sampler2D', texture.name, () => vid.texture);
+        c.uniform('sampler2D', texture.name, () => this.vid.texture);
         const x = c.getInput(this, 0);
         const y = c.getInput(this, 1);
 
@@ -90,6 +137,7 @@ class VideoNode extends GraphNode {
         ]);
         c.setOutput(this, 0, toLinear);
     }
+
 }
 
 VideoNode.title = 'Video';

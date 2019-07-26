@@ -55,6 +55,7 @@
     "electron-config": "^1.0.0",
     "elkjs": "^0.4.1",
     "ffmpeg-static": "^2.5.0",
+    "ffprobe-static": "^3.0.0",
     "glsl-transpiler": "^1.5.9",
     "html-webpack-plugin": "^3.2.0",
     "js-yaml": "^3.13.1",
