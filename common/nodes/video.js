@@ -12,8 +12,7 @@ ffmpeg.setFfmpegPath(ffmpegBin.path);
 ffmpeg.setFfprobePath(ffprobeBin.path);
 
 class VideoSource {
-    constructor(folder) {
-        this.folder = folder;
+    constructor() {
         this.start = this.start.bind(this);
         this.stop = this.stop.bind(this);
         this.pause = this.pause.bind(this);
@@ -36,8 +35,8 @@ class VideoSource {
 
     setFile(file) {
         const running = this.runningCmd !== undefined;
+        this.file = file;
         this.stop();
-        this.file = path.join(this.folder, file);
         this.cmd = ffmpeg(this.file)
             .format('image2pipe')
             .videoCodec('pam')
@@ -127,7 +126,7 @@ class VideoNode extends GraphNode {
 
     onPropertyChange() {
         const filename = this.vm.parameters[0].value;
-        this.videoSource.setFile(filename);
+        this.videoSource.setFile(path.join(this.vm.mediaFolder, filename));
     }
 
     addGraphEventListeners() {

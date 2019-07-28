@@ -1,7 +1,7 @@
 <template>
   <div class="control-row">
     <label>{{ name }}</label>
-    <tree :items="mediaFiles" class="tree control" :leaf-icon="''">
+    <tree ref="tree" :items="mediaFiles" class="tree control" :leaf-icon="''">
       <template slot-scope="props">
         <div class="line" @click="selectItem(props.item)">
           <div class="material-icons">{{ props.leaf ? 'insert_drive_file' : 'folder'}}</div>
@@ -35,24 +35,34 @@ export default {
             const mediaPaths = this.relativePaths.filter(isVideo);
             const root = {children: []};
             for (const mediaPath of mediaPaths) {
+                const selected = mediaPath === this.value;
                 let ptr = root;
                 const components = mediaPath.split('/');
                 const leaf = components.pop();
                 for (const component of components) {
                     const idx = ptr.children.findIndex(el => el.label === component);
                     if (idx === -1) {
-                        const n = {label: component, children: []};
+                        const n = { label: component, initiallyOpen: false, children: [] };
                         ptr.children.push(n);
                         ptr = n;
                     } else {
                         ptr = ptr.children[idx];
                     }
+                    ptr.initiallyOpen = ptr.initiallyOpen || selected;
                 }
-                const selected = mediaPath === this.value;
                 ptr.children.push({label: leaf, children: [], path: mediaPath, selected});
             }
             return root.children;
         },
+    },
+    mounted() {
+        if (!this.value) {
+            return;
+        }
+        this.$nextTick(() => {
+            const selected = this.$el.querySelector('.selected');
+            selected.scrollIntoView();
+        });
     },
     methods: {
         selectItem(item) {
