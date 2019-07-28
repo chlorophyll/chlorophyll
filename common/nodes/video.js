@@ -66,6 +66,7 @@ class VideoSource {
             type: gl.UNSIGNED_BYTE,
             minMag: gl.NEAREST,
             wrap: gl.CLAMP_TO_EDGE,
+            flipY: true,
             auto: false,
         };
         if (!this.loaded) {
