@@ -5,23 +5,40 @@ import ffprobeBin from 'ffprobe-static';
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import * as glsl from '@/common/glsl';
 import * as twgl from 'twgl.js';
+import * as path from 'path';
 import Units from '@/common/units';
 
 ffmpeg.setFfmpegPath(ffmpegBin.path);
 ffmpeg.setFfprobePath(ffprobeBin.path);
 
 class VideoSource {
-    constructor(gl, file) {
-        this.gl = gl;
+    constructor(folder) {
+        this.folder = folder;
         this.start = this.start.bind(this);
         this.stop = this.stop.bind(this);
         this.pause = this.pause.bind(this);
-        this.initPlaceholderTexture();
 
-        const pam = new PipeToPam();
-        pam.on('pam', data => this.processFrame(data));
+        this.loaded = false;
+    }
 
-        const cmd = ffmpeg(file)
+    initPlaceholderTexture(gl) {
+        this.gl = gl;
+        if (!this.loaded) {
+            this.texture = twgl.createTexture(gl, {
+                width: 1,
+                height: 1,
+                format: gl.RGB,
+                src: [0, 0, 0],
+            });
+        }
+
+    }
+
+    setFile(file) {
+        const running = this.runningCmd !== undefined;
+        this.stop();
+        this.file = path.join(this.folder, file);
+        this.cmd = ffmpeg(this.file)
             .format('image2pipe')
             .videoCodec('pam')
             .videoFilters('realtime,scale=w=iw/4:h=ih/4')
@@ -30,19 +47,13 @@ class VideoSource {
             .inputOptions('-fflags +genpts')
             .outputOptions('-pix_fmt rgb24');
 
-        this.pam = pam;
-        this.cmd = cmd;
-    }
+        if (this.gl) {
+            this.initPlaceholderTexture(this.gl);
+        }
 
-    initPlaceholderTexture() {
-        const {gl} = this;
-        this.texture = twgl.createTexture(gl, {
-            width: 1,
-            height: 1,
-            format: gl.RGB,
-            src: [0, 0, 0],
-        });
-        this.laoded = false;
+        if (running) {
+            this.start();
+        }
     }
 
     processFrame(data) {
@@ -70,18 +81,25 @@ class VideoSource {
             this.runningCmd.kill('SIGCONT');
         } else {
             this.runningCmd = this.cmd.clone();
+            this.pam = new PipeToPam();
+            this.pam.on('pam', data => this.processFrame(data));
             this.runningCmd.pipe(this.pam);
         }
     }
 
     stop() {
-        this.runningCmd.on('error', () => undefined);
-        this.runningCmd.kill('SIGKILL');
-        this.runningCmd = undefined;
+        if (this.runningCmd) {
+            this.runningCmd.on('error', () => undefined);
+            this.runningCmd.kill('SIGKILL');
+            this.runningCmd = undefined;
+        }
+        this.loaded = false;
     }
 
     pause() {
-        this.runningCmd.kill('SIGSTOP');
+        if (this.runningCmd) {
+            this.runningCmd.kill('SIGSTOP');
+        }
     }
 }
 
@@ -93,21 +111,33 @@ class VideoNode extends GraphNode {
             GraphNode.input('y', Units.Numeric),
         ];
 
+        options.parameters = [
+            GraphNode.parameter('file', 'MediaFile'),
+        ];
+
         const outputs = [
             GraphNode.output('color', 'CRGB'),
         ];
+
         super(options, inputs, outputs);
 
+        this.videoSource = new VideoSource(this.vm.mediaFolder);
+        this.addGraphEventListeners();
+    }
+
+    onPropertyChange() {
+        const filename = this.vm.parameters[0].value;
+        this.videoSource.setFile(filename);
     }
 
     addGraphEventListeners() {
-        const vid = this.vid;
-
+        const vid = this.videoSource;
         this.graph.addEventListener('start', vid.start);
         this.graph.addEventListener('stop',  vid.stop);
         this.graph.addEventListener('pause', vid.pause);
 
-        this.graph.addEventListener('node-removed', ({node}) => {
+        this.graph.addEventListener('node-removed', ev => {
+            const {node} = ev.detail;
             if (node.id === this.id) {
                 vid.stop();
                 this.graph.removeEventListener('start', vid.start);
@@ -118,12 +148,10 @@ class VideoNode extends GraphNode {
     }
 
     compile(c) {
-        this.vid = new VideoSource(c.gl, '/Users/rpearl/Dropbox/chlorophyll-dragon/videos/Loops/abstract-bright-green-form-visualization-5_zjqjotoxr__D.mp4');
-
-        this.addGraphEventListeners();
+        this.videoSource.initPlaceholderTexture(c.gl);
 
         const texture = c.variable();
-        c.uniform('sampler2D', texture.name, () => this.vid.texture);
+        c.uniform('sampler2D', texture.name, () => this.videoSource.texture);
         const x = c.getInput(this, 0);
         const y = c.getInput(this, 1);
 

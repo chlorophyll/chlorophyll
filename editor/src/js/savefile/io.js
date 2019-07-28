@@ -126,7 +126,7 @@ export async function readSavefile(path) {
     // TODO(cwill) use an event emitter or listener to handle triggers on file load
     nodeRegistry.refreshFromSavedState(obj);
     restoreSaveObject(obj);
-    createStockResources(store);
+    createStockResources(store, path);
 
     pushRecentFile(path, {preview: obj.model});
     store.commit('set_current_save_path', path);

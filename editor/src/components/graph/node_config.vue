@@ -29,6 +29,7 @@ import GraphTypeFrequency from './types/frequency';
 import GraphTypeNumeric from './types/numeric';
 import GraphTypeString from './types/string';
 import GraphTypeEnum from './types/enum';
+import GraphTypeMediaFile from './types/media_file';
 
 import clone from 'clone';
 
@@ -52,6 +53,8 @@ function componentForInputType(type) {
             return 'graph-type-frequency';
         case 'Enum':
             return 'graph-type-enum';
+        case 'MediaFile':
+            return 'graph-type-media-file';
     }
 }
 
@@ -68,6 +71,7 @@ export default {
         GraphTypeRange,
         GraphTypeUnit,
         GraphTypeEnum,
+        GraphTypeMediaFile,
     },
     data() {
         return {

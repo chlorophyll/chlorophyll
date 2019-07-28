@@ -4,7 +4,7 @@ import {cloneDeep} from 'lodash';
 
 import { GraphLib, GraphBase } from '@/common/graphlib';
 import { registerSaveField } from 'chl/savefile';
-import { newgid } from 'chl/vue/store';
+import store, { newgid } from 'chl/vue/store';
 
 export const GraphConstants = {
     NODE_SLOT_HEIGHT: 15,
@@ -145,7 +145,9 @@ function makeNodeVue(graph, node, data) {
             id() {
                 return node.id;
             },
-
+            mediaFolder() {
+                return store.state.media.folder;
+            },
             graph_node() {
                 return node.graph.getNodeById(node.id);
             },

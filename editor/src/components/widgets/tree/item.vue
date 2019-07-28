@@ -6,7 +6,14 @@
             <slot :item="item" :leaf="!hasChildren" />
         </div>
 
-        <tree-view-list v-show="open" v-if="hasChildren" :items="item.children">
+        <tree-view-list
+            v-show="open"
+            v-if="hasChildren"
+            :items="item.children"
+            :open-icon="openIcon"
+            :closed-icon="closedIcon"
+            :leaf-icon="leafIcon"
+        >
             <template slot-scope="props">
                 <slot :item="props.item" :leaf="props.leaf" />
             </template>
@@ -21,7 +28,10 @@ export default {
     name: 'tree-item',
     components: { TreeViewList },
     props: {
-        item: Object
+        item: Object,
+        openIcon: String,
+        closedIcon: String,
+        leafIcon: String,
     },
     data: function() {
         return {
@@ -35,9 +45,9 @@ export default {
         },
         icon() {
             if (this.hasChildren) {
-                return this.open ? '▼' : '►';
+                return this.open ? this.openIcon : this.closedIcon;
             } else {
-                return '■';
+                return this.leafIcon;
             }
         },
     },

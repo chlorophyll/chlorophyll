@@ -34,6 +34,8 @@ const generatedNodes = [
     }
 ];
 
+let registered = false;
+
 export function refreshFromStore(vuexStore) {
     assert.ok(vuexStore);
     assert.ok(vuexStore.getters);
