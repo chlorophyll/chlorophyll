@@ -979,6 +979,11 @@ fast-levenshtein@~2.0.4:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz#3d8a5c66883a16a30ca8643e851f19baa7797917"
 
+ffmpeg-static@^2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/ffmpeg-static/-/ffmpeg-static-2.5.0.tgz#310fbd7f55bcb55d6dec04eb96dc0953851f5076"
+  integrity sha512-4HI5aUFq9As3vNOm/0p4Pj47D8AxUqg0qnzaOuXwFMQ6uYhaLXGneUX/8b3C6gbU4ljASI+Ne7WKHpYFnLtK3A==
+
 file-uri-to-path@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/file-uri-to-path/-/file-uri-to-path-1.0.0.tgz#553a7b8446ff6f684359c445f1e37a05dacc33dd"
@@ -1279,6 +1284,13 @@ is-regex@^1.0.4:
 is-symbol@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/is-symbol/-/is-symbol-1.0.1.tgz#3cc59f00025194b6ab2e38dbae6689256b660572"
+
+is-video@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/is-video/-/is-video-1.0.1.tgz#7bc67760b0103d402bc1f10bb542f16a3687773b"
+  integrity sha1-e8Z3YLAQPUArwfELtULxajaHdzs=
+  dependencies:
+    video-extensions "^1.0.0"
 
 isarray@0.0.1:
   version "0.0.1"
@@ -1927,6 +1939,11 @@ universalify@^0.1.0:
 util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
+
+video-extensions@^1.0.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/video-extensions/-/video-extensions-1.1.0.tgz#eaa86b45f29a853c2b873e9d8e23b513712997d6"
+  integrity sha1-6qhrRfKahTwrhz6djiO1E3Epl9Y=
 
 vue-class-component@^6.0.0:
   version "6.2.0"

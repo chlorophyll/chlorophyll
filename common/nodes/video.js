@@ -1,7 +1,6 @@
 import PipeToPam from 'pipe2pam';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegBin from 'ffmpeg-static';
-import ffprobeBin from 'ffprobe-static';
 import GraphLib, { GraphNode } from '@/common/graphlib';
 import * as glsl from '@/common/glsl';
 import * as twgl from 'twgl.js';
@@ -9,7 +8,6 @@ import * as path from 'path';
 import Units from '@/common/units';
 
 ffmpeg.setFfmpegPath(ffmpegBin.path);
-ffmpeg.setFfprobePath(ffprobeBin.path);
 
 class VideoSource {
     constructor() {
