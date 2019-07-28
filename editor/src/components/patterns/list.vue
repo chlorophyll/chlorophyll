@@ -104,6 +104,7 @@ export default {
         newPattern() {
             const id = newgid();
             createPattern(id, { set_current: true });
+            this.$emit('new-pattern');
         },
         copyPattern() {
             copyPattern(this.cur_pattern, { set_current: true });

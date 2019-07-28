@@ -115,6 +115,7 @@ export class Graph extends GraphBase {
                 pos: [...node.vm.pos],
                 title: node.vm.title,
                 properties: cloneDeep(node.vm.defaults),
+                parameters: cloneDeep(node.vm.parameters),
             });
             nodemap.set(node.id, cnode.id);
         });

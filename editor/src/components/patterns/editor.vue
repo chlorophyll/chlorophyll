@@ -72,7 +72,7 @@
                              @fps-sample-updated="pushFpsSample"
                              />
         </div>
-        <pattern-list slot="second" @pattern-dblclick="onPatternDblClick"/>
+        <pattern-list slot="second" @new-pattern="onNewPattern" @pattern-dblclick="onPatternDblClick"/>
     </split-pane>
 </template>
 <script>
@@ -244,8 +244,14 @@ export default {
                 this.preview_group_id = newval[0].id;
         },
         cur_pattern(newval, oldval) {
-            if (newval && oldval && newval.id != oldval.id && this.runstate == RunState.Paused) {
-                this.runstate = RunState.Stopped;
+            if (!newval) {
+                // if current was deleted or otherwise completely deselected
+                this.stopAnimation();
+            } else {
+                if (oldval && newval.id !== oldval.id && this.runstate == RunState.Paused) {
+                    // if old pattern was paused and new pattern isn't the same as old
+                    this.stopAnimation();
+                }
             }
         },
     },
@@ -281,6 +287,9 @@ export default {
         },
         onPatternDblClick(pattern) {
             this.toggleAnimation();
+        },
+        onNewPattern() {
+            this.stopAnimation();
         },
     }
 };

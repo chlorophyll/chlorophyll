@@ -127,12 +127,12 @@ export class GraphBase {
             throw new Error('unknown node type' + path);
         }
 
-        const { pos, ref, properties } = options;
+        const { pos, ref, properties, parameters } = options;
 
         const graph = this;
         const title = options.title || Ctor.title || path;
 
-        const nodeAttrs = {graph, id, title, pos, path, properties, vm_factory};
+        const nodeAttrs = {graph, id, title, pos, path, properties, parameters, vm_factory};
         const nodeTypePresets = nodeDef.presets;
         const node = new Ctor(nodeAttrs, nodeTypePresets);
 

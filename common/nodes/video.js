@@ -16,6 +16,7 @@ class VideoSource {
         this.pause = this.pause.bind(this);
 
         this.loaded = false;
+        this.running = false;
     }
 
     initPlaceholderTexture(gl) {
@@ -35,18 +36,22 @@ class VideoSource {
         if (file === this.file) {
             return;
         }
-        const running = this.runningCmd !== undefined;
+        const running = this.running;
         this.file = file;
         this.stop();
-        this.cmd = ffmpeg(this.file)
-            .format('image2pipe')
-            .videoCodec('pam')
-            .videoFilters('realtime,scale=w=iw/4:h=ih/4')
-            .on('start', cmd => console.log(cmd))
-            .inputOptions('-stream_loop -1')
-            .inputOptions('-fflags +genpts')
-            .outputOptions('-pix_fmt rgb24');
+        if (this.file) {
+            this.cmd = ffmpeg(this.file)
+                .format('image2pipe')
+                .videoCodec('pam')
+                .videoFilters('realtime,scale=w=iw/4:h=ih/4')
+                .on('start', cmd => console.log(cmd))
+                .inputOptions('-stream_loop -1')
+                .inputOptions('-fflags +genpts')
+                .outputOptions('-pix_fmt rgb24');
 
+        } else {
+            this.cmd = undefined;
+        }
         if (this.gl) {
             this.initPlaceholderTexture(this.gl);
         }
@@ -80,12 +85,14 @@ class VideoSource {
     start() {
         if (this.runningCmd) {
             this.runningCmd.kill('SIGCONT');
-        } else {
+        } else if (this.cmd) {
             this.runningCmd = this.cmd.clone();
             this.pam = new PipeToPam();
             this.pam.on('pam', data => this.processFrame(data));
             this.runningCmd.pipe(this.pam);
         }
+
+        this.running = true;
     }
 
     stop() {
@@ -94,6 +101,7 @@ class VideoSource {
             this.runningCmd.kill('SIGKILL');
             this.runningCmd = undefined;
         }
+        this.running = false;
         this.loaded = false;
     }
 
@@ -112,9 +120,11 @@ class VideoNode extends GraphNode {
             GraphNode.input('y', Units.Numeric),
         ];
 
-        options.parameters = [
-            GraphNode.parameter('file', 'MediaFile'),
-        ];
+        if (!options.parameters) {
+            options.parameters = [
+                GraphNode.parameter('file', 'MediaFile'),
+            ];
+        }
 
         const outputs = [
             GraphNode.output('color', 'CRGB'),
@@ -123,12 +133,18 @@ class VideoNode extends GraphNode {
         super(options, inputs, outputs);
 
         this.videoSource = new VideoSource(this.vm.mediaFolder);
+        this.refreshVideoSource();
         this.addGraphEventListeners();
     }
 
-    onPropertyChange() {
+    refreshVideoSource() {
         const filename = this.vm.parameters[0].value;
-        this.videoSource.setFile(path.join(this.vm.mediaFolder, filename));
+        const fullPath = filename ? path.join(this.vm.mediaFolder, filename) : undefined;
+        this.videoSource.setFile(fullPath);
+    }
+
+    onPropertyChange() {
+        this.refreshVideoSource();
     }
 
     addGraphEventListeners() {
