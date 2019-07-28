@@ -48,6 +48,7 @@
     "SyphonBuffer": "https://github.com/chlorophyll/SyphonBuffer",
     "ace-builds": "^1.4.5",
     "ajv": "^6.5.3",
+    "chokidar": "^3.0.2",
     "clone": "^2.1.1",
     "columnify": "^1.5.4",
     "concat-stream": "^1.6.0",

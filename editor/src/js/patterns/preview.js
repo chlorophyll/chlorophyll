@@ -95,6 +95,10 @@ export const PatternPreview = Vue.component('pattern-preview', {
             }
         },
 
+        runner(newval, oldval) {
+            oldval.detach();
+        },
+
         pushToHardware(newval) {
             if (!newval && this.runstate !== RunState.Stopped) {
                 this.pushBlackFrame();
@@ -149,9 +153,11 @@ export const PatternPreview = Vue.component('pattern-preview', {
         },
         start() {
             currentModel.display_only = true;
+            this.runner.start();
             this.run();
         },
         pause() {
+            this.runner.pause();
             this.resetFpsCounter();
             if (this.request_id !== null) {
                 window.cancelAnimationFrame(this.request_id);
@@ -160,6 +166,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
         },
         stop() {
             this.pause();
+            this.runner.stop();
             currentModel.display_only = false;
             this.time = 0;
             if (this.pushToHardware) {

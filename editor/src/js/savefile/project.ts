@@ -9,8 +9,9 @@
  */
 import {OSCType} from '@/common/osc/osc_types';
 import {createNewSignal} from 'chl/signal';
+import {watchMediaFiles} from 'chl/media';
 
-export function createStockResources(store) {
+export function createStockResources(store, path) {
     // Add a few basic OSC signals if none exist yet.
     if (store.getters['signal/signal_list'].length === 0) {
         createNewSignal('Intensity', '/chlorophyll/intensity', [OSCType.FLOAT32]);
@@ -20,4 +21,6 @@ export function createStockResources(store) {
         createNewSignal('TouchOSC Fader 1', '/1/fader1', [OSCType.FLOAT32]);
         createNewSignal('TouchOSC Fader 2', '/1/fader2', [OSCType.FLOAT32]);
     }
+
+    watchMediaFiles(store, path);
 }

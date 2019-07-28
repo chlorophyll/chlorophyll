@@ -1,7 +1,11 @@
 <template>
     <ul class="tree">
         <template v-for="child in items">
-            <tree-item :item="child">
+            <tree-item :item="child"
+                :open-icon="openIcon"
+                :closed-icon="closedIcon"
+                :leaf-icon="leafIcon"
+            >
                 <template slot-scope="props">
                     <slot :item="props.item" :leaf="props.leaf" />
                 </template>
@@ -15,7 +19,10 @@
 export default {
     name: 'tree-view-list',
     props: {
-        items: Array
+        items: Array,
+        openIcon: String,
+        closedIcon: String,
+        leafIcon: String,
     },
     beforeCreate() {
         this.$options.components.TreeItem = require('./item.vue').default;

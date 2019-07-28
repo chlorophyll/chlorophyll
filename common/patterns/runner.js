@@ -40,6 +40,18 @@ export default class RawPatternRunner {
         this.refresh();
     }
 
+    start() {
+        this.graph.emit('start');
+    }
+
+    stop() {
+        this.graph.emit('stop');
+    }
+
+    pause() {
+        this.graph.emit('pause');
+    }
+
     updatePattern(pattern) {
         this.pattern = pattern;
         this.graph = GraphLib.graphById(pattern.stages.pixel);
@@ -53,6 +65,7 @@ export default class RawPatternRunner {
     }
 
     detach() {
+        this.graph.emit('stop');
         if (this.phaseUpdateStage) {
             this.phaseUpdateStage.detach();
         }

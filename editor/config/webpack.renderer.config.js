@@ -153,6 +153,9 @@ let rendererConfig = {
     new webpack.ProvidePlugin({
       $: 'jquery',
       jQuery: 'jquery'
+    }),
+    new webpack.DefinePlugin({
+      'process.env.FLUENTFFMPEG_COV': false
     })
   ],
   output: {
