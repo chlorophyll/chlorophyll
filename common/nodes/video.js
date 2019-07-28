@@ -32,6 +32,9 @@ class VideoSource {
     }
 
     setFile(file) {
+        if (file === this.file) {
+            return;
+        }
         const running = this.runningCmd !== undefined;
         this.file = file;
         this.stop();
