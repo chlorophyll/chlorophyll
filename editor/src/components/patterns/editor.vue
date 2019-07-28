@@ -39,7 +39,12 @@
             <div class="panel" id="mainview">
                 <split-pane direction="horizontal" :initial-split="[210, null]">
                     <div slot="first" class="node-browser">
-                        <tree :items="node_list" class="tree">
+                      <div class="searchbox">
+                        <input type="text" v-model="query" />
+                        <div v-show="query !== ''" @click="query=''" class="clear-icon search-icon material-icons">close</div>
+                        <div class="search-icon material-icons">search</div>
+                      </div>
+                        <tree :items="nodeTree" class="tree">
                         <template slot-scope="props">
                             <div class="item"
                                  draggable="true"
@@ -71,6 +76,7 @@
     </split-pane>
 </template>
 <script>
+import Fuse from 'fuse.js';
 import Const, { ConstMixin } from 'chl/const';
 import { mapGetters } from 'vuex';
 import { mappingUtilsMixin } from 'chl/mapping';
@@ -115,6 +121,59 @@ export default {
     components: {Tree, GraphCanvas, SplitPane, PatternPreview, PatternList, Toggle, Sparkline},
     mixins: [ConstMixin, mappingUtilsMixin],
     computed: {
+        allNodePaths() {
+            // TODO(rpearl) understand why the node list is maintained in this way??
+            nodeRegistry.refreshFromStore(store);
+            const nodeTypes = GraphLib.getNodeTypes();
+            return [...nodeTypes.keys()];
+        },
+        fuse() {
+            const nodePaths = this.allNodePaths.map(nodePath => {
+                const components = nodePath.split('/');
+                const leaf = components[components.length-1];
+                return {
+                    leaf,
+                    nodePath,
+                };
+            });
+
+            const fuse = new Fuse(nodePaths, {
+                keys: ['leaf'],
+                id: 'nodePath',
+                shouldSort: true,
+                minMatchCharLength: 2,
+                threshold: 0.3,
+            });
+            return fuse;
+        },
+        visibleNodePaths() {
+            if (this.query === '') {
+                return this.allNodePaths;
+            } else {
+                return this.fuse.search(this.query);
+            }
+        },
+        nodeTree() {
+            let root = {children: []};
+            const initiallyOpen = this.query !== '';
+            for (const path of this.visibleNodePaths) {
+                let ptr = root;
+                const components = path.split('/');
+                const leaf = components.pop();
+                for (const component of components) {
+                    const idx = ptr.children.findIndex(el => el.label === component);
+                    if (idx === -1) {
+                        const n = { label: component, initiallyOpen, children: [] };
+                        ptr.children.push(n);
+                        ptr = n;
+                    } else {
+                        ptr = ptr.children[idx];
+                    }
+                }
+                ptr.children.push({label: leaf, children: [], path});
+            }
+            return root.children;
+        },
         run_text() {
             let running = (this.runstate == RunState.Running);
             return running ? 'pause' : 'play_arrow';
@@ -172,6 +231,7 @@ export default {
             pushToHardware: false,
             runstate: RunState.Stopped,
             node_list: getNodeList(this.$store),
+            query: '',
         };
     },
     watch: {
@@ -225,7 +285,40 @@ export default {
     }
 };
 </script>
-<style scoped>
+<style scoped lang="scss">
+@import "~@/style/aesthetic.scss";
+.searchbox {
+  display: flex;
+  align-items: center;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  padding-bottom: 1px;
+  color: $input-text;
+  background-color: $input-bg;
+  border: 1px solid $input-border;
+  border-radius: $control-border-radius;
+  box-shadow: inset 0 1px rgba(0,0,0,0.05);
+
+  & > input[type="text"] {
+    border: none;
+    box-shadow: none;
+    justify-self: stretch;
+    &:focus {
+      background-color: $input-bg;
+      outline: none;
+      border: none;
+      box-shadow: none;
+    }
+  }
+
+  .search-icon {
+    width: 1.5em;
+  }
+
+  .clear-icon {
+    cursor: pointer;
+  }
+}
 #pattern-composer {
     display: flex;
     flex-direction: column;
@@ -275,6 +368,7 @@ label, .fps-graph, .cur-fps {
 .node-browser {
     height: 100%;
     display: flex;
+    flex-direction: column;
 }
 
 .node-browser .tree {
