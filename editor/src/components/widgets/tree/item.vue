@@ -59,11 +59,8 @@ export default {
         },
     },
     watch: {
-        item(new_item) {
-            if (new_item.children.find((c) => c.selected) !== undefined) {
-                if (!this.open)
-                    this.toggle();
-            }
+        item(newItem) {
+            this.open = newItem.initiallyOpen;
         }
     }
 };

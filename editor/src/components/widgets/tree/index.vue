@@ -35,7 +35,7 @@ export default {
         leafIcon: {
             type: String,
             default: '■',
-        }
+        },
     },
 };
 </script>
