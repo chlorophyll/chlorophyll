@@ -98,6 +98,10 @@ export const PatternPreview = Vue.component('pattern-preview', {
         runner(newval, oldval) {
             if (newval.graph.id !== oldval.graph.id) {
                 oldval.detach();
+
+                if (this.runstate === RunState.Running) {
+                    newval.start();
+                }
             }
         },
 

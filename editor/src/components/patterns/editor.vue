@@ -184,7 +184,7 @@ export default {
                 this.preview_group_id = newval[0].id;
         },
         cur_pattern(newval, oldval) {
-            if (newval && oldval && newval.id != oldval.id && this.runstate == RunState.PAUSED) {
+            if (newval && oldval && newval.id != oldval.id && this.runstate == RunState.Paused) {
                 this.runstate = RunState.Stopped;
             }
         },
