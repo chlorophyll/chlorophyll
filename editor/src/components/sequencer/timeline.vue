@@ -794,6 +794,7 @@ export default {
     },
     beforeDestroy() {
         window.removeEventListener('resize', this.resize);
+        this.stop();
     },
     methods: {
         addNewTimeline() {
@@ -1041,6 +1042,7 @@ export default {
             }
         },
         pause() {
+            this.runner.pause();
             if (this.request_id !== null) {
                 window.cancelAnimationFrame(this.request_id);
             }

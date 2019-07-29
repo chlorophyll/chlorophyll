@@ -116,16 +116,26 @@ export default class Timeline {
         this.time = 0;
     }
 
-    step(pixels=null) {
-        let activeLayers = [];
-
-
+    pause() {
         for (const clip of this.clips) {
-            const playing = clip.startTime <= this.time && clip.endTime >= this.time;
-
-            if (!playing) {
-                continue;
+            if (clip.startTime <= this.time && clip.endTime >= this.time) {
+                clip.runner.pause();
             }
+        }
+    }
+
+    step(pixels=null) {
+        const activeClips = this.clips.filter(clip => (
+            clip.startTime <= this.time && clip.endTime >= this.time
+        ));
+
+        let background = this.initialTexture;
+        for (let i = activeClips.length-1; i >= 0; i--) {
+            const clip = activeClips[i];
+            if (clip.startTime === this.time) {
+                clip.runner.start();
+            }
+
             const texture = clip.runner.step(clip.time);
             const {blendingMode} = clip;
             const timeRemaining = clip.endTime - clip.time;
@@ -137,26 +147,20 @@ export default class Timeline {
                 opacity *= timeRemaining / clip.fadeOutTime;
             }
             clip.time++;
-            activeLayers.push({texture, blendingMode, opacity, last: false});
-        }
-        let background = this.initialTexture;
-        const done = activeLayers.length === 0;
 
-        if (!done) {
-            activeLayers[0].last = true;
-            activeLayers.reverse();
-
-            for (const {texture, blendingMode, opacity, last} of activeLayers) {
-                this.uniforms.texBackground = background;
-                this.uniforms.texForeground = texture;
-                this.uniforms.blendMode = blendingMode;
-                this.uniforms.opacity = opacity;
-                const buf = last ? pixels : null;
-                this.mixer.step(buf);
-                background = this.mixer.prevTexture();
+            if (clip.endTime === this.time) {
+                clip.runner.stop();
             }
-            this.time++;
+            this.uniforms.texBackground = background;
+            this.uniforms.texForeground = texture;
+            this.uniforms.blendMode = blendingMode;
+            this.uniforms.opacity = opacity;
+            const buf = i === 0 ? pixels : null;
+            this.mixer.step(buf);
+            background = this.mixer.prevTexture();
         }
+        this.time++;
+        const done = activeClips.length === 0;
         return {texture: background, done};
     }
 }
