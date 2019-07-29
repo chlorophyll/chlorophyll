@@ -104,8 +104,8 @@ export default class RawPatternRunner {
         }
 
         glTrace(gl, 'before setTextureFromArray');
-        const textureOptions = getFloatingPointTextureOptions(gl, width, width);
-        twgl.setTextureFromArray(gl, this.uCoords, this.mappedPositions, textureOptions);
+        gl.bindTexture(gl.TEXTURE_2D, this.uCoords);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, width, gl.RGBA, gl.FLOAT, this.mappedPositions);
         glTrace(gl, 'after setTextureFromArray');
     }
 
@@ -252,7 +252,7 @@ export default class RawPatternRunner {
                 gl: this.gl,
                 width,
                 height,
-                numTargets: 3,
+                numTargets: 2,
                 fragmentShader: source,
                 uniforms
             });
@@ -322,7 +322,7 @@ export default class RawPatternRunner {
                 gl: this.gl,
                 width,
                 height: width,
-                numTargets: 3,
+                numTargets: 2,
                 fragmentShader: source,
                 uniforms
             });

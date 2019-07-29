@@ -1,10 +1,51 @@
-import mixerFrag from '@/common/patterns/mixer.frag';
 import RawPatternRunner from '@/common/patterns/runner';
 import { ShaderRunner, getFloatingPointTextureOptions } from '@/common/util/shader_runner';
 import _ from 'lodash';
+import blendingModes from '@/common/util/blending_modes';
 
 import * as twgl from 'twgl.js';
 import * as glslify from 'glslify';
+
+const vertexShader = `
+#ifdef GL_ES
+precision highp float;
+#endif
+attribute vec4 position;
+attribute vec2 texcoord;
+
+varying vec2 vUv;
+
+void main() {
+    gl_Position = position;
+    vUv = texcoord;
+}
+`;
+
+function makeBlendShader(mode) {
+    return glslify.compile(`
+        #ifdef GL_ES
+        precision highp float;
+        #endif
+        uniform sampler2D texForeground;
+        uniform sampler2D texBackground;
+
+        uniform float opacity;
+
+        varying vec2 vUv;
+
+        #pragma glslify: blend = require(glsl-blend/${mode})
+
+        void main() {
+            vec3 foreground = texture2D(texForeground, vUv).rgb;
+            vec3 background = texture2D(texBackground, vUv).rgb;
+
+            vec3 result = blend(background, foreground, opacity);
+
+            gl_FragColor = vec4(result, 1.);
+        }
+    `);
+}
+
 
 export default class Timeline {
     constructor(gl, model) {
@@ -33,14 +74,18 @@ export default class Timeline {
             blendMode: 1,
             opacity: 0,
         };
-
+        const programs = {};
+        for (const mode of blendingModes) {
+            const src = makeBlendShader(mode.module);
+            programs[mode.value] = twgl.createProgramInfo(gl, [vertexShader, src]);
+        }
+        this.programs = programs;
 
         this.mixer = new ShaderRunner({
             gl,
             width,
             height,
-            numTargets: 3,
-            fragmentShader: glslify.compile(mixerFrag),
+            numTargets: 2,
             uniforms,
         });
 
@@ -153,8 +198,8 @@ export default class Timeline {
             }
             this.uniforms.texBackground = background;
             this.uniforms.texForeground = texture;
-            this.uniforms.blendMode = blendingMode;
             this.uniforms.opacity = opacity;
+            this.mixer.programInfo = this.programs[blendingMode];
             const buf = i === 0 ? pixels : null;
             this.mixer.step(buf);
             background = this.mixer.prevTexture();

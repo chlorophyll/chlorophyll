@@ -14,7 +14,7 @@ void main() {
 
     vec3 result = blend(blendMode, background, foreground, opacity);
 
-    gl_FragColor = vec4(clamp(result, 0., 1.), 1.);
+    gl_FragColor = vec4(result, 1.);
 }
 
 

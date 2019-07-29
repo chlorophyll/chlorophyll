@@ -6,8 +6,12 @@ import * as glsl from '@/common/glsl';
 import * as twgl from 'twgl.js';
 import * as path from 'path';
 import Units from '@/common/units';
-
+import Ringbuffer from 'ringbufferjs';
 ffmpeg.setFfmpegPath(ffmpegBin.path);
+
+const NUM_BUFFERS = 10;
+const BUFFERING_TIME = 400; /*ms*/
+const FPS = 20;
 
 class VideoSource {
     constructor() {
@@ -17,6 +21,8 @@ class VideoSource {
 
         this.loaded = false;
         this.running = false;
+
+        this.buffers = new Ringbuffer(NUM_BUFFERS);
     }
 
     initPlaceholderTexture(gl) {
@@ -42,8 +48,9 @@ class VideoSource {
         if (this.file) {
             this.cmd = ffmpeg(this.file)
                 .format('image2pipe')
+                .renice(-10)
                 .videoCodec('pam')
-                .videoFilters('realtime,scale=w=iw/4:h=ih/4')
+                .videoFilters(`realtime,scale=w=iw/4:h=ih/4,fps=${FPS}`)
                 .on('start', cmd => console.log(cmd))
                 .inputOptions('-stream_loop -1')
                 .inputOptions('-fflags +genpts')
@@ -74,22 +81,48 @@ class VideoSource {
             flipY: true,
             auto: false,
         };
+        this.width = width;
+        this.height = height;
         if (!this.loaded) {
             this.loaded = true;
             this.texture = twgl.createTexture(gl, textureOptions);
         }
 
-        twgl.setTextureFromArray(gl, this.texture, data.pixels, textureOptions);
+        this.buffers.enq(Buffer.from(data.pixels));
+    }
+
+    writeFrame() {
+        if (this.buffers.isEmpty() || !this.gl) {
+            return;
+        }
+        const {gl, width, height} = this;
+        const pixels = this.buffers.deq();
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGB, gl.UNSIGNED_BYTE, pixels);
+    }
+
+    startWriting() {
+        this.intervalId = setInterval(() => this.writeFrame(), 1000/FPS);
+    }
+
+    stopWriting() {
+        if (this.intervalId !== undefined) {
+            clearInterval(this.intervalId);
+            this.intervalId = undefined;
+        }
     }
 
     start() {
         if (this.runningCmd) {
             this.runningCmd.kill('SIGCONT');
+            this.startWriting();
         } else if (this.cmd) {
             this.runningCmd = this.cmd.clone();
             this.pam = new PipeToPam();
             this.pam.on('pam', data => this.processFrame(data));
             this.runningCmd.pipe(this.pam);
+
+            this.intervalId = setTimeout(() => this.startWriting(), BUFFERING_TIME);
         }
 
         this.running = true;
@@ -103,12 +136,17 @@ class VideoSource {
         }
         this.running = false;
         this.loaded = false;
+        this.buffers = new Ringbuffer(NUM_BUFFERS);
+        this.stopWriting();
     }
 
     pause() {
         if (this.runningCmd) {
             this.runningCmd.kill('SIGSTOP');
         }
+
+        this.stopWriting();
+
     }
 }
 

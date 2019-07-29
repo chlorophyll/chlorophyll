@@ -270,6 +270,8 @@
         >
           add_to_queue
         </button>
+        <span class="cur-fps" v-if="curFpsSample !== null">FPS: {{curFpsSample}}</span>
+        <sparkline class="fps-graph" :width="100" :height="14" :samples="fpsSamples" />
       </div>
     </div>
     <div class="patterns panel">
@@ -331,6 +333,7 @@ import {RunState} from 'chl/patterns/preview';
 
 import Clip from '@/components/sequencer/clip';
 import NumericInput from '@/components/widgets/numeric_input';
+import Sparkline from '@/components/widgets/sparkline';
 
 const DISPLAY_THRESHOLD = 10;
 function frame(interval) {
@@ -357,10 +360,13 @@ const layerDefaults = {blendingMode: modes[0].value, opacity: 1};
 export default {
     name: 'timeline',
     store,
-    components: { Clip, NumericInput, draggable },
+    components: { Clip, NumericInput, draggable, Sparkline },
     mixins: [mappingUtilsMixin, patternUtilsMixin, ConstMixin],
     data() {
         return {
+            fpsSamples: new Array(Const.num_fps_samples).fill(0),
+            fpsSampleStartTime: null,
+            framesForSample: 0,
             width: 0,
             height: 0,
             runner: null,
@@ -468,7 +474,6 @@ export default {
                 if (!this.running) {
                     return;
                 }
-                this.time++;
                 const {texture, done} = runner.step();
                 const properties = renderer.properties.get(this.outputTexture);
                 properties.__webglTexture = texture;
@@ -742,6 +747,14 @@ export default {
                 return 'Delete selected layer';
             }
         },
+        curFpsSample() {
+            const last = this.fpsSamples[this.fpsSamples.length-1];
+            if (last !== 0) {
+                return Math.ceil(last);
+            } else {
+                return null;
+            }
+        },
     },
     watch: {
         runnableClips: {
@@ -797,6 +810,24 @@ export default {
         this.stop();
     },
     methods: {
+        countFps(timestamp) {
+            this.framesForSample++;
+            if (!this.fpsSampleStartTime) {
+                this.fpsSampleStartTime = timestamp;
+            } else {
+                const d = timestamp - this.fpsSampleStartTime;
+                if (d > Const.fps_sample_interval) {
+                    const fps = 1000*(this.framesForSample-1) / d;
+                    this.fpsSamples.shift();
+                    this.fpsSamples.push(fps);
+                    this.resetFpsCounter();
+                }
+            }
+        },
+        resetFpsCounter() {
+            this.fpsSampleStartTime = null;
+            this.framesForSample = null;
+        },
         addNewTimeline() {
             const name = Util.uniqueName('Scene ', this.timelines);
             const timelineId = newgid();
@@ -865,12 +896,6 @@ export default {
                 time: 0,
                 playing: false,
             };
-        },
-        run() {
-            this.step();
-            if (this.running) {
-                this.request_id = window.requestAnimationFrame(() => this.run());
-            }
         },
         glReset() {
             const {renderer} = viewports.getViewport('main');
@@ -1035,10 +1060,12 @@ export default {
             currentModel.display_only = true;
             this.run();
         },
-        run() {
+        run(timestamp) {
             this.step();
+            this.time++;
+            this.countFps(timestamp);
             if (this.running) {
-                this.request_id = window.requestAnimationFrame(this.run);
+                this.request_id = window.requestAnimationFrame((timestamp) => this.run(timestamp));
             }
         },
         pause() {
@@ -1057,6 +1084,7 @@ export default {
             currentModel.display_only = false;
             this.runner.stop();
             this.glReset();
+            this.fpsSamples = new Array(Const.num_fps_samples).fill(0);
         },
         setOpacity(layer, val) {
             const layerId = layer.id;

@@ -25,6 +25,7 @@
     "glslify": "^6.3.1",
     "is-video": "^1.0.1",
     "osc": "^2.3.1",
-    "pipe2pam": "^0.6.2"
+    "pipe2pam": "^0.6.2",
+    "ringbufferjs": "^1.1.0"
   }
 }
