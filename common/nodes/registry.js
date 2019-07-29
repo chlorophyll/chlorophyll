@@ -14,17 +14,17 @@ import noiseNodes from './noise';
 import complexNodes from './complex';
 
 const staticNodes = [
+    crgbNodes,
+    mappingNodes,
     patternNodes,
     pixelStageNodes,
     oscillatorNodes,
-    crgbNodes,
-    mappingNodes,
+    complexNodes,
     inputNodes,
     syphonNodes,
     videoNodes,
     easingNodes,
     noiseNodes,
-    complexNodes,
 ];
 
 const generatedNodes = [
