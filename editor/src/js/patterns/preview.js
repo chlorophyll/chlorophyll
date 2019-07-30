@@ -3,6 +3,8 @@ import Const from 'chl/const';
 import { ArtnetRegistry } from '@/common/hardware/artnet';
 import { PatternRunner } from 'chl/patterns/runner';
 import { currentModel } from 'chl/model';
+import { patternUtilsMixin } from 'chl/patterns';
+import { mappingUtilsMixin } from 'chl/mapping';
 
 import * as pixelpusher from 'chl/hardware/pixelpusher';
 
@@ -14,13 +16,17 @@ export const RunState = {
 
 export const PatternPreview = Vue.component('pattern-preview', {
     props: [
-        'pattern',
-        'mapping',
-        'group',
+        'patternId',
+        'mappingId',
+        'groupId',
         'runstate',
         'pushToHardware',
         'hardwareSettings',
         'hardwareProtocol',
+    ],
+    mixins: [
+        mappingUtilsMixin,
+        patternUtilsMixin,
     ],
 
     data() {
@@ -29,6 +35,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
             request_id: null,
             fpsSampleStartTime: null,
             framesForSample: 0,
+            runner: this.makeRunner(),
         };
     },
 
@@ -60,12 +67,22 @@ export const PatternPreview = Vue.component('pattern-preview', {
         running() {
             return this.runstate == RunState.Running;
         },
-
-        runner() {
-            const {pattern, group, mapping} = this;
-            return new PatternRunner(currentModel, pattern, group, mapping);
+        pattern() {
+            return this.getPattern(this.patternId);
         },
-
+        group() {
+            return this.getGroup(this.groupId);
+        },
+        mapping() {
+            return this.getMapping(this.mappingId);
+        },
+        runnerParams() {
+            return {
+                mappingId: this.mappingId,
+                patternId: this.patternId,
+                groupId: this.groupId,
+            };
+        },
         artnetClient() {
             if (this.hardwareProtocol !== 'artnet')
                 return null;
@@ -81,6 +98,9 @@ export const PatternPreview = Vue.component('pattern-preview', {
     },
 
     watch: {
+        runnerParams() {
+            this.runner = this.makeRunner();
+        },
         runstate(newval) {
             switch (newval) {
                 case RunState.Stopped:
@@ -97,6 +117,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
 
         runner(newval, oldval) {
             if (newval.graph.id !== oldval.graph.id) {
+                oldval.stop();
                 oldval.detach();
 
                 if (this.runstate === RunState.Running) {
@@ -178,6 +199,12 @@ export const PatternPreview = Vue.component('pattern-preview', {
             if (this.pushToHardware) {
                 this.pushBlackFrame();
             }
+        },
+        makeRunner() {
+            const pattern = this.getPattern(this.patternId);
+            const group = this.getGroup(this.groupId);
+            const mapping = this.getMapping(this.mappingId);
+            return new PatternRunner(currentModel, pattern, group, mapping);
         }
     }
 });

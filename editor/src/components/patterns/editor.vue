@@ -62,9 +62,9 @@
                 </split-pane>
             </div>
             <pattern-preview v-if="can_preview"
-                             :pattern="cur_pattern"
-                             :mapping="preview_mapping"
-                             :group="preview_group"
+                             :patternId="cur_pattern.id"
+                             :mappingId="preview_mapping.id"
+                             :groupId="preview_group.id"
                              :push-to-hardware="pushToHardware"
                              :runstate="runstate"
                              :hardware-settings="activeHardwareSettings"
