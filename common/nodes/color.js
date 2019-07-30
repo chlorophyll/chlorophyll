@@ -276,6 +276,66 @@ class TestPattern extends GraphNode {
 TestPattern.title = 'Test Pattern';
 node_types.push(['CRGB/TestPattern', TestPattern]);
 
+function makeColormapNode(colormap) {
+    const {importName} = colormap;
+    const alias = colormap.alias || importName;
+    const node = class extends GraphNode {
+        constructor(options) {
+            const inputs = [
+                GraphNode.input('value', Units.Numeric),
+            ];
+
+            const outputs = [
+                GraphNode.output('color', 'CRGB'),
+            ];
+            super(options, inputs, outputs);
+        }
+
+        compile(c) {
+            const func = c.import(`glsl-colormap/${importName}`);
+            const result = glsl.Dot(glsl.FunctionCall(func, [c.getInput(this, 0)]), 'rgb');
+            const color = glsl.FunctionCall('pow', [
+                result,
+                glsl.FunctionCall('vec3', [glsl.Const(2.2)])
+            ]);
+            c.setOutput(this, 0, color);
+        }
+    };
+    node.title = `${alias}`;
+    return [`CRGB/palettes/${alias}`, node];
+}
+
+const colormaps = [
+    {importName: 'hot'},
+    {importName: 'cool'},
+    {importName: 'spring'},
+    {importName: 'summer'},
+    {importName: 'autumn'},
+    {importName: 'winter'},
+    {importName: 'yignbu'},
+    {importName: 'greens'},
+    {importName: 'yiorrd'},
+    {importName: 'bluered'},
+    {importName: 'rdbu'},
+    {importName: 'picnic'},
+    {importName: 'blackbody'},
+    {importName: 'earth'},
+    {importName: 'electric'},
+    {importName: 'viridis'},
+    {importName: 'inferno'},
+    {importName: 'plasma'},
+    {importName: 'warm'},
+    {importName: 'bathymetry'},
+    {importName: 'cdom'},
+    {importName: 'chlorophyll', alias: 'leaves'},
+    {importName: 'freesurface-blue', alias: 'ocean'},
+];
+
+for (const colormap of colormaps) {
+    node_types.push(makeColormapNode(colormap));
+}
+
+
 export default function register_crgb_nodes() {
     GraphLib.registerNodeTypes(node_types);
 };

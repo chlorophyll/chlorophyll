@@ -1086,6 +1086,11 @@ glsl-blend@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/glsl-blend/-/glsl-blend-1.0.3.tgz#0f636604f0e9e7cab647888c58ce7c79e67eef7c"
 
+glsl-colormap@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/glsl-colormap/-/glsl-colormap-1.0.1.tgz#0ab16e4fe031edb53aad628cf8ebbf4fa48bf763"
+  integrity sha1-CrFuT+Ax7bU6rWKM+Ou/T6SL92M=
+
 glsl-easings@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/glsl-easings/-/glsl-easings-1.0.0.tgz#d4f7b499915e922921f4f03d0f8089724bdf5b8e"
