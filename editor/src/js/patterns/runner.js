@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import _ from 'lodash';
 import RawPatternRunner from '@/common/patterns/runner';
 import viewports from 'chl/viewport';
 import {bindFramebufferInfo} from 'twgl.js';
@@ -19,21 +20,19 @@ export class PatternRunner extends RawPatternRunner {
 
         super(gl, model, pattern, group, mapping);
 
+        this.deferredRefresh = (event) => _.defer(this.refresh, event);
+
         for (const event of GRAPH_EVENTS) {
-            this.graph.addEventListener(event, () => this.refresh(event));
+            this.graph.addEventListener(event, this.deferredRefresh);
         }
 
         this.renderer = renderer;
         this.outputTexture = new THREE.Texture();
     }
 
-    refresh(event) {
-        setImmediate(() => super.refresh(event));
-    }
-
     detach() {
         for (const event of GRAPH_EVENTS) {
-            this.graph.removeEventListener(event, this.refresh);
+            this.graph.removeEventListener(event, this.deferredRefresh);
         }
         super.detach();
     }

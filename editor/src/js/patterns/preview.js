@@ -99,7 +99,11 @@ export const PatternPreview = Vue.component('pattern-preview', {
 
     watch: {
         runnerParams() {
+            this.runner.detach();
             this.runner = this.makeRunner();
+            if (this.runstate === RunState.Running) {
+                this.runner.start();
+            }
         },
         runstate(newval) {
             switch (newval) {
@@ -112,17 +116,6 @@ export const PatternPreview = Vue.component('pattern-preview', {
                 case RunState.Running:
                     this.start();
                     break;
-            }
-        },
-
-        runner(newval, oldval) {
-            if (newval.graph.id !== oldval.graph.id) {
-                oldval.stop();
-                oldval.detach();
-
-                if (this.runstate === RunState.Running) {
-                    newval.start();
-                }
             }
         },
 

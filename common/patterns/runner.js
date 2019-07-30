@@ -65,6 +65,7 @@ export default class RawPatternRunner {
     }
 
     detach() {
+        this.detached = true;
         this.graph.emit('stop');
         if (this.phaseUpdateStage) {
             this.phaseUpdateStage.detach();
@@ -111,7 +112,9 @@ export default class RawPatternRunner {
 
     _assignmentValid() {
         if (!this.mapping || !mappingHasView(this.mapping, this.pattern.coord_type)) {
-            console.warn('Runner: trying to refresh with incompatible mapping/pattern assignment');
+            if (!this.detached) {
+                console.warn('Runner: trying to refresh with incompatible mapping/pattern assignment');
+            }
             return false;
         }
 
