@@ -256,14 +256,16 @@ export default {
             }
         },
         cur_pattern(newval, oldval) {
-            if (!newval) {
-                // if current was deleted or otherwise completely deselected
+            if (!this.can_preview) {
                 this.stopAnimation();
-            } else {
-                if (oldval && newval.id !== oldval.id && this.runstate == RunState.Paused) {
-                    // if old pattern was paused and new pattern isn't the same as old
-                    this.stopAnimation();
-                }
+            } else if (
+                oldval &&
+                newval &&
+                newval.id !== oldval.id &&
+                this.runstate == RunState.Paused
+            ) {
+                // if old pattern was paused and new pattern isn't the same as old
+                this.stopAnimation();
             }
         },
     },
