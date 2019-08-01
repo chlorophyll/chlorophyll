@@ -31,8 +31,10 @@
   "dependencies": {
     "clone": "^2.1.1",
     "concat-stream": "^1.6.0",
+    "express": "^4.17.1",
     "immutable": "^3.8.2",
     "minimatch": "^3.0.4",
+    "nanotimer": "^0.3.15",
     "osc": "^2.2.4",
     "pixelpusher-driver": "^0.1.1",
     "tar-stream": "^1.5.4",

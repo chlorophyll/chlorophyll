@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as tar from 'tar-stream';
 import concatStream from 'concat-stream';
 
+import * as nodeRegistry from '@/common/nodes/registry';
 import { restoreAllGroups } from '@/common/model';
 import { restoreAllMappings } from '@/common/mapping';
 import { restoreAllPatterns, restorePlaylistItems } from '@/common/patterns';
@@ -24,6 +25,7 @@ function stringStream(next, cb) {
 
 function restoreSaveObject(obj) {
     let state = {};
+    nodeRegistry.refreshFromSavedState(state);
 
     state.mappings = restoreAllMappings(obj.mappings).new_mappings;
     state.patterns = restoreAllPatterns(obj.patterns).new_patterns;
