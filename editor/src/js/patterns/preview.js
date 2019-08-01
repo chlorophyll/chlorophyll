@@ -47,6 +47,9 @@ export const PatternPreview = Vue.component('pattern-preview', {
                 new Float32Array(width * width * 4),
             ];
             return (time) => {
+                if (!this.running) {
+                    return;
+                }
                 const pixels = this.pushToHardware ? pixelBuffers[time % 2] : null;
                 const current = this.runner.step(time, pixels);
                 currentModel.setFromTexture(current);
@@ -99,10 +102,12 @@ export const PatternPreview = Vue.component('pattern-preview', {
 
     watch: {
         runnerParams() {
+            const runstate = this.runstate;
+            this.stop();
             this.runner.detach();
             this.runner = this.makeRunner();
-            if (this.runstate === RunState.Running) {
-                this.runner.start();
+            if (runstate === RunState.Running) {
+                this.start();
             }
         },
         runstate(newval) {

@@ -209,7 +209,17 @@ export default {
             return this.mapping_list.filter((map) => type == map.type);
         },
         preview_mapping() {
-            return this.preview_map_id !== null ? this.getMapping(this.preview_map_id) : null;
+            if (this.cur_pattern === null || this.preview_map_id === null) {
+                return null;
+            }
+
+            const mapping = this.getMapping(this.preview_map_id);
+
+            if (mapping.type !== this.cur_pattern.mapping_type) {
+                return null;
+            } else {
+                return mapping;
+            }
         },
         preview_group() {
             return this.preview_group_id !== null ? this.getGroup(this.preview_group_id) : null;
@@ -236,12 +246,14 @@ export default {
     },
     watch: {
         mappings(newval) {
-            if (newval.length == 1)
+            if (this.preview_mapping === null && newval.length > 0) {
                 this.preview_map_id = newval[0].id;
+            }
         },
         groups(newval) {
-            if (newval.length == 1)
+            if (this.preview_group_id === null && newval.length > 0) {
                 this.preview_group_id = newval[0].id;
+            }
         },
         cur_pattern(newval, oldval) {
             if (!newval) {
