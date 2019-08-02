@@ -26,6 +26,8 @@
     "watch": "babel src -d dist --source-maps --extensions '.js,.ts' --watch",
     "build": "babel src -d dist --source-maps --extensions '.js,.ts'",
     "light": "node dist/index.js",
+    "serve": "node dist/server.js",
+    "serve:watch": "nodemon dist/server.js",
     "lint": "eslint --ext .js -f ./node_modules/eslint-friendly-formatter src"
   },
   "dependencies": {

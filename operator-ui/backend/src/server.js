@@ -121,27 +121,14 @@ function runPattern(model, pattern, group, mapping) {
 }
 
 const filename = '/Users/rpearl/Dropbox/chlorophyll-dragon/Chrysanthemum.chl';
-const patternName = 'ripple';
-const mappingName = 'Mapping 1';
 const registry = new PixelPusherRegistry();
 
-let mapping, group;
+let group;
 
 let state;
 
 async function init() {
     state = await readSavefile(filename);
-
-    console.log(state.patterns);
-
-    for (let id in state.mappings) {
-        let obj = state.mappings[id];
-        if (obj.name == mappingName) {
-            mapping = obj;
-            break;
-        }
-    }
-    console.log(mapping.id);
 
     let group_id = state.group_list[0];
     group = state.groups[group_id];
@@ -166,14 +153,19 @@ registry.start();
 
 init().then(() => console.log('initialized')).catch((e) => console.log(e));
 
+app.use(express.json());
+
 app.get('/', (req, res) => res.send('Hello World!'))
 
-app.post('/startPattern/:patternId', (req, res) => {
+app.post('/api/start', (req, res) => {
     if (!isReady()) {
-        return;
+        res.status(503).send({msg: 'not ready'});
     }
 
-    const pattern = state.patterns[req.params.patternId];
+    const {patternId, mappingId} = req.body;
+
+    const pattern = state.patterns[patternId];
+    const mapping = state.mappings[mappingId];
 
     if (isPlaying) {
         stopAnimation();
@@ -181,13 +173,13 @@ app.post('/startPattern/:patternId', (req, res) => {
     runPattern(state.model, pattern, group, mapping);
 
     res.send('ok');
-})
+});
 
-app.post('/stop', (req, res) => {
+app.post('/api/stop', (req, res) => {
     stopAnimation();
     pushBlackFrame(state.model);
     res.send('ok');
 });
 
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+app.listen(port, () => console.log(`backend listening on port ${port}!`))
