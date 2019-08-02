@@ -1,6 +1,30 @@
 <template>
   <v-app>
+    <v-navigation-drawer app temporary v-model="drawer">
+      <v-list-item>
+        <v-list-item-content>
+          <v-list-item-title class="title">
+            Chlorophyll
+          </v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+      <v-list
+        dense
+        nav
+      >
+        <v-list-item link to="/">
+          <v-list-item-icon>
+            <v-icon>mdi-view-list</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>
+            <v-list-item-title>Patterns</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
     <v-app-bar app>
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-toolbar-title class="headline">
         <span>Chlorophyll</span>
       </v-toolbar-title>
@@ -8,19 +32,7 @@
         <v-btn icon @click="stopPattern"><v-icon>mdi-stop</v-icon></v-btn>
     </v-app-bar>
     <v-content>
-      <v-list>
-        <template v-for="(pattern, index) in patterns">
-          <v-list-item v-ripple @click="startPattern(pattern.id)" :key="`pattern${pattern.id}`">
-            <v-list-item-content>
-              {{ pattern.name }}
-            </v-list-item-content>
-          </v-list-item>
-          <v-divider
-            v-if="index + 1 < patterns.length"
-            :key="index"
-          ></v-divider>
-        </template>
-      </v-list>
+      <router-view />
     </v-content>
   </v-app>
 </template>
@@ -32,31 +44,10 @@ export default {
   name: 'App',
   data() {
     return {
-      patternsById: {},
-      patternOrder: [],
-      mappings: [],
+      drawer: false,
     };
   },
-  computed: {
-    patterns() {
-      return this.patternOrder.map(id => this.patternsById[id]);
-    },
-  },
-  mounted() {
-    this.fetchState();
-  },
   methods: {
-    async fetchState() {
-      const resp = await axios.get('/api/state');
-      const state = resp.data;
-      this.patternsById = state.patterns;
-      this.patternOrder = state.patternOrder;
-      this.mappings = Object.values(state.mappings);
-    },
-    async startPattern(patternId) {
-      const mappingId = this.mappings[0].id;
-      await axios.post('/api/start', {patternId, mappingId});
-    },
     async stopPattern() {
       await axios.post('/api/stop');
     }
