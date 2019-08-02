@@ -1,4 +1,7 @@
 import _ from 'lodash';
+import chalk from 'chalk';
+import * as path from 'path';
+import * as os from 'os';
 import express from 'express';
 import Nanotimer from 'nanotimer';
 import { readSavefile } from './restore';
@@ -159,9 +162,10 @@ registry.on('pruned', (controller) => {
 
 registry.start();
 
-init().then(() => console.log('initialized')).catch((e) => console.log(e));
+init().catch((e) => console.log(chalk.red(e)));
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../../frontend/dist')))
 
 app.get('/api/state', (req, res) => {
     if (!isReady()) {
@@ -196,6 +200,17 @@ app.post('/api/stop', (req, res) => {
     pushBlackFrame(state.model);
     res.send('ok');
 });
+const ifaces = _.flatten(_.values(os.networkInterfaces()));
+const external = ifaces.find(val => val.family === 'IPv4' && !val.internal);
 
-
-app.listen(port, () => console.log(`backend listening on port ${port}!`))
+app.listen(port, () => {
+    console.log();
+    console.log();
+    console.log('App running at: ');
+    console.log(    ` -   local:   ${chalk.cyan.bold(`http://localhost:${port}/`)}`);
+    if (external) {
+        console.log(` - Network:   ${chalk.cyan.bold(`http://${external.address}:${port}/`)}`);
+    }
+    console.log();
+    console.log();
+});
