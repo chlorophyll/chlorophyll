@@ -112,12 +112,20 @@ function uvMapStrips(obj, svg, options = {}) {
         const stripPixels = [];
         shapePath.subPaths.forEach(path =>
             path.curves.forEach((curve, i) => {
-                if (curve.type !== 'LineCurve') {
-                    console.log(path);
-                    throw new Error(`Unsupported curve type: ${curve.type}; expected: LineCurve`);
-                }
+                switch (curve.type) {
+                    case 'LineCurve':
+                        stripPixels.push(curve.v1, curve.v2);
+                        break;
 
-                stripPixels.push(curve.v1, curve.v2);
+                    case 'CubicBezierCurve':
+                        // Just get the start and end, ignore the control points.
+                        stripPixels.push(curve.v0, curve.v3);
+                        break;
+
+                    default:
+                        console.log(path);
+                        throw new Error(`Unsupported curve type: ${curve.type}; expected: LineCurve`);
+                }
             })
         );
 
