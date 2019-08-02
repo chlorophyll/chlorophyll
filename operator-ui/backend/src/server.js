@@ -91,12 +91,13 @@ export const filename = argv._[0];
 async function init() {
     state = await readSavefile(filename);
 
+    const settings = state.hardware.settings[state.hardware.protocol];
     switch (state.hardware.protocol) {
         case 'artnet':
-            client = new ArtnetRegistry(state.model, state.hardware.settings);
+            client = new ArtnetRegistry(state.model, settings);
             break;
         case 'pixelpusher':
-            client = new PixelpusherClient(state.model, state.hardware.settings);
+            client = new PixelpusherClient(state.model, settings);
             break;
         default:
             throw new Error(`Unsupported client protocol ${state.hardware.protocol}`);
