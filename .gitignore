@@ -3,7 +3,8 @@ editor/.jshintrc
 .DS_Store
 npm-debug.log
 npm-debug.log.*
-backend/node_modules/
+operator-ui/backend/node_modules/
+operator-ui/backend/dist/
 editor/node_modules/
 node_modules/
 editor/dist/electron/*
