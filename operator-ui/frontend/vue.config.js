@@ -6,4 +6,9 @@ module.exports = {
             },
         },
     },
+    chainWebpack(config) {
+        if (process.env.NODE_ENV === 'production') {
+            config.plugins.delete('friendly-errors');
+        }
+    }
 };
