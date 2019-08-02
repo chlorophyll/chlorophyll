@@ -7,4 +7,4 @@ cd $operator/frontend
 yarn build
 cd $operator/backend
 yarn build
-yarn serve
+yarn serve $1

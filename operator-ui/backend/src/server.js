@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { argv } from 'yargs';
 import chalk from 'chalk';
 import * as path from 'path';
 import * as os from 'os';
@@ -127,7 +128,7 @@ function runPattern(model, pattern, group, mapping) {
     runAnimation(frame);
 }
 
-const filename = '/Users/rpearl/Dropbox/chlorophyll-dragon/Chrysanthemum.chl';
+const filename = argv._[0];
 const registry = new PixelPusherRegistry();
 
 let group;
