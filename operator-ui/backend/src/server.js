@@ -120,6 +120,7 @@ function sendBlackFrame() {
 init().catch((e) => {
     //console.log(chalk.red(e));
     console.log(chalk.red(e.stack));
+    process.exit(1);
 });
 
 app.use(express.json());
