@@ -10,6 +10,7 @@ import { checkFramebuffer } from '@/common/util/gl_debug';
 import { createFromConfig } from '@/common/mapping';
 import PatternRunner from '@/common/patterns/runner';
 import PixelpusherClient from './hardware/pixelpusher';
+import { ArtnetRegistry } from '@/common/hardware/artnet';
 
 import * as WebGL from 'wpe-webgl';
 
@@ -88,9 +89,17 @@ const filename = argv._[0];
 
 async function init() {
     state = await readSavefile(filename);
-    console.log('read save');
 
-    client = new PixelpusherClient(state.model, null);
+    switch (state.hardware.protocol) {
+        case 'artnet':
+            client = new ArtnetRegistry(state.model, state.hardware.settings);
+            break;
+        case 'pixelpusher':
+            client = new PixelpusherClient(state.model, state.hardware.settings);
+            break;
+        default:
+            throw new Error(`Unsupported client protocol ${state.hardware.protocol}`);
+    }
 
     let group_id = state.group_list[0];
     group = state.groups[group_id];
@@ -98,6 +107,12 @@ async function init() {
 
 function isReady() {
     return !!state;
+}
+
+function sendBlackFrame() {
+    const w = state.model.textureWidth;
+    const buf = new Float32Array(w * w * 4);
+    client.sendFrame(buf);
 }
 
 init().catch((e) => console.log(chalk.red(e)));
@@ -136,7 +151,7 @@ app.post('/api/start', (req, res) => {
 
 app.post('/api/stop', (req, res) => {
     stopAnimation();
-    client.sendBlackFrame();
+    sendBlackFrame();
     res.send('ok');
 });
 const ifaces = _.flatten(_.values(os.networkInterfaces()));

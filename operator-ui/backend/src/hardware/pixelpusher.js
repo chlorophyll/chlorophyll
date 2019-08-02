@@ -25,10 +25,4 @@ export default class PixelpusherClient {
     sendFrame(frame) {
         pushPixels(this.model, this.controllers, frame);
     }
-
-    sendBlackFrame() {
-        const w = this.model.textureWidth;
-        const frame = Buffer.alloc(w * w * 4);
-        this.sendFrame(frame);
-    }
 }
