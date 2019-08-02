@@ -16,6 +16,7 @@ class SignalInput extends GraphNode {
             Signal.argsToGraphTypes(signalAttrs.args).map((t, i) => GraphNode.output(`value${i}`, t)),
             {config: {color: '#7496a6', boxcolor: '#69a4bf'}}
         );
+        console.log('after super', this);
 
         this.signal = new Signal(signalAttrs);
         this.signal.enable();

@@ -25,7 +25,7 @@ function stringStream(next, cb) {
 
 function restoreSaveObject(obj) {
     let state = {};
-    nodeRegistry.refreshFromSavedState(state);
+    nodeRegistry.refreshFromSavedState(obj);
 
     state.hardware = obj.hardwareSettings;
 

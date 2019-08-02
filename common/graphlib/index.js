@@ -536,6 +536,7 @@ export class GraphNode {
         } = options;
 
         this.graph = graph;
+        console.log('in super ctor', this);
         this.id = id;
         this.path = path;
 
@@ -564,6 +565,7 @@ export class GraphNode {
             defaults,
             config: cfg
         });
+        console.log('okay done', this);
     }
 
     /*

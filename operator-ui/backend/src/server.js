@@ -29,6 +29,7 @@ let client;
 let state;
 process.on('uncaughtException', function (err) {
     console.log(err);
+    console.log(err.stack);
     process.exit(1);
 })
 
@@ -84,7 +85,7 @@ function runPattern(pattern, group, mapping) {
     runAnimation(frame);
 }
 
-const filename = argv._[0];
+export const filename = argv._[0];
 
 
 async function init() {
@@ -115,7 +116,10 @@ function sendBlackFrame() {
     client.sendFrame(buf);
 }
 
-init().catch((e) => console.log(chalk.red(e)));
+init().catch((e) => {
+    //console.log(chalk.red(e));
+    console.log(chalk.red(e.stack));
+});
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../../frontend/dist')))
