@@ -29,6 +29,10 @@ function addController(controller) {
     _.sortBy(controllers, 'controller_id');
 }
 
+function removeController(controller) {
+    controllers = controllers.filter(c => c.id !== controller.controller.id);
+}
+
 const timer = new Nanotimer();
 
 function runAnimation(cb) {
@@ -149,17 +153,29 @@ registry.on('discovered', (controller) => {
     addController(controller);
 });
 
+registry.on('pruned', (controller) => {
+    removeController(controller);
+});
+
 registry.start();
 
 init().then(() => console.log('initialized')).catch((e) => console.log(e));
 
 app.use(express.json());
 
-app.get('/', (req, res) => res.send('Hello World!'))
+app.get('/api/state', (req, res) => {
+    if (!isReady()) {
+        res.status(503).send({msg: 'not ready'});
+    }
+
+    res.json(state);
+});
+
 
 app.post('/api/start', (req, res) => {
     if (!isReady()) {
         res.status(503).send({msg: 'not ready'});
+        return;
     }
 
     const {patternId, mappingId} = req.body;

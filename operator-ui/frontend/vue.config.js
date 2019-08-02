@@ -2,7 +2,7 @@ module.exports = {
     devServer: {
         proxy: {
             '^/api': {
-                target: 'localhost:4000',
+                target: 'http://localhost:3000',
             },
         },
     },

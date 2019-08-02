@@ -28,7 +28,9 @@ function restoreSaveObject(obj) {
     nodeRegistry.refreshFromSavedState(state);
 
     state.mappings = restoreAllMappings(obj.mappings).new_mappings;
-    state.patterns = restoreAllPatterns(obj.patterns).new_patterns;
+    const patternObj = restoreAllPatterns(obj.patterns);
+    state.patterns = patternObj.new_patterns;
+    state.patternOrder = patternObj.new_pattern_ordering;
     const g = restoreAllGroups(obj.groups);
     state.groups = g.new_groups;
     state.group_list = g.new_group_list;
