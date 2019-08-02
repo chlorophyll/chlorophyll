@@ -4,6 +4,8 @@
       <v-toolbar-title class="headline">
         <span>Chlorophyll</span>
       </v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn icon @click="stopPattern"><v-icon>mdi-stop</v-icon></v-btn>
     </v-app-bar>
     <v-content>
       <v-list>
@@ -54,6 +56,9 @@ export default {
     async startPattern(patternId) {
       const mappingId = this.mappings[0].id;
       await axios.post('/api/start', {patternId, mappingId});
+    },
+    async stopPattern() {
+      await axios.post('/api/stop');
     }
   },
 };
