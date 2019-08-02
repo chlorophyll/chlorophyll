@@ -33,7 +33,6 @@ export function createFromConfig(config) {
 
 // TODO move methods like this into a common base mapping class
 export function mappingHasView(mapping, viewName) {
-    console.log('checking views', mapping.constructor.views, 'for view:', viewName);
     const views = mapping.constructor.views;
     return views.some(v => v.className === viewName);
 }
