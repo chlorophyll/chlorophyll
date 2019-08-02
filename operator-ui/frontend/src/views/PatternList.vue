@@ -37,7 +37,9 @@ export default {
       this.mappings = Object.values(state.mappings);
     },
     async startPattern(patternId) {
-      const mappingId = this.mappings[0].id;
+      const pattern = this.patternsById[patternId];
+      const possibleMappings = this.mappings.filter(mapping => mapping.type === pattern.mapping_type);
+      const mappingId = possibleMappings[0].id;
       await axios.post('/api/start', {patternId, mappingId});
     },
   },

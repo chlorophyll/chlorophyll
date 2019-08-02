@@ -38,7 +38,6 @@ export class Graph extends GraphBase {
     }
 
     addNode(path, options) {
-        console.log(path);
         const { id } = options;
         return super.addNode(path, id, vm_factory, options);
     }
