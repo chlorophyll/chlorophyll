@@ -9,9 +9,7 @@ import { readSavefile } from './restore';
 import { checkFramebuffer } from '@/common/util/gl_debug';
 import { createFromConfig } from '@/common/mapping';
 import PatternRunner from '@/common/patterns/runner';
-import PlaylistRunner from '@/common/patterns/playlist';
-
-import PixelPusherRegistry from 'pixelpusher-driver';
+import PixelpusherClient from './hardware/pixelpusher';
 
 import * as WebGL from 'wpe-webgl';
 
@@ -24,18 +22,14 @@ console.log(gl.getParameter(gl.VERSION));
 let isPlaying = false;
 const app = express();
 const port = 3000;
+let group;
+let client;
 
-const controllers = [];
-
-function addController(controller) {
-    controller.applyCorrection = (x) => x;
-    controllers.push(controller);
-    _.sortBy(controllers, 'controller_id');
-}
-
-function removeController(controller) {
-    controllers = controllers.filter(c => c.id !== controller.controller.id);
-}
+let state;
+process.on('uncaughtException', function (err) {
+    console.log(err);
+    process.exit(1);
+})
 
 const timer = new Nanotimer();
 
@@ -51,69 +45,30 @@ function stopAnimation() {
     timer.clearInterval();
 }
 
-
-function pushPixels(model, stripBufs) {
-    let ptr = 0;
-    let strip = 0;
-    for (const controller of controllers) {
-        for (let cstrip = 0; strip < model.num_strips && cstrip < controller.strips_attached; cstrip++) {
-            controller.setStrip(cstrip, stripBufs[strip]);
-            strip++;
-        }
-        controller.sync();
-    }
-}
-
-function pushBlackFrame(model) {
-    const pixels = new Float32Array(model.num_pixels * 4);
-    const stripBufs = makeStripBufs(model, pixels);
-
-    pushPixels(model, stripBufs);
-}
-
-function makeStripBufs(model, pixels) {
-    const stripBufs = [];
-    let ptr = 0;
-    for (let strip = 0; strip < model.num_strips; strip++) {
-        const buf = model.makeStripBuffer(strip);
-        for (let i = 0; i < buf.length; i++) {
-            if (ptr % 4 == 3) {
-                ptr++;
-            }
-            buf[i] = pixels[ptr++]*255;
-        }
-        stripBufs.push(buf);
-    }
-    return stripBufs;
-}
-
-function runPattern(model, pattern, group, mapping) {
+function runPattern(pattern, group, mapping) {
+    const model = state.model;
     isPlaying = true;
-    console.log('trying to run pattern');
-    console.log(model.strip_offsets);
-    console.log(model.num_pixels);
-    console.log(`number of pushers: ${controllers.length}`);
     const patternRunner = new PatternRunner(gl, model, pattern, group, mapping);
     let time = 0;
 
-    let pixels = new Float32Array(model.num_pixels * 4);
-    let prevPixels = new Float32Array(model.num_pixels * 4);
+    const w = model.textureWidth;
 
-    let diff = false;
+    const textureSize = w * w * 4;
+
+    let pixels = new Float32Array(textureSize);
+    let prevPixels = new Float32Array(textureSize);
 
     let curTime;
-    let prevStripBufs = undefined;
 
     const frame = () => {
         if (!curTime) {
             curTime = process.hrtime();
         }
         patternRunner.step(time, pixels);
-        const stripBufs = makeStripBufs(model, pixels);
-        prevStripBufs = stripBufs;
         [prevPixels, pixels] = [pixels, prevPixels];
 
-        pushPixels(model, stripBufs);
+        client.sendFrame(pixels);
+
         if (time > 0 && time % 300 === 0) {
             const diff = process.hrtime(curTime);
             const ns = diff[0] * 1e9 + diff[1];
@@ -129,39 +84,21 @@ function runPattern(model, pattern, group, mapping) {
 }
 
 const filename = argv._[0];
-const registry = new PixelPusherRegistry();
 
-let group;
-
-let state;
 
 async function init() {
     state = await readSavefile(filename);
+    console.log('read save');
+
+    client = new PixelpusherClient(state.model, null);
 
     let group_id = state.group_list[0];
     group = state.groups[group_id];
 }
 
 function isReady() {
-    if (!state) {
-        return false;
-    }
-    let stripsAttached = 0;
-    for (let controller of controllers) {
-        stripsAttached += controller.strips_attached;
-    }
-    return stripsAttached === state.model.num_strips;
+    return !!state;
 }
-
-registry.on('discovered', (controller) => {
-    addController(controller);
-});
-
-registry.on('pruned', (controller) => {
-    removeController(controller);
-});
-
-registry.start();
 
 init().catch((e) => console.log(chalk.red(e)));
 
@@ -171,6 +108,7 @@ app.use(express.static(path.join(__dirname, '../../frontend/dist')))
 app.get('/api/state', (req, res) => {
     if (!isReady()) {
         res.status(503).send({msg: 'not ready'});
+        return;
     }
 
     res.json(state);
@@ -191,14 +129,14 @@ app.post('/api/start', (req, res) => {
     if (isPlaying) {
         stopAnimation();
     }
-    runPattern(state.model, pattern, group, mapping);
+    runPattern(pattern, group, mapping);
 
     res.send('ok');
 });
 
 app.post('/api/stop', (req, res) => {
     stopAnimation();
-    pushBlackFrame(state.model);
+    client.sendBlackFrame();
     res.send('ok');
 });
 const ifaces = _.flatten(_.values(os.networkInterfaces()));
