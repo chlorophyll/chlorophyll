@@ -60,16 +60,25 @@ function runPattern(pattern, group, mapping) {
     let pixels = new Float32Array(textureSize);
     let prevPixels = new Float32Array(textureSize);
 
+    const stream = new Writable();
+
+
     let curTime;
 
     const frame = () => {
         if (!curTime) {
             curTime = process.hrtime();
         }
-        patternRunner.step(time, pixels);
+        let readbuf = pixels;
+        // artnet locked to 30fps
+        if (state.hardware.protocol === 'artnet' && frame % 2 !== 0) {
+            readbuf = null;
+        }
+        patternRunner.step(time, readbuf);
         [prevPixels, pixels] = [pixels, prevPixels];
-
-        client.sendFrame(pixels);
+        if (readbuf) {
+            client.sendFrame(readbuf);
+        }
 
         if (time > 0 && time % 300 === 0) {
             const diff = process.hrtime(curTime);
