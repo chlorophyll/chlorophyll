@@ -38,19 +38,20 @@
 </template>
 
 <script>
-import axios from 'axios';
+import store from '@/store';
+import {ApiMixin} from '@/api';
 
 export default {
   name: 'App',
+  store,
+  mixins: [ApiMixin],
   data() {
     return {
       drawer: false,
     };
   },
-  methods: {
-    async stopPattern() {
-      await axios.post('/api/stop');
-    }
+  mounted() {
+    store.dispatch('fetchSavefileState');
   },
 };
 </script>
