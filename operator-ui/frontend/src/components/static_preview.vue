@@ -1,5 +1,5 @@
 <template>
-  <canvas :width="width" :height="height" ref="canvas" />
+  <canvas class="mx-auto" :width="width" :height="height" ref="canvas" />
 </template>
 
 <script>
@@ -49,3 +49,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+canvas {
+  border-radius: inherit;
+}
+</style>
