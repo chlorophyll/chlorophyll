@@ -51,7 +51,7 @@ export default {
     };
   },
   mounted() {
-    store.dispatch('fetchSavefileState');
+    this.$nextTick(() => store.dispatch('fetchSavefileState'));
   },
 };
 </script>

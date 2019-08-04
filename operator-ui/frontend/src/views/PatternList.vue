@@ -10,7 +10,13 @@
           <v-card v-ripple @click="startPattern(pattern)">
             <template v-if="$vuetify.breakpoint.mdAndUp">
               <v-card-title class="black pa-0 fill-height">
-                <static-preview :width="size" :height="size" :pattern="pattern" :renderer="renderer" />
+                <static-preview
+                  :width="size"
+                  :height="size"
+                  :pattern="pattern"
+                  :renderer="renderer"
+                  :loader="loader"
+                />
               </v-card-title>
             <v-card-text class="text-center text-truncate mt-2">
               {{ pattern.name }}
@@ -20,7 +26,13 @@
             <v-list-item class="pr-0">
               <v-list-item-content>{{ pattern.name }}</v-list-item-content>
               <v-list-item-avatar :size="size" tile class="pa-0 ma-0" style="border-radius: inherit">
-                <static-preview :width="size" :height="size" :pattern="pattern" :renderer="renderer" />
+                <static-preview
+                  :width="size"
+                  :height="size"
+                  :pattern="pattern"
+                  :renderer="renderer"
+                  :loader="loader"
+                />
               </v-list-item-avatar>
             </v-list-item>
           </template>
@@ -62,6 +74,9 @@ export default {
       const renderer = new THREE.WebGLRenderer();
       renderer.setSize(this.size, this.size);
       return renderer;
+    },
+    loader() {
+      return new THREE.TextureLoader();
     },
     size() {
       return this.$vuetify.breakpoint.mdAndUp ? 128 : 96;

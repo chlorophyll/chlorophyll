@@ -10,7 +10,7 @@ import {getModel} from '@/model';
 import * as THREE from 'three';
 export default {
   name: 'static-preview',
-  props: ['width', 'height', 'pattern', 'renderer'],
+  props: ['width', 'height', 'pattern', 'renderer', 'loader'],
   computed: {
     ...mapGetters([
       'mappingList',
@@ -21,11 +21,10 @@ export default {
   },
   methods: {
     loadTexture() {
-      const loader = new THREE.TextureLoader();
       const patternId = this.pattern.id;
       const mappingId = this.mapping.id;
       const url = `/api/preview/${patternId}/${mappingId}`;
-      loader.load(url, (texture) => {
+      this.loader.load(url, (texture) => {
         texture.flipY = false;
         const model = getModel();
         const camera = new THREE.PerspectiveCamera(
