@@ -1,8 +1,10 @@
 import _ from 'lodash';
+import sharp from 'sharp';
 import { argv } from 'yargs';
 import chalk from 'chalk';
 import * as path from 'path';
 import * as os from 'os';
+import tmp from 'tmp-promise';
 import express from 'express';
 import Nanotimer from 'nanotimer';
 import { readSavefile } from './restore';
@@ -27,6 +29,8 @@ let group;
 let client;
 
 let state;
+let previewsByPatternId;
+
 process.on('uncaughtException', function (err) {
     console.log(err);
     console.log(err.stack);
@@ -47,6 +51,59 @@ function stopAnimation() {
     timer.clearInterval();
 }
 
+async function makePreviewAsync(pattern, mapping) {
+    const model = state.model;
+    const groupId = state.group_list[0];
+    const group = state.groups[groupId];
+
+    try {
+        const runner = new PatternRunner(gl, model, pattern, group, mapping);
+
+        const w = model.textureWidth;
+        const textureSize = w * w * 4;
+        const pixels = new Float32Array(textureSize);
+        runner.step(0, pixels);
+        const tmpFile = await tmp.file();
+
+        const buf = Buffer.alloc(w*w*3);
+        let ptr = 0;
+        for (let i = 0; i < pixels.length; i++) {
+            if (i % 4 === 3) continue;
+            buf[ptr] = pixels[i]*255;
+            ptr++;
+        }
+
+        await sharp(buf, {
+            raw: {
+                width: w,
+                height: w,
+                channels: 3,
+            }
+        }).png().toFile(tmpFile.path);
+        return {
+            patternId: pattern.id,
+            mappingId: mapping.id.toString(),
+            path: tmpFile.path,
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
+async function makeAllPreviewsAsync() {
+    console.log('Generating previews...');
+    const mappingsByType = _.groupBy(_.values(state.mappings), m => m.type);
+
+    const previewPromises = _.flatten(_.values(state.patterns).map(pattern => {
+        const mappings = mappingsByType[pattern.mapping_type];
+        return mappings.map(mapping => makePreviewAsync(pattern, mapping));
+    }));
+
+    const previews = _.compact(await Promise.all(previewPromises));
+
+    previewsByPatternId = _.groupBy(previews, preview => preview.patternId);
+}
+
 function runPattern(pattern, group, mapping) {
     const model = state.model;
     isPlaying = true;
@@ -59,9 +116,6 @@ function runPattern(pattern, group, mapping) {
 
     let pixels = new Float32Array(textureSize);
     let prevPixels = new Float32Array(textureSize);
-
-    const stream = new Writable();
-
 
     let curTime;
 
@@ -99,6 +153,8 @@ export const filename = argv._[0];
 
 async function init() {
     state = await readSavefile(filename);
+
+    await makeAllPreviewsAsync();
 
     const settings = state.hardware.settings[state.hardware.protocol];
     switch (state.hardware.protocol) {
@@ -141,7 +197,26 @@ app.get('/api/state', (req, res) => {
         return;
     }
 
-    res.json(state);
+    const result = {
+        ...state,
+        model: state.model.model_info,
+    };
+
+    res.json(result);
+});
+
+app.get('/api/preview/:patternId/:mappingId', (req, res) => {
+    const {patternId, mappingId} = req.params;
+    const previews = previewsByPatternId[patternId];
+    if (!previews) {
+        res.status(404).send('Not found');
+        return;
+    }
+    const preview = previews.find(preview => preview.mappingId === mappingId);
+    if (!preview) {
+        res.status(404).send('Not found');
+    }
+    res.type('png').sendFile(preview.path);
 });
 
 

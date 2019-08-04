@@ -19,7 +19,6 @@ function extractFromTexture(target, ident, vec2, swizzle) {
 
 export default class RawPatternRunner {
     constructor(gl, model, pattern, groups, mapping) {
-        console.log('Constructing runner with mapping', mapping);
         this.gl = gl;
         const pixelMapping = createFromConfig(mapping);
         this.pattern = pattern;

@@ -3,6 +3,8 @@ import Vuex from 'vuex';
 
 import api from './api';
 
+import {initModel} from './model';
+
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -10,12 +12,14 @@ export default new Vuex.Store({
         patternsById: {},
         patternOrder: [],
         mappingsById: {},
+        model: false,
     },
     mutations: {
         setSavefileState(state, {patterns, patternOrder, mappings}) {
             state.patternsById = patterns;
             state.patternOrder = patternOrder;
             state.mappingsById = mappings;
+            state.model = true;
         },
     },
     getters: {
@@ -30,6 +34,7 @@ export default new Vuex.Store({
     actions: {
         async fetchSavefileState({commit}) {
             const savefile = await api.fetchSavefileState();
+            initModel(savefile.model);
             commit('setSavefileState', savefile);
         },
     }
