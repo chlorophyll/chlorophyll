@@ -2,10 +2,9 @@ import GraphLib, { GraphBase } from '@/common/graphlib';
 import EventEmitter from 'events';
 import * as path from 'path';
 import * as fs from 'fs';
-import {filename} from './server';
-
-const mediaFolder = 'asdf';//path.join(path.dirname(argv.filename), 'media');
-console.log(mediaFolder);
+import { argv } from 'yargs';
+const filename = argv._[0];
+const mediaFolder = path.join(path.dirname(filename), 'media');
 
 function vm_factory(graph, node, data) {
     return {

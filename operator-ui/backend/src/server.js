@@ -27,6 +27,7 @@ const app = express();
 const port = 3000;
 let group;
 let client;
+let patternRunner;
 
 let state;
 let previewsByPatternId;
@@ -47,6 +48,7 @@ function runAnimation(cb) {
 }
 
 function stopAnimation() {
+    patternRunner.stop();
     isPlaying = false;
     timer.clearInterval();
 }
@@ -107,7 +109,7 @@ async function makeAllPreviewsAsync() {
 function runPattern(pattern, group, mapping) {
     const model = state.model;
     isPlaying = true;
-    const patternRunner = new PatternRunner(gl, model, pattern, group, mapping);
+    patternRunner = new PatternRunner(gl, model, pattern, group, mapping);
     let time = 0;
 
     const w = model.textureWidth;
@@ -145,10 +147,11 @@ function runPattern(pattern, group, mapping) {
         time++;
     };
 
+    patternRunner.start();
     runAnimation(frame);
 }
 
-export const filename = argv._[0];
+const filename = argv._[0];
 
 
 async function init() {
