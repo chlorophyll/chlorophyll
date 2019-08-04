@@ -34,7 +34,7 @@ export default {
           1000000,
         );
 
-        model.zoomCameraToFit(camera);
+        model.zoomCameraToFit(camera, 1);
         model.setFromTexture(texture);
         this.renderer.render(model.scene, camera);
         const context = this.$refs.canvas.getContext('2d');

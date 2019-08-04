@@ -54,6 +54,7 @@ function stopAnimation() {
 }
 
 async function makePreviewAsync(pattern, mapping) {
+    console.log(`generating preview for ${pattern.name}`);
     const model = state.model;
     const groupId = state.group_list[0];
     const group = state.groups[groupId];
@@ -88,22 +89,26 @@ async function makePreviewAsync(pattern, mapping) {
             path: tmpFile.path,
         };
     } catch (e) {
+        console.log(e);
         return null;
     }
 }
 
 async function makeAllPreviewsAsync() {
-    console.log('Generating previews...');
+    console.log('Generating previews... (this make take a while)');
     const mappingsByType = _.groupBy(_.values(state.mappings), m => m.type);
 
+    console.log(mappingsByType);
+
     const previewPromises = _.flatten(_.values(state.patterns).map(pattern => {
-        const mappings = mappingsByType[pattern.mapping_type];
+        const mappings = mappingsByType[pattern.mapping_type] || [];
         return mappings.map(mapping => makePreviewAsync(pattern, mapping));
     }));
 
     const previews = _.compact(await Promise.all(previewPromises));
 
     previewsByPatternId = _.groupBy(previews, preview => preview.patternId);
+    console.log('Ready');
 }
 
 function runPattern(pattern, group, mapping) {
