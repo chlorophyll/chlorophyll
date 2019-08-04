@@ -156,6 +156,10 @@ async function init() {
 
     await makeAllPreviewsAsync();
 
+    state.patterns = _.pickBy(state.patterns, pattern => previewsByPatternId[pattern.id] !== undefined);
+
+    state.patternOrder = state.patternOrder.filter(patternId => previewsByPatternId[patternId] !== undefined);
+
     const settings = state.hardware.settings[state.hardware.protocol];
     switch (state.hardware.protocol) {
         case 'artnet':
