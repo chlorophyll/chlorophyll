@@ -29,6 +29,9 @@
         <span>Chlorophyll</span>
       </v-toolbar-title>
         <v-spacer></v-spacer>
+        <span>{{ realtime.globalBrightness }}</span>
+        <v-btn icon @click="updateGlobalBrightness(50)"><v-icon>mdi-minus</v-icon></v-btn>
+        <v-spacer></v-spacer>
         <v-btn icon @click="stopPattern"><v-icon>mdi-stop</v-icon></v-btn>
     </v-app-bar>
     <v-content>
@@ -59,7 +62,8 @@ export default {
   },
   methods: {
     updateGlobalBrightness(val) {
-      realtimeSettings.submitOp({p:'globalBrightness', na:-50});
+      const delta = val - this.realtime.globalBrightness;
+      realtime.submitOp({p:['globalBrightness'], na: delta});
     },
   },
   mounted() {

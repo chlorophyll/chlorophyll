@@ -23,7 +23,7 @@ export default new Vuex.Store({
             state.model = true;
         },
         realtimeChange(state, doc) {
-            state.realtime = doc;
+            state.realtime = {...doc};
         },
     },
     getters: {
