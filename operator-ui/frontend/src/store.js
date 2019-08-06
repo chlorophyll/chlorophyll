@@ -13,6 +13,7 @@ export default new Vuex.Store({
         patternOrder: [],
         mappingsById: {},
         model: false,
+        realtime: {},
     },
     mutations: {
         setSavefileState(state, {patterns, patternOrder, mappings}) {
@@ -20,6 +21,9 @@ export default new Vuex.Store({
             state.patternOrder = patternOrder;
             state.mappingsById = mappings;
             state.model = true;
+        },
+        realtimeChange(state, doc) {
+            state.realtime = doc;
         },
     },
     getters: {

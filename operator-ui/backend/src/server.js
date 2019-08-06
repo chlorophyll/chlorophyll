@@ -4,6 +4,7 @@ import { argv } from 'yargs';
 import chalk from 'chalk';
 import * as path from 'path';
 import * as os from 'os';
+import * as realtime from './realtime';
 import tmp from 'tmp-promise';
 import express from 'express';
 import Nanotimer from 'nanotimer';
@@ -161,6 +162,9 @@ const filename = argv._[0];
 
 async function init() {
     state = await readSavefile(filename);
+    const realtimeState = await realtime.initAsync({
+        globalBrightness: 100,
+    });
 
     await makeAllPreviewsAsync();
 
@@ -259,7 +263,7 @@ app.post('/api/stop', (req, res) => {
 const ifaces = _.flatten(_.values(os.networkInterfaces()));
 const external = ifaces.find(val => val.family === 'IPv4' && !val.internal);
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log();
     console.log();
     console.log('App running at: ');
@@ -270,3 +274,5 @@ app.listen(port, () => {
     console.log();
     console.log();
 });
+
+

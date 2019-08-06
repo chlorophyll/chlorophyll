@@ -38,7 +38,9 @@
 </template>
 
 <script>
+import {mapState} from 'vuex';
 import store from '@/store';
+import * as realtime from '@/realtime';
 import {ApiMixin} from '@/api';
 
 export default {
@@ -50,8 +52,21 @@ export default {
       drawer: false,
     };
   },
+  computed: {
+    ...mapState([
+      'realtime',
+    ]),
+  },
+  methods: {
+    updateGlobalBrightness(val) {
+      realtimeSettings.submitOp({p:'globalBrightness', na:-50});
+    },
+  },
   mounted() {
-    this.$nextTick(() => store.dispatch('fetchSavefileState'));
+    this.$nextTick(() => {
+      realtime.init(store);
+      store.dispatch('fetchSavefileState');
+    });
   },
 };
 </script>
