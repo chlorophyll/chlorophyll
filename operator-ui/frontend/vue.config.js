@@ -10,5 +10,6 @@ module.exports = {
         if (process.env.NODE_ENV === 'production') {
             config.plugins.delete('friendly-errors');
         }
-    }
+    },
+    lintOnSave: false,
 };
