@@ -15,6 +15,37 @@
       <v-divider />
       </v-flex>
       <v-flex xs12>
+        <v-subheader>BPM</v-subheader>
+        <v-card-text>
+          <v-layout>
+            <v-flex class="pr-4">
+            <v-slider
+              v-model="bpm"
+              class="align-center"
+              :min="10"
+              :max="256">
+              <template v-slot:prepend>
+                <tempo-tap v-model="bpm" />
+              </template>
+              <template v-slot:append>
+                <v-text-field
+                  v-model="bpm"
+                  type="number"
+                  :min="10"
+                  :max="256"
+                  class="mt-0 pt-0"
+                  style="width: 4em"
+                  hide-details
+                  single-line
+                  solo
+                />
+              </template>
+            </v-slider>
+            </v-flex>
+          </v-layout>
+        </v-card-text>
+      </v-flex>
+      <v-flex xs12>
         <v-card flat color="transparent">
           <v-subheader>Intensity</v-subheader>
           <v-card-text>
@@ -74,11 +105,12 @@ import {mapState} from 'vuex';
 import store from '@/store';
 import * as realtime from '@/realtime';
 import ColorPicker from 'vue-color-picker-wheel';
+import TempoTap from '@/components/tempo_tap';
 
 export default {
   store,
   name: 'Settings',
-  components: {ColorPicker},
+  components: {ColorPicker, TempoTap},
   mixins: [
     realtime.mixin('globalBrightness', realtime.ops.number),
     realtime.mixin('intensity', realtime.ops.number),
@@ -86,6 +118,7 @@ export default {
     realtime.mixin('fader2', realtime.ops.number),
     realtime.mixin('color1', realtime.ops.replace),
     realtime.mixin('color2', realtime.ops.replace),
+    realtime.mixin('bpm', realtime.ops.number),
   ],
   computed: {
     layout() {
