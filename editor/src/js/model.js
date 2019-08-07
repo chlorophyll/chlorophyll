@@ -293,6 +293,18 @@ export class Model extends ModelBase {
             this.model_info.tree = this.tree.serialize();
         }
 
+        const boundingBox = new THREE.Box3();
+        for (const {pos} of this.allPixelPositions()) {
+            boundingBox.expandByPoint(pos);
+        }
+        this.boundingBox = boundingBox;
+
+        this.boxSize = new THREE.Vector3();
+        this.boundingBox.getSize(this.boxSize);
+
+        this.center = new THREE.Vector3();
+        this.boundingBox.getCenter(this.center);
+
         const minDistances = allPositions.map(pos => {
             const pts = this.tree.knn(pos, 2);
             const nearest = allPositions[pts[1]];
@@ -361,6 +373,13 @@ export class Model extends ModelBase {
         // this.stripStats();
     }
 
+    setFlipCamera(val) {
+        this.model_info.flip_camera = val;
+    }
+    getFlipCamera() {
+        return this.model_info.flip_camera;
+    }
+
     _initStripModels() {
         const stripMaterial = new THREE.LineBasicMaterial({
             color: 0xffffff,
@@ -388,17 +407,14 @@ export class Model extends ModelBase {
     }
 
     zoomCameraToFit(camera, oversizeFactor = 1.1) {
-        const boxSize = new THREE.Vector3();
-        const center = new THREE.Vector3();
-        const boundingBox = new THREE.Box3();
-        for (const {pos} of this.allPixelPositions()) {
-            boundingBox.expandByPoint(pos);
-        }
-        boundingBox.getSize(boxSize);
-        boundingBox.getCenter(center);
-        console.log(boundingBox);
-        const {x, y, z} = boxSize;
+        const center = this.center;
+        const {x, y, z} = this.boxSize;
         const maxDim = Math.max(x, y, z);
+
+        if (this.model_info.flip_camera) {
+            oversizeFactor *= -1;
+        }
+
 
         if (camera.isPerspectiveCamera) {
             const fov = camera.fov * ( Math.PI / 180 );

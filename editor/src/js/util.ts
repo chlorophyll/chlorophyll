@@ -139,6 +139,7 @@ let Util = {
         s.radius = radius;
         s.makeSafe();
         camera.position.setFromSpherical(s);
+        camera.updateProjectionMatrix();
     },
 
     hilightElement: function(elem) {

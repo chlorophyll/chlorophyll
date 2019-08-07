@@ -34,6 +34,10 @@
                             <label>Show strips</label>
                             <div><toggle v-model="stripVisibility" class="toggle"/></div>
                         </div>
+                        <div class="control-row">
+                            <label>Flip camera on initial view</label>
+                            <div><toggle v-model="flipCamera" class="toggle"/></div>
+                        </div>
                     </div>
                 </dialog-box>
             </div>
@@ -111,6 +115,7 @@ export default {
             playbackMode: true,
             autoRotate: false,
             stripVisibility: false,
+            flipCamera: false,
             inConfig: false,
             width: 0,
             height: 0,
@@ -128,6 +133,9 @@ export default {
     },
 
     watch: {
+        projection() {
+            this.updateSize();
+        },
         controlsEnabled(val) {
             if (this.active && this.controls)
                 this.controls.enabled = val;
@@ -157,6 +165,11 @@ export default {
                 currentModel.setStripVisibility(val);
             }
         },
+        flipCamera(val) {
+            if (currentModel) {
+                currentModel.setFlipCamera(val);
+            }
+        },
     },
 
     mounted() {
@@ -179,10 +192,6 @@ export default {
 
         this.resizeDebounce = debounce(this.updateSize, 100);
         window.addEventListener('resize', this.resizeDebounce);
-    },
-
-    updated() {
-        this.updateSize();
     },
 
     // TODO use keep-alive to avoid teardown/rebuild of renderer state
@@ -240,7 +249,7 @@ export default {
         },
 
         initCamera() {
-            this.camera = createCamera(this.projection);
+            this.camera = createCamera(this.projection, this.width, this.height);
             /*
              * TODO instantiate both, then just flip between them as necessary.
              */
@@ -259,6 +268,10 @@ export default {
         updateSize() {
             this.width = this.$refs.container.clientWidth;
             this.height = this.$refs.container.clientHeight;
+
+            if (!this.width || !this.height) {
+                return;
+            }
 
             // Call asynchronously to avoid blocking other UI re-rendering
             setImmediate(() => {

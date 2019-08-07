@@ -442,6 +442,7 @@
                 "properties": {
                     "mapper": {"type": "string"},
                     "num_pixels": {"type": "number"},
+                    "flip_camera": {"type": "boolean"},
                     "strips": {
                         "type": "array",
                         "items": {
