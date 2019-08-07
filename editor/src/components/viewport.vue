@@ -218,9 +218,11 @@ export default {
             if (this.has_current_model) {
                 this.scene = this.preview ? currentModel.previewScene : currentModel.scene;
                 this.stripVisibility = currentModel.getStripVisibility();
+                this.flipCamera = currentModel.getFlipCamera();
             } else {
                 this.scene = null;
                 this.stripVisibility = false;
+                this.flipCamera = false;
             }
         },
         mouseEvent(event) {
