@@ -37,9 +37,10 @@ export default new Vuex.Store({
 
     actions: {
         async fetchSavefileState({commit}) {
-            const savefile = await api.fetchSavefileState();
-            initModel(savefile.model);
-            commit('setSavefileState', savefile);
+            const state = await api.fetchState();
+            initModel(state.model);
+            commit('setSavefileState', state);
+            commit('realtimeChange', state.realtime);
         },
     }
 })

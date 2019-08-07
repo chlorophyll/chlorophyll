@@ -8172,6 +8172,11 @@ vue-cli-plugin-vuetify@^0.6.1:
   resolved "https://registry.yarnpkg.com/vue-cli-plugin-vuetify/-/vue-cli-plugin-vuetify-0.6.1.tgz#4fe0b7322a90a9c9f0aff2e18fd9249088b33080"
   integrity sha512-WZzXXTdFOXWXVhSL4zXs1nJvC/6Py9kXm4S+bdh+W0xucwXlIAr19cgqCjV9ahR4cznQ/SBDv8x4RFCpPgGAHQ==
 
+vue-color-picker-wheel@^0.4.3:
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/vue-color-picker-wheel/-/vue-color-picker-wheel-0.4.3.tgz#d24bcf61c1c1139cd3e9a45511f6ce26a24ce09c"
+  integrity sha512-LBXGkWOCLSmt4m/klDjHHEk3sCsfTNSs9NBfbDU3TSEBb9vwfXD4tYsCO9lCO09iTDYt3rRbhUmxUBxYJX7Dcg==
+
 vue-eslint-parser@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/vue-eslint-parser/-/vue-eslint-parser-2.0.3.tgz#c268c96c6d94cfe3d938a5f7593959b0ca3360d1"

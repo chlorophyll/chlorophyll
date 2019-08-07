@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = {
-  async fetchSavefileState() {
+  async fetchState() {
     const resp = await axios.get('/api/state');
     return resp.data;
   },

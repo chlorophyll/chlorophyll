@@ -4,20 +4,69 @@ import WebSocket from 'reconnecting-websocket';
 let settings;
 
 export function init(store) {
-  const socket = new WebSocket('ws://localhost:8080/api');
+  const host = window.location.host;
+
+  const url = `ws://${host}/api`;
+  const socket = new WebSocket(url);
+
   const connection = new ShareDB.Connection(socket);
 
-  settings = connection.get('global', 'settings');
+  const update = () => {
+    store.commit('realtimeChange', settings.data)
+  };
 
-    const update = () => {
-        console.log(settings.data);
-        store.commit('realtimeChange', settings.data)
-    };
+  socket.addEventListener('close', () => {
+    if (settings) {
+      settings.destroy();
+      settings = undefined;
+    }
+  });
 
-  settings.subscribe(update);
-  settings.on('op', update);
+  const open = () => {
+    console.log('open');
+    if (!settings) {
+      settings = connection.get('global', 'settings');
+      settings.subscribe(update);
+      settings.on('op', update);
+    }
+  };
+
+  socket.addEventListener('open', open);
+  open();
+
 }
 
 export function submitOp(op) {
-    settings.submitOp(op);
+  settings.submitOp(op);
+}
+
+export const ops = {
+  number(newval, oldval) {
+    return {na: newval-oldval};
+  },
+  replace(newval) {
+    return {oi: newval};
+  }
+};
+
+export function mixin(key, op) {
+  return {
+    computed: {
+      [key]: {
+        get() {
+          return this.$store.state.realtime[key];
+        },
+        set(newval) {
+          const oldval = this.$store.state.realtime[key];
+          if (oldval !== undefined && oldval !== newval) {
+            console.log('set', key, `"${newval}"`, `"${oldval}"`);
+            settings.submitOp({
+              p: [key],
+              ...op(newval, oldval)
+            })
+          }
+        }
+      },
+    },
+  };
 }

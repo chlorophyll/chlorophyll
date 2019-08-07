@@ -13,15 +13,15 @@ export function initAsync(initialState) {
     });
     const connection = backend.connect();
     const doc = connection.get('global', 'settings');
-    doc.fetch(err => {
+    doc.subscribe(err => {
       if (err) {
         reject(err);
       }
       state = doc;
       if (doc.type === null) {
-        doc.create(initialState, resolve);
+        doc.create(initialState, () => resolve(doc));
       } else {
-        resolve();
+        resolve(doc);
       }
     });
   });

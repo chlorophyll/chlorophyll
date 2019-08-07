@@ -17,6 +17,7 @@
     "static-kdtree": "^1.0.2",
     "three": "^0.87.1",
     "vue": "^2.6.10",
+    "vue-color-picker-wheel": "^0.4.3",
     "vue-router": "^3.0.3",
     "vuetify": "^2.0.0",
     "vuex": "^3.0.1"

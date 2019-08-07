@@ -31,6 +31,7 @@ let client;
 let patternRunner;
 
 let state;
+let realtimeState;
 let previewsByPatternId;
 
 process.on('uncaughtException', function (err) {
@@ -162,9 +163,17 @@ const filename = argv._[0];
 
 async function init() {
     state = await readSavefile(filename);
-    const realtimeState = await realtime.initAsync({
+    realtimeState = await realtime.initAsync({
         globalBrightness: 100,
+        intensity: 100,
+        bpm: 120,
+        color1: '#0000ff',
+        color2: '#00ff00',
+        fader1: 0,
+        fader2: 0,
     });
+
+    realtimeState.on('op', () => console.log(realtimeState.data));
 
     await makeAllPreviewsAsync();
 
@@ -216,6 +225,7 @@ app.get('/api/state', (req, res) => {
     const result = {
         ...state,
         model: state.model.model_info,
+        realtime: realtimeState.data,
     };
 
     res.json(result);
