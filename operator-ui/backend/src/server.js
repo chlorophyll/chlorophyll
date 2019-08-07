@@ -173,7 +173,6 @@ async function init() {
         fader2: 0,
     });
 
-    realtimeState.on('op', () => console.log(realtimeState.data));
 
     await makeAllPreviewsAsync();
 
@@ -192,6 +191,10 @@ async function init() {
         default:
             throw new Error(`Unsupported client protocol ${state.hardware.protocol}`);
     }
+    realtimeState.on('op', () => {
+        const globalBrightness = realtimeState.data.globalBrightness / 100;
+        client.setGlobalBrightness(globalBrightness);
+    });
 
     let group_id = state.group_list[0];
     group = state.groups[group_id];

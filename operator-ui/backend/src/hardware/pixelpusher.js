@@ -5,11 +5,15 @@ import pushPixels from '@/common/hardware/pixelpusher';
 export default class PixelpusherClient {
     constructor(model, hardwareSettings) {
         this.model = model;
+        this.globalBrightness = 1;
         this.controllers = [];
         this.registry = new PixelPusherRegistry();
         this.registry.on('discovered', this.addController.bind(this));
         this.registry.on('pruned', this.removeController.bind(this));
         this.registry.start();
+    }
+    setGlobalBrightness(val) {
+        this.globalBrightness = val;
     }
 
     addController(controller) {
@@ -23,6 +27,6 @@ export default class PixelpusherClient {
     }
 
     sendFrame(frame) {
-        pushPixels(this.model, this.controllers, frame);
+        pushPixels(this.model, this.controllers, frame, this.globalBrightness);
     }
 }

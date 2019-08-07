@@ -31,7 +31,6 @@ export function listen(server) {
   const wss = new WebSocket.Server({server});
 
     wss.on('connection', ws => {
-        console.log('connection');
         const stream = new WebSocketJSONStream(ws);
         backend.listen(stream);
     });

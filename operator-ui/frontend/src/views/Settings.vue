@@ -50,17 +50,18 @@
           </v-card-text>
         </v-card>
       </v-flex>
+      <v-divider />
       <v-layout v-bind="layout">
       <v-flex xs6>
         <v-card flat color="transparent">
           <v-subheader>Color A</v-subheader>
-          <ColorPicker :width="200" :height="200" v-model="color1" />
+          <ColorPicker :width="150" :height="150" v-model="color1" />
         </v-card>
       </v-flex>
       <v-flex xs6>
         <v-card flat color="transparent">
           <v-subheader>Color B</v-subheader>
-          <ColorPicker :width="200" :height="200" v-model="color2" />
+          <ColorPicker :width="150" :height="150" v-model="color2" />
         </v-card>
       </v-flex>
       </v-layout>

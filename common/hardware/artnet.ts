@@ -111,10 +111,13 @@ export class ArtnetRegistry {
     seqNumByUniverse: {[key: number]: number};
     controllerByUniverse: {[key: number]: ArtnetController};
     model: ModelBase;
+    globalBrightness: number;
 
     constructor(model: ModelBase, stripMapping: Array<ArtnetStripMapping>) {
         this.stripMapping = stripMapping;
         this.model = model;
+
+        this.globalBrightness = 1;
 
         this.stripsByUniverseAndController = new Map();
         this.seqNumByUniverse = {};
@@ -141,6 +144,10 @@ export class ArtnetRegistry {
         this.socket = dgram.createSocket({type: 'udp4', reuseAddr: true});
     }
 
+    setGlobalBrightness(val) {
+        this.globalBrightness = val;
+    }
+
 
     sendFrame(pixels: Float32Array, sync=true) {
         for (const [host, stripsByUniverse] of this.stripsByUniverseAndController.entries()) {
@@ -163,7 +170,7 @@ export class ArtnetRegistry {
                         if (ptr % 4 == 3) {
                             ptr++;
                         }
-                        packet.writeUInt8(pixels[ptr]*255, channel + 18);
+                        packet.writeUInt8(pixels[ptr]*255*this.globalBrightness, channel + 18);
                         ptr++;
                     }
                 }

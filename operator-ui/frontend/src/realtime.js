@@ -23,7 +23,6 @@ export function init(store) {
   });
 
   const open = () => {
-    console.log('open');
     if (!settings) {
       settings = connection.get('global', 'settings');
       settings.subscribe(update);
@@ -59,7 +58,6 @@ export function mixin(key, op) {
         set(newval) {
           const oldval = this.$store.state.realtime[key];
           if (oldval !== undefined && oldval !== newval) {
-            console.log('set', key, `"${newval}"`, `"${oldval}"`);
             settings.submitOp({
               p: [key],
               ...op(newval, oldval)
