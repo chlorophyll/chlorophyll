@@ -7,9 +7,6 @@
     <split-pane direction="vertical" :initial-split="[null, Const.dock_size]" class="root">
         <split-pane slot="first"
                     direction="horizontal"
-                    :initial-split="[null, Const.sidebar_size]">
-            <split-pane slot="first"
-                        direction="horizontal"
                     :initial-split="[Const.sidebar_size, null]">
                 <div class="panel" slot="first">
                         <div class="control-row">
@@ -19,7 +16,10 @@
                                 Configure Hardware
                             </button>
                         </div>
-                    <group-browser />
+                     <tab-set>
+                         <tab title="Groups"><group-browser /></tab>
+                         <tab title="Mappings"><mapping-browser /></tab>
+                     </tab-set>
                 </div>
                 <viewport slot="second"
                           label="main"
@@ -36,8 +36,6 @@
                     <tool label="P"
                           :hotkey="Hotkey.select_plane"><plane-selection /></tool>
                 </viewport>
-            </split-pane>
-            <mapping-browser slot="second" />
         </split-pane>
         <tab-set slot="second" class="dock">
             <tab title="Pattern Editor"><pattern-editor /></tab>
