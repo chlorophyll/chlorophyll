@@ -1,79 +1,108 @@
 <template>
-    <split-pane direction="horizontal"
-                :initial-split="[Const.sidebar_size, null]" style="height: 100%">
-        <pattern-list slot="first" @new-pattern="onNewPattern" @pattern-dblclick="onPatternDblClick"/>
-        <div id="pattern-composer" slot="second">
-            <div class="panel inline" id="top-controls">
-                <div class="control-row">
-                    <button @click="toggleAnimation"
-                     :disabled="!can_preview"
-                     class="square highlighted material-icons">
-                        {{ run_text }}
-                    </button>
-                    <button @click="stopAnimation"
-                     class="square material-icons">
-                        stop
-                    </button>
-                    <label for="push-to-hardware">Push to hardware</label>
-                    <toggle v-model="pushToHardware" class="toggle" />
-                    <label for="preview-map-list">Preview map</label>
-                    <select class="control" id="preview-map-list"
-                                            v-model="preview_map_id">
-                        <template v-for="mapping in mappings">
-                            <option :value="mapping.id">{{ mapping.name }}</option>
-                        </template>
-                    </select>
-                    <label for="preview-group-list">Preview group</label>
-                    <select class="control" id="preview-group-list"
-                                            v-model="preview_group_id">
-                        <template v-for="group in group_list">
-                            <option :value="group.id">{{ group.name }}</option>
-                        </template>
-                    </select>
-                    <button @click="autolayout">Autolayout</button>
-                    <button @click="resetZoom">Reset</button>
-                    <button @click="zoomToFit">Zoom to fit</button>
-                    <span class="cur-fps" v-if="curFpsSample !== null">FPS: {{curFpsSample}}</span>
-                    <sparkline class="fps-graph" :width="100" :height="14" :samples="fpsSamples" />
-                </div>
-            </div>
-            <div class="panel" id="mainview">
-                <split-pane direction="horizontal" :initial-split="[null, 210]">
-                    <div slot="second" class="node-browser">
-                      <div class="searchbox">
-                        <input type="text" v-model="query" />
-                        <div v-show="query !== ''" @click="query=''" class="clear-icon search-icon material-icons">close</div>
-                        <div class="search-icon material-icons">search</div>
-                      </div>
-                        <tree :items="nodeTree" class="tree">
-                        <template slot-scope="props">
-                            <div class="item"
-                                 draggable="true"
-                                 v-if="props.leaf"
-                                 @dragstart="dragNode(props.item, $event)">
-                                {{ props.item.label }}
-                            </div>
-                            <div v-else class="item">
-                                {{ props.item.label }}
-                            </div>
-                        </template>
-                        </tree>
-                    </div>
-                    <graph-canvas ref="canvas" slot="first" :graph="cur_graph"/>
-                </split-pane>
-            </div>
-            <pattern-preview v-if="can_preview"
-                             :patternId="cur_pattern.id"
-                             :mappingId="preview_mapping.id"
-                             :groupId="preview_group.id"
-                             :push-to-hardware="pushToHardware"
-                             :runstate="runstate"
-                             :hardware-settings="activeHardwareSettings"
-                             :hardware-protocol="activeProtocol"
-                             @fps-sample-updated="pushFpsSample"
-                             />
+  <div class="container">
+    <div class="topbar">
+      <div class="panel inline" id="top-controls">
+        <div class="control-row">
+          <button @click="toggleAnimation"
+            :disabled="!can_preview"
+            class="square highlighted material-icons"
+          >
+            {{ run_text }}
+          </button>
+          <button @click="stopAnimation"
+            class="square material-icons"
+          >
+            stop
+          </button>
+          <label for="push-to-hardware">Push to hardware</label>
+          <toggle v-model="pushToHardware" class="toggle" />
+          <label for="preview-map-list">Preview map</label>
+          <select
+            class="control"
+            id="preview-map-list"
+            v-model="preview_map_id"
+          >
+            <template v-for="mapping in mappings">
+              <option :value="mapping.id">{{ mapping.name }}</option>
+            </template>
+          </select>
+          <label for="preview-group-list">Preview group</label>
+          <select
+            class="control"
+            id="preview-group-list"
+            v-model="preview_group_id"
+          >
+            <template v-for="group in group_list">
+              <option :value="group.id">{{ group.name }}</option>
+            </template>
+          </select>
+          <button @click="autolayout">Autolayout</button>
+          <button @click="resetZoom">Reset</button>
+          <button @click="zoomToFit">Zoom to fit</button>
+          <span class="cur-fps" v-if="curFpsSample !== null">FPS: {{curFpsSample}}</span>
+          <sparkline class="fps-graph" :width="100" :height="14" :samples="fpsSamples" />
         </div>
-    </split-pane>
+      </div>
+    </div>
+    <div class="main">
+      <split-pane
+        direction="horizontal"
+        :initial-split="[Const.sidebar_size, null]"
+        style="height: 100%"
+      >
+        <pattern-list
+          slot="first"
+          @new-pattern="onNewPattern"
+          @pattern-dblclick="onPatternDblClick"
+        />
+        <div id="pattern-composer" slot="second">
+          <div class="panel" id="mainview">
+            <split-pane direction="horizontal" :initial-split="[null, 210]">
+              <div slot="second" class="node-browser">
+                <div class="searchbox">
+                  <input type="text" v-model="query" />
+                  <div
+                    v-show="query !== ''"
+                    @click="query=''"
+                    class="clear-icon search-icon material-icons"
+                  >
+                    close
+                  </div>
+                  <div class="search-icon material-icons">search</div>
+                </div>
+                <tree :items="nodeTree" class="tree">
+                  <template slot-scope="props">
+                    <div
+                      class="item"
+                      draggable="true"
+                      v-if="props.leaf"
+                      @dragstart="dragNode(props.item, $event)"
+                    >
+                      {{ props.item.label }}
+                    </div>
+                    <div v-else class="item">
+                      {{ props.item.label }}
+                    </div>
+                  </template>
+                </tree>
+              </div>
+              <graph-canvas ref="canvas" slot="first" :graph="cur_graph"/>
+            </split-pane>
+          </div>
+          <pattern-preview v-if="can_preview"
+                           :patternId="cur_pattern.id"
+                           :mappingId="preview_mapping.id"
+                           :groupId="preview_group.id"
+                           :push-to-hardware="pushToHardware"
+                           :runstate="runstate"
+                           :hardware-settings="activeHardwareSettings"
+                           :hardware-protocol="activeProtocol"
+                           @fps-sample-updated="pushFpsSample"
+                           />
+        </div>
+      </split-pane>
+    </div>
+  </div>
 </template>
 <script>
 import Fuse from 'fuse.js';
@@ -310,6 +339,20 @@ export default {
 </script>
 <style scoped lang="scss">
 @import "~@/style/aesthetic.scss";
+
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    height: 26px;
+}
+
+.main {
+    flex: 1;
+    position: relative;
+}
 .searchbox {
   display: flex;
   align-items: center;

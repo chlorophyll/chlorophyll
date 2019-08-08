@@ -1,8 +1,6 @@
 <template>
   <div class="panel" id="pattern-list">
-    <h1>Patterns</h1>
-    <hr>
-
+    <hr/>
     <div class="control-row">
       <button @click="newPattern"
               class="control fill">
