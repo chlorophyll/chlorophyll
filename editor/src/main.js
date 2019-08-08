@@ -4,6 +4,7 @@
 import '@/style/chlorophyll.css';
 import '@/style/material-icons.css';
 import '@/style/controlpanel.scss';
+import '@mdi/font/css/materialdesignicons.css';
 
 /*
  * UI Components

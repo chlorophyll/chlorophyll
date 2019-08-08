@@ -36,9 +36,28 @@
               <option :value="group.id">{{ group.name }}</option>
             </template>
           </select>
-          <button @click="autolayout">Autolayout</button>
-          <button @click="resetZoom">Reset</button>
-          <button @click="zoomToFit">Zoom to fit</button>
+          <div class="square" />
+          <button
+            class="square"
+            @click="autolayout"
+            v-tooltip.top-right="'Autolayout'"
+          >
+            <span class="mdi mdi-sitemap mdi-rotate-270" />
+          </button>
+          <button
+            class="square"
+            @click="resetZoom"
+            v-tooltip.top-right="'Reset'"
+          >
+            <span class="mdi mdi-magnify-close" />
+          </button>
+          <button
+            class="square"
+            @click="zoomToFit"
+            v-tooltip.top-right="'Zoom to fit'"
+          >
+            <span class="mdi mdi-fit-to-page-outline" />
+          </button>
           <span class="cur-fps" v-if="curFpsSample !== null">FPS: {{curFpsSample}}</span>
           <sparkline class="fps-graph" :width="100" :height="14" :samples="fpsSamples" />
         </div>
@@ -419,10 +438,6 @@ label, .fps-graph, .cur-fps {
     display: block;
     position: relative;
     height: 100%;
-}
-
-#preview-group-list {
-    max-width: 10em;
 }
 
 .item {

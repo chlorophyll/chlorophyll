@@ -45,6 +45,7 @@
     "postinstall": "cd .. && yarn install"
   },
   "dependencies": {
+    "@mdi/font": "^3.9.97",
     "SyphonBuffer": "https://github.com/chlorophyll/SyphonBuffer",
     "ace-builds": "^1.4.5",
     "ajv": "^6.5.3",
