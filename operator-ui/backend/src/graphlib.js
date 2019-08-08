@@ -1,14 +1,33 @@
 import GraphLib, { GraphBase } from '@/common/graphlib';
+import EventEmitter from 'events';
+import * as path from 'path';
+import * as fs from 'fs';
+import { argv } from 'yargs';
+const filename = argv._[0];
+const mediaFolder = path.join(path.dirname(filename), 'media');
+
 function vm_factory(graph, node, data) {
-    return data;
+    return {
+        ...data,
+        mediaFolder,
+    };
 }
 
 export class Graph extends GraphBase {
     constructor(id) {
         super(id);
+        this._emitter = new EventEmitter();
     }
 
     emit(name, detail) {
+        this._emitter.emit(name, {detail});
+    }
+
+    addEventListener(name, cb) {
+        this._emitter.addListener(name, cb);
+    }
+    removeEventListener(name, cb) {
+        this._emitter.removeListener(name, cb);
     }
 
     static restore(snapshot) {

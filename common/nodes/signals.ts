@@ -1,13 +1,10 @@
-import GraphLib, {GraphNode} from '../graphlib';
+import GraphLib from '../graphlib';
+import GraphNode from '../graphlib/graph_node';
 import Signal, {SignalBlob} from '../osc/signal';
 
 class SignalInput extends GraphNode {
-    public title: string = 'OSC Signal';
+    static title: string = 'OSC Signal';
     private signal = null;
-    private id;
-    private input_info;
-    private output_info;
-    private graph;
 
     constructor(options, signalAttrs: SignalBlob) {
         super(

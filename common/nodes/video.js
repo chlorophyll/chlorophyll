@@ -32,6 +32,7 @@ class VideoSource {
                 width: 1,
                 height: 1,
                 format: gl.RGB,
+                internalFormat: gl.RGB,
                 src: [0, 0, 0],
             });
         }
@@ -71,18 +72,19 @@ class VideoSource {
     processFrame(data) {
         const {gl} = this;
         const {width, height} = data;
+        this.width = parseInt(width);
+        this.height = parseInt(height);
         const textureOptions = {
-            width,
-            height,
+            width: this.width,
+            height: this.height,
             format: gl.RGB,
+            internalFormat: gl.RGB,
             type: gl.UNSIGNED_BYTE,
             minMag: gl.NEAREST,
             wrap: gl.CLAMP_TO_EDGE,
             flipY: true,
             auto: false,
         };
-        this.width = width;
-        this.height = height;
         if (!this.loaded) {
             this.loaded = true;
             this.texture = twgl.createTexture(gl, textureOptions);

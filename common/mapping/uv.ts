@@ -52,7 +52,6 @@ export default class UVMapping implements T.PixelMapping {
         if (attrs && attrs.uvCoords)
             this.settings.uvCoords = attrs.uvCoords.map(uv => new Vector2(...uv));
 
-        console.log(`Init ${this.className} mapping:`, this.settings);
     }
 
     getView(): T.MapMode {

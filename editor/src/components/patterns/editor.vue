@@ -1,7 +1,8 @@
 <template>
     <split-pane direction="horizontal"
-                :initial-split="[null, Const.sidebar_size]" style="height: 100%">
-        <div id="pattern-composer" slot="first">
+                :initial-split="[Const.sidebar_size, null]" style="height: 100%">
+        <pattern-list slot="first" @new-pattern="onNewPattern" @pattern-dblclick="onPatternDblClick"/>
+        <div id="pattern-composer" slot="second">
             <div class="panel inline" id="top-controls">
                 <div class="control-row">
                     <button @click="toggleAnimation"
@@ -37,8 +38,8 @@
                 </div>
             </div>
             <div class="panel" id="mainview">
-                <split-pane direction="horizontal" :initial-split="[210, null]">
-                    <div slot="first" class="node-browser">
+                <split-pane direction="horizontal" :initial-split="[null, 210]">
+                    <div slot="second" class="node-browser">
                       <div class="searchbox">
                         <input type="text" v-model="query" />
                         <div v-show="query !== ''" @click="query=''" class="clear-icon search-icon material-icons">close</div>
@@ -58,7 +59,7 @@
                         </template>
                         </tree>
                     </div>
-                    <graph-canvas ref="canvas" slot="second" :graph="cur_graph"/>
+                    <graph-canvas ref="canvas" slot="first" :graph="cur_graph"/>
                 </split-pane>
             </div>
             <pattern-preview v-if="can_preview"
@@ -72,7 +73,6 @@
                              @fps-sample-updated="pushFpsSample"
                              />
         </div>
-        <pattern-list slot="second" @new-pattern="onNewPattern" @pattern-dblclick="onPatternDblClick"/>
     </split-pane>
 </template>
 <script>
@@ -395,6 +395,9 @@ label, .fps-graph, .cur-fps {
 }
 
 .node-browser .tree {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
     flex: 1;
 }
 

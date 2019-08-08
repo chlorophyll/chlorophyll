@@ -113,7 +113,10 @@ export default class RawPatternRunner {
     _assignmentValid() {
         if (!this.mapping || !mappingHasView(this.mapping, this.pattern.coord_type)) {
             if (!this.detached) {
-                console.warn('Runner: trying to refresh with incompatible mapping/pattern assignment');
+                console.warn(
+                    `Runner: incompatible mapping assignment for pattern type "${this.pattern.coord_type}"`,
+                    this.mapping && this.mapping.constructor.views
+                );
             }
             return false;
         }

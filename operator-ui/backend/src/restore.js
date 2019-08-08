@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as tar from 'tar-stream';
 import concatStream from 'concat-stream';
 
+import * as nodeRegistry from '@/common/nodes/registry';
 import { restoreAllGroups } from '@/common/model';
 import { restoreAllMappings } from '@/common/mapping';
 import { restoreAllPatterns, restorePlaylistItems } from '@/common/patterns';
@@ -24,9 +25,14 @@ function stringStream(next, cb) {
 
 function restoreSaveObject(obj) {
     let state = {};
+    nodeRegistry.refreshFromSavedState(obj);
+
+    state.hardware = obj.hardwareSettings;
 
     state.mappings = restoreAllMappings(obj.mappings).new_mappings;
-    state.patterns = restoreAllPatterns(obj.patterns).new_patterns;
+    const patternObj = restoreAllPatterns(obj.patterns);
+    state.patterns = patternObj.new_patterns;
+    state.patternOrder = patternObj.new_pattern_ordering;
     const g = restoreAllGroups(obj.groups);
     state.groups = g.new_groups;
     state.group_list = g.new_group_list;

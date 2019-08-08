@@ -122,7 +122,11 @@ export default {
 };
 </script>
 <style scoped>
+#pattern-list {
+  display: flex;
+  flex-direction: column;
+}
 .flat-list {
-  height: 10em;
+  flex: 1;
 }
 </style>

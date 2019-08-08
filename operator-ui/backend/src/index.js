@@ -5,7 +5,6 @@ import _ from 'lodash';
 import { readSavefile } from './restore';
 import { checkFramebuffer } from '@/common/util/gl_debug';
 import { createFromConfig } from '@/common/mapping';
-import * as nodeRegistry from '@/common/nodes/registry';
 import PatternRunner from '@/common/patterns/runner';
 import PlaylistRunner from '@/common/patterns/playlist';
 
@@ -183,8 +182,6 @@ function main() {
         let pattern = undefined;
         let mapping = undefined;
 
-        nodeRegistry.refreshFromSavedState(state);
-
         if (argv.command == 'list-patterns') {
             for (const p of _.values(state.patterns)) {
                 console.log(p.name);
@@ -222,7 +219,9 @@ function main() {
                 console.log(`Unknown mapping ${argv.mapping}`);
                 return;
             }
+            console.log('trying to play a pattern');
             registry.on('discovered', (controller) => {
+                console.log('discovered controller');
                 addController(controller);
                 let strips_attached = 0;
 
@@ -233,6 +232,7 @@ function main() {
                 if (strips_attached >= state.model.num_strips && !isPlaying)
                     runPattern(state.model, pattern, group, mapping);
             });
+            console.log('starting registry...');
             registry.start();
         }
     }).catch((err) => {
