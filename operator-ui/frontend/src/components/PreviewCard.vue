@@ -14,6 +14,7 @@
             :pattern="pattern"
             :renderer="renderer"
             :loader="loader"
+            :animated="true"
           />
         </v-flex>
         <v-flex>

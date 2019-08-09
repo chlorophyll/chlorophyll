@@ -14,6 +14,7 @@ import { createFromConfig } from '@/common/mapping';
 import PatternRunner from '@/common/patterns/runner';
 import PixelpusherClient from './hardware/pixelpusher';
 import { ArtnetRegistry } from '@/common/hardware/artnet';
+import Pattern from './patterns';
 
 import * as WebGL from 'wpe-webgl';
 
@@ -32,7 +33,8 @@ let patternRunner;
 
 let state;
 let realtimeState;
-let previewsByPatternId;
+
+const patternsById = {};
 
 process.on('uncaughtException', function (err) {
     console.log(err);
@@ -55,68 +57,11 @@ function stopAnimation() {
     timer.clearInterval();
 }
 
-async function makePreviewAsync(pattern, mapping) {
-    console.log(`generating preview for ${pattern.name}`);
-    const model = state.model;
-    const groupId = state.group_list[0];
-    const group = state.groups[groupId];
-
-    try {
-        const runner = new PatternRunner(gl, model, pattern, group, mapping);
-
-        const w = model.textureWidth;
-        const textureSize = w * w * 4;
-        const pixels = new Float32Array(textureSize);
-        runner.step(0, pixels);
-        const tmpFile = await tmp.file();
-
-        const buf = Buffer.alloc(w*w*3);
-        let ptr = 0;
-        for (let i = 0; i < pixels.length; i++) {
-            if (i % 4 === 3) continue;
-            buf[ptr] = pixels[i]*255;
-            ptr++;
-        }
-
-        await sharp(buf, {
-            raw: {
-                width: w,
-                height: w,
-                channels: 3,
-            }
-        }).png().toFile(tmpFile.path);
-        return {
-            patternId: pattern.id,
-            mappingId: mapping.id.toString(),
-            path: tmpFile.path,
-        };
-    } catch (e) {
-        console.log(e);
-        return null;
-    }
-}
-
-async function makeAllPreviewsAsync() {
-    console.log('Generating previews... (this make take a while)');
-    const mappingsByType = _.groupBy(_.values(state.mappings), m => m.type);
-
-    console.log(mappingsByType);
-
-    const previewPromises = _.flatten(_.values(state.patterns).map(pattern => {
-        const mappings = mappingsByType[pattern.mapping_type] || [];
-        return mappings.map(mapping => makePreviewAsync(pattern, mapping));
-    }));
-
-    const previews = _.compact(await Promise.all(previewPromises));
-
-    previewsByPatternId = _.groupBy(previews, preview => preview.patternId);
-    console.log('Ready');
-}
-
 function runPattern(pattern, group, mapping) {
+    const patternManager = patternsById[pattern.id];
+    patternRunner = patternManager.getRunner(group, mapping, true);
     const model = state.model;
     isPlaying = true;
-    patternRunner = new PatternRunner(gl, model, pattern, group, mapping);
     let time = 0;
 
     const w = model.textureWidth;
@@ -160,6 +105,17 @@ function runPattern(pattern, group, mapping) {
 
 const filename = argv._[0];
 
+async function generatePatternInfo() {
+    const mappingsByType = _.groupBy(_.values(state.mappings), m => m.type);
+    for (const pattern of _.values(state.patterns)) {
+        try {
+            const patternManager = new Pattern(gl, state, pattern);
+            patternsById[pattern.id] = patternManager;
+        } catch (e) {
+            console.log(`pattern ${pattern.name} did not compile`);
+        }
+    }
+}
 
 async function init() {
     state = await readSavefile(filename);
@@ -173,12 +129,9 @@ async function init() {
         fader2: 0,
     });
 
+    await generatePatternInfo();
 
-    await makeAllPreviewsAsync();
-
-    state.patterns = _.pickBy(state.patterns, pattern => previewsByPatternId[pattern.id] !== undefined);
-
-    state.patternOrder = state.patternOrder.filter(patternId => previewsByPatternId[patternId] !== undefined);
+    state.patternOrder = state.patternOrder.filter(patternId => patternsById[patternId]);
 
     const settings = state.hardware.settings[state.hardware.protocol];
     switch (state.hardware.protocol) {
@@ -234,18 +187,34 @@ app.get('/api/state', (req, res) => {
     res.json(result);
 });
 
-app.get('/api/preview/:patternId/:mappingId', (req, res) => {
+app.get('/api/preview/:patternId/:mappingId.png', (req, res) => {
     const {patternId, mappingId} = req.params;
-    const previews = previewsByPatternId[patternId];
-    if (!previews) {
-        res.status(404).send('Not found');
-        return;
-    }
-    const preview = previews.find(preview => preview.mappingId === mappingId);
-    if (!preview) {
+    const patternManager = patternsById[patternId];
+    const mapping = state.mappings[mappingId];
+    if (!mapping) {
         res.status(404).send('Not found');
     }
-    res.type('png').sendFile(preview.path);
+    patternManager.getStaticPreviewAsync(mapping).then(path =>
+        res.type('png').sendFile(path)
+    ).catch(err => res.status(404).send('Not found'));
+});
+
+app.get('/api/preview/:patternId/:mappingId.mp4', (req, res) => {
+    console.log('reading animated preview');
+    const {patternId, mappingId} = req.params;
+    const patternManager = patternsById[patternId];
+    const mapping = state.mappings[mappingId];
+    if (!mapping) {
+        console.log("couldn't find mapping id");
+        res.status(404).send('Not found');
+    }
+    console.log('doing the thing', patternManager);
+    patternManager.getAnimatedPreviewAsync(mapping).then(path =>
+        res.type('video/mp4').sendFile(path)
+    ).catch(err => {
+        console.log('err', err);
+        res.status(404).send('Not found')
+    });
 });
 
 

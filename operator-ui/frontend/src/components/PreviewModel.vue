@@ -10,10 +10,11 @@ import {getModel} from '@/model';
 import * as THREE from 'three';
 export default {
   name: 'preview-model',
-  props: ['width', 'height', 'pattern', 'renderer', 'loader'],
+  props: ['width', 'height', 'pattern', 'renderer', 'loader', 'animated'],
   data() {
     return {
-      texture: null
+      texture: null,
+      requestId: null,
     };
   },
   computed: {
@@ -24,9 +25,21 @@ export default {
       return this.mappingList.find(mapping => mapping.type === this.pattern.mapping_type);
     },
     url() {
+      const ext = this.animated ? 'mp4' : 'png';
       const patternId = this.pattern.id;
       const mappingId = this.mapping.id;
-      return `/api/preview/${patternId}/${mappingId}`;
+      return `/api/preview/${patternId}/${mappingId}.${ext}`;
+    },
+    vid() {
+      if (this.animated) {
+        const vid = document.createElement('video');
+        vid.src = this.url;
+        vid.autoplay = true;
+        vid.loop = true;
+        return vid;
+      } else {
+        return null;
+      }
     },
   },
   watch: {
@@ -38,6 +51,16 @@ export default {
     },
     url() {
       this.loadTexture();
+    },
+    animated(newval) {
+      if (newval) {
+        this.requestId = window.requestAnimationFrame(() => this.render());
+      } else {
+        if (this.requestId) {
+          window.cancelAnimationFrame(this.requestId);
+          this.requestId = null;
+        }
+      }
     },
   },
   methods: {
@@ -56,13 +79,25 @@ export default {
       this.renderer.render(model.scene, camera);
       const context = this.$refs.canvas.getContext('2d');
       context.drawImage(this.renderer.domElement, 0, 0);
+
+      if (this.animated) {
+        this.requestId = window.requestAnimationFrame(() => this.render());
+      }
     },
     loadTexture() {
-      this.loader.load(this.url, texture => {
-        texture.flipY = false;
-        this.texture = texture;
+      if (this.animated) {
+        this.texture = new THREE.VideoTexture(this.vid);
+        this.texture.flipY = false;
+        this.texture.minFilter = THREE.LinearFilter;
+        this.texture.maxFilter = THREE.LinearFilter;
         this.render();
-      });
+      } else {
+        this.loader.load(this.url, texture => {
+          texture.flipY = false;
+          this.texture = texture;
+          this.render();
+        });
+      }
     },
   },
 
