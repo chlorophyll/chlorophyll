@@ -79,7 +79,7 @@
             <split-pane direction="horizontal" :initial-split="[null, 210]">
               <div slot="second" class="node-browser">
                 <div class="searchbox">
-                  <input type="text" v-model="query" />
+                  <input type="text" v-model="query" ref="searchbox" />
                   <div
                     v-show="query !== ''"
                     @click="query=''"
@@ -124,6 +124,7 @@
   </div>
 </template>
 <script>
+import keyboardJS from 'keyboardJS';
 import Fuse from 'fuse.js';
 import Const, { ConstMixin } from 'chl/const';
 import { mapGetters } from 'vuex';
@@ -281,6 +282,12 @@ export default {
             }
         },
     },
+    mounted() {
+         keyboardJS.bind('/', this.focusSearchbox);
+    },
+    beforeDestroy() {
+         keyboardJS.unbind('/', this.focusSearchbox);
+    },
     data() {
         return {
             fpsSamples: new Array(Const.num_fps_samples).fill(0),
@@ -319,6 +326,11 @@ export default {
     },
 
     methods: {
+        focusSearchbox(event) {
+            event.preventDefault();
+            this.$refs.searchbox.focus();
+            this.$refs.searchbox.select();
+        },
         pushFpsSample(sample) {
             this.fpsSamples.shift();
             this.fpsSamples.push(sample);
