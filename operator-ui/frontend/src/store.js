@@ -14,6 +14,8 @@ export default new Vuex.Store({
         mappingsById: {},
         model: false,
         realtime: {},
+        previewItem: null,
+        playlistItems: [],
     },
     mutations: {
         setSavefileState(state, {patterns, patternOrder, mappings}) {
@@ -24,6 +26,9 @@ export default new Vuex.Store({
         },
         realtimeChange(state, doc) {
             state.realtime = {...doc};
+        },
+        selectPreviewItem(state, pattern) {
+            state.previewItem = pattern.id;
         },
     },
     getters: {
