@@ -14,6 +14,8 @@ import { createFromConfig } from '@/common/mapping';
 import PatternRunner from '@/common/patterns/runner';
 import PixelpusherClient from './hardware/pixelpusher';
 import { ArtnetRegistry } from '@/common/hardware/artnet';
+import Pattern from './patterns';
+import Playlist from './playlist';
 
 import * as WebGL from 'wpe-webgl';
 
@@ -32,7 +34,9 @@ let patternRunner;
 
 let state;
 let realtimeState;
-let previewsByPatternId;
+let playlist;
+
+const patternsById = {};
 
 process.on('uncaughtException', function (err) {
     console.log(err);
@@ -55,68 +59,11 @@ function stopAnimation() {
     timer.clearInterval();
 }
 
-async function makePreviewAsync(pattern, mapping) {
-    console.log(`generating preview for ${pattern.name}`);
-    const model = state.model;
-    const groupId = state.group_list[0];
-    const group = state.groups[groupId];
-
-    try {
-        const runner = new PatternRunner(gl, model, pattern, group, mapping);
-
-        const w = model.textureWidth;
-        const textureSize = w * w * 4;
-        const pixels = new Float32Array(textureSize);
-        runner.step(0, pixels);
-        const tmpFile = await tmp.file();
-
-        const buf = Buffer.alloc(w*w*3);
-        let ptr = 0;
-        for (let i = 0; i < pixels.length; i++) {
-            if (i % 4 === 3) continue;
-            buf[ptr] = pixels[i]*255;
-            ptr++;
-        }
-
-        await sharp(buf, {
-            raw: {
-                width: w,
-                height: w,
-                channels: 3,
-            }
-        }).png().toFile(tmpFile.path);
-        return {
-            patternId: pattern.id,
-            mappingId: mapping.id.toString(),
-            path: tmpFile.path,
-        };
-    } catch (e) {
-        console.log(e);
-        return null;
-    }
-}
-
-async function makeAllPreviewsAsync() {
-    console.log('Generating previews... (this make take a while)');
-    const mappingsByType = _.groupBy(_.values(state.mappings), m => m.type);
-
-    console.log(mappingsByType);
-
-    const previewPromises = _.flatten(_.values(state.patterns).map(pattern => {
-        const mappings = mappingsByType[pattern.mapping_type] || [];
-        return mappings.map(mapping => makePreviewAsync(pattern, mapping));
-    }));
-
-    const previews = _.compact(await Promise.all(previewPromises));
-
-    previewsByPatternId = _.groupBy(previews, preview => preview.patternId);
-    console.log('Ready');
-}
-
 function runPattern(pattern, group, mapping) {
+    const patternManager = patternsById[pattern.id];
+    patternRunner = patternManager.getRunner(group, mapping, true);
     const model = state.model;
     isPlaying = true;
-    patternRunner = new PatternRunner(gl, model, pattern, group, mapping);
     let time = 0;
 
     const w = model.textureWidth;
@@ -160,6 +107,90 @@ function runPattern(pattern, group, mapping) {
 
 const filename = argv._[0];
 
+async function generatePatternInfo() {
+    const mappingsByType = _.groupBy(_.values(state.mappings), m => m.type);
+    for (const pattern of _.values(state.patterns)) {
+        try {
+            const patternManager = new Pattern(gl, state, pattern);
+            patternsById[pattern.id] = patternManager;
+        } catch (e) {
+            console.log(`pattern ${pattern.name} did not compile`);
+        }
+    }
+}
+
+function updatePlaylist(op, source) {
+    const {data} = realtimeState;
+    if (!source) {
+        console.log(data.playlist);
+        playlist.setItems(data.playlist);
+    }
+}
+
+function runPlaylist() {
+    if (playlist.items.length === 0) {
+        return;
+    }
+    const model = state.model;
+    const w = model.textureWidth;
+
+    const textureSize = w * w * 4;
+
+    let pixels = new Float32Array(textureSize);
+    let prevPixels = new Float32Array(textureSize);
+    let curTime;
+    let frames = 0;
+    const frame = () => {
+        if (!curTime) {
+            curTime = process.hrtime();
+        }
+        let readbuf = pixels;
+        // artnet locked to 30fps
+        if (state.hardware.protocol === 'artnet' && frame % 2 !== 0) {
+            readbuf = null;
+        }
+
+        playlist.step(readbuf);
+        const activeTime = Math.floor(playlist.activeItemTime / 60);
+        const targetTime = Math.floor(playlist.targetItemTime / 60);
+        const {timeInfo} = realtimeState.data;
+        if (activeTime !== timeInfo.activeTime) {
+            realtimeState.submitOp({
+                p: ['timeInfo', 'activeTime'],
+                oi: activeTime,
+            });
+        }
+        if (targetTime !== timeInfo.targetTime) {
+            realtimeState.submitOp({
+                p: ['timeInfo', 'targetTime'],
+                oi: targetTime,
+            });
+        }
+
+        [prevPixels, pixels] = [pixels, prevPixels];
+        if (readbuf) {
+            client.sendFrame(readbuf);
+        }
+        if (frames > 0 && frames % 300 === 0) {
+            const diff = process.hrtime(curTime);
+            const ns = diff[0] * 1e9 + diff[1];
+            const fpns = 300 / ns;
+            const fps = fpns * 1e9;
+            console.info(`${fps.toFixed(1)} fps`);
+            curTime = process.hrtime();
+        }
+        frames++;
+    }
+
+    playlist.start();
+    runAnimation(frame);
+}
+
+function stopPlaylist() {
+    playlist.stop();
+    timer.clearInterval();
+}
+
 
 async function init() {
     state = await readSavefile(filename);
@@ -171,14 +202,36 @@ async function init() {
         color2: '#00ff00',
         fader1: 0,
         fader2: 0,
+        playlist: [],
+        timeInfo: {
+            activeItemId: null,
+            targetItemId: null,
+            activeTime: 0,
+            targetTime: 0,
+        },
     });
 
 
-    await makeAllPreviewsAsync();
+    await generatePatternInfo();
+    playlist = new Playlist(gl, state.model, patternsById, 10*60);
+    playlist.on('target-changed', () => {
+        const val = playlist.targetItem ? playlist.targetItem.id : null;
+        realtimeState.submitOp({
+            p: ['timeInfo', 'targetItemId'],
+            oi: val,
+        });
+    });
+    playlist.on('active-changed', () => {
+        const val = playlist.activeItem ? playlist.activeItem.id : null;
+        realtimeState.submitOp({
+            p: ['timeInfo', 'activeItemId'],
+            oi: val,
+        });
+    });
 
-    state.patterns = _.pickBy(state.patterns, pattern => previewsByPatternId[pattern.id] !== undefined);
+    realtimeState.on('op', updatePlaylist);
 
-    state.patternOrder = state.patternOrder.filter(patternId => previewsByPatternId[patternId] !== undefined);
+    state.patternOrder = state.patternOrder.filter(patternId => patternsById[patternId]);
 
     const settings = state.hardware.settings[state.hardware.protocol];
     switch (state.hardware.protocol) {
@@ -234,20 +287,54 @@ app.get('/api/state', (req, res) => {
     res.json(result);
 });
 
-app.get('/api/preview/:patternId/:mappingId', (req, res) => {
+app.get('/api/preview/:patternId/:mappingId.png', (req, res) => {
     const {patternId, mappingId} = req.params;
-    const previews = previewsByPatternId[patternId];
-    if (!previews) {
-        res.status(404).send('Not found');
-        return;
-    }
-    const preview = previews.find(preview => preview.mappingId === mappingId);
-    if (!preview) {
+    const patternManager = patternsById[patternId];
+    const mapping = state.mappings[mappingId];
+    if (!mapping) {
         res.status(404).send('Not found');
     }
-    res.type('png').sendFile(preview.path);
+    patternManager.getStaticPreviewAsync(mapping).then(path =>
+        res.type('png').sendFile(path)
+    ).catch(err => res.status(404).send('Not found'));
 });
 
+app.get('/api/preview/:patternId/:mappingId.mp4', (req, res) => {
+    const {patternId, mappingId} = req.params;
+    const patternManager = patternsById[patternId];
+    const mapping = state.mappings[mappingId];
+    if (!mapping) {
+        console.log("couldn't find mapping id");
+        res.status(404).send('Not found');
+    }
+    patternManager.getAnimatedPreviewAsync(mapping).then(path =>
+        res.type('video/mp4').sendFile(path)
+    ).catch(err => {
+        console.log('err', err);
+        res.status(404).send('Not found')
+    });
+});
+
+app.post('/api/playlist/start', (req, res) => {
+    runPlaylist();
+    res.send('ok');
+});
+
+app.post('/api/playlist/next', (req, res) => {
+    playlist.next();
+    res.send('ok');
+});
+
+app.post('/api/playlist/prev', (req, res) => {
+    playlist.prev();
+    res.send('ok');
+});
+
+app.post('/api/playlist/stop', (req, res) => {
+    stopPlaylist();
+    sendBlackFrame();
+    res.send('ok');
+});
 
 app.post('/api/start', (req, res) => {
     if (!isReady()) {
@@ -273,6 +360,14 @@ app.post('/api/stop', (req, res) => {
     sendBlackFrame();
     res.send('ok');
 });
+
+app.post('/api/newgid', (req, res) => {
+    const gid = state.next_guid;
+    state.next_guid++;
+    console.log(gid);
+    res.json({gid});
+});
+
 const ifaces = _.flatten(_.values(os.networkInterfaces()));
 const external = ifaces.find(val => val.family === 'IPv4' && !val.internal);
 

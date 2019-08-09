@@ -38,7 +38,9 @@
         <span>Chlorophyll</span>
       </v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-btn icon @click="stopPattern"><v-icon>mdi-stop</v-icon></v-btn>
+        <v-btn icon @click="playlistPrev"><v-icon>mdi-skip-previous</v-icon></v-btn>
+        <v-btn icon @click="togglePlaylist"><v-icon>{{ playlistIcon }}</v-icon></v-btn>
+        <v-btn icon @click="playlistNext"><v-icon>mdi-skip-next</v-icon></v-btn>
     </v-app-bar>
     <v-content>
       <router-view />
@@ -61,6 +63,28 @@ export default {
       drawer: false,
     };
   },
+  computed: {
+    isPlaying() {
+      if (!this.$store.state.realtime.timeInfo) {
+        return false;
+      } else {
+        return this.$store.state.realtime.timeInfo.activeItemId !== null;
+      }
+    },
+    playlistIcon() {
+      return this.isPlaying ? 'mdi-stop' : 'mdi-play';
+    },
+  },
+  methods: {
+    togglePlaylist() {
+      if (this.isPlaying) {
+        this.playlistStop();
+      } else {
+        this.playlistStart();
+      }
+    }
+  },
+
   mounted() {
     this.$nextTick(() => {
       store.dispatch('fetchSavefileState');

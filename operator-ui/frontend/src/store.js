@@ -4,6 +4,7 @@ import Vuex from 'vuex';
 import api from './api';
 
 import {initModel} from './model';
+import * as realtime from './realtime';
 
 Vue.use(Vuex)
 
@@ -14,6 +15,7 @@ export default new Vuex.Store({
         mappingsById: {},
         model: false,
         realtime: {},
+        previewItem: null,
     },
     mutations: {
         setSavefileState(state, {patterns, patternOrder, mappings}) {
@@ -25,6 +27,9 @@ export default new Vuex.Store({
         realtimeChange(state, doc) {
             state.realtime = {...doc};
         },
+        selectPreviewItem(state, pattern) {
+            state.previewItem = pattern ? pattern.id : null;
+        },
     },
     getters: {
         patternList(state) {
@@ -32,6 +37,14 @@ export default new Vuex.Store({
         },
         mappingList(state) {
             return Object.values(state.mappingsById);
+        },
+        playlist(state) {
+            const items = state.realtime.playlist || [];
+            return items.map(item => ({
+                id: item.id,
+                duration: item.duration,
+                pattern: state.patternsById[item.patternId],
+            }));
         },
     },
 
@@ -42,5 +55,29 @@ export default new Vuex.Store({
             commit('setSavefileState', state);
             commit('realtimeChange', state.realtime);
         },
+
+        async createPlaylistItem({commit, state}, index) {
+            const patternId = state.previewItem;
+            if (!patternId) {
+                return;
+            }
+            const id = await api.newgid();
+            const duration = 30;
+
+            commit('selectPreviewItem', null);
+            const item = {
+                id,
+                duration,
+                patternId,
+            };
+            realtime.submitOp(realtime.ops.insert('playlist', index, item));
+        },
+        updateDuration(st, {index, newval, oldval}) {
+            realtime.submitOp(realtime.ops.number(['playlist', index, 'duration'], newval, oldval));
+        },
+
+        async removePlaylistItem(st, {item, index}) {
+            realtime.submitOp(realtime.ops.delete('playlist', index, item));
+        }
     }
 })

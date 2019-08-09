@@ -7,7 +7,7 @@ export default class Crossfader {
         const uniforms = {
             uSource: gl.createTexture(),
             uTarget: gl.createTexture(),
-            time: 0,
+            amount: 0,
         };
 
         this.runner = new ShaderRunner({
@@ -23,9 +23,10 @@ export default class Crossfader {
     }
 
     step(time, source, target, pixels=null) {
+        const amount = time / this.duration;
         this.uniforms.uSource = source;
         this.uniforms.uTarget = target;
-        this.uniforms.time = time / this.duration;
+        this.uniforms.amount = amount;
         this.runner.step(pixels);
         return this.runner.prevTexture();
     }
