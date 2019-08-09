@@ -124,7 +124,7 @@
   </div>
 </template>
 <script>
-import keyboardJS from 'keyboardJS';
+import keyboardJS from 'keyboardjs';
 import Fuse from 'fuse.js';
 import Const, { ConstMixin } from 'chl/const';
 import { mapGetters } from 'vuex';
