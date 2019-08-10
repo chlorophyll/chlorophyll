@@ -127,6 +127,7 @@ async function init() {
         color2: '#00ff00',
         fader1: 0,
         fader2: 0,
+        playlist: [],
     });
 
     await generatePatternInfo();

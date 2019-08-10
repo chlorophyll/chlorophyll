@@ -7,14 +7,14 @@
     ref="container"
     v-resize="onResize"
   >
-          <preview-card
-            v-if="previewPattern"
-            :width="columnWidth - 32"
-            :pattern="previewPattern"
-            :size="size*1.25"
-            :renderer="renderer"
-            :loader="loader"
-          />
+    <preview-card
+      v-if="previewPattern"
+      :width="columnWidth"
+      :pattern="previewPattern"
+      :size="size*1.25"
+      :renderer="renderer"
+      :loader="loader"
+    />
     <v-layout>
       <v-flex xs12 md6 ref="column">
         <v-container :style="scrollStyle" class="overflow-y-auto">
@@ -35,6 +35,20 @@
       </v-flex>
       <v-flex hidden-sm-and-down md6>
         <v-container :style="scrollStyle" class="overflow-y-auto">
+          <draggable :list="playlist" handle=".handle" class="layout wrap" @change="onChange">
+            <template v-for="(pattern, index) in playlist">
+              <v-flex xs12 :key="index">
+                <playlist-card
+                  :pattern="pattern"
+                  :size="size"
+                  :renderer="renderer"
+                  :loader="loader"
+                  :draggable="true"
+                  @close="onClose(pattern, index)"
+                />
+              </v-flex>
+            </template>
+            </draggable>
         </v-container>
       </v-flex>
     </v-layout>
@@ -48,9 +62,12 @@ import store from '@/store';
 import api from '@/api';
 import PreviewCard from '@/components/PreviewCard';
 import PatternCard from '@/components/PatternCard';
+import PlaylistCard from '@/components/PlaylistCard';
+import draggable from 'vuedraggable';
+import * as realtime from '@/realtime';
 export default {
   store,
-  components: { PatternCard, PreviewCard },
+  components: { PatternCard, PreviewCard, PlaylistCard, draggable },
   name: 'PatternList',
   computed: {
     ...mapState([
@@ -82,6 +99,15 @@ export default {
         'max-height': `${this.height-32}px`,
       };
     },
+    playlist: {
+      get() {
+        const {playlist} = this.$store.state.realtime;
+        return playlist ? playlist.map(p => this.patternsById[p]) : [];
+      },
+      set(val) {
+        //no-op
+      },
+    }
   },
   data() {
     return {
@@ -90,6 +116,8 @@ export default {
       columnWidth: 0,
     };
   },
+  watch: {
+  },
   mounted() {
     this.$nextTick(() => this.onResize());
   },
@@ -97,6 +125,15 @@ export default {
     ...mapMutations([
       'selectPreviewItem',
     ]),
+    onChange(e) {
+      if (e.moved) {
+        const {newIndex, oldIndex} = e.moved;
+        realtime.submitOp(realtime.ops.move('playlist', oldIndex, newIndex));
+      }
+    },
+    onClose(pattern, index) {
+      realtime.submitOp(realtime.ops.delete('playlist', index, pattern));
+    },
     onResize() {
       this.height = this.$refs.container.clientHeight;
       this.width = this.$refs.container.clientWidth;

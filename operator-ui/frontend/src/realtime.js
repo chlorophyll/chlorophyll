@@ -40,12 +40,21 @@ export function submitOp(op) {
 }
 
 export const ops = {
-  number(newval, oldval) {
-    return {na: newval-oldval};
+  number(key, newval, oldval) {
+    return {p: [key], na: newval-oldval};
   },
-  replace(newval) {
-    return {oi: newval};
-  }
+  replace(key, newval) {
+    return {p: [key], oi: newval};
+  },
+  move(key, oldIndex, newIndex) {
+    return {p: [key, oldIndex], lm:newIndex};
+  },
+  insert(key, newIndex, element) {
+    return {p: [key, newIndex], li:element};
+  },
+  delete(key, oldIndex, element) {
+    return {p: [key, oldIndex], ld:element};
+  },
 };
 
 export function mixin(key, op) {
@@ -58,10 +67,7 @@ export function mixin(key, op) {
         set(newval) {
           const oldval = this.$store.state.realtime[key];
           if (oldval !== undefined && oldval !== newval) {
-            settings.submitOp({
-              p: [key],
-              ...op(newval, oldval)
-            })
+            settings.submitOp(op(key, newval, oldval));
           }
         }
       },

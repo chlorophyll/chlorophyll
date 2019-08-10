@@ -41,7 +41,6 @@ export default {
       return this.animated ? this.videoUrl : this.imageUrl;
     },
     vid() {
-      console.log('recomputing vid?');
       if (this.animated) {
         const vid = document.createElement('video');
         vid.autoplay = true;
@@ -86,16 +85,14 @@ export default {
         this.$options.context.drawImage(this.renderer.domElement, 0, 0);
       }
       if (this.animated) {
-        window.requestAnimationFrame(this.render);
+        window.requestAnimationFrame(() => this.render());
       }
     },
     loadTexture() {
       if (this.animated) {
-        console.log('loading video texture');
         this.loadVideoTexture();
       }
       this.loader.load(this.imageUrl, texture => {
-        console.log('loading image texture');
         texture.flipY = false;
         texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
         texture.minFilter = THREE.LinearFilter;
@@ -116,7 +113,7 @@ export default {
     this.$options.model.zoomCameraToFit(this.camera, 1.01);
     this.$nextTick(() => {
       this.$options.context = this.$refs.canvas.getContext('2d');
-      this.loadTexture()
+      this.loadTexture();
     });
   }
 };
