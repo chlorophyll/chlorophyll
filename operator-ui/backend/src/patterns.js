@@ -126,6 +126,7 @@ export default class Pattern {
     const framestream = new FrameStream(this.model, runner, 10*60);
     const w = this.model.textureWidth;
     const tmpFile = await tmp.file();
+    const quality = w > 500 ? 23 : 16;
     return new Promise((resolve, reject) => {
       console.log('starting ffmpeg');
       const cmd = ffmpeg(framestream)
@@ -135,7 +136,7 @@ export default class Pattern {
         .inputOption('-framerate', '60')
         .outputFormat('mp4')
         .outputOption('-preset ultrafast')
-        .outputOption('-crf 0')
+        .outputOption('-crf', quality)
         .outputOption('-tune animation')
         .output(tmpFile.path)
         .on('start', cmd => console.log(cmd))

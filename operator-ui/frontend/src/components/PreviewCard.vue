@@ -1,56 +1,43 @@
 <template>
-  <v-card>
-    <v-container fluid>
-      <v-layout column>
-        <v-flex
-          justify-self-stretch
-          py-0
-          d-flex
-          class="black"
-        >
-          <preview-model
-            :width="size"
-            :height="size"
-            :pattern="pattern"
-            :renderer="renderer"
-            :loader="loader"
-            :animated="true"
-          />
-        </v-flex>
-        <v-flex>
-          <v-layout>
-          <v-card-text class="headline" >
-            {{ pattern.name }}
-          </v-card-text>
-            <v-flex shrink>
-              <v-btn icon><v-icon>mdi-close</v-icon></v-btn>
-            </v-flex>
-          </v-layout>
-        </v-flex>
-        <v-flex>
-          <v-card-text>
-            <v-slider
-              label="crossfade"
-            />
-          </v-card-text>
-        </v-flex>
-        <v-flex shrink>
-          <v-card-actions>
-            <v-btn color="primary">Add to queue</v-btn>
-            <v-btn>Play next</v-btn>
-            <v-btn>Play now</v-btn>
-          </v-card-actions>
-        </v-flex>
-      </v-layout>
-    </v-container>
-  </v-card>
+  <v-toolbar extension-height="size" absolute width="50%" class="my-auto">
+      <v-toolbar-title>{{ pattern.name }}</v-toolbar-title>
+      <v-spacer />
+        <v-btn class="mx-1" small color="primary">Add to queue</v-btn>
+        <v-btn class="mx-1" small>Play next</v-btn>
+        <v-btn class="mx-1" small>Play now</v-btn>
+        <v-btn icon class="ml-3" @click="selectPreviewItem(null)"><v-icon>mdi-close</v-icon></v-btn>
+    <template #extension>
+        <preview-model
+          :width="size*(16/9)"
+          :height="size"
+          :pattern="pattern"
+          :renderer="renderer"
+          :loader="loader"
+          :animated="true"
+          @loading="loading=true"
+          @done-loading="loading=false"
+        />
+    </template>
+  </v-toolbar>
 </template>
 
 <script>
+import {mapMutations} from 'vuex';
 import PreviewModel from '@/components/PreviewModel';
+import store from '@/store';
 export default {
-  props: ['pattern', 'size', 'renderer', 'loader'],
+  props: ['pattern', 'width', 'size', 'renderer', 'loader'],
   components: { PreviewModel },
   name: 'preview-card',
+  data() {
+    return {
+      loading: false,
+    };
+  },
+  methods: {
+    ...mapMutations([
+      'selectPreviewItem',
+    ]),
+  },
 };
 </script>

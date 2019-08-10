@@ -28,7 +28,7 @@ export default new Vuex.Store({
             state.realtime = {...doc};
         },
         selectPreviewItem(state, pattern) {
-            state.previewItem = pattern.id;
+            state.previewItem = pattern ? pattern.id : null;
         },
     },
     getters: {
