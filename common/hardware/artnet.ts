@@ -187,6 +187,8 @@ export class ArtnetRegistry {
     }
 }
 
+const nullHostName = '_unallocated_';
+
 export function settingsFromUserConfig(config: UserConfig, model: ModelBase): Array<ArtnetStripMapping> {
     if (!config)
         return [];
@@ -194,7 +196,7 @@ export function settingsFromUserConfig(config: UserConfig, model: ModelBase): Ar
     const mappings = [];
     Object.entries(config).forEach(([host, strips]) => {
         let curChannel = 0;
-        if (!strips)
+        if (!strips || host === nullHostName)
             return;
 
         strips.forEach((stripLabel, outputIdx) => {
@@ -238,11 +240,27 @@ export function userConfigFromSettings(settings: Array<ArtnetStripMapping>, mode
 
     // The start universe and channel for the strip can be safely discarded if
     // outputs always start from Output 1 and there are no gaps.
+    let labelsByHost: UserConfig = {};
     for (let host in stripsByHost) {
         const orderedOutputs = _.sortBy(stripsByHost[host], ['startUniverse', 'startChannel']);
-        stripsByHost[host] = orderedOutputs.map(s => model.stripLabel(s.strip));
+        labelsByHost[host] = orderedOutputs
+            .map((s, i) => {
+                const label = model.stripLabel(s.strip);
+                if (label)
+                    return label;
+                else
+                    console.warn(`Found empty/undefined strip on ${host}, output ${i+1} - skipping.`);
+            })
+            .filter(Boolean);
     }
 
-    return stripsByHost;
+    let unallocatedStrips = new Set(model.strip_labels as Array<string>);
+    for (let allocated of Object.values(labelsByHost))
+        for (let label of allocated)
+            unallocatedStrips.delete(label);
+
+    labelsByHost[nullHostName] = Array.from(unallocatedStrips);
+
+    return labelsByHost;
 }
 
