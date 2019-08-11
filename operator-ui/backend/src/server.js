@@ -294,10 +294,12 @@ app.get('/api/preview/:patternId/:mappingId.mp4', (req, res) => {
 
 app.post('/api/playlist/start', (req, res) => {
     runPlaylist();
+    res.send('ok');
 });
 app.post('/api/playlist/stop', (req, res) => {
     stopPlaylist();
     sendBlackFrame();
+    res.send('ok');
 });
 
 app.post('/api/start', (req, res) => {
