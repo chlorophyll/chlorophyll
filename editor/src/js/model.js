@@ -352,6 +352,8 @@ export class Model extends ModelBase {
 
         this.particles = new THREE.Mesh(this.geometry, this.material);
         this.edges = new THREE.Mesh(this.geometry, this.edgeMaterial);
+        for (let obj of [this.particles, this.edges])
+            obj.frustumCulled = false;
 
         this.scene = new THREE.Scene();
         this.scene.add(this.particles);
