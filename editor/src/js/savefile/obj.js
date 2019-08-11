@@ -1,3 +1,5 @@
+/* eslint max-len:0 */
+
 import * as THREE from 'three';
 import 'three-examples/loaders/OBJLoader';
 import 'three-examples/loaders/SVGLoader';
@@ -56,13 +58,15 @@ export default async function importOBJ(filename) {
 
             let allStrips = [];
             let allUvs = [];
+            console.log('LOADER: Working directory:', workingDir);
             for (let seg of index.segments) {
-                console.log(`Looking for ${seg.model} and ${seg.pixels} in ${workingDir}`);
+                console.log(`LOADER: applying ${seg.pixels} to ${seg.model}`);
                 const obj = await loadObjFile(path.resolve(workingDir, seg.model));
                 const svg = await loadSvgFile(path.resolve(workingDir, seg.pixels));
 
                 const ignoreUnmapped = Boolean(seg.drop_unmapped);
-                let {strips, uvCoords} = uvMapStrips(obj, svg, {ignoreUnmapped});
+                const warnPartial = Boolean(seg.warn_partial);
+                let {strips, uvCoords} = uvMapStrips(obj, svg, {ignoreUnmapped, warnPartial});
                 strips = labelStrips(seg.model, strips);
 
                 // Connect the first strip of the just-mapped segment to the
@@ -107,9 +111,9 @@ function uvMapStrips(obj, svg, options = {}) {
 
     const allMappedUvs = [];
     // Each path in the SVG file becomes an LED strip.
-    const unmappedUvs = [];
     const strips = svg.paths.map(shapePath => {
         const stripPixels = [];
+        const unmappedUvs = [];
         shapePath.subPaths.forEach(path =>
             path.curves.forEach((curve, i) => {
                 switch (curve.type) {
@@ -158,11 +162,26 @@ function uvMapStrips(obj, svg, options = {}) {
             // Serialize from Vector3
             .map(pt => pt.toArray());
 
+        if (!options.ignoreUnmapped && unmappedUvs.length > 0) {
+            if (!options.warnPartial) {
+                console.log(`Missing: ${unmappedUvs.length} from`, obj, unmappedUvs);
+            } else if (stripPixels.length > 0) {
+                // Assume a fully-off strip is intentionally unmapped, but warn if
+                // any path was partially mapped and partially unmapped.
+                const first = unmappedUvs[0];
+                const bbox = unmappedUvs.reduce(([min, max], [u, v]) => {
+                    return [
+                        [Math.min(min[0], u), Math.min(min[1], v)],
+                        [Math.max(max[0], u), Math.max(max[1], v)]
+                    ];
+                }, [first, first]);
+                console.error(`LOADER: Mapped strip missed ${unmappedUvs.length} pixels, hit ${stripPixels.length}:`, unmappedUvs);
+                console.error(`LOADER: Problem pixels found in range: (${bbox[0][0]},${bbox[0][1]}) => (${bbox[1][0]},${bbox[1][1]})`);
+            }
+        }
+
         return mapped;
     });
-
-    if (!options.ignoreUnmapped && unmappedUvs.length > 0)
-        console.log(`Missing: ${unmappedUvs.length} from`, obj, unmappedUvs);
 
     return {
         strips: strips,
@@ -183,7 +202,7 @@ function uvMapPixel(geometry, pt, options = {}) {
 
     const i = uvTris.findIndex(tri => tri.containsPoint(uvPos));
     if (i < 0) {
-        if (!options.ignoreUnmapped)
+        if (!options.ignoreUnmapped && !options.warnPartial)
             console.warn('Pixel UV coordinates not found on mesh', uvPos, geometry, uvTris);
 
         return null;
