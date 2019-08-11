@@ -85,6 +85,7 @@ export default async function importOBJ(filename) {
                 allUvs = [...allUvs, ...uvCoords];
             }
 
+            console.log(`LOADER: Done. Imported ${allStrips.length} strips on ${index.segments.length} objects.`);
             return {
                 strips: allStrips,
                 uvCoords: allUvs
@@ -176,11 +177,11 @@ function uvMapStrips(obj, svg, options = {}) {
                         [Math.max(max[0], u), Math.max(max[1], v)]
                     ];
                 }, [first, first]);
-                console.error(`LOADER: Mapped strip missed ${unmappedUvs.length} pixels, hit ${stripPixels.length}:`, unmappedUvs);
+                console.error(`LOADER: Mapped strip missed ${unmappedUvs.length} pixels, hit ${mapped.length}:`, unmappedUvs);
                 console.error(`LOADER: Problem pixels found in range: (${bbox[0][0]},${bbox[0][1]}) => (${bbox[1][0]},${bbox[1][1]})`);
             }
         }
-
+        console.log(`LOADER: Mapped strip: ${mapped.length} pixels.`);
         return mapped;
     });
 
