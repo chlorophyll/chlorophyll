@@ -13,6 +13,12 @@ const api = {
   async stopPattern() {
     await axios.post('/api/stop');
   },
+
+  async newgid() {
+    const resp = await axios.post('/api/newgid');
+    console.log(resp.data);
+    return resp.data.gid;
+  }
 };
 
 export default api;

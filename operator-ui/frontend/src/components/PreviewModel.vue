@@ -46,6 +46,7 @@ export default {
         vid.autoplay = true;
         vid.loop = true;
         vid.addEventListener('canplay', () => {
+          console.log('done loading');
           this.$emit('done-loading');
           const texture = new THREE.VideoTexture(vid);
           texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
@@ -73,6 +74,7 @@ export default {
   },
   methods: {
     loadVideoTexture() {
+      console.log('loading video texture');
       this.$emit('loading');
       this.vid.src = this.videoUrl;
     },
@@ -103,6 +105,7 @@ export default {
   },
 
   mounted() {
+    console.log('mounted');
     this.$options.model = getModel();
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -122,5 +125,6 @@ export default {
 <style scoped>
 canvas {
   border-radius: inherit;
+  background-color: black;
 }
 </style>

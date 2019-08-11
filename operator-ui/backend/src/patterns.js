@@ -126,26 +126,33 @@ export default class Pattern {
     const framestream = new FrameStream(this.model, runner, 10*60);
     const w = this.model.textureWidth;
     const tmpFile = await tmp.file();
-    const quality = w > 500 ? 23 : 16;
+    const quality = w > 500 ? 23 : 3;
     return new Promise((resolve, reject) => {
       console.log('starting ffmpeg');
       const cmd = ffmpeg(framestream)
-        .inputFormat('rawvideo')
+        .inputOption('-vcodec', 'rawvideo')
         .inputOption('-video_size', `${w}x${w}`)
-        .inputOption('-pixel_format', 'rgb24')
+        .inputOption('-pix_fmt', 'rgb24')
         .inputOption('-framerate', '60')
+        .videoFilter('pad=ceil(iw/2)*2:ceil(ih/2)*2')
+        .output(tmpFile.path)
+        .videoCodec('libx264')
+        .outputOption('-pix_fmt', 'yuv420p')
         .outputFormat('mp4')
-        .outputOption('-preset ultrafast')
+        .outputOption('-profile:v', 'high')
+        .outputOption('-level', '4.2')
         .outputOption('-crf', quality)
         .outputOption('-tune animation')
-        .output(tmpFile.path)
         .on('start', cmd => console.log(cmd))
         .on('end', () => {
           console.log('end', tmpFile.path);
           this.animatedPreviewsByMappingId[mapping.id] = tmpFile.path;
           resolve(tmpFile.path);
         })
-        .on('error', e => reject(e))
+        .on('error', (err, stdout, stderr) => {
+          console.log(stdout, stderr);
+          reject(err);
+        })
         .run();
     });
   }

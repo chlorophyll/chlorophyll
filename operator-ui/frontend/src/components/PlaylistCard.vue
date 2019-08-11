@@ -35,7 +35,7 @@
           </v-flex>
           <v-spacer/>
           <v-flex shrink>
-            <v-icon class="handle">mdi-drag</v-icon>
+            <v-icon class="handle" x-large>mdi-drag</v-icon>
           </v-flex>
         </v-layout>
       </v-flex>
@@ -53,13 +53,12 @@ import PreviewModel from '@/components/PreviewModel';
 import MaskedInput from 'vue-text-mask';
 
 export default {
-  props: ['size', 'pattern', 'renderer', 'loader', 'draggable'],
+  props: ['size', 'playlistItem', 'renderer', 'loader', 'draggable'],
   components: {PreviewModel, MaskedInput},
   name: 'playlist-card',
   data() {
     return {
       durationForEditing: null,
-      duration: 60,
     };
   },
   computed: {
@@ -68,6 +67,17 @@ export default {
     },
     seconds() {
       return this.duration % 60;
+    },
+    duration: {
+      get() {
+        return this.playlistItem.duration;
+      },
+      set(val) {
+        // noop
+      },
+    },
+    pattern() {
+      return this.playlistItem.pattern;
     },
 
     durationString: {

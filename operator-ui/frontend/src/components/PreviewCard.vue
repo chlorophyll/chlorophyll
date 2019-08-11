@@ -1,4 +1,5 @@
 <template>
+  <v-fade-transition>
   <v-toolbar :extension-height="size+36" absolute :width="width" class="my-auto">
       <v-toolbar-title>{{ pattern.name }}</v-toolbar-title>
       <v-spacer />
@@ -16,17 +17,17 @@
           :pattern="pattern"
           :renderer="renderer"
           :loader="loader"
-          :animated="true"
           @loading="loading=true"
           @done-loading="loading=false"
         />
       </v-layout>
     </template>
   </v-toolbar>
+  </v-fade-transition>
 </template>
 
 <script>
-import {mapMutations} from 'vuex';
+import {mapMutations, mapActions} from 'vuex';
 import PreviewModel from '@/components/PreviewModel';
 import store from '@/store';
 import * as realtime from '@/realtime';
@@ -40,12 +41,16 @@ export default {
     };
   },
   methods: {
+    ...mapActions([
+      'createPlaylistItem',
+    ]),
     ...mapMutations([
       'selectPreviewItem',
     ]),
-    addToQueue() {
+    async addToQueue() {
       const playlist = this.$store.state.realtime.playlist || [];
-      realtime.submitOp(realtime.ops.insert('playlist', playlist.length, this.pattern.id));
+      const index = playlist.length;
+      await this.createPlaylistItem(index);
     },
   },
 };

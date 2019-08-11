@@ -35,11 +35,12 @@
       </v-flex>
       <v-flex hidden-sm-and-down md6>
         <v-container :style="scrollStyle" class="overflow-y-auto">
-          <draggable :list="playlist" handle=".handle" class="layout wrap" @change="onChange">
-            <template v-for="(pattern, index) in playlist">
-              <v-flex xs12 :key="index">
+          <draggable :list="playlist" :animation="100" handle=".handle" class="layout wrap" @change="onChange">
+            <transition-group type="transition" name="flip-list">
+            <template v-for="(playlistItem, index) in playlist">
+              <v-flex xs12 :key="playlistItem.id">
                 <playlist-card
-                  :pattern="pattern"
+                  :playlist-item="playlistItem"
                   :size="size"
                   :renderer="renderer"
                   :loader="loader"
@@ -48,6 +49,7 @@
                 />
               </v-flex>
             </template>
+            </transition-group>
             </draggable>
         </v-container>
       </v-flex>
@@ -79,6 +81,7 @@ export default {
     ...mapGetters([
       'patternList',
       'mappingList',
+      'playlist',
     ]),
     renderer() {
       const renderer = new THREE.WebGLRenderer();
@@ -99,15 +102,6 @@ export default {
         'max-height': `${this.height-32}px`,
       };
     },
-    playlist: {
-      get() {
-        const {playlist} = this.$store.state.realtime;
-        return playlist ? playlist.map(p => this.patternsById[p]) : [];
-      },
-      set(val) {
-        //no-op
-      },
-    }
   },
   data() {
     return {
@@ -149,3 +143,7 @@ export default {
   },
 };
 </script>
+<style>
+.flip-list-move {
+  transition: transform 0.2s;
+}

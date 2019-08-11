@@ -4,6 +4,7 @@ import Vuex from 'vuex';
 import api from './api';
 
 import {initModel} from './model';
+import * as realtime from './realtime';
 
 Vue.use(Vuex)
 
@@ -15,7 +16,6 @@ export default new Vuex.Store({
         model: false,
         realtime: {},
         previewItem: null,
-        playlistItems: [],
     },
     mutations: {
         setSavefileState(state, {patterns, patternOrder, mappings}) {
@@ -38,6 +38,16 @@ export default new Vuex.Store({
         mappingList(state) {
             return Object.values(state.mappingsById);
         },
+        playlist(state) {
+            const playlistIds = state.realtime.playlist || [];
+            const playlistItems = playlistIds.map(id => state.realtime.playlistItemsById[id]);
+
+            return playlistItems.map(item => ({
+                pattern: state.patternsById[item.patternId],
+                id: item.id,
+                duration: item.duration,
+            }));
+        },
     },
 
     actions: {
@@ -47,5 +57,22 @@ export default new Vuex.Store({
             commit('setSavefileState', state);
             commit('realtimeChange', state.realtime);
         },
+
+        async createPlaylistItem({commit, state}, index) {
+            const patternId = state.previewItem;
+            if (!patternId) {
+                return;
+            }
+            const id = await api.newgid();
+            const duration = 60;
+
+            commit('selectPreviewItem', null);
+            realtime.submitOp(realtime.ops.add('playlistItemsById', id, {
+                id,
+                duration,
+                patternId,
+            }));
+            realtime.submitOp(realtime.ops.insert('playlist', index, id));
+        }
     }
 })

@@ -55,6 +55,9 @@ export const ops = {
   delete(key, oldIndex, element) {
     return {p: [key, oldIndex], ld:element};
   },
+  add(key, k, obj) {
+    return {p: [key, k], oi:obj};
+  },
 };
 
 export function mixin(key, op) {

@@ -28,6 +28,7 @@ function restoreSaveObject(obj) {
     nodeRegistry.refreshFromSavedState(obj);
 
     state.hardware = obj.hardwareSettings;
+    state.next_guid = obj.next_guid;
 
     state.mappings = restoreAllMappings(obj.mappings).new_mappings;
     const patternObj = restoreAllPatterns(obj.patterns);

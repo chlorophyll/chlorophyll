@@ -127,6 +127,7 @@ async function init() {
         color2: '#00ff00',
         fader1: 0,
         fader2: 0,
+        playlistItemsById: {},
         playlist: [],
     });
 
@@ -201,7 +202,6 @@ app.get('/api/preview/:patternId/:mappingId.png', (req, res) => {
 });
 
 app.get('/api/preview/:patternId/:mappingId.mp4', (req, res) => {
-    console.log('reading animated preview');
     const {patternId, mappingId} = req.params;
     const patternManager = patternsById[patternId];
     const mapping = state.mappings[mappingId];
@@ -209,7 +209,6 @@ app.get('/api/preview/:patternId/:mappingId.mp4', (req, res) => {
         console.log("couldn't find mapping id");
         res.status(404).send('Not found');
     }
-    console.log('doing the thing', patternManager);
     patternManager.getAnimatedPreviewAsync(mapping).then(path =>
         res.type('video/mp4').sendFile(path)
     ).catch(err => {
@@ -243,6 +242,14 @@ app.post('/api/stop', (req, res) => {
     sendBlackFrame();
     res.send('ok');
 });
+
+app.post('/api/newgid', (req, res) => {
+    const gid = state.next_guid;
+    state.next_guid++;
+    console.log(gid);
+    res.json({gid});
+});
+
 const ifaces = _.flatten(_.values(os.networkInterfaces()));
 const external = ifaces.find(val => val.family === 'IPv4' && !val.internal);
 
