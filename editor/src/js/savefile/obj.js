@@ -109,9 +109,9 @@ function uvMapStrips(obj, svg, options = {}) {
     const geom = new THREE.Geometry();
     geom.fromBufferGeometry(obj.children[0].geometry);
 
-    const allMappedUvs = [];
+    let allMappedUvs = [];
     // Each path in the SVG file becomes an LED strip.
-    const strips = svg.paths.map(shapePath => {
+    let strips = svg.paths.map(shapePath => {
         const stripPixels = [];
         const unmappedUvs = [];
         shapePath.subPaths.forEach(path =>
@@ -165,7 +165,7 @@ function uvMapStrips(obj, svg, options = {}) {
         if (!options.ignoreUnmapped && unmappedUvs.length > 0) {
             if (!options.warnPartial) {
                 console.log(`Missing: ${unmappedUvs.length} from`, obj, unmappedUvs);
-            } else if (stripPixels.length > 0) {
+            } else if (mapped.length > 0) {
                 // Assume a fully-off strip is intentionally unmapped, but warn if
                 // any path was partially mapped and partially unmapped.
                 const first = unmappedUvs[0];
@@ -184,7 +184,7 @@ function uvMapStrips(obj, svg, options = {}) {
     });
 
     return {
-        strips: strips,
+        strips: strips.filter(s => s && s.length > 0),
         uvCoords: allMappedUvs
     };
 }
