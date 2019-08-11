@@ -60,7 +60,7 @@ export default class Pattern {
 
     this.staticPreviewsByMappingId = {};
     this.animatedPreviewsByMappingId = {};
-    const runner = this.getRunner(this.group, firstMapping);
+    this.defaultRunner = this.getRunner(this.group, firstMapping);
   }
 
   getRunner(groups, mapping, reset = false) {

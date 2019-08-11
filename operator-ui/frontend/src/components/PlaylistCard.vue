@@ -40,7 +40,7 @@
         </v-layout>
       </v-flex>
       <v-flex class="px-1">
-        <v-progress-linear background-opacity="0" rounded value="50" />
+        <v-progress-linear background-opacity="0" rounded :value="progress*100" />
       </v-flex>
     </v-layout>
 
@@ -51,8 +51,10 @@
 import * as numeral from 'numeral';
 import PreviewModel from '@/components/PreviewModel';
 import MaskedInput from 'vue-text-mask';
+import store from '@/store';
 
 export default {
+  store,
   props: ['size', 'playlistItem', 'renderer', 'loader', 'draggable'],
   components: {PreviewModel, MaskedInput},
   name: 'playlist-card',
@@ -62,6 +64,15 @@ export default {
     };
   },
   computed: {
+    isTarget() {
+      const {realtime} = this.$store.state;
+      const numItems = realtime.playlist.length;
+      return numItems > 1 && realtime.targetPlaylistItemId === this.playlistItem.id;
+    },
+    progress() {
+      const time = this.isTarget ? this.$store.state.realtime.targetPlaylistItemTime : 0;
+      return time / this.duration;
+    },
     minutes() {
       return Math.floor(this.duration / 60);
     },

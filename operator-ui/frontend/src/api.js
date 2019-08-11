@@ -16,9 +16,16 @@ const api = {
 
   async newgid() {
     const resp = await axios.post('/api/newgid');
-    console.log(resp.data);
     return resp.data.gid;
-  }
+  },
+
+  async startPlaylist() {
+    await axios.post('/api/playlist/start');
+  },
+
+  async stopPlaylist() {
+    await axios.post('/api/playlist/stop');
+  },
 };
 
 export default api;

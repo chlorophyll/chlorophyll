@@ -64,7 +64,7 @@ export default new Vuex.Store({
                 return;
             }
             const id = await api.newgid();
-            const duration = 60;
+            const duration = 30;
 
             commit('selectPreviewItem', null);
             realtime.submitOp(realtime.ops.add('playlistItemsById', id, {

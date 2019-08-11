@@ -36,7 +36,6 @@
       <v-flex hidden-sm-and-down md6>
         <v-container :style="scrollStyle" class="overflow-y-auto">
           <draggable :list="playlist" :animation="100" handle=".handle" class="layout wrap" @change="onChange">
-            <transition-group type="transition" name="flip-list">
             <template v-for="(playlistItem, index) in playlist">
               <v-flex xs12 :key="playlistItem.id">
                 <playlist-card
@@ -49,7 +48,6 @@
                 />
               </v-flex>
             </template>
-            </transition-group>
             </draggable>
         </v-container>
       </v-flex>
@@ -143,7 +141,3 @@ export default {
   },
 };
 </script>
-<style>
-.flip-list-move {
-  transition: transform 0.2s;
-}

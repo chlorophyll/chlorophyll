@@ -38,7 +38,8 @@
         <span>Chlorophyll</span>
       </v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-btn icon @click="stopPattern"><v-icon>mdi-stop</v-icon></v-btn>
+        <v-btn icon @click="startPlaylist"><v-icon>mdi-play</v-icon></v-btn>
+        <v-btn icon @click="stopPlaylist"><v-icon>mdi-stop</v-icon></v-btn>
     </v-app-bar>
     <v-content>
       <router-view />

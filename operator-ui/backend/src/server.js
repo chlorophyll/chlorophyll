@@ -15,6 +15,7 @@ import PatternRunner from '@/common/patterns/runner';
 import PixelpusherClient from './hardware/pixelpusher';
 import { ArtnetRegistry } from '@/common/hardware/artnet';
 import Pattern from './patterns';
+import Playlist from './playlist';
 
 import * as WebGL from 'wpe-webgl';
 
@@ -33,6 +34,7 @@ let patternRunner;
 
 let state;
 let realtimeState;
+let playlist;
 
 const patternsById = {};
 
@@ -117,6 +119,68 @@ async function generatePatternInfo() {
     }
 }
 
+function updatePlaylist(op, source) {
+    const {data} = realtimeState;
+    if (!source) {
+        const items = data.playlist.map(itemId => data.playlistItemsById[itemId]);
+
+        playlist.setItems(items);
+    }
+}
+
+function runPlaylist() {
+    if (playlist.items.length === 0) {
+        return;
+    }
+    const model = state.model;
+    const w = model.textureWidth;
+
+    const textureSize = w * w * 4;
+
+    let pixels = new Float32Array(textureSize);
+    let prevPixels = new Float32Array(textureSize);
+    let curTime;
+    let frames = 0;
+    const frame = () => {
+        if (!curTime) {
+            curTime = process.hrtime();
+        }
+        let readbuf = pixels;
+        // artnet locked to 30fps
+        if (state.hardware.protocol === 'artnet' && frame % 2 !== 0) {
+            readbuf = null;
+        }
+
+        playlist.step(readbuf);
+        if (playlist.visibleTime !== realtimeState.data.targetPlaylistItemTime) {
+            realtimeState.submitOp({p: ['targetPlaylistItemTime'], oi: playlist.visibleTime});
+        }
+
+        [prevPixels, pixels] = [pixels, prevPixels];
+        if (readbuf) {
+            client.sendFrame(readbuf);
+        }
+        if (frames > 0 && frames % 300 === 0) {
+            const diff = process.hrtime(curTime);
+            const ns = diff[0] * 1e9 + diff[1];
+            const fpns = 300 / ns;
+            const fps = fpns * 1e9;
+            console.info(`${fps.toFixed(1)} fps`);
+            curTime = process.hrtime();
+        }
+        frames++;
+    }
+
+    playlist.start();
+    runAnimation(frame);
+}
+
+function stopPlaylist() {
+    playlist.stop();
+    timer.clearInterval();
+}
+
+
 async function init() {
     state = await readSavefile(filename);
     realtimeState = await realtime.initAsync({
@@ -129,9 +193,20 @@ async function init() {
         fader2: 0,
         playlistItemsById: {},
         playlist: [],
+        targetPlaylistItemId: null,
+        targetPlaylistItemTime: 0,
     });
 
+
     await generatePatternInfo();
+    playlist = new Playlist(gl, state.model, patternsById, 10*60);
+    playlist.on('target-changed', () => {
+        realtimeState.submitOp({
+            p: ['targetPlaylistItemId'],
+            oi: playlist.targetItem.id,
+        });
+    });
+    realtimeState.on('op', updatePlaylist);
 
     state.patternOrder = state.patternOrder.filter(patternId => patternsById[patternId]);
 
@@ -217,6 +292,13 @@ app.get('/api/preview/:patternId/:mappingId.mp4', (req, res) => {
     });
 });
 
+app.post('/api/playlist/start', (req, res) => {
+    runPlaylist();
+});
+app.post('/api/playlist/stop', (req, res) => {
+    stopPlaylist();
+    sendBlackFrame();
+});
 
 app.post('/api/start', (req, res) => {
     if (!isReady()) {
