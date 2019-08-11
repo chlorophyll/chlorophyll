@@ -63,7 +63,6 @@ import 'three-examples/shaders/CopyShader';
 import 'three-examples/shaders/ConvolutionShader';
 import 'three-examples/shaders/LuminosityHighPassShader';
 
-import 'three-examples/postprocessing/BloomPass';
 import 'three-examples/postprocessing/UnrealBloomPass';
 
 import Const, { ConstMixin } from 'chl/const';
@@ -106,21 +105,19 @@ export default {
     data() {
         return {
             scene: null,
-            renderer: null,
-            camera: null,
-            renderPass: null,
-            bloomPass: null,
-            controls: null,
+            // User-configured settings
             enableEffects: true,
-            playbackMode: true,
             autoRotate: false,
             stripVisibility: false,
             flipCamera: false,
+            // UI state
             inConfig: false,
             width: 0,
             height: 0,
             active: false,
-            controlsEnabled: false
+            controlsEnabled: false,
+            playbackActive: false,
+            nToolsActive: 0,
         };
     },
 
@@ -128,7 +125,7 @@ export default {
         ...mapState(['has_current_model']),
 
         showEffects() {
-            return this.enableEffects && this.playbackMode;
+            return this.enableEffects && this.playbackActive && this.nToolsActive === 0;
         }
     },
 
@@ -237,7 +234,9 @@ export default {
             this.renderPass = new THREE.RenderPass(this.scene, this.camera);
             this.bloomPass = new THREE.UnrealBloomPass(
                 new THREE.Vector2(this.width, this.height),
-                0.7, 0.2, 0.25
+                0.6, // Intensity
+                0.1, // Radius (1 = full screen size)
+                0.20 // Threshold
             );
 
             if (!this.preview && this.showEffects) {

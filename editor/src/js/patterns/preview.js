@@ -5,6 +5,7 @@ import { PatternRunner } from 'chl/patterns/runner';
 import { currentModel } from 'chl/model';
 import { patternUtilsMixin } from 'chl/patterns';
 import { mappingUtilsMixin } from 'chl/mapping';
+import { ViewportMixin } from 'chl/viewport';
 
 import * as pixelpusher from 'chl/hardware/pixelpusher';
 
@@ -27,6 +28,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
     mixins: [
         mappingUtilsMixin,
         patternUtilsMixin,
+        ViewportMixin,
     ],
 
     data() {
@@ -178,6 +180,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
         },
         start() {
             currentModel.display_only = true;
+            this.mainViewport().playbackActive = true;
             this.runner.start();
             this.run();
         },
@@ -192,6 +195,7 @@ export const PatternPreview = Vue.component('pattern-preview', {
         stop() {
             this.pause();
             this.runner.stop();
+            this.mainViewport().playbackActive = false;
             currentModel.display_only = false;
             this.time = 0;
             if (this.pushToHardware) {
