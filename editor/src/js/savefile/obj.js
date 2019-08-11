@@ -2,12 +2,13 @@
 
 import * as THREE from 'three';
 import 'three-examples/loaders/OBJLoader';
-import 'three-examples/loaders/SVGLoader';
 
 import * as fs from 'fs';
 import * as path from 'path';
 import * as Promise from 'bluebird';
 import { remote } from 'electron';
+
+import {SVGLoader} from '@/common/util/svg_loader';
 
 const parseJSON = Promise.method(JSON.parse);
 const readFile = Promise.promisify(fs.readFile);
@@ -242,22 +243,23 @@ async function loadObjFile(filename) {
 }
 
 async function loadSvgFile(filename) {
-    const loader = new THREE.SVGLoader();
-    return loadWithThreeLoader(filename, loader)
-        .then(res => {
-            const xml = new DOMParser().parseFromString(res.raw, 'image/svg+xml');
-            const svgRoot = xml.getElementsByTagName('svg')[0];
-            // Inkscape inverts the Y axis coordinates and puts (0,0) at the
-            // bottom-left of the canvas rather than top-left.
-            const inkscape = svgRoot.getAttribute('inkscape:version');
+    const loader = new SVGLoader();
 
-            return {
-                paths: res.parsed,
-                width: parseInt(svgRoot.getAttribute('width'), 10),
-                height: parseInt(svgRoot.getAttribute('height'), 10),
-                invertY: Boolean(inkscape)
-            };
-        });
+    const raw = await readFile(filename);
+    const parsed = loader.parse(raw);
+
+    const xml = new DOMParser().parseFromString(raw, 'image/svg+xml');
+    const svgRoot = xml.getElementsByTagName('svg')[0];
+    // Inkscape inverts the Y axis coordinates and puts (0,0) at the
+    // bottom-left of the canvas rather than top-left.
+    const inkscape = svgRoot.getAttribute('inkscape:version');
+
+    return {
+        paths: parsed,
+        width: parseInt(svgRoot.getAttribute('width'), 10),
+        height: parseInt(svgRoot.getAttribute('height'), 10),
+        invertY: Boolean(inkscape)
+    };
 }
 
 async function loadWithThreeLoader(filename, loader) {
