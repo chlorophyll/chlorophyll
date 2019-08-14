@@ -7,10 +7,9 @@
       :renderer="renderer"
       :loader="loader"
     />
-    <v-btn icon v-if="draggable" @click="$emit('close')"><v-icon>mdi-close</v-icon></v-btn>
     <v-card-text class="headline">{{ pattern.name }}</v-card-text>
     <v-spacer />
-    <v-icon v-if="draggable" class="handle">mdi-drag</v-icon>
+    <v-icon v-if="draggable" class="handle" x-large>mdi-drag</v-icon>
   </v-card>
 </template>
 

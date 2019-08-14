@@ -46,6 +46,7 @@ export default {
   computed: {
     ...mapState([
       'realtime',
+      'previewItem',
     ]),
   },
   methods: {
@@ -58,7 +59,7 @@ export default {
     async addToQueue() {
       const playlist = this.realtime.playlist || [];
       const index = playlist.length;
-      await this.createPlaylistItem(index);
+      await this.createPlaylistItem({index, patternId: this.previewItem});
     },
 
     async createPlaylistItemAtTarget() {
@@ -68,7 +69,7 @@ export default {
         index = playlist.findIndex(item => item.id === this.realtime.timeInfo.targetItemId) + 1;
       }
 
-      await this.createPlaylistItem(index);
+      await this.createPlaylistItem({index, patternId: this.previewItem});
       await realtime.nothingPending();
       return index;
     },

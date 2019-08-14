@@ -60,15 +60,16 @@ export default new Vuex.Store({
             commit('realtimeChange', state.realtime);
         },
 
-        async createPlaylistItem({commit, state}, index) {
-            const patternId = state.previewItem;
+        async createPlaylistItem({commit, state}, {index, patternId}) {
             if (!patternId) {
                 return;
             }
             const id = await api.newgid();
             const duration = 30;
 
-            commit('selectPreviewItem', null);
+            if (state.previewItem === patternId) {
+                commit('selectPreviewItem', null);
+            }
             const item = {
                 id,
                 duration,

@@ -19,6 +19,13 @@
       <v-flex xs12 md6 ref="column">
         <v-container :style="scrollStyle" class="overflow-y-auto">
           <v-layout wrap>
+          <draggable
+            v-model="patternList"
+            handle=".handle"
+            class="layout wrap"
+            :sort="false"
+            :group="{ name: 'patterns', pull: 'clone', put: false }"
+          >
             <template v-for="(pattern, index) in patternList">
               <v-flex xs12 :key="`pattern${pattern.id}`">
               <pattern-card
@@ -27,15 +34,25 @@
                 :renderer="renderer"
                 :loader="loader"
                 @click="selectPreviewItem(pattern)"
+                :draggable="true"
                 />
               </v-flex>
             </template>
+          </draggable>
           </v-layout>
         </v-container>
       </v-flex>
       <v-flex hidden-sm-and-down md6>
         <v-container :style="scrollStyle" class="overflow-y-auto">
-          <draggable :list="playlist" :animation="100" handle=".handle" class="layout wrap" @update="onMove">
+          <draggable
+            :list="playlist"
+            :animation="100"
+            handle=".handle"
+            class="layout wrap"
+            @update="onMove"
+            @add="onAdd"
+            :group="{name: 'patterns', pull: false, put: true}"
+          >
             <template v-for="(playlistItem, index) in playlist">
               <v-flex xs12 :key="playlistItem.id">
                 <playlist-card
@@ -121,12 +138,18 @@ export default {
     ]),
     ...mapActions([
       'removePlaylistItem',
+      'createPlaylistItem',
     ]),
     onMove(e) {
       const {newIndex, oldIndex} = e;
       this.$nextTick(() => {
         realtime.submitOp(realtime.ops.move('playlist', oldIndex, newIndex));
       });
+    },
+    onAdd(e) {
+      const {newIndex, oldIndex} = e;
+      const pattern = this.patternList[oldIndex];
+      this.createPlaylistItem({index: e.newIndex, patternId: pattern.id});
     },
     onClose(item, index) {
       this.removePlaylistItem({item, index});
