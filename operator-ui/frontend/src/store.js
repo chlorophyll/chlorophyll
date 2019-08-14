@@ -15,6 +15,7 @@ export default new Vuex.Store({
         mappingsById: {},
         model: false,
         realtime: {},
+        realtimeLoaded: false,
         previewItem: null,
     },
     mutations: {
@@ -29,6 +30,9 @@ export default new Vuex.Store({
         },
         selectPreviewItem(state, pattern) {
             state.previewItem = pattern ? pattern.id : null;
+        },
+        realtimeLoaded(state, val) {
+            state.realtimeLoaded = val;
         },
     },
     getters: {

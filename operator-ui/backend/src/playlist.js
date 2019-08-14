@@ -54,6 +54,10 @@ export default class Playlist extends EventEmitter {
     this.emit('active-changed', val);
   }
 
+  setTargetIndex(index) {
+    this.targetItem = this.items[index];
+  }
+
   prev() {
     let curIndex = this.indexesById[this.activeItem.id];
     if (curIndex === undefined) {
@@ -109,7 +113,7 @@ export default class Playlist extends EventEmitter {
     }
 
     this.indexesById = newIndexesById;
-    this.items = items;
+    this.items = [...items];
   }
 
   start(index = 0) {
@@ -127,6 +131,9 @@ export default class Playlist extends EventEmitter {
 
     this.activeItem = null;
     this.targetItem = null;
+    this.activeItemTime = 0;
+    this.targetItemTime = 0;
+
   }
 
   getRunner(item) {
@@ -157,7 +164,7 @@ export default class Playlist extends EventEmitter {
       this.targetItemTime++;
 
       // normal operation: reached the end of duration. next step will start xfade.
-      if (this.activeItemTime === activeDuration - this.crossfadeDuration) {
+      if (this.items.length > 1 && this.activeItemTime >= activeDuration - this.crossfadeDuration) {
         const activeIndex = this.indexesById[this.activeItem.id];
         const nextIndex = (activeIndex + 1) % this.items.length;
         this.targetItem = this.items[nextIndex];

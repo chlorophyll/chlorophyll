@@ -8,8 +8,8 @@
       <v-layout column>
         <v-flex align-self-center>
         <v-btn class="mx-1" @click="addToQueue" small color="primary">Add to queue</v-btn>
-        <v-btn class="mx-1" small>Play next</v-btn>
-        <v-btn class="mx-1" small>Play now</v-btn>
+        <v-btn class="mx-1" @click="playNext" small>Play next</v-btn>
+        <v-btn class="mx-1" @click="playNow" small>Play now</v-btn>
         </v-flex>
         <preview-model
           :width="size*(16/9)"
@@ -27,18 +27,26 @@
 </template>
 
 <script>
-import {mapMutations, mapActions} from 'vuex';
+import {mapState, mapMutations, mapActions} from 'vuex';
 import PreviewModel from '@/components/PreviewModel';
 import store from '@/store';
 import * as realtime from '@/realtime';
+import {ApiMixin} from '@/api';
 export default {
+  store,
   props: ['pattern', 'width', 'size', 'renderer', 'loader'],
   components: { PreviewModel },
   name: 'preview-card',
+  mixins: [ApiMixin],
   data() {
     return {
       loading: false,
     };
+  },
+  computed: {
+    ...mapState([
+      'realtime',
+    ]),
   },
   methods: {
     ...mapActions([
@@ -48,10 +56,35 @@ export default {
       'selectPreviewItem',
     ]),
     async addToQueue() {
-      const playlist = this.$store.state.realtime.playlist || [];
+      const playlist = this.realtime.playlist || [];
       const index = playlist.length;
       await this.createPlaylistItem(index);
     },
+
+    async createPlaylistItemAtTarget() {
+      const playlist = this.realtime.playlist || [];
+      let index = 0;
+      if (this.realtime.timeInfo.targetItemId) {
+        index = playlist.findIndex(item => item.id === this.realtime.timeInfo.targetItemId) + 1;
+      }
+
+      await this.createPlaylistItem(index);
+      await realtime.nothingPending();
+      return index;
+    },
+
+    async playNext() {
+      const index = await this.createPlaylistItemAtTarget();
+      if (!this.realtime.timeInfo.activeItemId) {
+        await this.playlistStart(index);
+      }
+    },
+
+    async playNow() {
+      const index = await this.createPlaylistItemAtTarget();
+      await this.playlistStart(index);
+    }
+
   },
 };
 </script>

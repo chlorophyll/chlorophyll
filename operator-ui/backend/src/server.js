@@ -122,13 +122,17 @@ async function generatePatternInfo() {
 function updatePlaylist(op, source) {
     const {data} = realtimeState;
     if (!source) {
-        console.log(data.playlist);
         playlist.setItems(data.playlist);
     }
 }
 
-function runPlaylist() {
+function runPlaylist(index) {
     if (playlist.items.length === 0) {
+        return;
+    }
+
+    if (playlist.activeItem !== null) {
+        playlist.setTargetIndex(index);
         return;
     }
     const model = state.model;
@@ -182,7 +186,7 @@ function runPlaylist() {
         frames++;
     }
 
-    playlist.start();
+    playlist.start(index);
     runAnimation(frame);
 }
 
@@ -316,7 +320,9 @@ app.get('/api/preview/:patternId/:mappingId.mp4', (req, res) => {
 });
 
 app.post('/api/playlist/start', (req, res) => {
-    runPlaylist();
+    const index = req.body.index || 0;
+    console.log('running playlist', index);
+    runPlaylist(index);
     res.send('ok');
 });
 

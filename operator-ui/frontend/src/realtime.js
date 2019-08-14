@@ -4,7 +4,10 @@ import WebSocket from 'reconnecting-websocket';
 
 let settings;
 
-export function init(store) {
+let store;
+
+export function init(s) {
+  store = s;
   const host = window.location.host;
 
   const url = `ws://${host}/api`;
@@ -13,12 +16,14 @@ export function init(store) {
   const connection = new ShareDB.Connection(socket);
 
   const update = () => {
+    store.commit('realtimeLoaded', true);
     store.commit('realtimeChange', settings.data);
   };
 
   socket.addEventListener('close', () => {
     if (settings) {
       settings.destroy();
+      store.commit('realtimeLoaded', false);
       settings = undefined;
     }
   });
@@ -37,7 +42,16 @@ export function init(store) {
 }
 
 export function submitOp(op) {
+  if (!store.state.realtimeLoaded) {
+    return;
+  }
   settings.submitOp(op);
+}
+
+export function nothingPending() {
+  return new Promise((resolve) => {
+    settings.whenNothingPending(resolve);
+  });
 }
 
 export const ops = {
@@ -51,7 +65,6 @@ export const ops = {
   },
   move(key, oldIndex, newIndex) {
     const p = _.isArray(key) ? key : [key];
-    console.log(key, oldIndex, newIndex);
     return {p: [...p, oldIndex], lm:newIndex};
   },
   insert(key, newIndex, element) {

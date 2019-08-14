@@ -14,7 +14,7 @@
             <v-layout column fill-height class="text-truncate">
               <div class="ml-3 title">{{ pattern.name}}</div>
               <v-card-actions>
-                <v-btn>Play now</v-btn>
+                <v-btn @click="playNow">Play now</v-btn>
                 <v-btn @click="$emit('close')">Remove</v-btn>
               </v-card-actions>
             </v-layout>
@@ -41,7 +41,7 @@
         </v-layout>
       </v-flex>
       <v-flex class="px-1">
-        <v-progress-linear :background-opacity="opacity" rounded :value="progress*100" />
+        <v-progress-linear :stream="isOnlyPlayingItem" :buffer-value="0" :background-opacity="opacity" rounded :value="progress*100" />
       </v-flex>
     </v-layout>
 
@@ -54,11 +54,13 @@ import * as numeral from 'numeral';
 import PreviewModel from '@/components/PreviewModel';
 import MaskedInput from 'vue-text-mask';
 import store from '@/store';
+import {ApiMixin} from '@/api';
 
 export default {
   store,
   props: ['size', 'index', 'playlistItem', 'renderer', 'loader', 'draggable'],
   components: {PreviewModel, MaskedInput},
+  mixins: [ApiMixin],
   name: 'playlist-card',
   data() {
     return {
@@ -107,6 +109,12 @@ export default {
         return 0;
       }
     },
+    isOnlyPlayingItem() {
+      return (
+        this.realtime.playlist.length === 1 &&
+        this.playlistItem.id === this.timeInfo.activeItemId
+      );
+    },
 
     progress() {
       return this.time / this.duration;
@@ -150,6 +158,9 @@ export default {
     ...mapActions([
       'updateDuration',
     ]),
+    async playNow() {
+      await this.playlistStart(this.index);
+    },
     focusDuration() {
       this.durationForEditing = this.durationString;
     },

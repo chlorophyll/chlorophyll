@@ -37,6 +37,10 @@
       <v-toolbar-title class="headline">
         <span>Chlorophyll</span>
       </v-toolbar-title>
+        <div class="d-flex ma-4 body-2 grey--text align-center" v-if="!realtimeLoaded">
+          <v-progress-circular indeterminate color="grey" class="mr-1" size="20" />
+          <div>Connecting to server...</div>
+        </div>
         <v-spacer></v-spacer>
         <v-btn icon @click="playlistPrev"><v-icon>mdi-skip-previous</v-icon></v-btn>
         <v-btn icon @click="togglePlaylist"><v-icon>{{ playlistIcon }}</v-icon></v-btn>
@@ -64,6 +68,9 @@ export default {
     };
   },
   computed: {
+    realtimeLoaded() {
+      return this.$store.state.realtimeLoaded;
+    },
     isPlaying() {
       if (!this.$store.state.realtime.timeInfo) {
         return false;
