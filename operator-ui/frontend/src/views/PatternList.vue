@@ -99,6 +99,7 @@ export default {
     scrollStyle() {
       return {
         'max-height': `${this.height-32}px`,
+        '-webkit-overflow-scrolling': 'touch',
       };
     },
   },

@@ -1,5 +1,5 @@
 <template>
-  <v-card v-ripple="!draggable" v-on="draggable ? null : $listeners" class="d-flex align-center">
+  <v-card v-on="$listeners" class="d-flex align-center">
     <preview-model
       :width="size"
       :height="size"
