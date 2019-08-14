@@ -140,7 +140,7 @@ export default class Playlist extends EventEmitter {
       this.targetItemTime++;
       texture = this.crossfader.step(this.targetItemTime, source, target, pixels);
 
-      if (this.targetItemTime === this.crossfadeDuration) {
+      if (this.targetItemTime > this.crossfadeDuration) {
         this.getRunner(this.activeItem).stop();
         this.activeItem = this.targetItem;
         this.activeItemTime = this.targetItemTime;
