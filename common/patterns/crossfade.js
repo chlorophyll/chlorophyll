@@ -18,7 +18,6 @@ export default class Crossfader {
             fragmentShader: glslify.compile(crossfadeFrag),
             uniforms,
         });
-        console.log(crossfadeFrag);
         this.uniforms = uniforms;
         this.duration = duration;
     }

@@ -124,10 +124,10 @@ export default class Playlist extends EventEmitter {
     if (this.activeItem.id === this.targetItem.id) {
       texture = this.stepRunner(this.activeItem, this.activeItemTime, pixels);
       this.activeItemTime++;
+      this.targetItemTime++;
 
       // normal operation: reached the end of duration. next step will start xfade.
       if (this.activeItemTime === activeDuration - this.crossfadeDuration) {
-        console.log('should start crossfade now');
         const activeIndex = this.indexesById[this.activeItem.id];
         const nextIndex = (activeIndex + 1) % this.items.length;
         this.targetItem = this.items[nextIndex];
