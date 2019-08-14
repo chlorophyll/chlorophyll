@@ -65,7 +65,7 @@ export default new Vuex.Store({
                 return;
             }
             const id = await api.newgid();
-            const duration = 30;
+            const duration = 60;
 
             if (state.previewItem === patternId) {
                 commit('selectPreviewItem', null);
