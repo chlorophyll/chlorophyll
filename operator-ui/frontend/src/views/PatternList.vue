@@ -44,7 +44,7 @@
                   :renderer="renderer"
                   :loader="loader"
                   :draggable="true"
-                  @close="onClose(pattern, index)"
+                  @close="onClose(playlistItem, index)"
                 />
               </v-flex>
             </template>
@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import {mapState, mapGetters, mapMutations} from 'vuex';
+import {mapState, mapGetters, mapMutations, mapActions} from 'vuex';
 import * as THREE from 'three';
 import store from '@/store';
 import api from '@/api';
@@ -117,14 +117,17 @@ export default {
     ...mapMutations([
       'selectPreviewItem',
     ]),
+    ...mapActions([
+      'removePlaylistItem',
+    ]),
     onChange(e) {
       if (e.moved) {
         const {newIndex, oldIndex} = e.moved;
         realtime.submitOp(realtime.ops.move('playlist', oldIndex, newIndex));
       }
     },
-    onClose(pattern, index) {
-      realtime.submitOp(realtime.ops.delete('playlist', index, pattern));
+    onClose(item, index) {
+      this.removePlaylistItem({item, index});
     },
     onResize() {
       this.height = this.$refs.container.clientHeight;

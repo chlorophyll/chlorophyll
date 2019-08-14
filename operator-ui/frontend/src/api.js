@@ -19,12 +19,18 @@ const api = {
     return resp.data.gid;
   },
 
-  async startPlaylist() {
+  async playlistStart() {
     await axios.post('/api/playlist/start');
   },
 
-  async stopPlaylist() {
+  async playlistStop() {
     await axios.post('/api/playlist/stop');
+  },
+  async playlistNext() {
+    await axios.post('/api/playlist/next');
+  },
+  async playlistPrev() {
+    await axios.post('/api/playlist/prev');
   },
 };
 

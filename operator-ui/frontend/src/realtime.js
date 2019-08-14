@@ -58,6 +58,9 @@ export const ops = {
   add(key, k, obj) {
     return {p: [key, k], oi:obj};
   },
+  remove(key, k, obj) {
+    return {p: [key, k], od: obj};
+  },
 };
 
 export function mixin(key, op) {

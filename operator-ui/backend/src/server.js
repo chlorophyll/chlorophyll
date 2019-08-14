@@ -121,11 +121,7 @@ async function generatePatternInfo() {
 
 function updatePlaylist(op, source) {
     const {data} = realtimeState;
-    if (!source) {
-        const items = data.playlist.map(itemId => data.playlistItemsById[itemId]);
-
-        playlist.setItems(items);
-    }
+    playlist.setItems(data.playlist);
 }
 
 function runPlaylist() {
@@ -203,7 +199,6 @@ async function init() {
         color2: '#00ff00',
         fader1: 0,
         fader2: 0,
-        playlistItemsById: {},
         playlist: [],
         timeInfo: {
             activeItemId: null,
@@ -319,6 +314,17 @@ app.post('/api/playlist/start', (req, res) => {
     runPlaylist();
     res.send('ok');
 });
+
+app.post('/api/playlist/next', (req, res) => {
+    playlist.next();
+    res.send('ok');
+});
+
+app.post('/api/playlist/prev', (req, res) => {
+    playlist.prev();
+    res.send('ok');
+});
+
 app.post('/api/playlist/stop', (req, res) => {
     stopPlaylist();
     sendBlackFrame();

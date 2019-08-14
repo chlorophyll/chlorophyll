@@ -39,13 +39,11 @@ export default new Vuex.Store({
             return Object.values(state.mappingsById);
         },
         playlist(state) {
-            const playlistIds = state.realtime.playlist || [];
-            const playlistItems = playlistIds.map(id => state.realtime.playlistItemsById[id]);
-
-            return playlistItems.map(item => ({
-                pattern: state.patternsById[item.patternId],
+            const items = state.realtime.playlist || [];
+            return items.map(item => ({
                 id: item.id,
                 duration: item.duration,
+                pattern: state.patternsById[item.patternId],
             }));
         },
     },
@@ -67,12 +65,16 @@ export default new Vuex.Store({
             const duration = 30;
 
             commit('selectPreviewItem', null);
-            realtime.submitOp(realtime.ops.add('playlistItemsById', id, {
+            const item = {
                 id,
                 duration,
                 patternId,
-            }));
-            realtime.submitOp(realtime.ops.insert('playlist', index, id));
+            };
+            realtime.submitOp(realtime.ops.insert('playlist', index, item));
+        },
+
+        async removePlaylistItem(st, {item, index}) {
+            realtime.submitOp(realtime.ops.delete('playlist', index, item));
         }
     }
 })

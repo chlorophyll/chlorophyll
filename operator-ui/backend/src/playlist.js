@@ -28,7 +28,6 @@ export default class Playlist extends EventEmitter {
     this.activeItemTime = 0;
     this.targetItemTime = 0;
 
-
     this._activeItem = null;
     this._targetItem = null;
 
@@ -43,6 +42,7 @@ export default class Playlist extends EventEmitter {
   set targetItem(val) {
     if (!this._targetItem || this._targetItem.id !== val.id) {
       this._targetItem = val;
+      this.targetItemTime = 0;
       this.emit('target-changed', val);
     }
   }
@@ -56,6 +56,30 @@ export default class Playlist extends EventEmitter {
       this._activeItem = val;
       this.emit('active-changed', val);
     }
+
+  }
+
+  prev() {
+    let curIndex = this.indexesById[this.activeItem.id];
+    if (curIndex === undefined) {
+      return; // just gotta wait
+    }
+
+    const l = this.items.length;
+
+    const item = this.items[(curIndex + l - 1) % l];
+    this.targetItem = item;
+  }
+
+  next() {
+    let curIndex = this.indexesById[this.activeItem.id];
+    if (curIndex === undefined) {
+      return;
+    }
+
+    const l = this.items.length;
+    const item = this.items[(curIndex + 1) % l];
+    this.targetItem = item;
   }
 
   setItems(items) {
@@ -64,7 +88,7 @@ export default class Playlist extends EventEmitter {
     if (this.activeItem !== null) {
       let newTargetItem = null;
 
-      const curTargetIndex = this.indexesById[this.targetItemId];
+      const curTargetIndex = this.indexesById[this.targetItem.id];
 
       for (let offset = 0; offset < this.items.length; offset++) {
         const potentialIndex = (curTargetIndex + offset) % this.items.length;
@@ -79,8 +103,8 @@ export default class Playlist extends EventEmitter {
       }
 
       this.targetItem = newTargetItem;
-    }
 
+    }
 
     const newIndexesById = {};
     for (let i = 0; i < items.length; i++) {
@@ -103,6 +127,9 @@ export default class Playlist extends EventEmitter {
       const targetRunner = this.getRunner(this.targetItem);
       targetRunner.stop();
     }
+
+    this.activeItem = null;
+    this.targetItem = null;
   }
 
   getRunner(item) {
