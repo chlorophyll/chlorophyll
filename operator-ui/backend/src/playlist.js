@@ -40,11 +40,9 @@ export default class Playlist extends EventEmitter {
   }
 
   set targetItem(val) {
-    if (!this._targetItem || this._targetItem.id !== val.id) {
-      this._targetItem = val;
-      this.targetItemTime = 0;
-      this.emit('target-changed', val);
-    }
+    this._targetItem = val;
+    this.targetItemTime = 0;
+    this.emit('target-changed', val);
   }
 
   get activeItem() {
@@ -52,11 +50,8 @@ export default class Playlist extends EventEmitter {
   }
 
   set activeItem(val) {
-    if (!this._activeItem || this._activeItem.id !== val.id) {
-      this._activeItem = val;
-      this.emit('active-changed', val);
-    }
-
+    this._activeItem = val;
+    this.emit('active-changed', val);
   }
 
   prev() {
@@ -85,7 +80,7 @@ export default class Playlist extends EventEmitter {
   setItems(items) {
     const newItemIds = new Set(items.map(item => item.id));
 
-    if (this.activeItem !== null) {
+    if (this.targetItem !== null) {
       let newTargetItem = null;
 
       const curTargetIndex = this.indexesById[this.targetItem.id];
@@ -102,7 +97,9 @@ export default class Playlist extends EventEmitter {
         newTargetItem = items[0];
       }
 
-      this.targetItem = newTargetItem;
+      if (newTargetItem.id !== this.targetItem.id) {
+        this.targetItem = newTargetItem;
+      }
 
     }
 
@@ -164,7 +161,6 @@ export default class Playlist extends EventEmitter {
         const activeIndex = this.indexesById[this.activeItem.id];
         const nextIndex = (activeIndex + 1) % this.items.length;
         this.targetItem = this.items[nextIndex];
-        this.targetItemTime = 0;
       }
     } else {
       const source = this.stepRunner(this.activeItem, this.activeItemTime);

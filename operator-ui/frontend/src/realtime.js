@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import ShareDB from  'sharedb/lib/client';
 import WebSocket from 'reconnecting-websocket';
 
@@ -41,25 +42,33 @@ export function submitOp(op) {
 
 export const ops = {
   number(key, newval, oldval) {
-    return {p: [key], na: newval-oldval};
+    const p = _.isArray(key) ? key : [key];
+    return {p, na: newval-oldval};
   },
   replace(key, newval) {
-    return {p: [key], oi: newval};
+    const p = _.isArray(key) ? key : [key];
+    return {p, oi: newval};
   },
   move(key, oldIndex, newIndex) {
-    return {p: [key, oldIndex], lm:newIndex};
+    const p = _.isArray(key) ? key : [key];
+    console.log(key, oldIndex, newIndex);
+    return {p: [...p, oldIndex], lm:newIndex};
   },
   insert(key, newIndex, element) {
-    return {p: [key, newIndex], li:element};
+    const p = _.isArray(key) ? key : [key];
+    return {p: [...p, newIndex], li:element};
   },
   delete(key, oldIndex, element) {
-    return {p: [key, oldIndex], ld:element};
+    const p = _.isArray(key) ? key : [key];
+    return {p: [...p, oldIndex], ld:element};
   },
   add(key, k, obj) {
-    return {p: [key, k], oi:obj};
+    const p = _.isArray(key) ? key : [key];
+    return {p: [...p, k], oi:obj};
   },
   remove(key, k, obj) {
-    return {p: [key, k], od: obj};
+    const p = _.isArray(key) ? key : [key];
+    return {p: [...p, k], od: obj};
   },
 };
 

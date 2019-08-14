@@ -72,6 +72,9 @@ export default new Vuex.Store({
             };
             realtime.submitOp(realtime.ops.insert('playlist', index, item));
         },
+        updateDuration(st, {index, newval, oldval}) {
+            realtime.submitOp(realtime.ops.number(['playlist', index, 'duration'], newval, oldval));
+        },
 
         async removePlaylistItem(st, {item, index}) {
             realtime.submitOp(realtime.ops.delete('playlist', index, item));

@@ -9,17 +9,18 @@
     />
     <v-layout column>
       <v-flex>
-        <v-layout class="align-center">
-          <v-flex grow>
-            <v-card flat color="transparent">
-              <v-card-title>{{ pattern.name }}</v-card-title>
-                <v-card-actions>
-                  <v-btn>Play now</v-btn>
-                  <v-btn @click="$emit('close')">Remove</v-btn>
-                </v-card-actions>
-            </v-card>
+        <v-layout class="align-center pr-4">
+          <v-flex xs8>
+            <v-layout column fill-height class="text-truncate">
+              <div class="ml-3 title">{{ pattern.name}}</div>
+              <v-card-actions>
+                <v-btn>Play now</v-btn>
+                <v-btn @click="$emit('close')">Remove</v-btn>
+              </v-card-actions>
+            </v-layout>
           </v-flex>
-          <v-flex shrink>
+          <v-spacer />
+          <v-flex>
             <v-card>
             <masked-input
               type="text"
@@ -48,6 +49,7 @@
 </template>
 
 <script>
+import {mapActions, mapState, mapGetters} from 'vuex';
 import * as numeral from 'numeral';
 import PreviewModel from '@/components/PreviewModel';
 import MaskedInput from 'vue-text-mask';
@@ -55,7 +57,7 @@ import store from '@/store';
 
 export default {
   store,
-  props: ['size', 'playlistItem', 'renderer', 'loader', 'draggable'],
+  props: ['size', 'index', 'playlistItem', 'renderer', 'loader', 'draggable'],
   components: {PreviewModel, MaskedInput},
   name: 'playlist-card',
   data() {
@@ -64,36 +66,42 @@ export default {
     };
   },
   computed: {
+    ...mapState([
+      'realtime',
+    ]),
+    ...mapGetters([
+      'playlist',
+    ]),
+    timeInfo() {
+      return this.realtime.timeInfo;
+    },
     showProgress() {
-      const {realtime} = this.$store.state;
-      const numItems = realtime.playlist.length;
+      const numItems = this.realtime.playlist.length;
       if (numItems <= 1) {
         return false;
       }
 
       return (
-        realtime.timeInfo.activeItemId === this.playlistItem.id ||
-        realtime.timeInfo.targetItemId === this.playlistItem.id
+        this.timeInfo.activeItemId === this.playlistItem.id ||
+        this.timeInfo.targetItemId === this.playlistItem.id
       );
     },
     time() {
-      const {realtime} = this.$store.state;
-      const numItems = realtime.playlist.length;
+      const numItems = this.playlist.length;
       if (numItems <= 1) {
         return 0;
       }
 
-      if (this.playlistItem.id === realtime.timeInfo.activeItemId) {
-        return realtime.timeInfo.activeTime;
-      } else if (this.playlistItem.id === realtime.timeInfo.targetItemId) {
-        return realtime.timeInfo.targetTime;
+      if (this.playlistItem.id === this.timeInfo.activeItemId) {
+        return this.timeInfo.activeTime;
+      } else if (this.playlistItem.id === this.timeInfo.targetItemId) {
+        return this.timeInfo.targetTime;
       } else {
         return 0;
       }
     },
     opacity() {
-      const {realtime} = this.$store.state;
-      if (this.playlistItem.id === realtime.timeInfo.activeItemId) {
+      if (this.playlistItem.id === this.timeInfo.activeItemId) {
         return 0.3;
       } else {
         return 0;
@@ -114,7 +122,7 @@ export default {
         return this.playlistItem.duration;
       },
       set(val) {
-        // noop
+        this.updateDuration({index: this.index, newval: val, oldval: this.duration});
       },
     },
     pattern() {
@@ -139,6 +147,9 @@ export default {
     },
   },
   methods: {
+    ...mapActions([
+      'updateDuration',
+    ]),
     focusDuration() {
       this.durationForEditing = this.durationString;
     },

@@ -35,10 +35,11 @@
       </v-flex>
       <v-flex hidden-sm-and-down md6>
         <v-container :style="scrollStyle" class="overflow-y-auto">
-          <draggable :list="playlist" :animation="100" handle=".handle" class="layout wrap" @change="onChange">
+          <draggable :list="playlist" :animation="100" handle=".handle" class="layout wrap" @update="onMove">
             <template v-for="(playlistItem, index) in playlist">
               <v-flex xs12 :key="playlistItem.id">
                 <playlist-card
+                  :index="index"
                   :playlist-item="playlistItem"
                   :size="size"
                   :renderer="renderer"
@@ -120,11 +121,11 @@ export default {
     ...mapActions([
       'removePlaylistItem',
     ]),
-    onChange(e) {
-      if (e.moved) {
-        const {newIndex, oldIndex} = e.moved;
+    onMove(e) {
+      const {newIndex, oldIndex} = e;
+      this.$nextTick(() => {
         realtime.submitOp(realtime.ops.move('playlist', oldIndex, newIndex));
-      }
+      });
     },
     onClose(item, index) {
       this.removePlaylistItem({item, index});

@@ -121,7 +121,10 @@ async function generatePatternInfo() {
 
 function updatePlaylist(op, source) {
     const {data} = realtimeState;
-    playlist.setItems(data.playlist);
+    if (!source) {
+        console.log(data.playlist);
+        playlist.setItems(data.playlist);
+    }
 }
 
 function runPlaylist() {
@@ -212,15 +215,17 @@ async function init() {
     await generatePatternInfo();
     playlist = new Playlist(gl, state.model, patternsById, 10*60);
     playlist.on('target-changed', () => {
+        const val = playlist.targetItem ? playlist.targetItem.id : null;
         realtimeState.submitOp({
             p: ['timeInfo', 'targetItemId'],
-            oi: playlist.targetItem.id,
+            oi: val,
         });
     });
     playlist.on('active-changed', () => {
+        const val = playlist.activeItem ? playlist.activeItem.id : null;
         realtimeState.submitOp({
             p: ['timeInfo', 'activeItemId'],
-            oi: playlist.activeItem.id,
+            oi: val,
         });
     });
 
