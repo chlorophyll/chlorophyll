@@ -40,7 +40,7 @@
         </v-layout>
       </v-flex>
       <v-flex class="px-1">
-        <v-progress-linear background-opacity="0" rounded :value="progress*100" />
+        <v-progress-linear :background-opacity="opacity" rounded :value="progress*100" />
       </v-flex>
     </v-layout>
 
@@ -64,14 +64,44 @@ export default {
     };
   },
   computed: {
-    isTarget() {
+    showProgress() {
       const {realtime} = this.$store.state;
       const numItems = realtime.playlist.length;
-      return numItems > 1 && realtime.targetPlaylistItemId === this.playlistItem.id;
+      if (numItems <= 1) {
+        return false;
+      }
+
+      return (
+        realtime.timeInfo.activeItemId === this.playlistItem.id ||
+        realtime.timeInfo.targetItemId === this.playlistItem.id
+      );
     },
+    time() {
+      const {realtime} = this.$store.state;
+      const numItems = realtime.playlist.length;
+      if (numItems <= 1) {
+        return 0;
+      }
+
+      if (this.playlistItem.id === realtime.timeInfo.activeItemId) {
+        return realtime.timeInfo.activeTime;
+      } else if (this.playlistItem.id === realtime.timeInfo.targetItemId) {
+        return realtime.timeInfo.targetTime;
+      } else {
+        return 0;
+      }
+    },
+    opacity() {
+      const {realtime} = this.$store.state;
+      if (this.playlistItem.id === realtime.timeInfo.activeItemId) {
+        return 0.3;
+      } else {
+        return 0;
+      }
+    },
+
     progress() {
-      const time = this.isTarget ? this.$store.state.realtime.targetPlaylistItemTime : 0;
-      return time / this.duration;
+      return this.time / this.duration;
     },
     minutes() {
       return Math.floor(this.duration / 60);

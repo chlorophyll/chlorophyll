@@ -12,7 +12,7 @@ export function init(store) {
   const connection = new ShareDB.Connection(socket);
 
   const update = () => {
-    store.commit('realtimeChange', settings.data)
+    store.commit('realtimeChange', settings.data);
   };
 
   socket.addEventListener('close', () => {

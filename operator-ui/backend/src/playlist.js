@@ -29,7 +29,7 @@ export default class Playlist extends EventEmitter {
     this.targetItemTime = 0;
 
 
-    this.activeItem = null;
+    this._activeItem = null;
     this._targetItem = null;
 
     this.indexesById = {};
@@ -47,9 +47,15 @@ export default class Playlist extends EventEmitter {
     }
   }
 
-  get visibleTime() {
-    const frames = this.targetId === this.activeItem.id ? this.activeItemTime : this.targetItemTime;
-    return Math.floor(frames / 60);
+  get activeItem() {
+    return this._activeItem;
+  }
+
+  set activeItem(val) {
+    if (!this._activeItem || this._activeItem.id !== val.id) {
+      this._activeItem = val;
+      this.emit('active-changed', val);
+    }
   }
 
   setItems(items) {

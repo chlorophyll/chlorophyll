@@ -152,8 +152,20 @@ function runPlaylist() {
         }
 
         playlist.step(readbuf);
-        if (playlist.visibleTime !== realtimeState.data.targetPlaylistItemTime) {
-            realtimeState.submitOp({p: ['targetPlaylistItemTime'], oi: playlist.visibleTime});
+        const activeTime = Math.floor(playlist.activeItemTime / 60);
+        const targetTime = Math.floor(playlist.targetItemTime / 60);
+        const {timeInfo} = realtimeState.data;
+        if (activeTime !== timeInfo.activeTime) {
+            realtimeState.submitOp({
+                p: ['timeInfo', 'activeTime'],
+                oi: activeTime,
+            });
+        }
+        if (targetTime !== timeInfo.targetTime) {
+            realtimeState.submitOp({
+                p: ['timeInfo', 'targetTime'],
+                oi: targetTime,
+            });
         }
 
         [prevPixels, pixels] = [pixels, prevPixels];
@@ -193,8 +205,12 @@ async function init() {
         fader2: 0,
         playlistItemsById: {},
         playlist: [],
-        targetPlaylistItemId: null,
-        targetPlaylistItemTime: 0,
+        timeInfo: {
+            activeItemId: null,
+            targetItemId: null,
+            activeTime: 0,
+            targetTime: 0,
+        },
     });
 
 
@@ -202,10 +218,17 @@ async function init() {
     playlist = new Playlist(gl, state.model, patternsById, 10*60);
     playlist.on('target-changed', () => {
         realtimeState.submitOp({
-            p: ['targetPlaylistItemId'],
+            p: ['timeInfo', 'targetItemId'],
             oi: playlist.targetItem.id,
         });
     });
+    playlist.on('active-changed', () => {
+        realtimeState.submitOp({
+            p: ['timeInfo', 'activeItemId'],
+            oi: playlist.activeItem.id,
+        });
+    });
+
     realtimeState.on('op', updatePlaylist);
 
     state.patternOrder = state.patternOrder.filter(patternId => patternsById[patternId]);
