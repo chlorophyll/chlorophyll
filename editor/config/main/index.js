@@ -5,8 +5,9 @@ import { app, BrowserWindow } from 'electron' // eslint-disable-line
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
  */
 if (process.env.NODE_ENV !== 'development') {
-  global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\') // eslint-disable-line
-  global.__schemas = require('path').join(__dirname, '/schemas').replace(/\\/g, '\\\\') // eslint-disable-line
+  global.__glslifyBasedir = __dirname;
+  global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\');
+  global.__schemas = require('path').join(__dirname, '/schemas').replace(/\\/g, '\\\\');
 }
 
 let mainWindow;
