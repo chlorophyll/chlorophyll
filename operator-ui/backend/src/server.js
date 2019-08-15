@@ -81,7 +81,7 @@ function runPattern(pattern, group, mapping) {
         }
         let readbuf = pixels;
         // artnet locked to 30fps
-        if (state.hardware.protocol === 'artnet' && frame % 2 !== 0) {
+        if (state.hardware.protocol === 'artnet' && time % 2 !== 0) {
             readbuf = null;
         }
         patternRunner.step(time, readbuf);
@@ -150,7 +150,7 @@ function runPlaylist(index) {
         }
         let readbuf = pixels;
         // artnet locked to 30fps
-        if (state.hardware.protocol === 'artnet' && frame % 2 !== 0) {
+        if (state.hardware.protocol === 'artnet' && frames % 2 !== 0) {
             readbuf = null;
         }
 
