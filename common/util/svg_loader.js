@@ -678,7 +678,7 @@ export class SVGLoader {
         style = Object.assign({}, style); // clone style
 
         if (node.hasAttribute('fill')) style.fill = node.getAttribute('fill');
-        if (node.style.fill !== '') style.fill = node.style.fill;
+        if (node.style && node.style.fill !== '') style.fill = node.style.fill;
 
         return style;
     }
