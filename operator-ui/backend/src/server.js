@@ -8,7 +8,7 @@ import * as realtime from './realtime';
 import tmp from 'tmp-promise';
 import express from 'express';
 import Nanotimer from 'nanotimer';
-import { readSavefile } from './restore';
+import { readSavefile, writeSavefile } from './restore';
 import { checkFramebuffer } from '@/common/util/gl_debug';
 import { createFromConfig } from '@/common/mapping';
 import PatternRunner from '@/common/patterns/runner';
@@ -123,11 +123,14 @@ function updatePlaylist(op, source) {
     const {data} = realtimeState;
     if (!source) {
         playlistRunner.setItems(data.playlist);
+
         state.playlistsById[state.activePlaylistId] = {
             items: data.playlist,
             name: data.playlistName,
             id: state.activePlaylistId,
         };
+
+        writeSavefile(filename, state);
     }
 }
 
@@ -223,9 +226,8 @@ function activatePlaylist(playlistId) {
 
 async function init() {
     state = await readSavefile(filename);
-    state.playlistsById = {};
-    state.playlistOrder = [];
-    const playlistId = createPlaylist(state);
+    const hasPlaylists = state.playlistOrder.length > 0;
+    const playlistId = hasPlaylists ? state.playlistOrder[0] : createPlaylist(state);
 
     realtimeState = await realtime.initAsync({
         globalBrightness: 100,

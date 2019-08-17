@@ -5,10 +5,10 @@ import concatStream from 'concat-stream';
 import * as nodeRegistry from '@/common/nodes/registry';
 import { restoreAllGroups } from '@/common/model';
 import { restoreAllMappings } from '@/common/mapping';
-import { restoreAllPatterns, restorePlaylistItems } from '@/common/patterns';
+import { restoreAllPatterns } from '@/common/patterns';
 
 import { restoreAllGraphs } from './graphlib';
-
+import { restoreAllPlaylists, savePlaylists} from './playlist';
 import Model from './model';
 
 //xxx hacks
@@ -38,7 +38,11 @@ function restoreSaveObject(obj) {
     state.groups = g.new_groups;
     state.group_list = g.new_group_list;
     state.model = new Model(obj.model, state.groups);
-    state.playlistItems = restorePlaylistItems(obj.playlistItems);
+
+    const playlistObj = restoreAllPlaylists(obj.playlists);
+
+    state.playlistsById = playlistObj.playlistsById;
+    state.playlistOrder = playlistObj.playlistOrder;
 
     state.obj = obj;
 
@@ -107,5 +111,27 @@ export function readSavefile(path) {
         });
 
         fs.createReadStream(path).pipe(extract);
+    });
+}
+
+export function writeSavefile(path, state) {
+    return new Promise((resolve, reject) => {
+        const playlists = savePlaylists(state);
+        const mergedState = {
+            ...state.obj,
+            next_guid: state.next_guid,
+            playlists,
+        };
+        const contents = JSON.stringify(mergedState);
+
+        const pack = tar.pack();
+        pack.entry({'name': 'version'}, SAVE_VERSION);
+        pack.entry({'name': 'data'}, contents);
+        pack.finalize();
+
+        const fstream = fs.createWriteStream(path);
+        fstream.on('close', () => resolve());
+        fstream.on('error', err => reject(err));
+        pack.pipe(fstream);
     });
 }

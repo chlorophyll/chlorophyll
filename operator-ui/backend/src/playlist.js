@@ -3,6 +3,8 @@ import Crossfader from '@/common/patterns/crossfade';
 import {uniqueName} from './util';
 import _ from 'lodash';
 
+let _patternsById;
+
 // there is the notion of the "active" item and the "target" item.
 // most of the time they are the same.
 // when they are different, step will crossfade between them.
@@ -28,6 +30,7 @@ export default class PlaylistRunner extends EventEmitter {
     this.shuffleMode = false;
 
     this.patternsById = patternsById;
+    _patternsById = patternsById;
     this.pendingStop = null;
 
     this.activeItemTime = 0;
@@ -209,6 +212,55 @@ export default class PlaylistRunner extends EventEmitter {
     }
   }
 }
+
+export function restoreAllPlaylists(playlists) {
+  const playlistsById = {};
+  const playlistOrder = [];
+  for (const playlist of playlists || []) {
+    const items = playlist.items.map(item => ({
+      id: item.id,
+      patternId: item.pattern,
+      groupId: item.group,
+      mappingId: item.mapping,
+      duration: item.duration,
+    }));
+    playlistsById[playlist.id] = {
+      ...playlist,
+      items,
+    };
+    playlistOrder.push(playlist.id);
+  }
+  return {playlistsById, playlistOrder};
+}
+
+// i'm sorry you have to disentangle this, future Ryan.
+export function savePlaylists(state) {
+  const playlists = state.playlistOrder.map(playlistId => {
+    const playlist = state.playlistsById[playlistId];
+
+    const items = playlist.items.map(playlistItem => {
+      const patternId = playlistItem.patternId;
+      const patternManager = _patternsById[patternId];
+      const group = patternManager.defaults.groupId;
+      const mapping = patternManager.defaults.mappingId;
+      return {
+        id: playlistItem.id,
+        pattern: patternId,
+        group,
+        mapping,
+        duration: playlistItem.duration,
+      };
+    });
+
+    return {
+      ...playlist,
+      items,
+    };
+  });
+  return playlists;
+}
+
+
 
 export function createPlaylist(state) {
   const id = state.next_guid;

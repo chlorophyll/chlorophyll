@@ -61,6 +61,10 @@ export default class Pattern {
     this.staticPreviewsByMappingId = {};
     this.animatedPreviewsByMappingId = {};
     this.defaultRunner = this.getRunner(this.group, firstMapping);
+    this.defaults = {
+      mappingId: firstMapping.id,
+      groupId: this.group.id,
+    };
   }
 
   getRunner(groups, mapping, reset = false) {

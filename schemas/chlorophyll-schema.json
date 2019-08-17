@@ -480,6 +480,23 @@
                     }
                 }
             },
+            "playlist": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "number"
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/objects/playlistItem"
+                        }
+                    }
+                }
+            },
             "hardwareSettings": {
                 "type": "object",
                 "properties": {
@@ -615,6 +632,12 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/objects/playlistItem"
+                    }
+                },
+                "playlists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/objects/playlist"
                     }
                 },
                 "timelines": {
