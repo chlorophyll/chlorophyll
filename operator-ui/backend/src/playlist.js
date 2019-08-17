@@ -1,5 +1,6 @@
 import EventEmitter from 'events';
 import Crossfader from '@/common/patterns/crossfade';
+import {uniqueName} from './util';
 
 // there is the notion of the "active" item and the "target" item.
 // most of the time they are the same.
@@ -12,7 +13,7 @@ import Crossfader from '@/common/patterns/crossfade';
 // the next item that still exists in the queue. the active item stays around until it completes.
 // when you go prev() you set target to active's prev
 // when you go next() you set target to active's next
-export default class Playlist extends EventEmitter {
+export default class PlaylistRunner extends EventEmitter {
   constructor(gl, model, patternsById, crossfadeDuration) {
     super();
     this.gl = gl;
@@ -24,6 +25,7 @@ export default class Playlist extends EventEmitter {
     this.crossfader = new Crossfader(gl, w, w, crossfadeDuration);
 
     this.patternsById = patternsById;
+    this.pendingStop = null;
 
     this.activeItemTime = 0;
     this.targetItemTime = 0;
@@ -117,23 +119,33 @@ export default class Playlist extends EventEmitter {
   }
 
   start(index = 0) {
+    this.isPlaying = true;
     this.activeItem = this.items[index];
     this.targetItem = this.items[index];
   }
 
   stop() {
+    return new Promise((resolve, reject) => {
+      this.pendingStop = resolve;
+      this.isPlaying = false;
+      this.targetItemTime = 0;
+      if (this.targetItem.id !== this.activeItem.id) {
+        const targetRunner = this.getRunner(this.targetItem);
+        targetRunner.stop();
+      }
+    });
+  }
+
+  finish() {
     const activeRunner = this.getRunner(this.activeItem);
     activeRunner.stop();
-    if (this.targetItem.id !== this.activeItem.id) {
-      const targetRunner = this.getRunner(this.targetItem);
-      targetRunner.stop();
-    }
-
+    const resolve = this.pendingStop;
+    this.pendingStop = null;
     this.activeItem = null;
     this.targetItem = null;
     this.activeItemTime = 0;
     this.targetItemTime = 0;
-
+    resolve();
   }
 
   getRunner(item) {
@@ -158,7 +170,16 @@ export default class Playlist extends EventEmitter {
     const activeDuration = activeDurationSec * 60;
 
     let texture;
-    if (this.activeItem.id === this.targetItem.id) {
+    if (this.pendingStop !== null) {
+      if (this.targetItemTime > this.crossfadeDuration) {
+        this.finish();
+      } else {
+        const source = this.stepRunner(this.activeItem, this.activeItemTime);
+        texture = this.crossfader.fadeToBlack(this.targetItemTime, source, pixels);
+        this.activeItemTime++;
+        this.targetItemTime++;
+      }
+    } else if (this.activeItem.id === this.targetItem.id) {
       texture = this.stepRunner(this.activeItem, this.activeItemTime, pixels);
       this.activeItemTime++;
       this.targetItemTime++;
@@ -185,3 +206,19 @@ export default class Playlist extends EventEmitter {
   }
 }
 
+export function createPlaylist(state) {
+  const id = state.next_guid;
+  state.next_guid++;
+
+  const playlists = Object.values(state.playlistsById);
+  const name = uniqueName('Playlist ', playlists);
+
+  state.playlistsById[id] = {
+    id,
+    name,
+    items: [],
+  };
+
+  state.playlistOrder.push(id);
+  return id;
+}

@@ -3,7 +3,7 @@ import sharp from 'sharp';
 import { argv } from 'yargs';
 import chalk from 'chalk';
 import * as path from 'path';
-import * as os from 'os';
+import * as address from 'address';
 import * as realtime from './realtime';
 import tmp from 'tmp-promise';
 import express from 'express';
@@ -15,7 +15,7 @@ import PatternRunner from '@/common/patterns/runner';
 import PixelpusherClient from './hardware/pixelpusher';
 import { ArtnetRegistry } from '@/common/hardware/artnet';
 import Pattern from './patterns';
-import Playlist from './playlist';
+import PlaylistRunner, { createPlaylist } from './playlist';
 
 import * as WebGL from 'wpe-webgl';
 
@@ -34,7 +34,7 @@ let patternRunner;
 
 let state;
 let realtimeState;
-let playlist;
+let playlistRunner;
 
 const patternsById = {};
 
@@ -122,17 +122,17 @@ async function generatePatternInfo() {
 function updatePlaylist(op, source) {
     const {data} = realtimeState;
     if (!source) {
-        playlist.setItems(data.playlist);
+        playlistRunner.setItems(data.playlist);
     }
 }
 
 function runPlaylist(index) {
-    if (playlist.items.length === 0) {
+    if (playlistRunner.items.length === 0) {
         return;
     }
 
-    if (playlist.activeItem !== null) {
-        playlist.setTargetIndex(index);
+    if (playlistRunner.activeItem !== null) {
+        playlistRunner.setTargetIndex(index);
         return;
     }
     const model = state.model;
@@ -154,9 +154,9 @@ function runPlaylist(index) {
             readbuf = null;
         }
 
-        playlist.step(readbuf);
-        const activeTime = Math.floor(playlist.activeItemTime / 60);
-        const targetTime = Math.floor(playlist.targetItemTime / 60);
+        playlistRunner.step(readbuf);
+        const activeTime = Math.floor(playlistRunner.activeItemTime / 60);
+        const targetTime = Math.floor(playlistRunner.targetItemTime / 60);
         const {timeInfo} = realtimeState.data;
         if (activeTime !== timeInfo.activeTime) {
             realtimeState.submitOp({
@@ -186,18 +186,34 @@ function runPlaylist(index) {
         frames++;
     }
 
-    playlist.start(index);
+    playlistRunner.start(index);
     runAnimation(frame);
 }
 
-function stopPlaylist() {
-    playlist.stop();
+async function stopPlaylist() {
+    await playlistRunner.stop();
     timer.clearInterval();
+}
+
+function activatePlaylist(playlistId) {
+  const playlist = state.playlistsById[playlistId];
+  state.activePlaylistId = playlistId;
+  playlistRunner.setItems(playlist.items);
+
+  realtimeState.submitOp({
+    p: ['playlist'],
+    oi: playlist.items,
+  });
+
 }
 
 
 async function init() {
     state = await readSavefile(filename);
+    state.playlistsById = {};
+    state.playlistOrder = [];
+    const playlistId = createPlaylist(state);
+
     realtimeState = await realtime.initAsync({
         globalBrightness: 100,
         intensity: 100,
@@ -216,22 +232,24 @@ async function init() {
     });
 
 
+
     await generatePatternInfo();
-    playlist = new Playlist(gl, state.model, patternsById, 10*60);
-    playlist.on('target-changed', () => {
-        const val = playlist.targetItem ? playlist.targetItem.id : null;
+    playlistRunner = new PlaylistRunner(gl, state.model, patternsById, 10*60);
+    playlistRunner.on('target-changed', () => {
+        const val = playlistRunner.targetItem ? playlistRunner.targetItem.id : null;
         realtimeState.submitOp({
             p: ['timeInfo', 'targetItemId'],
             oi: val,
         });
     });
-    playlist.on('active-changed', () => {
-        const val = playlist.activeItem ? playlist.activeItem.id : null;
+    playlistRunner.on('active-changed', () => {
+        const val = playlistRunner.activeItem ? playlistRunner.activeItem.id : null;
         realtimeState.submitOp({
             p: ['timeInfo', 'activeItemId'],
             oi: val,
         });
     });
+    activatePlaylist(playlistId);
 
     realtimeState.on('op', updatePlaylist);
 
@@ -282,8 +300,17 @@ app.get('/api/state', (req, res) => {
         return;
     }
 
+    const serialized = _.pick(state, [
+        'hardware',
+        'mappings',
+        'patterns',
+        'patternOrder',
+        'groups',
+        'group_list',
+    ]);
+
     const result = {
-        ...state,
+        ...serialized,
         model: state.model.model_info,
         realtime: realtimeState.data,
     };
@@ -327,19 +354,39 @@ app.post('/api/playlist/start', (req, res) => {
 });
 
 app.post('/api/playlist/next', (req, res) => {
-    playlist.next();
+    playlistRunner.next();
     res.send('ok');
 });
 
 app.post('/api/playlist/prev', (req, res) => {
-    playlist.prev();
+    playlistRunner.prev();
     res.send('ok');
 });
 
 app.post('/api/playlist/stop', (req, res) => {
     stopPlaylist();
-    sendBlackFrame();
     res.send('ok');
+});
+
+app.post('/api/playlist/new', (req, res) => {
+    if (playlistRunner.isPlaying) {
+        res.status(400).json({id: null, msg: 'Cannot create playlists while playing'});
+    } else {
+        const id = createPlaylist(state);
+        activatePlaylist(id);
+        res.json({id});
+    }
+});
+
+app.post('/api/playlist/switch', (req, res) => {
+    const {playlistId} = req.body;
+    const targetPlaylist = state.playlistsById[playlistId];
+    if (targetPlaylist.items.length === 0 && playlistRunner.isPlaying) {
+        res.status(400).json({msg: 'Cannot switch to empty playlist while playing'});
+    } else {
+        activatePlaylist(playlistId);
+        res.send('ok');
+    }
 });
 
 app.post('/api/start', (req, res) => {
@@ -370,12 +417,10 @@ app.post('/api/stop', (req, res) => {
 app.post('/api/newgid', (req, res) => {
     const gid = state.next_guid;
     state.next_guid++;
-    console.log(gid);
     res.json({gid});
 });
 
-const ifaces = _.flatten(_.values(os.networkInterfaces()));
-const external = ifaces.find(val => val.family === 'IPv4' && !val.internal);
+const external = address.ip();
 
 const server = app.listen(port, () => {
     console.log();
@@ -383,7 +428,7 @@ const server = app.listen(port, () => {
     console.log('App running at: ');
     console.log(    ` -   local:   ${chalk.cyan.bold(`http://localhost:${port}/`)}`);
     if (external) {
-        console.log(` - Network:   ${chalk.cyan.bold(`http://${external.address}:${port}/`)}`);
+        console.log(` - Network:   ${chalk.cyan.bold(`http://${external}:${port}/`)}`);
     }
     console.log();
     console.log();
