@@ -1,6 +1,12 @@
 import crossfadeFrag from '@/common/patterns/crossfader.frag';
-import { ShaderRunner } from '@/common/util/shader_runner';
+import { ShaderRunner, getFloatingPointTextureOptions } from '@/common/util/shader_runner';
+import * as twgl from 'twgl.js';
 import * as glslify from 'glslify';
+
+function ease(t, b, c, d) {
+	t /= d;
+	return c*t*t*t + b;
+}
 
 export default class Crossfader {
     constructor(gl, width, height, duration) {
@@ -9,6 +15,13 @@ export default class Crossfader {
             uTarget: gl.createTexture(),
             amount: 0,
         };
+
+        const zeroes = new Float32Array(2 * 2 * 4);
+
+        this.blackFrame = twgl.createTexture(gl, {
+            src: zeroes,
+            ...getFloatingPointTextureOptions(gl, 2, 2),
+        });
 
         this.runner = new ShaderRunner({
             gl,
@@ -26,6 +39,15 @@ export default class Crossfader {
         const amount = time / this.duration;
         this.uniforms.uSource = source;
         this.uniforms.uTarget = target;
+        this.uniforms.amount = amount;
+        this.runner.step(pixels);
+        return this.runner.prevTexture();
+    }
+
+    fadeToBlack(time, source, pixels=null) {
+        const amount = ease(time, 0, 1, this.duration);
+        this.uniforms.uSource = source;
+        this.uniforms.uTarget = this.blackFrame;
         this.uniforms.amount = amount;
         this.runner.step(pixels);
         return this.runner.prevTexture();

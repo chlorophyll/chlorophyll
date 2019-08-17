@@ -72,13 +72,13 @@ export default {
       'realtime',
     ]),
     ...mapGetters([
-      'playlist',
+      'activePlaylist',
     ]),
     timeInfo() {
       return this.realtime.timeInfo;
     },
     showProgress() {
-      const numItems = this.realtime.playlist.length;
+      const numItems = this.activePlaylist.length;
       if (numItems <= 1) {
         return false;
       }
@@ -89,7 +89,7 @@ export default {
       );
     },
     time() {
-      const numItems = this.playlist.length;
+      const numItems = this.activePlaylist.length;
       if (numItems <= 1) {
         return 0;
       }
@@ -111,7 +111,7 @@ export default {
     },
     isOnlyPlayingItem() {
       return (
-        this.realtime.playlist.length === 1 &&
+        this.activePlaylist.length === 1 &&
         this.playlistItem.id === this.timeInfo.activeItemId
       );
     },

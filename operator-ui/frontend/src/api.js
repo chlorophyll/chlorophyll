@@ -32,6 +32,19 @@ const api = {
   async playlistPrev() {
     await axios.post('/api/playlist/prev');
   },
+
+  async playlistNew() {
+    const res = await axios.post('/api/playlist/new');
+    return res.data;
+  },
+
+  async playlistSwitch(playlistId) {
+    await axios.post('/api/playlist/switch', {playlistId});
+  },
+
+  async toggleShuffle() {
+    await axios.post('/api/playlist/toggleShuffle');
+  },
 };
 
 export default api;

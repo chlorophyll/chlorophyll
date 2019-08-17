@@ -2821,6 +2821,11 @@ detect-node@^2.0.4:
   resolved "https://registry.yarnpkg.com/detect-node/-/detect-node-2.0.4.tgz#014ee8f8f669c5c58023da64b8179c083a28c46c"
   integrity sha512-ZIzRpLJrOj7jjP2miAtgqIfmzbxa4ZOr5jJc601zklsfEx9oTzmmj2nVpIPRpNlRTIh8lc1kyViIY7BWSGNmKw==
 
+diff-match-patch@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/diff-match-patch/-/diff-match-patch-1.0.4.tgz#6ac4b55237463761c4daf0dc603eb869124744b1"
+  integrity sha512-Uv3SW8bmH9nAtHKaKSanOQmj2DnlH65fUpcrMdfdaOxUG02QQ4YGZ8AE7kKOMisF7UqvOlGKVYWRvezdncW9lg==
+
 diffie-hellman@^5.0.0:
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/diffie-hellman/-/diffie-hellman-5.0.3.tgz#40e8ee98f55a2149607146921c63e1ae5f3d2875"
@@ -4804,6 +4809,14 @@ json-stringify-safe@~5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
   integrity sha1-Epai1Y/UXxmg9s4B1lcB4sc1tus=
+
+json0-ot-diff@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/json0-ot-diff/-/json0-ot-diff-1.0.5.tgz#663efe349a126c0c9b4ce72a9d739781ffb68868"
+  integrity sha512-24oqXJoNZICNakQJoCUu+vwEZiBjAzoXMGr/TIJHiIjcejl3dZWSUs+KFfv3/hLiQfHgfsebi3VIh5kT5n0gHQ==
+  dependencies:
+    clone "^1.0.2"
+    deep-equal "^1.0.1"
 
 json3@^3.3.2:
   version "3.3.3"

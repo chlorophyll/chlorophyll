@@ -40,6 +40,8 @@ function restoreSaveObject(obj) {
     state.model = new Model(obj.model, state.groups);
     state.playlistItems = restorePlaylistItems(obj.playlistItems);
 
+    state.obj = obj;
+
     restoreAllGraphs(obj.graphs);
 
     return state;

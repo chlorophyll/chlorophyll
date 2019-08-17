@@ -43,17 +43,50 @@
         </v-container>
       </v-flex>
       <v-flex hidden-sm-and-down md6>
-        <v-container :style="scrollStyle" class="overflow-y-auto">
+        <v-layout class="mx-2">
+          <v-flex>
+            <v-text-field label="Playlist Name" v-model="playlistName" />
+          </v-flex>
+          <v-divider vertical inset class="mx-2" />
+          <v-flex shrink>
+            <v-menu offset-y>
+              <template v-slot:activator="{ on }">
+                <v-btn icon v-on="on"><v-icon>mdi-dots-vertical</v-icon></v-btn>
+              </template>
+              <v-list dense>
+                <v-list-item @click="newPlaylist">
+                  <v-list-item-icon><v-icon>mdi-playlist-plus</v-icon></v-list-item-icon>
+                  <v-list-item-content>New Playlist</v-list-item-content>
+                </v-list-item>
+                <v-list-item>
+                  <v-list-item-icon><v-icon color="red" class="text-darken-4">mdi-delete</v-icon></v-list-item-icon>
+                  <v-list-item-content class="red--text text-darken-4">Delete Playlist</v-list-item-content>
+                </v-list-item>
+                <v-divider v-if="playlists.length > 0" />
+                <v-list-item-group v-model="activePlaylistIndex">
+                  <v-list-item v-for="playlist in playlists" :key="playlist.id">
+                    <v-list-item-content>{{ playlist.name }}</v-list-item-content>
+                  </v-list-item>
+                </v-list-item-group>
+              </v-list>
+            </v-menu>
+          </v-flex>
+        </v-layout>
+        <v-divider />
+        <v-container :style="playlistContainerStyle" class="overflow-y-auto">
           <draggable
-            :list="playlist"
+            :list="activePlaylist"
             :animation="100"
             handle=".handle"
-            class="layout wrap"
+            class="layout wrap align-content-start"
+            :style="playlistStyle"
             @update="onMove"
             @add="onAdd"
+            :swap-threshold="0.2"
+            :empty-insert-threshold="32"
             :group="{name: 'patterns', pull: false, put: true}"
           >
-            <template v-for="(playlistItem, index) in playlist">
+            <template v-for="(playlistItem, index) in activePlaylist">
               <v-flex xs12 :key="playlistItem.id">
                 <playlist-card
                   :index="index"
@@ -75,6 +108,8 @@
 
 <script>
 import {mapState, mapGetters, mapMutations, mapActions} from 'vuex';
+import diffMatchPatch from 'diff-match-patch';
+import jsondiff from 'json0-ot-diff';
 import * as THREE from 'three';
 import store from '@/store';
 import api from '@/api';
@@ -93,12 +128,36 @@ export default {
       'patternOrder',
       'mappingsById',
       'previewItem',
+      'realtime',
     ]),
     ...mapGetters([
       'patternList',
       'mappingList',
-      'playlist',
+      'activePlaylist',
+      'playlists',
     ]),
+    playlistName: {
+      get() {
+        return this.realtime.playlistName;
+      },
+      set(newval, oldval) {
+        const oldObj = {playlistName: oldval};
+        const newObj = {playlistName: newval};
+        const ops = jsondiff(oldObj, newObj, diffMatchPatch);
+        for (const op of ops) {
+          realtime.submitOp(op);
+        }
+      },
+    },
+    activePlaylistIndex: {
+      get() {
+        return this.playlists.findIndex(playlist => playlist.id == this.realtime.playlistId);
+      },
+      set(val) {
+        const playlistId = this.playlists[val].id;
+        api.playlistSwitch(playlistId);
+      },
+    },
     renderer() {
       const renderer = new THREE.WebGLRenderer();
       renderer.setSize(this.size, this.size);
@@ -113,10 +172,24 @@ export default {
     previewPattern() {
       return this.previewItem ? this.patternsById[this.previewItem] : null;
     },
+    bottomPadding() {
+      return 100;
+    },
     scrollStyle() {
       return {
-        'max-height': `${this.height-32}px`,
+        'max-height': `${this.height-(this.bottomPadding-72)}px`,
         '-webkit-overflow-scrolling': 'touch',
+      };
+    },
+    playlistContainerStyle() {
+      return {
+        'max-height': `${this.height-this.bottomPadding}px`,
+        '-webkit-overflow-scrolling': 'touch',
+      };
+    },
+    playlistStyle() {
+      return {
+        'min-height': `${this.height-this.bottomPadding-24}px`,
       };
     },
   },
@@ -139,6 +212,7 @@ export default {
     ...mapActions([
       'removePlaylistItem',
       'createPlaylistItem',
+      'newPlaylist',
     ]),
     onMove(e) {
       const {newIndex, oldIndex} = e;

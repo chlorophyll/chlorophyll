@@ -37,14 +37,19 @@
       <v-toolbar-title class="headline">
         <span>Chlorophyll</span>
       </v-toolbar-title>
+      <template v-if="!realtimeLoaded">
+        <v-divider vertical inset class="mx-2" />
         <div class="d-flex ma-4 body-2 grey--text align-center" v-if="!realtimeLoaded">
           <v-progress-circular indeterminate color="grey" class="mr-1" size="20" />
           <div>Connecting to server...</div>
         </div>
-        <v-spacer></v-spacer>
-        <v-btn icon @click="playlistPrev"><v-icon>mdi-skip-previous</v-icon></v-btn>
-        <v-btn icon @click="togglePlaylist"><v-icon>{{ playlistIcon }}</v-icon></v-btn>
-        <v-btn icon @click="playlistNext"><v-icon>mdi-skip-next</v-icon></v-btn>
+      </template>
+      <v-spacer></v-spacer>
+      <v-btn icon @click="playlistPrev"><v-icon>mdi-skip-previous</v-icon></v-btn>
+      <v-btn icon @click="togglePlaylist"><v-icon>{{ playlistIcon }}</v-icon></v-btn>
+      <v-btn icon @click="playlistNext"><v-icon>mdi-skip-next</v-icon></v-btn>
+      <v-divider vertical inset class="mx-2" />
+      <v-btn icon :color="shuffleButtonColor" @click="toggleShuffle"><v-icon>mdi-shuffle-variant</v-icon></v-btn>
     </v-app-bar>
     <v-content>
       <router-view />
@@ -65,21 +70,28 @@ export default {
   data() {
     return {
       drawer: false,
+      playlists: [],
     };
   },
   computed: {
     realtimeLoaded() {
       return this.$store.state.realtimeLoaded;
     },
+    realtime() {
+      return this.$store.state.realtime;
+    },
     isPlaying() {
-      if (!this.$store.state.realtime.timeInfo) {
+      if (!this.realtime.timeInfo) {
         return false;
       } else {
-        return this.$store.state.realtime.timeInfo.activeItemId !== null;
+        return this.realtime.timeInfo.activeItemId !== null;
       }
     },
     playlistIcon() {
       return this.isPlaying ? 'mdi-stop' : 'mdi-play';
+    },
+    shuffleButtonColor() {
+      return this.realtime.shuffleMode ? 'primary' : '';
     },
   },
   methods: {
