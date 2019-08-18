@@ -7,6 +7,12 @@
     ref="container"
     v-resize="onResize"
   >
+    <v-snackbar color="info" v-model="snackbar" top :timeout="6000">
+      {{ snackbarMessage }}
+      <v-btn text @click="snackbar = false">
+        Close
+      </v-btn>
+    </v-snackbar>
     <preview-card
       v-if="previewPattern"
       :width="columnWidth"
@@ -54,7 +60,7 @@
                 <v-btn icon v-on="on"><v-icon>mdi-dots-vertical</v-icon></v-btn>
               </template>
               <v-list dense>
-                <v-list-item @click="newPlaylist">
+                <v-list-item @click="newPlaylistIfPossible">
                   <v-list-item-icon><v-icon>mdi-playlist-plus</v-icon></v-list-item-icon>
                   <v-list-item-content>New Playlist</v-list-item-content>
                 </v-list-item>
@@ -136,6 +142,16 @@ export default {
       'activePlaylist',
       'playlists',
     ]),
+    snackbar: {
+      get() {
+        return this.snackbarMessage !== '';
+      },
+      set(val) {
+        if (!val) {
+          this.snackbarMessage = '';
+        }
+      },
+    },
     playlistName: {
       get() {
         return this.realtime.playlistName;
@@ -148,6 +164,13 @@ export default {
           realtime.submitOp(op);
         }
       },
+    },
+    isPlaying() {
+      if (!this.realtime.timeInfo) {
+        return false;
+      } else {
+        return this.realtime.timeInfo.activeItemId !== null;
+      }
     },
     activePlaylistIndex: {
       get() {
@@ -198,6 +221,7 @@ export default {
       width: 0,
       height: 64,
       columnWidth: 0,
+      snackbarMessage: '',
     };
   },
   watch: {
@@ -232,6 +256,14 @@ export default {
       this.height = this.$refs.container.clientHeight;
       this.width = this.$refs.container.clientWidth;
       this.columnWidth = this.$refs.column.clientWidth;
+    },
+
+    async newPlaylistIfPossible() {
+      if (this.isPlaying) {
+        this.snackbarMessage = "Cannot create new playlists while playing";
+      } else {
+        await this.newPlaylist();
+      }
     },
 
     async startPattern(pattern) {

@@ -70,7 +70,6 @@ export default {
   data() {
     return {
       drawer: false,
-      playlists: [],
     };
   },
   computed: {
