@@ -122,6 +122,8 @@ async function generatePatternInfo() {
 function updatePlaylist(op, source) {
     const {data} = realtimeState;
     if (!source) {
+        playlistRunner.shuffleMode = data.shuffleMode;
+        playlistRunner.hold = data.hold;
         playlistRunner.setItems(data.playlist);
 
         state.playlistsById[state.activePlaylistId] = {
@@ -204,6 +206,9 @@ async function stopPlaylist() {
 }
 
 function activatePlaylist(playlistId) {
+  if (state.activePlaylistId === playlistId) {
+    return;
+  }
   const playlist = state.playlistsById[playlistId];
   state.activePlaylistId = playlistId;
   playlistRunner.setItems(playlist.items);
@@ -221,6 +226,11 @@ function activatePlaylist(playlistId) {
   realtimeState.submitOp({
     p: ['playlistName'],
     oi: playlist.name,
+  });
+
+  realtimeState.submitOp({
+    p: ['hold'],
+    oi: false,
   });
 }
 
@@ -241,6 +251,7 @@ async function init() {
         playlistId: null,
         playlistName: '',
         shuffleMode: false,
+        hold: false,
         timeInfo: {
             activeItemId: null,
             targetItemId: null,
@@ -412,14 +423,6 @@ app.post('/api/playlist/switch', (req, res) => {
     }
 });
 
-app.post('/api/playlist/toggleShuffle', (req, res) => {
-    playlistRunner.shuffleMode = !playlistRunner.shuffleMode;
-    realtimeState.submitOp({
-        p: ['shuffleMode'],
-        oi: playlistRunner.shuffleMode,
-    });
-    res.send('ok');
-});
 
 app.post('/api/start', (req, res) => {
     if (!isReady()) {

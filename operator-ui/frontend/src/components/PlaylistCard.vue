@@ -79,7 +79,7 @@ export default {
     },
     showProgress() {
       const numItems = this.activePlaylist.length;
-      if (numItems <= 1) {
+      if (numItems <= 1 || this.realtime.hold) {
         return false;
       }
 
@@ -90,7 +90,7 @@ export default {
     },
     time() {
       const numItems = this.activePlaylist.length;
-      if (numItems <= 1) {
+      if (numItems <= 1 || this.realtime.hold) {
         return 0;
       }
 
@@ -111,7 +111,7 @@ export default {
     },
     isOnlyPlayingItem() {
       return (
-        this.activePlaylist.length === 1 &&
+        (this.activePlaylist.length === 1 || this.realtime.hold) &&
         this.playlistItem.id === this.timeInfo.activeItemId
       );
     },

@@ -50,6 +50,7 @@
       <v-btn icon @click="playlistNext"><v-icon>mdi-skip-next</v-icon></v-btn>
       <v-divider vertical inset class="mx-2" />
       <v-btn icon :color="shuffleButtonColor" @click="toggleShuffle"><v-icon>mdi-shuffle-variant</v-icon></v-btn>
+      <v-btn icon :color="holdButtonColor" @click="toggleHold"><v-icon>mdi-repeat</v-icon></v-btn>
     </v-app-bar>
     <v-content>
       <router-view />
@@ -92,6 +93,9 @@ export default {
     shuffleButtonColor() {
       return this.realtime.shuffleMode ? 'primary' : '';
     },
+    holdButtonColor() {
+      return this.realtime.hold ? 'primary' : '';
+    },
   },
   methods: {
     togglePlaylist() {
@@ -100,7 +104,13 @@ export default {
       } else {
         this.playlistStart();
       }
-    }
+    },
+    toggleShuffle() {
+      realtime.submitOp({p: ['shuffleMode'], oi: !this.realtime.shuffleMode});
+    },
+    toggleHold() {
+      realtime.submitOp({p: ['hold'], oi: !this.realtime.hold});
+    },
   },
 
   mounted() {

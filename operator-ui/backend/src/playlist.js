@@ -28,6 +28,7 @@ export default class PlaylistRunner extends EventEmitter {
     this.crossfader = new Crossfader(gl, w, w, crossfadeDuration);
 
     this.shuffleMode = false;
+    this.hold = false;
 
     this.patternsById = patternsById;
     _patternsById = patternsById;
@@ -191,7 +192,10 @@ export default class PlaylistRunner extends EventEmitter {
       this.targetItemTime++;
 
       // normal operation: reached the end of duration. next step will start xfade.
-      if (this.items.length > 1 && this.activeItemTime >= activeDuration - this.crossfadeDuration) {
+      const inCrossfade = this.activeItemTime >= activeDuration - this.crossfadeDuration;
+      const shouldProgress = (this.items.length > 1 && inCrossfade && !this.hold);
+
+      if (shouldProgress) {
         const activeIndex = this.indexesById[this.activeItem.id];
         const offset = this.shuffleMode ? _.random(this.items.length-1) : 1;
         const nextIndex = (activeIndex + offset) % this.items.length;

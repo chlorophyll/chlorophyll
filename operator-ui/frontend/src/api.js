@@ -41,10 +41,6 @@ const api = {
   async playlistSwitch(playlistId) {
     await axios.post('/api/playlist/switch', {playlistId});
   },
-
-  async toggleShuffle() {
-    await axios.post('/api/playlist/toggleShuffle');
-  },
 };
 
 export default api;
