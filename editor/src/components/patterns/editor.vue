@@ -58,6 +58,13 @@
           >
             <span class="mdi mdi-fit-to-page-outline" />
           </button>
+          <button
+            class="square"
+            @click="prune"
+            v-tooltip.top-right="'Remove unused nodes'"
+          >
+            <span class="mdi mdi-broom" />
+          </button>
           <span class="cur-fps" v-if="curFpsSample !== null">FPS: {{curFpsSample}}</span>
           <sparkline class="fps-graph" :width="100" :height="14" :samples="fpsSamples" />
         </div>
@@ -364,6 +371,9 @@ export default {
         },
         onNewPattern() {
             this.stopAnimation();
+        },
+        prune() {
+            this.cur_graph.prune();
         },
     }
 };

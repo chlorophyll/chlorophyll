@@ -380,6 +380,26 @@ export class GraphBase {
             edges_by_slot.forEach((slot) => slot.forEach(f));
     }
 
+    prune() {
+        let changed = true;
+
+        while (changed) {
+            changed = false;
+            const order = [...this.order].reverse();
+            for (const nodeId of order) {
+                const node = this.getNodeById(nodeId);
+                const {removable} = node.vm.config;
+                const canRemove = removable && this.numEdgesFromNode(node) === 0;
+
+                if (canRemove) {
+                    this.removeNode(nodeId);
+                    changed = true;
+                }
+            }
+        }
+
+    }
+
     numEdgesFromNode(node) {
         let total = 0;
         let edges_by_slot = this.edges_by_src.get(node.id);
