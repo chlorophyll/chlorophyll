@@ -109,7 +109,7 @@ import TempoTap from '@/components/tempo_tap';
 
 export default {
   store,
-  name: 'Settings',
+  name: 'Parameters',
   components: {ColorPicker, TempoTap},
   mixins: [
     realtime.mixin('globalBrightness', realtime.ops.number),
