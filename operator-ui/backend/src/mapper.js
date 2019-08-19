@@ -54,14 +54,40 @@ async function init() {
         console.log('generating frame');
         const frame = new Float32Array(state.model.textureWidth * state.model.textureWidth * 4);
         let ptr = stripOffset;
+
+        function writePixel(pixelOffset, r, g, b) {
+            frame[4*pixelOffset + 0] = r;
+            frame[4*pixelOffset + 1] = g;
+            frame[4*pixelOffset + 2] = b;
+            frame[4*pixelOffset + 3] = 1;
+        }
+        function readPixel(pixelOffset) {
+            console.log(
+                frame[4*pixelOffset + 0],
+                frame[4*pixelOffset + 1],
+                frame[4*pixelOffset + 2],
+                frame[4*pixelOffset + 3],
+            );
+        }
+
         for (let c = 0; c < heights.length; c++) {
             const height = heights[c];
             for (let i = 0; i < height; i++) {
-                frame[ptr + i + 0] = c % 3 === 0 ? 1 : 0;
-                frame[ptr + i + 1] = c % 3 === 1 ? 1 : 0;
-                frame[ptr + i + 2] = c % 3 === 2 ? 1 : 0;
-                frame[ptr + i + 3] = 1;
-                ptr += 4;
+                const r = c % 3 === 0 ? 1 : 0;
+                const g = c % 3 === 1 ? 1 : 0;
+                const b = c % 3 === 2 ? 1 : 0;
+                writePixel(ptr, r, g, b);
+                //readPixel(ptr);
+                ptr++;
+            }
+        }
+
+        ptr = stripOffset;
+        for (let c = 0; c < heights.length; c++) {
+            const height = heights[c];
+            for (let i = 0; i < height; i++) {
+                //readPixel(ptr);
+                ptr++;
             }
         }
 
