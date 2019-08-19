@@ -19,6 +19,7 @@ export default new Vuex.Store({
     realtime: {},
     realtimeLoaded: false,
     previewItem: null,
+    canAccessSettings: false,
   },
   mutations: {
     setSavefileState(state, savefile) {
@@ -42,6 +43,12 @@ export default new Vuex.Store({
     updatePlaylists(state, {playlistsById, playlistOrder}) {
       state.playlistsById = playlistsById;
       state.playlistOrder = playlistOrder;
+    },
+    authenticate(state) {
+      state.canAccessSettings = true;
+    },
+    unauthenticate(state) {
+      state.canAccessSettings = false;
     },
   },
   getters: {
@@ -100,6 +107,22 @@ export default new Vuex.Store({
     async newPlaylist({commit}) {
       const result = await api.playlistNew();
       commit('updatePlaylists', result);
-    }
+    },
+
+    async deletePlaylist({commit}, {playlistId}) {
+      const result = await api.playlistDelete(playlistId);
+      commit('updatePlaylists', result);
+    },
+
+    async authenticate({commit}, {password}) {
+      // look. okay. we'll fix it later.
+      if (password === 'firefirefire') {
+        commit('authenticate');
+        setTimeout(() => commit('unauthenticate'), 15*60*1000);
+        return true;
+      } else {
+        return false;
+      }
+    },
   }
 })

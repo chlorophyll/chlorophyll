@@ -205,8 +205,8 @@ async function stopPlaylist() {
     timer.clearInterval();
 }
 
-function activatePlaylist(playlistId) {
-  if (state.activePlaylistId === playlistId) {
+function activatePlaylist(playlistId, refresh = false) {
+  if (state.activePlaylistId === playlistId && !refresh) {
     return;
   }
   const playlist = state.playlistsById[playlistId];
@@ -422,6 +422,31 @@ app.post('/api/playlist/switch', (req, res) => {
         res.send('ok');
     }
 });
+
+app.post('/api/playlist/delete', (req, res) => {
+  const {playlistId} = req.body;
+  console.log(playlistId);
+  if (state.activePlaylistId === playlistId && playlistRunner.isPlaying) {
+    res.status(400).json({msg: 'Cannot delete active playlist while playing'});
+  } else {
+    if (state.playlistOrder.length === 1) {
+      state.playlistsById[playlistId].items = [];
+      activatePlaylist(playlistId);
+    } else {
+      delete state.playlistsById[playlistId];
+      state.playlistOrder = state.playlistOrder.filter(id => id !== playlistId);
+      activatePlaylist(state.playlistOrder[0]);
+    }
+    console.log(state.playlistsById);
+    res.json({
+      playlistsById: state.playlistsById,
+      playlistOrder: state.playlistOrder,
+    });
+  }
+});
+
+
+
 
 
 app.post('/api/start', (req, res) => {

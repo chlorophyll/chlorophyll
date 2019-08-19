@@ -38,6 +38,11 @@ const api = {
     return res.data;
   },
 
+  async playlistDelete(playlistId) {
+    const res = await axios.post('/api/playlist/delete', {playlistId});
+    return res.data;
+  },
+
   async playlistSwitch(playlistId) {
     await axios.post('/api/playlist/switch', {playlistId});
   },
