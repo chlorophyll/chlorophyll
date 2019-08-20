@@ -66,16 +66,20 @@ async function init() {
         let v = parseInt(answer.cmd);
         switch (answer.cmd[0]) {
             case '-': {
-                if (answer.cmd.length === 0)
+                if (answer.cmd.length === 1)
                     v = -1;
                 nextGuess = curGuess + v;
                 break;
             }
 
             case '+': {
-                if (answer.cmd.length === 0)
+                if (answer.cmd.length === 1)
                     v = 1;
                 nextGuess = curGuess + v;
+                break;
+            }
+            case 'p': {
+                nextCol = cur-1;
                 break;
             }
 
