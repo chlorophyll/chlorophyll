@@ -35,21 +35,56 @@ async function init() {
         const curGuess = heights[cur] || (cur > 0 ? heights[cur - 1] : null);
         const answer = await inquirer.prompt([
             {
-                name: 'guess',
-                message: `Looking at column ${cur}. Current guess: ${curGuess}. +n = add n, -n = subtract n, if no sign present, will overwrite.`
+                name: 'cmd',
+                message: [
+                    `Looking at column ${cur}. Current guess: ${curGuess}.`,
+                    '+<n>   -> add n',
+                    '-<n>   -> subtract n',
+                    '<n>    -> set length to n',
+                    'n(ext) -> go to next column',
+                    'g<n>   -> go to column n',
+                    '----------------------------',
+                    '> '
+                ].join('\n')
             }
         ]);
-        let nextGuess;
-        const v = parseInt(answer.guess);
-        if (answer.guess[0] === '-') {
-            nextGuess = curGuess + v;
-        } else if (answer.guess[0] === '+') {
-            nextGuess = curGuess + v;
-        } else {
-            nextGuess = v;
+        let nextGuess = null;
+        let nextCol = cur;
+        if (!answer.cmd[0])
+            continue;
+
+        const v = parseInt(answer.cmd);
+        switch (answer.cmd[0]) {
+            case '-': {
+                nextGuess = curGuess + v;
+                break;
+            }
+
+            case '+': {
+                nextGuess = curGuess + v;
+                break;
+            }
+
+            case 'g': {
+                const goto = parseInt(answer.cmd.slice(1));
+                if (!isNaN(goto))
+                    nextCol = goto;
+                break;
+            }
+
+            case 'n':
+                nextCol = cur + 1;
+                break;
+
+            default: {
+                if (!isNaN(v))
+                    nextGuess = v;
+                break;
+            }
         }
 
-        heights[cur] = nextGuess;
+        if (nextGuess !== null)
+            heights[cur] = nextGuess;
 
         console.log('generating frame');
         const frame = new Float32Array(state.model.textureWidth * state.model.textureWidth * 4);
@@ -58,7 +93,7 @@ async function init() {
         for (let c = 0; c < heights.length; c++) {
             const height = heights[c];
             for (let i = 0; i < height; i++) {
-                if (c === cur) {
+                if (c === nextCol) {
                     writePixel(frame, ptr, 1, 1, 1);
                 } else {
                     const r = c % 3 === 0 ? 1 : 0;
@@ -81,20 +116,10 @@ async function init() {
         }
 
         client.sendFrame(frame);
-
-        const confirm = await inquirer.prompt([{
-            type: 'confirm',
-            name: 'v',
-            message: 'next?',
-        }]);
-
         fs.writeFileSync(output, JSON.stringify({heights}));
 
-        if (confirm.v) {
-            cur++;
-        }
+        cur = nextCol;
     }
-
 }
 
 function writePixel(frame, pixelOffset, r, g, b) {
