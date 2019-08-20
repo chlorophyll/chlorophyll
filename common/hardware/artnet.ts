@@ -199,25 +199,29 @@ export function settingsFromUserConfig(config: UserConfig, model: ModelBase): Ar
         if (!strips || host === nullHostName)
             return;
 
+        let prevEndUniverse = -1;
+
         strips.forEach((stripLabel, outputIdx) => {
             const stripIdx = model.getStripByLabel(stripLabel);
             if (stripIdx < 0 || stripIdx >= model.num_strips)
                 return;
 
             const numPixels = model.numPixelsInStrip(stripIdx);
-            const nextStartChannel = curChannel + numPixels * 3;
+            const startUniverse = prevEndUniverse+1;
+            const endChannel = numPixels * 3 - 1;
+            const endUniverse = startUniverse + Math.floor(endChannel / maxChannelsInUniverse);
             mappings.push({
                 controller: {host},
                 strip: stripIdx,
                 label: stripLabel,
-                startUniverse: Math.floor(curChannel / maxChannelsInUniverse),
-                startChannel: curChannel % maxChannelsInUniverse,
-                endUniverse: Math.floor((nextStartChannel - 1) / maxChannelsInUniverse),
-                endChannel: (nextStartChannel - 1) % maxChannelsInUniverse,
+                startUniverse,
+                startChannel: 0,
+                endUniverse,
+                endChannel: endChannel % maxChannelsInUniverse,
                 numPixels,
                 outputIdx
             });
-            curChannel = nextStartChannel;
+            prevEndUniverse = endUniverse;
         });
     });
 

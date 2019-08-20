@@ -121,13 +121,18 @@ function showFrame(state, stripOffset, heights, highlight) {
         if (c === highlight) {
           tmp = ptr;
         }
+        let r = c % 3 === 0 ? 0.4 : 0;
+        let g = c % 3 === 1 ? 0.4 : 0;
+        let b = c % 3 === 2 ? 0.4 : 0;
+        if (height > 500) {
+            r = 0;
+            g = 0;
+            b = 0;
+        }
         for (let i = 0; i < height; i++) {
             if (c === highlight) {
                 writePixel(frame, ptr, 1, 1, 1);
             } else {
-                const r = c % 3 === 0 ? 0.4 : 0;
-                const g = c % 3 === 1 ? 0.4 : 0;
-                const b = c % 3 === 2 ? 0.4 : 0;
                 writePixel(frame, ptr, r, g, b);
             }
             // readPixel(frame, ptr);
