@@ -63,14 +63,18 @@ async function init() {
         if (!answer.cmd[0])
             continue;
 
-        const v = parseInt(answer.cmd);
+        let v = parseInt(answer.cmd);
         switch (answer.cmd[0]) {
             case '-': {
+                if (answer.cmd.length === 0)
+                    v = -1;
                 nextGuess = curGuess + v;
                 break;
             }
 
             case '+': {
+                if (answer.cmd.length === 0)
+                    v = 1;
                 nextGuess = curGuess + v;
                 break;
             }
