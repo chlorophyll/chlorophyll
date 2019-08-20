@@ -113,12 +113,12 @@ function showFrame(state, stripOffset, heights, highlight) {
             if (c === highlight) {
                 writePixel(frame, ptr, 1, 1, 1);
             } else {
-                const r = c % 3 === 0 ? 1 : 0;
-                const g = c % 3 === 1 ? 1 : 0;
-                const b = c % 3 === 2 ? 1 : 0;
+                const r = c % 3 === 0 ? 0.4 : 0;
+                const g = c % 3 === 1 ? 0.4 : 0;
+                const b = c % 3 === 2 ? 0.4 : 0;
                 writePixel(frame, ptr, r, g, b);
             }
-            //readPixel(frame, ptr);
+            // readPixel(frame, ptr);
             ptr++;
         }
     }
@@ -127,7 +127,7 @@ function showFrame(state, stripOffset, heights, highlight) {
     for (let c = 0; c < heights.length; c++) {
         const height = heights[c];
         for (let i = 0; i < height; i++) {
-            //readPixel(frame, ptr);
+            // readPixel(frame, ptr);
             ptr++;
         }
     }
