@@ -92,8 +92,8 @@ async function init() {
         const frame = new Float32Array(state.model.textureWidth * state.model.textureWidth * 4);
         let ptr = stripOffset;
 
-        for (let c = 0; c <= heights.length; c++) {
-            const height = c < heights.length ? heights[c] : heights[cur];
+        for (let c = 0; c < heights.length; c++) {
+            const height = heights[c];
             for (let i = 0; i < height; i++) {
                 if (c === nextCol) {
                     writePixel(frame, ptr, 1, 1, 1);
@@ -103,6 +103,14 @@ async function init() {
                     const b = c % 3 === 2 ? 1 : 0;
                     writePixel(frame, ptr, r, g, b);
                 }
+                //readPixel(frame, ptr);
+                ptr++;
+            }
+        }
+        // Highlight next column
+        if (nextCol === heights.length) {
+            for (let i = 0; i < heights[heights.length - 1]; i++) {
+                writePixel(frame, ptr, 1, 1, 1);
                 //readPixel(frame, ptr);
                 ptr++;
             }
