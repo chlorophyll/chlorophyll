@@ -36,6 +36,7 @@ async function init() {
         const answer = await inquirer.prompt([
             {
                 name: 'cmd',
+                default: 'n',
                 message: [
                     `Looking at column ${cur}. Current guess: ${curGuess}.`,
                     '+<n>   -> add n',
@@ -73,6 +74,7 @@ async function init() {
             }
 
             case 'n':
+
                 nextCol = cur + 1;
                 break;
 
@@ -101,6 +103,14 @@ async function init() {
                     const b = c % 3 === 2 ? 1 : 0;
                     writePixel(frame, ptr, r, g, b);
                 }
+                //readPixel(frame, ptr);
+                ptr++;
+            }
+        }
+        // Highlight next column
+        if (nextCol === heights.length) {
+            for (let i = 0; i < heights[heights.length - 1]; i++) {
+                writePixel(frame, ptr, 1, 1, 1);
                 //readPixel(frame, ptr);
                 ptr++;
             }
