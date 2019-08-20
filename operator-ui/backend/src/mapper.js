@@ -32,10 +32,20 @@ async function init() {
     const stripOffset = state.model.strip_offsets[strip];
 
     while (!done) {
-        const curGuess = heights[cur] || (cur > 0 ? heights[cur - 1] : null);
+        if (heights[cur] === undefined || heights[cur] === null) {
+            if (cur > 0)
+                heights[cur] = heights[cur - 1];
+            else
+                heights[cur] = 1;
+        }
+        const curGuess = heights[cur];
+
+        showFrame(state, stripOffset, heights, cur);
+
         const answer = await inquirer.prompt([
             {
                 name: 'cmd',
+                default: 'n',
                 message: [
                     `Looking at column ${cur}. Current guess: ${curGuess}.`,
                     '+<n>   -> add n',
@@ -83,43 +93,46 @@ async function init() {
             }
         }
 
-        if (nextGuess !== null)
+        if (nextGuess !== null && nextGuess !== undefined)
             heights[cur] = nextGuess;
 
-        console.log('generating frame');
-        const frame = new Float32Array(state.model.textureWidth * state.model.textureWidth * 4);
-        let ptr = stripOffset;
-
-        for (let c = 0; c < heights.length; c++) {
-            const height = heights[c];
-            for (let i = 0; i < height; i++) {
-                if (c === nextCol) {
-                    writePixel(frame, ptr, 1, 1, 1);
-                } else {
-                    const r = c % 3 === 0 ? 1 : 0;
-                    const g = c % 3 === 1 ? 1 : 0;
-                    const b = c % 3 === 2 ? 1 : 0;
-                    writePixel(frame, ptr, r, g, b);
-                }
-                //readPixel(frame, ptr);
-                ptr++;
-            }
-        }
-
-        ptr = stripOffset;
-        for (let c = 0; c < heights.length; c++) {
-            const height = heights[c];
-            for (let i = 0; i < height; i++) {
-                //readPixel(frame, ptr);
-                ptr++;
-            }
-        }
-
-        client.sendFrame(frame);
         fs.writeFileSync(output, JSON.stringify({heights}));
 
         cur = nextCol;
     }
+}
+
+function showFrame(state, stripOffset, heights, highlight) {
+    console.log('generating frame');
+    const frame = new Float32Array(state.model.textureWidth * state.model.textureWidth * 4);
+    let ptr = stripOffset;
+
+    for (let c = 0; c < heights.length; c++) {
+        const height = heights[c];
+        for (let i = 0; i < height; i++) {
+            if (c === highlight) {
+                writePixel(frame, ptr, 1, 1, 1);
+            } else {
+                const r = c % 3 === 0 ? 1 : 0;
+                const g = c % 3 === 1 ? 1 : 0;
+                const b = c % 3 === 2 ? 1 : 0;
+                writePixel(frame, ptr, r, g, b);
+            }
+            //readPixel(frame, ptr);
+            ptr++;
+        }
+    }
+
+    ptr = stripOffset;
+    for (let c = 0; c < heights.length; c++) {
+        const height = heights[c];
+        for (let i = 0; i < height; i++) {
+            //readPixel(frame, ptr);
+            ptr++;
+        }
+    }
+
+    client.sendFrame(frame);
 }
 
 function writePixel(frame, pixelOffset, r, g, b) {
