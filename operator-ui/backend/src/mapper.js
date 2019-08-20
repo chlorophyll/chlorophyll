@@ -110,9 +110,13 @@ function showFrame(state, stripOffset, heights, highlight) {
     console.log('generating frame');
     const frame = new Float32Array(state.model.textureWidth * state.model.textureWidth * 4);
     let ptr = stripOffset;
+    let tmp;
 
     for (let c = 0; c < heights.length; c++) {
         const height = heights[c];
+        if (c === highlight) {
+          tmp = ptr;
+        }
         for (let i = 0; i < height; i++) {
             if (c === highlight) {
                 writePixel(frame, ptr, 1, 1, 1);
@@ -125,6 +129,10 @@ function showFrame(state, stripOffset, heights, highlight) {
             // readPixel(frame, ptr);
             ptr++;
         }
+    }
+
+    if (highlight === heights.length-1) {
+      writePixel(frame, tmp + heights[highlight], 1, 0, 1);
     }
 
     ptr = stripOffset;
