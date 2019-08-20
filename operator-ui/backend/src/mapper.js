@@ -32,11 +32,11 @@ async function init() {
     const stripOffset = state.model.strip_offsets[strip];
 
     while (!done) {
-        const curGuess = heights[cur];
+        const curGuess = heights[cur] || (cur > 0 ? heights[cur - 1] : null);
         const answer = await inquirer.prompt([
             {
                 name: 'guess',
-                message: `Looking at column ${cur}. Current guess ${curGuess}. +n = add n, -n = subtract n, if no sign present, will overwrite.`
+                message: `Looking at column ${cur}. Current guess: ${curGuess}. +n = add n, -n = subtract n, if no sign present, will overwrite.`
             }
         ]);
         let nextGuess;
@@ -55,29 +55,18 @@ async function init() {
         const frame = new Float32Array(state.model.textureWidth * state.model.textureWidth * 4);
         let ptr = stripOffset;
 
-        function writePixel(pixelOffset, r, g, b) {
-            frame[4*pixelOffset + 0] = r;
-            frame[4*pixelOffset + 1] = g;
-            frame[4*pixelOffset + 2] = b;
-            frame[4*pixelOffset + 3] = 1;
-        }
-        function readPixel(pixelOffset) {
-            console.log(
-                frame[4*pixelOffset + 0],
-                frame[4*pixelOffset + 1],
-                frame[4*pixelOffset + 2],
-                frame[4*pixelOffset + 3],
-            );
-        }
-
         for (let c = 0; c < heights.length; c++) {
             const height = heights[c];
             for (let i = 0; i < height; i++) {
-                const r = c % 3 === 0 ? 1 : 0;
-                const g = c % 3 === 1 ? 1 : 0;
-                const b = c % 3 === 2 ? 1 : 0;
-                writePixel(ptr, r, g, b);
-                //readPixel(ptr);
+                if (c === cur) {
+                    writePixel(frame, ptr, 1, 1, 1);
+                } else {
+                    const r = c % 3 === 0 ? 1 : 0;
+                    const g = c % 3 === 1 ? 1 : 0;
+                    const b = c % 3 === 2 ? 1 : 0;
+                    writePixel(frame, ptr, r, g, b);
+                }
+                //readPixel(frame, ptr);
                 ptr++;
             }
         }
@@ -86,7 +75,7 @@ async function init() {
         for (let c = 0; c < heights.length; c++) {
             const height = heights[c];
             for (let i = 0; i < height; i++) {
-                //readPixel(ptr);
+                //readPixel(frame, ptr);
                 ptr++;
             }
         }
@@ -107,6 +96,23 @@ async function init() {
     }
 
 }
+
+function writePixel(frame, pixelOffset, r, g, b) {
+    frame[4*pixelOffset + 0] = r;
+    frame[4*pixelOffset + 1] = g;
+    frame[4*pixelOffset + 2] = b;
+    frame[4*pixelOffset + 3] = 1;
+}
+
+function readPixel(frame, pixelOffset) {
+    console.log(
+        frame[4*pixelOffset + 0],
+        frame[4*pixelOffset + 1],
+        frame[4*pixelOffset + 2],
+        frame[4*pixelOffset + 3],
+    );
+}
+
 process.on('uncaughtException', function (err) {
     console.log(err);
     console.log(err.stack);
