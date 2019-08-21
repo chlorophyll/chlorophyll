@@ -9,11 +9,11 @@ const output = argv._[1];
 
 let client;
 
-const counts = [];
+let counts = [];
 
-async function findCount(state, strip) {
+async function findCount(state, strip, count) {
     const frame = new Float32Array(state.model.textureWidth * state.model.textureWidth * 4);
-    let count = 300;
+    count = count || 300;
 
     while (true) {
         const frame = new Float32Array(state.model.textureWidth * state.model.textureWidth * 4);
@@ -46,11 +46,18 @@ async function init() {
     const state = await readSavefile(filename);
     const settings = state.hardware.settings[state.hardware.protocol];
     client = new ArtnetRegistry(state.model, settings);
+    try {
+        const saved = JSON.parse(fs.readFileSync(output));
+        counts = saved.counts;
+    } catch (e) {
+        // no-op
+    }
     const nstrips = state.model.num_strips;
     for (let strip = 0; strip < nstrips; strip++) {
-        counts.push(await findCount(state, strip));
+        counts.push(await findCount(state, strip, counts[strip]));
         fs.writeFileSync(output, JSON.stringify({counts}));
     }
+    console.log('done');
 
 }
 
@@ -75,7 +82,7 @@ process.on('uncaughtException', function (err) {
     console.log(err.stack);
 })
 
-init().catch(e => console.log(e));
+init().then(() => process.exit(0)).catch(e => console.log(e));
 
 
 
