@@ -23,30 +23,32 @@ function stringStream(next, cb) {
     });
 }
 
-function restoreSaveObject(obj) {
+function restoreSaveObject(obj, full=true) {
     let state = {};
-    nodeRegistry.refreshFromSavedState(obj);
 
     state.hardware = obj.hardwareSettings;
     state.next_guid = obj.next_guid;
 
-    state.mappings = restoreAllMappings(obj.mappings).new_mappings;
-    const patternObj = restoreAllPatterns(obj.patterns);
-    state.patterns = patternObj.new_patterns;
-    state.patternOrder = patternObj.new_pattern_ordering;
+    if (full) {
+        nodeRegistry.refreshFromSavedState(obj);
+        state.mappings = restoreAllMappings(obj.mappings).new_mappings;
+        const patternObj = restoreAllPatterns(obj.patterns);
+        state.patterns = patternObj.new_patterns;
+        state.patternOrder = patternObj.new_pattern_ordering;
+        const playlistObj = restoreAllPlaylists(obj.playlists);
+
+        state.playlistsById = playlistObj.playlistsById;
+        state.playlistOrder = playlistObj.playlistOrder;
+
+        state.obj = obj;
+
+        restoreAllGraphs(obj.graphs);
+    }
     const g = restoreAllGroups(obj.groups);
     state.groups = g.new_groups;
     state.group_list = g.new_group_list;
     state.model = new Model(obj.model, state.groups);
 
-    const playlistObj = restoreAllPlaylists(obj.playlists);
-
-    state.playlistsById = playlistObj.playlistsById;
-    state.playlistOrder = playlistObj.playlistOrder;
-
-    state.obj = obj;
-
-    restoreAllGraphs(obj.graphs);
 
     return state;
 }
