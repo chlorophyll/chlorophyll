@@ -22,6 +22,7 @@ async function findCount(state, strip, count) {
         for (let i = 0; i < count; i++) {
             writePixel(frame, stripOffset+i, 0.4, 0, 0);
         }
+        writePixel(frame, stripOffset+count-1, 0, 0.4, 0);
         client.sendFrame(frame);
 
         const answer = await inquirer.prompt([
