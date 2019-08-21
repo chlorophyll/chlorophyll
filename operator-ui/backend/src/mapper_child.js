@@ -6,7 +6,7 @@ let mapper;
 
 const l = console.log;
 
-console.log = (...args) => l('child', ...args);
+console.log = () => null; //(...args) => l('child', ...args);
 function writePixel(frame, pixelOffset, r, g, b) {
     frame[4*pixelOffset + 0] = r;
     frame[4*pixelOffset + 1] = g;
@@ -103,9 +103,11 @@ class Mapper {
         this.client.sendFrame(frame);
     }
     setCol(nextCol) {
+        console.log('setCol', nextCol);
         this.cur = nextCol;
         process.send({cmd: 'col', args: this.cur});
         if (this.curGuess === undefined) {
+            console.log('making guess for new column');
             this.makeGuess(this.heights[this.cur-1]);
         } else {
             process.send({cmd: 'guess', args: this.curGuess});

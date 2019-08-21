@@ -5,9 +5,9 @@ import chalk from 'chalk';
 import * as address from 'address';
 
 const child = path.join(__dirname, 'mapper_child.js');
-const l = console.log;
-console.log = (...args) => l('parent', ...args);
 const app = express();
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '../../mapper/dist')))
 const port = 3333;
 function storage(panel) {
     return `height-${panel}.json`;
@@ -29,7 +29,6 @@ async function initMappers() {
         mappers[panel] = {proc};
         const onReady = new Promise((resolve, reject) => {
             proc.on('message', ({cmd, args}) => {
-                console.log('cmd', cmd, args);
                 if (cmd === 'error') {
                     reject(args);
                 } else if (cmd === 'ready') {
@@ -58,7 +57,12 @@ app.get('/api/panels', (req, res) => {
 });
 
 app.get('/api/:mapperName', (req, res) => {
-    res.json({guess: mapper.guess, col: mapper.col});
+    const mapper = mappers[req.params.mapperName];
+    if (!mapper) {
+        res.status(404).send('');
+    } else {
+        res.json({guess: mapper.guess, col: mapper.col});
+    }
 });
 
 app.post('/api/:mapperName/increment', (req, res) => {
