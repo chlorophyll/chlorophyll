@@ -22,7 +22,7 @@ const mappers = {};
 //        panels.push(panel);
 //    }
 //}
-const panels = ['test'];
+const panels = ['wing_left_1'];
 async function initMappers() {
     const pending = [];
     for (const panel of panels) {

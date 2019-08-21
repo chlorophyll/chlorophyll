@@ -135,7 +135,12 @@ async function init() {
     console.log('init', panel);
     const state = await readSavefile(filename(panel), false);
     mapper = new Mapper(panel, state);
-    mapper.showFrame();
+    // Refresh automatically at 4fps in case of collisions
+    const frameTick = () => {
+        mapper.showFrame();
+        setTimeout(frameTick, 250);
+    };
+    frameTick();
 }
 process.on('uncaughtException', function (err) {
     console.log(err);
