@@ -34,6 +34,7 @@ class Mapper {
         this.client = new ArtnetRegistry(state.model, settings);
         this.heights = [];
         this.output = storage(panel);
+        this.history = history(panel);
         try {
             const res = JSON.parse(fs.readFileSync(this.output));
             this.heights = res.heights;
@@ -60,6 +61,7 @@ class Mapper {
             this.heights[this.cur] = nextGuess;
         }
         fs.writeFileSync(this.output, JSON.stringify({heights: this.heights}));
+        fs.appendFileSync(this.history, JSON.stringify({heights: this.heights})+'\n');
         process.send({cmd: 'guess', args: this.curGuess});
     }
 
@@ -124,6 +126,9 @@ function filename(panel) {
 
 function storage(panel) {
     return path.join(dataDir, `height-${panel}.json`);
+}
+function history(panel) {
+    return path.join(dataDir, `history-${panel}.log`);
 }
 async function init() {
     const panel = argv._[0];
