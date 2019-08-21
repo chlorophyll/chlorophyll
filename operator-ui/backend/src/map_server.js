@@ -3,7 +3,8 @@ import child_process from 'child_process';
 import * as path from 'path';
 import chalk from 'chalk';
 import * as address from 'address';
-
+import { argv } from 'yargs';
+const dataDir = path.resolve(process.cwd(), argv.dataDir || '');
 const child = path.join(__dirname, 'mapper_child.js');
 const app = express();
 app.use(express.json());
@@ -25,7 +26,7 @@ const panels = ['test'];
 async function initMappers() {
     const pending = [];
     for (const panel of panels) {
-        const proc = child_process.fork(child, [panel]);
+        const proc = child_process.fork(child, [panel, dataDir]);
         mappers[panel] = {proc};
         const onReady = new Promise((resolve, reject) => {
             proc.on('message', ({cmd, args}) => {

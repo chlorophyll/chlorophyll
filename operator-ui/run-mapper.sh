@@ -3,5 +3,4 @@ set -e
 toplevel=$(git rev-parse --show-toplevel)
 operator="${toplevel}/operator-ui"
 
-cd $operator/backend
-node dist/map_server.js
+node $operator/backend/dist/map_server.js $1

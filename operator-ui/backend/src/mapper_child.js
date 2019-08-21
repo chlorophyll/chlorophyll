@@ -2,11 +2,14 @@ import { ArtnetRegistry } from '@/common/hardware/artnet';
 import * as fs from 'fs';
 import { readSavefile } from './restore';
 import { argv } from 'yargs';
+import * as path from 'path';
 let mapper;
 
 const l = console.log;
+const dataDir = argv._[1];
+console.log(dataDir);
 
-console.log = () => null; //(...args) => l('child', ...args);
+//console.log = () => null; //(...args) => l('child', ...args);
 function writePixel(frame, pixelOffset, r, g, b) {
     frame[4*pixelOffset + 0] = r;
     frame[4*pixelOffset + 1] = g;
@@ -116,13 +119,12 @@ class Mapper {
 }
 
 function filename(panel) {
-    return `${panel}.chl`;
+    return path.join(dataDir, `${panel}.chl`);
 }
 
 function storage(panel) {
-    return `height-${panel}.json`;
+    return path.join(dataDir, `height-${panel}.json`);
 }
-
 async function init() {
     const panel = argv._[0];
     console.log('init', panel);
