@@ -70,8 +70,8 @@ class Counter {
         this.output = pixelCounts(panel);
         this.history = history(panel);
         try {
-            const res = JSON.parse(fs.readFileSync(this.counts));
-            this.counts = res.heights;
+            const res = JSON.parse(fs.readFileSync(this.output));
+            this.counts = res.counts;
         } catch (e) {
             console.log('error reading file, probably didnt exist');
         }
@@ -199,6 +199,7 @@ class Columns {
         for (let i = 0; i < this.frame.length; i++) {
             this.frame[i] = 0;
         }
+        let strip = 0;
         let ptr = 0;
         let tmp;
 
@@ -223,6 +224,10 @@ class Columns {
                 }
                 // readPixel(frame, ptr);
                 ptr++;
+            }
+            if (ptr === counter.counts[strip]) {
+                strip++;
+                ptr = this.state.model.strip_offsets[strip];
             }
         }
 

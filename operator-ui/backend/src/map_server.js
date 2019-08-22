@@ -74,12 +74,12 @@ app.get('/api/:mapperName', (req, res) => {
     }
 });
 
-app.get('/api/:mapperName/setMode', (req, res) => {
+app.post('/api/:mapperName/setMode', (req, res) => {
     const mapper = mappers[req.params.mapperName];
     if (!mapper) {
         res.status(404).send('');
     } else {
-        mapper.proc.send({cmd: 'mode', mode: args.body.mode});
+        mapper.proc.send({cmd: 'mode', args: req.body.mode});
         delay(() => res.json({guess: mapper.guess, col: mapper.col, mode: mapper.mode}));
     }
 });
