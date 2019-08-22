@@ -79,7 +79,7 @@
           </v-flex>
         </v-layout>
         <v-divider />
-        <v-container :style="playlistContainerStyle" class="overflow-y-auto">
+        <v-container ref="playlistContainer" :style="playlistContainerStyle" class="overflow-y-auto">
           <draggable
             :list="activePlaylist"
             :animation="100"
@@ -105,7 +105,11 @@
                 />
               </v-flex>
             </template>
-            </draggable>
+          </draggable>
+        </v-container>
+        <v-container style="dropZoneStyle">
+          <draggable v-model="dropZone" :group="{name: 'patterns', pull: false, put: true}">
+          </draggable>
         </v-container>
       </v-flex>
     </v-layout>
@@ -124,6 +128,10 @@ import PatternCard from '@/components/PatternCard';
 import PlaylistCard from '@/components/PlaylistCard';
 import draggable from 'vuedraggable';
 import * as realtime from '@/realtime';
+function ease(t, b, c, d) {
+	t /= d;
+	return c*t*t*t + b;
+}
 export default {
   store,
   components: { PatternCard, PreviewCard, PlaylistCard, draggable },
@@ -149,6 +157,18 @@ export default {
       set(val) {
         if (!val) {
           this.snackbarMessage = '';
+        }
+      },
+    },
+    dropZone: {
+      get() {
+        return [];
+      },
+      set(val) {
+        let index = this.activePlaylist.length;
+        for (const pattern of val) {
+          this.createPlaylistItem({index, patternId: pattern.id});
+          this.$nextTick(() => this.scrollPlaylist(250));
         }
       },
     },
@@ -206,13 +226,19 @@ export default {
     },
     playlistContainerStyle() {
       return {
-        'max-height': `${this.height-this.bottomPadding}px`,
+        'max-height': `${this.height-this.bottomPadding-32}px`,
         '-webkit-overflow-scrolling': 'touch',
+      };
+    },
+    dropZoneStyle() {
+      return {
+        height: '32px',
+        overflow: 'hidden',
       };
     },
     playlistStyle() {
       return {
-        'min-height': `${this.height-this.bottomPadding-24}px`,
+        'min-height': `${this.height-this.bottomPadding-32}px`,
       };
     },
   },
@@ -271,6 +297,21 @@ export default {
         mapping => mapping.type == pattern.mapping_type
       );
       await api.startPattern(pattern.id, mapping.id);
+    },
+    scrollPlaylist(duration) {
+      let start = null;
+      const el = this.$refs.playlistContainer;
+      const initial = el.scrollTop;
+      const target = el.scrollHeight + this.size;
+      const frame = ts => {
+        if (!start) start = ts;
+        const val = ease(ts-start, initial, target, duration);
+        el.scrollTop = val;
+        if (val < target) {
+          window.requestAnimationFrame(frame);
+        }
+      }
+      window.requestAnimationFrame(frame);
     },
   },
 };
