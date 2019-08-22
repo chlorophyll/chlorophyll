@@ -4,7 +4,7 @@
     <v-card flat color="transparent">
       <v-card-title>Mapping: {{ panel }}</v-card-title>
       <v-card-text>Current Guess: {{ guess }}</v-card-text>
-      <v-card-text>Current Column: {{ col }}</v-card-text>
+      <v-card-text>Current {{ noun }}: {{ col }}</v-card-text>
     </v-card>
   </v-row>
   <v-divider class="ma-2" />
@@ -16,6 +16,9 @@
     <v-btn class="px-8" x-large @click="increment"><v-icon>mdi-plus</v-icon></v-btn>
     <v-spacer />
   </v-row>
+  <v-row v-if="mode === 'count'">
+    <v-slider v-model='countGuess' min='100' max='510' />
+  </v-row>
   <v-divider class="ma-12" />
   <v-row>
     <v-spacer />
@@ -23,6 +26,10 @@
     <v-spacer />
     <v-btn class="px-8" x-large color="primary" @click="next"><v-icon>mdi-arrow-right</v-icon></v-btn>
     <v-spacer />
+  </v-row>
+  <v-divider class="ma-12" />
+  <v-row>
+    <v-spacer/><v-btn class="px-8" x-large @click="swapMode">Swap to {{ otherMode }} mode</v-btn>
   </v-row>
 </v-container>
 </template>
@@ -35,10 +42,27 @@ export default {
   name: 'Mapper',
   store,
   computed: {
-    ...mapState(['guess', 'col', 'panel']),
+    ...mapState(['guess', 'col', 'panel', 'mode']),
+    noun() {
+      return this.mode === 'count' ? 'strip' : 'column';
+    },
+    countGuess: {
+      get() {
+        return this.guess;
+      },
+      set(val) {
+        this.setGuess(val);
+      },
+    },
+    otherMode() {
+      return this.mode === 'count' ? 'column' : 'count';
+    },
   },
   methods: {
-    ...mapActions(['increment', 'decrement', 'prev', 'next']),
+    ...mapActions(['increment', 'decrement', 'prev', 'next', 'setGuess', 'setMode']),
+    async swapMode() {
+      await this.setMode(this.otherMode);
+    }
   },
 }
 </script>

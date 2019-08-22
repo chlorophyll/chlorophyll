@@ -3,11 +3,20 @@ import * as fs from 'fs';
 import { readSavefile } from './restore';
 import { argv } from 'yargs';
 import * as path from 'path';
-let mapper;
+let mapper, counter, columns, mode;
 
 const l = console.log;
 const dataDir = argv._[1];
-console.log(dataDir);
+const isEditor = argv._[2];
+const colors = [
+    [1.00, 0.00, 0.00],
+    [0.67, 0.33, 0.00],
+    [0.67, 0.67, 0.00],
+    [0.00, 1.00, 0.00],
+    [0.00, 0.67, 0.33],
+    [0.00, 0.00, 1.00],
+];
+//console.log(dataDir);
 
 //console.log = () => null; //(...args) => l('child', ...args);
 function writePixel(frame, pixelOffset, r, g, b) {
@@ -26,12 +35,125 @@ function readPixel(frame, pixelOffset) {
     );
 }
 
-class Mapper {
+class EditorClient {
+    constructor(model) {
+        this.model = model
+    }
+    sendFrame(frame) {
+        const strips = {};
+        this.model.forEach((strip, i) => {
+            if (strips[strip] === undefined) {
+                strips[strip] = [];
+            }
+            const c = [
+                frame[4*i+0],
+                frame[4*i+1],
+                frame[4*i+2],
+            ];
+            strips[strip].push(c);
+        });
+        process.send({cmd: 'frame', args: strips});
+    }
+}
+
+class Counter {
     constructor(panel, state) {
         this.state = state;
         this.panel = panel;
         const settings = state.hardware.settings[state.hardware.protocol];
-        this.client = new ArtnetRegistry(state.model, settings);
+        if (isEditor) {
+            this.client = new EditorClient(state.model);
+        } else {
+            this.client = new ArtnetRegistry(state.model, settings);
+        }
+        this.counts = [];
+        this.output = pixelCounts(panel);
+        this.history = history(panel);
+        try {
+            const res = JSON.parse(fs.readFileSync(this.counts));
+            this.counts = res.heights;
+        } catch (e) {
+            console.log('error reading file, probably didnt exist');
+        }
+        this.cur = this.counts.length;
+        this.frame = new Float32Array(state.model.num_pixels * 4);
+        this.initGuess();
+    }
+
+    initGuess() {
+        const {counts, cur} = this;
+        if (counts[cur] === undefined || counts[cur] === null) {
+            counts[cur] = 300;
+        }
+    }
+
+    makeGuess(nextGuess) {
+        if (nextGuess !== null && nextGuess !== undefined) {
+            this.counts[this.cur] = nextGuess;
+        }
+        process.send({cmd: 'guess', args: this.curGuess});
+        this.confirm();
+    }
+
+    confirm() {
+        fs.writeFileSync(this.output, JSON.stringify({counts: this.counts}));
+        fs.appendFileSync(this.history, JSON.stringify({counts: this.counts})+'\n');
+    }
+
+    get curGuess() {
+        return this.counts[this.cur];
+    }
+
+    writeStrip(strip, r, g, b) {
+        const count = this.counts[strip] || 300;
+        const offset = this.state.model.strip_offsets[strip];
+        for (let i = 0; i < count; i++) {
+            writePixel(this.frame, offset + i, r, g, b);
+        }
+    }
+
+    showFrame() {
+        const {frame, counts, cur} = this;
+        //console.log('showing frame with highlight on', this.cur);
+        //console.log('curGuess = ', this.curGuess);
+        for (let i = 0; i < this.frame.length; i++) {
+            this.frame[i] = 0;
+        }
+        const offset = this.state.model.strip_offsets[this.cur];
+
+        this.writeStrip(this.cur, 1, 1, 1);
+        writePixel(this.frame, offset + this.curGuess - 1, 0, 1, 0);
+        for (let i = 0; i < 3; i++) {
+            writePixel(this.frame, offset + this.curGuess + i, 1, 0, 0);
+        }
+
+        if (this.cur+1 < this.state.model.num_strips) {
+            this.writeStrip(this.cur+1, 0, 0, 1);
+        }
+        this.client.sendFrame(this.frame);
+    }
+    setCol(nextCol) {
+        this.cur = nextCol;
+        process.send({cmd: 'col', args: this.cur});
+        if (this.curGuess === undefined) {
+            console.log('making guess for new column');
+            this.makeGuess(300);
+        } else {
+            process.send({cmd: 'guess', args: this.curGuess});
+        }
+    }
+}
+
+class Columns {
+    constructor(panel, state) {
+        this.state = state;
+        this.panel = panel;
+        const settings = state.hardware.settings[state.hardware.protocol];
+        if (isEditor) {
+            this.client = new EditorClient(state.model);
+        } else {
+            this.client = new ArtnetRegistry(state.model, settings);
+        }
         this.heights = [];
         this.output = storage(panel);
         this.history = history(panel);
@@ -42,7 +164,7 @@ class Mapper {
             console.log('error reading file, probably didnt exist');
         }
         this.cur = this.heights.length;
-        this.frame = new Float32Array(state.model.textureWidth * state.model.textureWidth * 4);
+        this.frame = new Float32Array(state.model.num_pixels * 4);
         this.initGuess();
     }
 
@@ -71,8 +193,8 @@ class Mapper {
 
     showFrame() {
         const {frame, heights} = this;
-        console.log('showing frame with highlight on', this.cur);
-        console.log('curGuess = ', this.curGuess);
+        //console.log('showing frame with highlight on', this.cur);
+        //console.log('curGuess = ', this.curGuess);
         const highlight = this.cur;
         for (let i = 0; i < this.frame.length; i++) {
             this.frame[i] = 0;
@@ -80,14 +202,14 @@ class Mapper {
         let ptr = 0;
         let tmp;
 
+        const bright = isEditor ? 1 : 0.4;
+
         for (let c = 0; c < heights.length; c++) {
             const height = heights[c];
             if (c === highlight) {
                 tmp = ptr;
             }
-            let r = c % 3 === 0 ? 0.4 : 0;
-            let g = c % 3 === 1 ? 0.4 : 0;
-            let b = c % 3 === 2 ? 0.4 : 0;
+            const [r, g, b] = colors[c % colors.length];
             if (height > 500) {
                 r = 0;
                 g = 0;
@@ -108,7 +230,6 @@ class Mapper {
         this.client.sendFrame(frame);
     }
     setCol(nextCol) {
-        console.log('setCol', nextCol);
         this.cur = nextCol;
         process.send({cmd: 'col', args: this.cur});
         if (this.curGuess === undefined) {
@@ -127,20 +248,30 @@ function filename(panel) {
 function storage(panel) {
     return path.join(dataDir, `height-${panel}.json`);
 }
+
+function pixelCounts(panel) {
+    return path.join(dataDir, `counts-${panel}.json`);
+}
 function history(panel) {
     return path.join(dataDir, `history-${panel}.log`);
 }
 async function init() {
     const panel = argv._[0];
-    console.log('init', panel);
     const state = await readSavefile(filename(panel), false);
-    mapper = new Mapper(panel, state);
+    counter = new Counter(panel, state);
+    columns = new Columns(panel, state);
+    setMode('count');
+
     // Refresh automatically at 4fps in case of collisions
-    const frameTick = () => {
+    if (!isEditor) {
+        const frameTick = () => {
+            mapper.showFrame();
+            setTimeout(frameTick, 250);
+        };
+        frameTick();
+    } else {
         mapper.showFrame();
-        setTimeout(frameTick, 250);
-    };
-    frameTick();
+    }
 }
 process.on('uncaughtException', function (err) {
     console.log(err);
@@ -149,6 +280,16 @@ process.on('uncaughtException', function (err) {
 })
 console.log('got here');
 
+function setMode(m) {
+    mode = m;
+    mapper = mode === 'count' ? counter : columns;
+    process.send({cmd: 'mode', args: {
+        guess: mapper.curGuess,
+        col: mapper.cur,
+        mode,
+    }});
+}
+
 process.on('message', ({cmd, args}) => {
     if (cmd === 'init') {
         init()
@@ -156,6 +297,7 @@ process.on('message', ({cmd, args}) => {
                 process.send({cmd: 'ready', args: {
                     guess: mapper.curGuess,
                     col: mapper.cur,
+                    mode,
                 }});
             })
             .catch(e => process.send({cmd: 'error', args: e.stack}));
@@ -164,8 +306,16 @@ process.on('message', ({cmd, args}) => {
         let nextCol = mapper.cur;
 
         switch (cmd) {
+            case 'mode': {
+                setMode(args);
+                break;
+            }
             case 'increment': {
                 nextGuess = mapper.curGuess + args;
+                break;
+            }
+            case 'setGuess': {
+                nextGuess = args;
                 break;
             }
             case 'prev': {

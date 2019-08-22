@@ -14,14 +14,51 @@ import ColorPool from 'chl/colors';
 import ModelBase, { restoreAllGroups } from '@/common/model';
 import modelVertexShader from 'chl/model_shader.vert';
 import modelFragmentShader from 'chl/model_shader.frag';
+/* hax */
+import * as path from 'path';
+import child_process from 'child_process';
 
 export let currentModel = null;
+
+function spawnMapper() {
+    const w = currentModel.textureWidth;
+    //currentModel.display_only = true;
+    const mapServerPath = path.resolve(__dirname, '../../../operator-ui/backend/dist/map_server.js');
+    console.log(mapServerPath);
+    const dataDir = path.resolve(__dirname, '../../../wing-mapping');
+    const child = child_process.fork(mapServerPath, [`--dataDir=${dataDir}`, '--editor'], {
+        cwd: path.join(path.dirname(mapServerPath), '..'),
+    });
+    console.log(child);
+    child.on('exit', ()=>console.log('exit'));
+    child.on('message', ({cmd, args}) => {
+        const strips = args;
+        for (let i = 0; i < currentModel.colors.length; i++) {
+            currentModel.colors[i] = 0;
+        }
+        for (const [s, colors] of Object.entries(strips)) {
+            const strip = parseInt(s);
+            let ptr = currentModel.strip_offsets[strip];
+            for (let i = 0; i < Math.min(currentModel.numPixelsInStrip(strip), colors.length); i++) {
+                const color = colors[i];
+                for (let c = 0; c < 3; c++) {
+                    currentModel.colors[3*ptr+c] = Math.max(0.2, color[c]);
+                }
+                ptr++;
+            }
+        }
+        currentModel.geometry.attributes.aOverlayColor.needsUpdate = true;
+    });
+    window.addEventListener('beforeunload', () => child.kill());
+    process.on('exit', () => child.kill());
+}
 
 export function setCurrentModel(model) {
     store.commit('update_model', model !== null);
     store.commit('pixels/clear_active_selection');
     currentModel = model;
     console.log(currentModel);
+    spawnMapper();
     colorDisplay.$emit('refresh_model');
 }
 

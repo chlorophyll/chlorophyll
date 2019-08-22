@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-async function cmd(c, mapper) {
+async function cmd(c, mapper, args=undefined) {
     const url = `/api/${mapper}/${c}`;
-    const resp = await axios.post(url);
+    const resp = await axios.post(url, args);
     return resp.data;
 }
 
@@ -15,6 +15,14 @@ const api = {
     async getMapperState(mapper) {
         const resp = await axios.get(`/api/${mapper}`);
         return resp.data;
+    },
+
+    async setGuess(mapper, guess) {
+        return await cmd('setGuess', mapper, {guess});
+    },
+
+    async setMode(mapper, mode) {
+        return await cmd('setMode', mapper, {mode});
     },
 
     async increment(mapper) {

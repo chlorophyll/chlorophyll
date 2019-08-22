@@ -22,6 +22,7 @@ import RootComponent from '@/components/root';
 import initMenu from 'chl/menu';
 import viewports from 'chl/viewport';
 
+
 /*
  * Electron config
  */

@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import * as address from 'address';
 import { argv } from 'yargs';
 const dataDir = path.resolve(process.cwd(), argv.dataDir || '');
+const isEditor = !!argv.editor;
 const child = path.join(__dirname, 'mapper_child.js');
 const app = express();
 app.use(express.json());
@@ -22,11 +23,12 @@ const mappers = {};
 //        panels.push(panel);
 //    }
 //}
+//
 const panels = ['wing_left_1'];
 async function initMappers() {
     const pending = [];
     for (const panel of panels) {
-        const proc = child_process.fork(child, [panel, dataDir]);
+        const proc = child_process.fork(child, [panel, dataDir, isEditor]);
         mappers[panel] = {proc};
         const onReady = new Promise((resolve, reject) => {
             proc.on('message', ({cmd, args}) => {
@@ -40,6 +42,12 @@ async function initMappers() {
                     mappers[panel].guess = args;
                 } else if (cmd === 'col') {
                     mappers[panel].col = args;
+                } else if (cmd === 'mode') {
+                    mappers[panel].mode = args.mode;
+                    mappers[panel].guess = args.guess;
+                    mappers[panel].col = args.col;
+                } else if (cmd === 'frame') {
+                    process.send({cmd, args});
                 }
             });
             proc.send({cmd: 'init'});
@@ -62,17 +70,26 @@ app.get('/api/:mapperName', (req, res) => {
     if (!mapper) {
         res.status(404).send('');
     } else {
-        res.json({guess: mapper.guess, col: mapper.col});
+        res.json({guess: mapper.guess, col: mapper.col, mode: mapper.mode});
     }
 });
 
+app.get('/api/:mapperName/setMode', (req, res) => {
+    const mapper = mappers[req.params.mapperName];
+    if (!mapper) {
+        res.status(404).send('');
+    } else {
+        mapper.proc.send({cmd: 'mode', mode: args.body.mode});
+        delay(() => res.json({guess: mapper.guess, col: mapper.col, mode: mapper.mode}));
+    }
+});
 app.post('/api/:mapperName/increment', (req, res) => {
     const mapper = mappers[req.params.mapperName];
     if (!mapper) {
         res.status(404).send('');
     } else {
         mapper.proc.send({cmd: 'increment', args: 1});
-        delay(() => res.json({guess: mapper.guess, col: mapper.col}));
+        delay(() => res.json({guess: mapper.guess, col: mapper.col, mode: mapper.mode}));
     }
 });
 
@@ -82,9 +99,20 @@ app.post('/api/:mapperName/decrement', (req, res) => {
         res.status(404).send('');
     } else {
         mapper.proc.send({cmd: 'increment', args: -1});
-        delay(() => res.json({guess: mapper.guess, col: mapper.col}));
+        delay(() => res.json({guess: mapper.guess, col: mapper.col, mode: mapper.mode}));
     }
 });
+
+app.post('/api/:mapperName/setGuess', (req, res) => {
+    const mapper = mappers[req.params.mapperName];
+    if (!mapper) {
+        res.status(404).send('');
+    } else {
+        mapper.proc.send({cmd: 'setGuess', args: req.body.guess});
+        delay(() => res.json({guess: mapper.guess, col: mapper.col, mode: mapper.mode}));
+    }
+});
+
 
 app.post('/api/:mapperName/prev', (req, res) => {
     const mapper = mappers[req.params.mapperName];
@@ -92,7 +120,7 @@ app.post('/api/:mapperName/prev', (req, res) => {
         res.status(404).send('');
     } else {
         mapper.proc.send({cmd: 'prev'});
-        delay(() => res.json({guess: mapper.guess, col: mapper.col}));
+        delay(() => res.json({guess: mapper.guess, col: mapper.col, mode: mapper.mode}));
     }
 });
 
@@ -102,7 +130,7 @@ app.post('/api/:mapperName/next', (req, res) => {
         res.status(404).send('');
     } else {
         mapper.proc.send({cmd: 'next'});
-        delay(() => res.json({guess: mapper.guess, col: mapper.col}));
+        delay(() => res.json({guess: mapper.guess, col: mapper.col, mode: mapper.mode}));
     }
 });
 process.on('uncaughtException', function (err) {
@@ -125,3 +153,10 @@ initMappers().then(() => {
         console.log();
     });
 }).catch(e => console.log(e));
+
+
+process.on('exit', () => {
+    for (const {proc} of Object.values(mappers)) {
+        proc.kill();
+    }
+});
