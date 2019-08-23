@@ -322,6 +322,8 @@ process.on('message', ({cmd, args}) => {
             }
             case 'increment': {
                 nextGuess = mapper.curGuess + args;
+                if (nextGuess < 0)
+                    nextGuess = null;
                 break;
             }
             case 'setGuess': {
@@ -329,7 +331,8 @@ process.on('message', ({cmd, args}) => {
                 break;
             }
             case 'prev': {
-                nextCol = mapper.cur - 1;
+                if (mapper.cur > 0)
+                    nextCol = mapper.cur - 1;
                 break;
             }
             case 'next': {

@@ -46,7 +46,7 @@ async function initMappers() {
                     mappers[panel].mode = args.mode;
                     mappers[panel].guess = args.guess;
                     mappers[panel].col = args.col;
-                } else if (cmd === 'frame') {
+                } else if (cmd === 'frame' && isEditor) {
                     process.send({cmd, args});
                 }
             });
