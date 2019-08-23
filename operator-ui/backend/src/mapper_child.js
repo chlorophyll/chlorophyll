@@ -224,14 +224,19 @@ class Columns {
                 }
                 // readPixel(frame, ptr);
                 ptr++;
+                if (ptr === counter.counts[strip]) {
+                    strip++;
+                    ptr = this.state.model.strip_offsets[strip];
+                }
             }
-            if (ptr === counter.counts[strip]) {
-                strip++;
-                ptr = this.state.model.strip_offsets[strip];
+            if (c === highlight) {
+                tmp = ptr;
             }
         }
 
-        writePixel(frame, tmp + heights[highlight], 1, 0, 1);
+
+
+        writePixel(frame, tmp, 1, 0, 1);
         this.client.sendFrame(frame);
     }
     setCol(nextCol) {
