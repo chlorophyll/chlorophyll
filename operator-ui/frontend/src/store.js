@@ -67,7 +67,17 @@ export default new Vuex.Store({
       }));
     },
     playlists(state) {
-      return state.playlistOrder.map(playlistId => state.playlistsById[playlistId]);
+      return state.playlistOrder.map(playlistId => {
+        const playlist = state.playlistsById[playlistId]
+        let name = playlist.name;
+        if (state.realtime.playlistId === playlistId) {
+          name = state.realtime.playlistName;
+        }
+        return {
+          ...playlist,
+          name,
+        };
+      });
     },
   },
 
