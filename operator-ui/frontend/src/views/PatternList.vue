@@ -226,19 +226,19 @@ export default {
     },
     playlistContainerStyle() {
       return {
-        'max-height': `${this.height-this.bottomPadding-32}px`,
+        'max-height': `${this.height-this.bottomPadding-64}px`,
         '-webkit-overflow-scrolling': 'touch',
       };
     },
     dropZoneStyle() {
       return {
-        height: '32px',
+        height: '64px',
         overflow: 'hidden',
       };
     },
     playlistStyle() {
       return {
-        'min-height': `${this.height-this.bottomPadding-32}px`,
+        'min-height': `${this.height-this.bottomPadding-64}px`,
       };
     },
   },
