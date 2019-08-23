@@ -19,6 +19,7 @@ import PlaylistRunner, { createPlaylist } from './playlist';
 
 import * as WebGL from 'wpe-webgl';
 
+const SAMPLES = 15;
 
 const gl = WebGL.initHeadless();
 gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
@@ -154,6 +155,7 @@ function runPlaylist(index) {
     let prevPixels = new Float32Array(textureSize);
     let curTime;
     let frames = 0;
+    let sample = 0;
     const frame = () => {
         if (!curTime) {
             curTime = process.hrtime();
@@ -181,7 +183,7 @@ function runPlaylist(index) {
             });
         }
 
-        [prevPixels, pixels] = [pixels, prevPixels];
+        //[prevPixels, pixels] = [pixels, prevPixels];
         if (readbuf) {
             client.sendFrame(readbuf);
         }
@@ -190,6 +192,10 @@ function runPlaylist(index) {
             const ns = diff[0] * 1e9 + diff[1];
             const fpns = 300 / ns;
             const fps = fpns * 1e9;
+            realtimeState.submitOp({
+                p: ['fpsAvg'],
+                oi: fps,
+            });
             console.info(`${fps.toFixed(1)} fps`);
             curTime = process.hrtime();
         }
@@ -205,8 +211,8 @@ async function stopPlaylist() {
     timer.clearInterval();
 }
 
-function activatePlaylist(playlistId) {
-  if (state.activePlaylistId === playlistId) {
+function activatePlaylist(playlistId, refresh = false) {
+  if (state.activePlaylistId === playlistId && !refresh) {
     return;
   }
   const playlist = state.playlistsById[playlistId];
@@ -258,6 +264,7 @@ async function init() {
             activeTime: 0,
             targetTime: 0,
         },
+        fpsAvg: 0,
     });
 
 
@@ -422,6 +429,31 @@ app.post('/api/playlist/switch', (req, res) => {
         res.send('ok');
     }
 });
+
+app.post('/api/playlist/delete', (req, res) => {
+  const {playlistId} = req.body;
+  console.log(playlistId);
+  if (state.activePlaylistId === playlistId && playlistRunner.isPlaying) {
+    res.status(400).json({msg: 'Cannot delete active playlist while playing'});
+  } else {
+    if (state.playlistOrder.length === 1) {
+      state.playlistsById[playlistId].items = [];
+      activatePlaylist(playlistId);
+    } else {
+      delete state.playlistsById[playlistId];
+      state.playlistOrder = state.playlistOrder.filter(id => id !== playlistId);
+      activatePlaylist(state.playlistOrder[0]);
+    }
+    console.log(state.playlistsById);
+    res.json({
+      playlistsById: state.playlistsById,
+      playlistOrder: state.playlistOrder,
+    });
+  }
+});
+
+
+
 
 
 app.post('/api/start', (req, res) => {

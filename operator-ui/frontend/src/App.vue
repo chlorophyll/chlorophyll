@@ -21,22 +21,38 @@
             <v-list-item-title>Patterns</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item link to="/settings">
+        <v-list-item link to="/parameters">
           <v-list-item-icon>
             <v-icon>mdi-tune</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>
-            <v-list-item-title>Settings</v-list-item-title>
+            <v-list-item-title>Parameters</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>
+    <template v-slot:append>
+      <v-list dense nav>
+        <v-list-item link to="/settings">
+          <v-list-item-icon>
+            <v-icon>mdi-settings</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>
+            <v-list-item-title>Configuration</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+    </template>
     </v-navigation-drawer>
     <v-app-bar app>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-toolbar-title class="headline">
         <span>Chlorophyll</span>
       </v-toolbar-title>
+      <div class="d-flex ma-4 body-2 grey--text align-center" v-if="isPlaying">
+        <div>Now Playing: <span class="font-weight-bold">{{ this.activeItem.pattern.name }}</span></div>
+      </div>
       <template v-if="!realtimeLoaded">
         <v-divider vertical inset class="mx-2" />
         <div class="d-flex ma-4 body-2 grey--text align-center" v-if="!realtimeLoaded">
@@ -46,12 +62,36 @@
       </template>
       <v-spacer></v-spacer>
       <v-btn icon @click="playlistPrev"><v-icon>mdi-skip-previous</v-icon></v-btn>
-      <v-btn icon @click="togglePlaylist"><v-icon>{{ playlistIcon }}</v-icon></v-btn>
+      <v-btn icon @click="play"><v-icon>{{ playIcon }}</v-icon></v-btn>
       <v-btn icon @click="playlistNext"><v-icon>mdi-skip-next</v-icon></v-btn>
       <v-divider vertical inset class="mx-2" />
       <v-btn icon :color="shuffleButtonColor" @click="toggleShuffle"><v-icon>mdi-shuffle-variant</v-icon></v-btn>
       <v-btn icon :color="holdButtonColor" @click="toggleHold"><v-icon>mdi-repeat</v-icon></v-btn>
     </v-app-bar>
+    <v-dialog v-model="dialog" max-width="400">
+    <v-card class="mx-auto">
+    <v-card-title>Confirm</v-card-title>
+    <v-card-text>To stop the playlist, enter the password
+    <v-form>
+      <v-text-field
+        id="password"
+        @keyup.enter="submit"
+        @focus="clearFail"
+        v-model="password"
+        :error="failed"
+        type="password"
+        label="Password"
+        autocomplete="one-time-code"
+      />
+    </v-form>
+    </v-card-text>
+    <v-card-actions>
+    <v-spacer />
+    <v-btn @click="cancel">Cancel</v-btn>
+    <v-btn @click="submit" color="primary">Stop Playlist</v-btn>
+    </v-card-actions>
+    </v-card>
+    </v-dialog>
     <v-content>
       <router-view />
     </v-content>
@@ -59,6 +99,7 @@
 </template>
 
 <script>
+import {mapState, mapGetters, mapActions} from 'vuex';
 import store from '@/store';
 import {ApiMixin} from '@/api';
 import * as realtime from '@/realtime';
@@ -71,21 +112,23 @@ export default {
   data() {
     return {
       drawer: false,
+      dialog: false,
+      password: '',
+      failed: false,
     };
   },
   computed: {
-    realtimeLoaded() {
-      return this.$store.state.realtimeLoaded;
-    },
-    realtime() {
-      return this.$store.state.realtime;
+    ...mapState(['realtimeLoaded', 'realtime', 'patternsById', 'canAccessSettings']),
+    ...mapGetters(['activePlaylist']),
+    activeItemId() {
+      if (!this.realtime.timeInfo) {
+        return null;
+      } else {
+        return this.realtime.timeInfo.activeItemId;
+      }
     },
     isPlaying() {
-      if (!this.realtime.timeInfo) {
-        return false;
-      } else {
-        return this.realtime.timeInfo.activeItemId !== null;
-      }
+      return this.activeItemId !== null;
     },
     playlistIcon() {
       return this.isPlaying ? 'mdi-stop' : 'mdi-play';
@@ -96,13 +139,44 @@ export default {
     holdButtonColor() {
       return this.realtime.hold ? 'primary' : '';
     },
+    activeItem() {
+      const activeItem = this.activePlaylist.find(item => item.id == this.activeItemId);
+      return activeItem;
+    },
+    playIcon() {
+      if (this.isPlaying) {
+        return 'mdi-stop';
+      } else {
+        return 'mdi-play';
+      }
+    },
+  },
+  watch: {
+    canAccessSettings() {
+      this.dialog = false;
+    },
+    dialog() {
+      if (this.dialog) {
+        this.$nextTick(() => {
+          const el = document.getElementById('password');
+          el.focus();
+        });
+      }
+    },
   },
   methods: {
-    togglePlaylist() {
-      if (this.isPlaying) {
-        this.playlistStop();
-      } else {
+    ...mapActions([
+      'authenticate',
+    ]),
+    play() {
+      if (!this.isPlaying) {
         this.playlistStart();
+      } else {
+        if (!this.canAccessSettings) {
+          this.dialog = true;
+        } else {
+          this.playlistStop();
+        }
       }
     },
     toggleShuffle() {
@@ -110,6 +184,22 @@ export default {
     },
     toggleHold() {
       realtime.submitOp({p: ['hold'], oi: !this.realtime.hold});
+    },
+    async submit() {
+      this.failed = false;
+      const result = await this.authenticate({password: this.password});
+      if (result) {
+        this.playlistStop();
+      } else {
+        this.failed = true;
+      }
+    },
+    cancel() {
+      this.failed = false;
+      this.dialog = false;
+    },
+    clearFail() {
+      this.failed = false;
     },
   },
 

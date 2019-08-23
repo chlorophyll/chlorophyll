@@ -1,135 +1,134 @@
 <template>
-  <v-container fluid grid-list-xs>
-    <v-layout wrap>
-      <v-flex xs12>
-        <v-card flat color="transparent">
-          <v-subheader>Brightness</v-subheader>
-          <v-card-text>
-            <v-slider
-              v-model="globalBrightness"
-              append-icon="mdi-brightness-4"
-              prepend-icon="mdi-brightness-5"
-            />
-          </v-card-text>
-        </v-card>
-      <v-divider />
-      </v-flex>
-      <v-flex xs12>
-        <v-subheader>BPM</v-subheader>
-        <v-card-text>
-          <v-layout>
-            <v-flex class="pr-4">
-            <v-slider
-              v-model="bpm"
-              class="align-center"
-              :min="10"
-              :max="256">
-              <template v-slot:prepend>
-                <tempo-tap v-model="bpm" />
-              </template>
-              <template v-slot:append>
-                <v-text-field
-                  v-model="bpm"
-                  type="number"
-                  :min="10"
-                  :max="256"
-                  class="mt-0 pt-0"
-                  style="width: 4em"
-                  hide-details
-                  single-line
-                  solo
-                />
-              </template>
-            </v-slider>
-            </v-flex>
-          </v-layout>
-        </v-card-text>
-      </v-flex>
-      <v-flex xs12>
-        <v-card flat color="transparent">
-          <v-subheader>Intensity</v-subheader>
-          <v-card-text>
-            <v-slider
-              v-model="intensity"
-              prepend-icon="mdi-gauge-empty"
-              append-icon="mdi-gauge-full"
-            />
-          </v-card-text>
-        </v-card>
-      </v-flex>
-      <v-flex xs12>
-        <v-card flat color="transparent">
-          <v-subheader>Fader 1</v-subheader>
-          <v-card-text>
-            <v-slider
-              v-model="fader1"
-              prepend-icon="mdi-puzzle-outline"
-              append-icon="mdi-puzzle"
-            />
-          </v-card-text>
-        </v-card>
-      </v-flex>
-      <v-flex xs12>
-        <v-card flat color="transparent">
-          <v-subheader>Fader 2</v-subheader>
-          <v-card-text>
-            <v-slider
-              v-model="fader2"
-              prepend-icon="mdi-flask-empty-outline"
-              append-icon="mdi-flask-empty"
-            />
-          </v-card-text>
-        </v-card>
-      </v-flex>
-      <v-divider />
-      <v-layout v-bind="layout">
+  <v-container>
+    <v-layout justify-center>
       <v-flex xs6>
-        <v-card flat color="transparent">
-          <v-subheader>Color A</v-subheader>
-          <ColorPicker :width="150" :height="150" v-model="color1" />
-        </v-card>
+      <v-card max-width="400">
+        <v-list>
+          <v-subheader class="title">Lighting</v-subheader>
+          <v-list-item>
+            <v-list-item-icon><v-icon>mdi-brightness-4</v-icon></v-list-item-icon>
+            <v-list-item-content>
+              <v-slider
+                v-model="globalBrightness"
+                label="brightness"
+              />
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item @click="playlistStop">
+            <v-list-item-icon>
+              <v-icon>mdi-lightbulb-off</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content><v-btn>Stop playing</v-btn></v-list-item-content>
+          </v-list-item>
+          <v-divider />
+          <v-list-item>
+            <v-list-item-icon><v-icon>mdi-speedometer</v-icon></v-list-item-icon>
+            <v-list-item-content>FPS: {{ fpsAvg.toFixed(1) }}</v-list-item-content>
+          </v-list-item>
+          <template v-if="availablePlaylists.length > 0">
+          <v-divider />
+          <v-subheader class="title"> Delete Playlists</v-subheader>
+          <v-list-item
+            v-for="playlist in availablePlaylists"
+            @click.stop="confirmDelete(playlist)"
+            :key="playlist.id"
+          >
+            <v-list-item-icon><v-icon>mdi-delete-forever</v-icon></v-list-item-icon>
+            <v-list-item-content>{{ playlist.name }}</span></v-list-item-content>
+          </v-list-item>
+          </template>
+        </v-list>
+      </v-card>
       </v-flex>
-      <v-flex xs6>
-        <v-card flat color="transparent">
-          <v-subheader>Color B</v-subheader>
-          <ColorPicker :width="150" :height="150" v-model="color2" />
-        </v-card>
-      </v-flex>
-      </v-layout>
     </v-layout>
+    <v-dialog v-model="dialog" max-width="400">
+      <v-card v-if="dialog">
+      <v-card-title>Confirm deletion</v-card-title>
+      <v-card-text>This action is not reversible. Delete {{ selectedPlaylist.name }}?</v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn @click="cancel">Cancel</v-btn>
+        <v-btn @click="deleteSelectedPlaylist" color="red"><v-icon>mdi-delete-forever</v-icon>Delete</v-btn>
+      </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
-import {mapState} from 'vuex';
+import {mapGetters, mapState, mapActions} from 'vuex';
 import store from '@/store';
 import * as realtime from '@/realtime';
-import ColorPicker from 'vue-color-picker-wheel';
-import TempoTap from '@/components/tempo_tap';
-
+import {ApiMixin} from '@/api';
 export default {
   store,
   name: 'Settings',
-  components: {ColorPicker, TempoTap},
+  beforeRouteEnter(to, from, next) {
+    if (store.state.canAccessSettings) {
+      next();
+    } else {
+      next({
+        name: 'login',
+        query: {redirectFrom: to.fullPath},
+      });
+    }
+  },
   mixins: [
     realtime.mixin('globalBrightness', realtime.ops.number),
-    realtime.mixin('intensity', realtime.ops.number),
-    realtime.mixin('fader1', realtime.ops.number),
-    realtime.mixin('fader2', realtime.ops.number),
-    realtime.mixin('color1', realtime.ops.replace),
-    realtime.mixin('color2', realtime.ops.replace),
-    realtime.mixin('bpm', realtime.ops.number),
+    ApiMixin,
   ],
+  data() {
+    return {
+      selectedPlaylistId: null,
+    };
+  },
   computed: {
-    layout() {
-      const binding = {};
-
-      if (this.$vuetify.breakpoint.mdAndUp) {
-        binding.column = true;
+    ...mapGetters(['playlists']),
+    ...mapState(['playlistsById', 'realtime']),
+    fpsAvg() {
+        return this.realtime.fpsAvg;
+    },
+    activePlaylistId() {
+      return this.realtime.playlistId;
+    },
+    isPlaying() {
+      return this.realtime.timeInfo.activeItemId !== null;
+    },
+    availablePlaylists() {
+      if (this.isPlaying) {
+        return this.playlists.filter(playlistId => playlistId !== this.activePlaylistId);
+      } else {
+        return this.playlists;
       }
+    },
 
-      return binding;
+    dialog: {
+      get() {
+        return this.selectedPlaylistId !== null;
+      },
+      set(val) {
+        if (!val) {
+          this.selectedPlaylistId == null;
+        }
+      },
+    },
+    selectedPlaylist() {
+      return this.selectedPlaylistId ? this.playlistsById[this.selectedPlaylistId] : null;
     },
   },
-}
+  methods: {
+    ...mapActions(['deletePlaylist']),
+    confirmDelete(playlist) {
+      this.selectedPlaylistId = playlist.id;
+    },
+    async deleteSelectedPlaylist() {
+      const playlistId = this.selectedPlaylistId;
+      this.selectedPlaylistId = null;
+      await this.deletePlaylist({playlistId});
+    },
+    cancel() {
+      this.selectedPlaylistId = null;
+    },
+  },
+};
 </script>

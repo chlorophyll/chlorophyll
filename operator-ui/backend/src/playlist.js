@@ -132,15 +132,17 @@ export default class PlaylistRunner extends EventEmitter {
   }
 
   stop() {
-    return new Promise((resolve, reject) => {
-      this.pendingStop = resolve;
-      this.isPlaying = false;
-      this.targetItemTime = 0;
-      if (this.targetItem.id !== this.activeItem.id) {
-        const targetRunner = this.getRunner(this.targetItem);
-        targetRunner.stop();
-      }
-    });
+    if (this.isPlaying) {
+      return new Promise((resolve, reject) => {
+        this.pendingStop = resolve;
+        this.isPlaying = false;
+        this.targetItemTime = 0;
+        if (this.targetItem.id !== this.activeItem.id) {
+          const targetRunner = this.getRunner(this.targetItem);
+          targetRunner.stop();
+        }
+      });
+    }
   }
 
   finish() {
