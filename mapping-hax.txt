@@ -1,0 +1,5 @@
+- The mapping server looks in a data directory for panel .chl files.
+- The panel chl files need to have appropriate names
+- The panel chl files are rectangles of strips each with 510 pixels configured to the appropriate controller. they are used to let us re-use chlorophyll's code to push artnet. The physical locations of the pixels in the files don't matter.
+- Due to complications (multiple panels driven from a single controller), what we're calling "panel" here might actually be "controller". It depends on how controllers behave when sent non-overlapping packets from multiple sources. You need to check this before assigning minions.
+- To use the editor integration, open any chlorophyll file in the editor while in the mapper branch. The mapper server will spawn. Chlorophyll will pretend to be the first controller, basically (but using IPC.) it's very hacky.
