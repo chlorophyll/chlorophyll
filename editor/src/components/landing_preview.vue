@@ -1,7 +1,7 @@
 <template>
     <div class="preview">
-        <canvas v-show="this.preview !== null" ref="canvas" :width="width" :height="height" />
-        <spinner v-if="show_spinner" class="spinner" />
+        <canvas v-show="this.hasPreview" ref="canvas" :width="width" :height="height" />
+        <spinner v-if="showSpinner" class="spinner" />
     </div>
 </template>
 
@@ -17,43 +17,48 @@ export default {
     props: ['project', 'width', 'height', 'renderer', 'camera'],
     data() {
         return {
-            preview: null,
-            preview_unavailable: false,
+            hasPreview: false,
+            previewUnavailable: false,
         };
     },
 
     computed: {
-        show_spinner() {
-            return this.preview === null && !this.preview_unavailable;
+        showSpinner() {
+            return true;
+            return !this.hasPreview && !this.previewUnavailable;
         }
     },
-
     watch: {
-        preview(model) {
-            model.zoomCameraToFit(this.camera, 1);
-            this.renderer.render(model.scene, this.camera);
-            this.$refs.canvas.getContext('2d').drawImage(this.renderer.domElement, 0, 0);
-        }
+        project() {
+            this.renderModel();
+        },
     },
-
-    mounted() {
+    async mounted() {
         this.$nextTick(() => {
-            if (this.project.preview) {
-                const model = new Model(this.project.preview, true);
-                this.preview = model;
-            } else {
-                previewSavefile(this.project.file).then(model => {
-                    this.preview = model;
-                });
-            }
-
-            setTimeout(() => {
-                if (this.preview === null) {
-                    this.preview_unavailable = true;
-                }
-            }, 5000);
+            this.renderModel();
         });
     },
+
+    methods: {
+        async renderModel() {
+            let model;
+            if (this.project.preview) {
+                model = new Model(this.project.preview, true);
+            } else if (this.project.file) {
+                model = await previewSavefile(this.project.file);
+            } else {
+                return;
+            }
+            this.$nextTick(() => {
+                if (model) {
+                    model.zoomCameraToFit(this.camera, 1);
+                    this.renderer.render(model.scene, this.camera);
+                    this.$refs.canvas.getContext('2d').drawImage(this.renderer.domElement, 0, 0);
+                    this.hasPreview = true;
+                }
+            });
+        }
+    }
 };
 </script>
 

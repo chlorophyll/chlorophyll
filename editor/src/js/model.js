@@ -286,12 +286,6 @@ export class Model extends ModelBase {
 
         const allPositions = this.allPixelPositions().map(({pos}) => pos.toArray());
 
-        if (this.model_info.tree) {
-            this.tree = createKDTree.deserialize(this.model_info.tree);
-        } else {
-            this.tree = createKDTree(allPositions);
-            this.model_info.tree = this.tree.serialize();
-        }
 
         const boundingBox = new THREE.Box3();
         for (const {pos} of this.allPixelPositions()) {
@@ -305,25 +299,49 @@ export class Model extends ModelBase {
         this.center = new THREE.Vector3();
         this.boundingBox.getCenter(this.center);
 
-        const minDistances = allPositions.map(pos => {
-            const pts = this.tree.knn(pos, 2);
-            const nearest = allPositions[pts[1]];
-            let distsq = 0;
-            for (let i = 0; i < pos.length; i++) {
-                const d = nearest[i] - pos[i];
-                distsq += d*d;
+        if (this.model_info.pixelsize && isLanding) {
+            this.pixelsize = this.model_info.pixelsize;
+            if (this.num_pixels > 1000) {
+                this.pixelsize *= 2;
             }
-            return distsq;
-        });
+        } else {
+            if (this.model_info.tree) {
+                this.tree = createKDTree.deserialize(this.model_info.tree);
+            } else {
+                this.tree = createKDTree(allPositions);
+                this.model_info.tree = this.tree.serialize();
+            }
 
-        const distsq = quickSelect(minDistances, 0.75);
-        const dist = Math.sqrt(distsq);
+            const minDistances = [];
+            const seen = new Set();
+            for (let i = 0; i < allPositions.length; i+= 4) {
+                if (seen.has(i)) {
+                    continue;
+                }
+                const pos = allPositions[i];
+                const pts = this.tree.knn(pos, 2);
+                const nIdx = pts[1];
+                seen.add(nIdx);
+                const nearest = allPositions[nIdx];
+                let distsq = 0;
+                for (let j = 0; j < pos.length; j++) {
+                    const d = nearest[j] - pos[j];
+                    distsq += d*d;
+                }
+                minDistances.push(distsq);
+            }
 
-        this.pixelsize = 0.8 * dist;
-        if (isLanding && this.num_pixels > 1000) {
-            this.pixelsize *= 2;
+            const distsq = quickSelect(minDistances, 0.75);
+            const dist = Math.sqrt(distsq);
+
+            this.pixelsize = 0.8 * dist;
+            if (isLanding && this.num_pixels > 1000) {
+                this.pixelsize *= 2;
+            }
+            if (!isLanding) {
+                this.model_info.pixelsize = this.pixelsize;
+            }
         }
-        this.model_info.pixelsize = this.pixelsize;
 
         this.material = new THREE.RawShaderMaterial({
             uniforms: {

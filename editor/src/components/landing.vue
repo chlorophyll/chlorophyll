@@ -1,18 +1,21 @@
 <template>
-    <div class="container">
-        <div class="header">
-        <div><img src="~@/assets/chlorophyll-logo.svg" /></div>
+  <div class="container">
+    <div class="header">
+      <div><img src="~@/assets/chlorophyll-logo.svg" /></div>
     </div>
-    <div class="fade-in">
-    <h2>Get Started</h2>
-    <ul>
-    <li><a @click="showImportDialog">Import New Model...</a></li>
-    <li><a @click="showOpenDialog">Open project</a></li>
-    </ul>
-    <h2>Recent Projects</h2>
-    <div class="projects">
-    <template v-for="project in projects">
-        <div class="project" @click="readSave(project.file)">
+    <div class="fade-in loading" v-if="loading">
+      <div><spinner size="100px" /></div>
+    </div>
+    <div v-else class="fade-in">
+      <h2>Get Started</h2>
+      <ul>
+        <li><a @click="showImportDialog">Import New Model...</a></li>
+        <li><a @click="showOpenDialog">Open project</a></li>
+      </ul>
+      <h2>Recent Projects</h2>
+      <div class="projects">
+        <template v-for="project in projects">
+          <div class="project" @click="readSave(project.file)">
             <landing-preview
              class="preview"
              :style="preview_style"
@@ -23,12 +26,11 @@
              :camera="camera"
             />
             <div class="text"> {{ project.name }}</div>
-        </div>
+          </div>
         </template>
+      </div>
     </div>
-    </ul>
-    </div>
-    </div>
+  </div>
 </template>
 
 <script>
@@ -37,20 +39,23 @@ import { showImportDialog, showOpenDialog, readSavefile, } from 'chl/savefile/io
 import { getRecentProjectNames } from 'chl/savefile/recent';
 import { createRenderer, createCamera } from 'chl/viewport';
 import LandingPreview from '@/components/landing_preview';
+import Spinner from '@/components/widgets/spinner';
 
 const PREVIEW_WIDTH=120;
 const PREVIEW_HEIGHT=100;
 
 export default {
     name: 'landing',
-    components: { LandingPreview },
+    components: { LandingPreview, Spinner},
     methods: {
         showImportDialog() {
             showImportDialog('chl');
         },
         showOpenDialog,
         readSave(path) {
+            this.loading = true;
             readSavefile(path).catch((err) => {
+                this.loading = false;
                 console.error(err);
                 remote.dialog.showErrorBox('Error opening file', err.message);
             });
@@ -70,12 +75,16 @@ export default {
             return PREVIEW_HEIGHT;
         },
     },
+    mounted() {
+        this.$nextTick(() => this.projects = getRecentProjectNames());
+    },
 
     data() {
         const dpiWidth = PREVIEW_WIDTH/window.devicePixelRatio;
         const dpiHeight = PREVIEW_HEIGHT/window.devicePixelRatio;
         return {
-            projects: getRecentProjectNames(),
+            loading: false,
+            projects: new Array(10).fill({name: ''}),
             renderer: createRenderer(dpiWidth, dpiHeight),
             camera: createCamera('perspective', PREVIEW_WIDTH, PREVIEW_HEIGHT),
         };
@@ -179,6 +188,13 @@ ul {
             align-self: end;
         }
     }
+}
+
+.loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 

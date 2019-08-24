@@ -1,15 +1,27 @@
 <template>
-    <div class="loader">Loading...</div>
+    <div :style="style" class="loader">Loading...</div>
 </template>
 <script>
 export default {
-    name: 'spinner'
+    name: 'spinner',
+    props: {
+      size: {
+        required: false,
+        default: '40px',
+      }
+    },
+    computed: {
+      style() {
+        return {
+          'font-size': this.size,
+        };
+      },
+    },
 };
 </script>
 <style scoped>
 .loader {
   color: #ffffff;
-  font-size: 40px;
   text-indent: -9999em;
   overflow: hidden;
   width: 1em;

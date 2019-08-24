@@ -1,8 +1,10 @@
 import OSCBus from './bus';
 
-export const input = new OSCBus('input');
-export const playback = new OSCBus('playback');
-export const config = new OSCBus('config');
+export let input, playback, config;
+
+setImmediate(() => input = new OSCBus('input'));
+setImmediate(() => playback = new OSCBus('playback'));
+setImmediate(() => config = new OSCBus('config'));
 
 /*
  * ## Interface usage examples

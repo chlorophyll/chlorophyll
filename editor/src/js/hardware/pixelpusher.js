@@ -23,19 +23,21 @@ store.registerModule('pixelpushers', {
         },
     },
 });
+let registry;
+setImmediate(() => {
+    registry = new PixelPusherRegistry();
 
-const registry = new PixelPusherRegistry();
+    registry.on('discovered', controller => {
+        controller.applyCorrection = (x) => x;
+        store.commit('pixelpushers/addController', controller);
+    });
 
-registry.on('discovered', controller => {
-    controller.applyCorrection = (x) => x;
-    store.commit('pixelpushers/addController', controller);
+    registry.on('pruned', controller => {
+        store.commit('pixelpushers/removeController', controller);
+    });
+
+    registry.start();
 });
-
-registry.on('pruned', controller => {
-    store.commit('pixelpushers/removeController', controller);
-});
-
-registry.start();
 
 export function pushPixels(model, pixels) {
     const controllers = store.state.pixelpushers.controllers;
