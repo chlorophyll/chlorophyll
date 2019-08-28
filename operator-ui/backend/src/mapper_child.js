@@ -10,10 +10,9 @@ const dataDir = argv._[1];
 const isEditor = false;
 const colors = [
     [1.00, 0.00, 0.00],
-    [0.67, 0.33, 0.00],
-    [0.67, 0.67, 0.00],
+    [0.60, 0.40, 0.00],
     [0.00, 1.00, 0.00],
-    [0.00, 0.67, 0.33],
+    [0.00, 0.50, 0.50],
     [0.00, 0.00, 1.00],
 ];
 //console.log(dataDir);
@@ -218,9 +217,9 @@ class Columns {
             }
             for (let i = 0; i < height; i++) {
                 if (c === highlight) {
-                    writePixel(frame, ptr, 1, 1, 1);
+                    writePixel(frame, ptr, bright, bright, bright);
                 } else {
-                    writePixel(frame, ptr, r, g, b);
+                    writePixel(frame, ptr, r * bright, g * bright, b * bright);
                 }
                 // readPixel(frame, ptr);
                 ptr++;
@@ -284,12 +283,6 @@ async function init() {
         mapper.showFrame();
     }
 }
-process.on('uncaughtException', function (err) {
-    console.log(err);
-    console.log(err.stack);
-    process.exit(1);
-})
-console.log('got here');
 
 function setMode(m) {
     mode = m;
@@ -350,8 +343,7 @@ process.on('message', ({cmd, args}) => {
     }
 });
 
-
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', (err) => {
     console.log(err);
     console.log(err.stack);
     process.exit(1);
