@@ -7,7 +7,7 @@ let mapper, counter, columns, mode;
 
 const l = console.log;
 const dataDir = argv._[1];
-const isEditor = argv._[2];
+const isEditor = false;
 const colors = [
     [1.00, 0.00, 0.00],
     [0.67, 0.33, 0.00],
@@ -113,9 +113,8 @@ class Counter {
     }
 
     showFrame() {
-        const {frame, counts, cur} = this;
-        //console.log('showing frame with highlight on', this.cur);
-        //console.log('curGuess = ', this.curGuess);
+        // console.log('showing frame with highlight on', this.cur);
+        // console.log('curGuess = ', this.curGuess);
         for (let i = 0; i < this.frame.length; i++) {
             this.frame[i] = 0;
         }
@@ -201,6 +200,7 @@ class Columns {
         }
         let strip = 0;
         let ptr = 0;
+        let stripPtr = 0; // index within the current strip
         let tmp;
 
         const bright = isEditor ? 1 : 0.4;
@@ -210,7 +210,7 @@ class Columns {
             if (c === highlight) {
                 tmp = ptr;
             }
-            const [r, g, b] = colors[c % colors.length];
+            let [r, g, b] = colors[c % colors.length];
             if (height > 500) {
                 r = 0;
                 g = 0;
@@ -224,8 +224,10 @@ class Columns {
                 }
                 // readPixel(frame, ptr);
                 ptr++;
-                if (ptr === counter.counts[strip]) {
+                stripPtr++;
+                if (strip < counter.counts.length && stripPtr === counter.counts[strip]) {
                     strip++;
+                    stripPtr = 0;
                     ptr = this.state.model.strip_offsets[strip];
                 }
             }
@@ -234,11 +236,10 @@ class Columns {
             }
         }
 
-
-
         writePixel(frame, tmp, 1, 0, 1);
         this.client.sendFrame(frame);
     }
+
     setCol(nextCol) {
         this.cur = nextCol;
         process.send({cmd: 'col', args: this.cur});

@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import * as address from 'address';
 import { argv } from 'yargs';
 const dataDir = path.resolve(process.cwd(), argv.dataDir || '');
-const isEditor = !!argv.editor;
+const isEditor = false;
 const child = path.join(__dirname, 'mapper_child.js');
 const app = express();
 app.use(express.json());
