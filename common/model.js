@@ -14,11 +14,11 @@ export default class ModelBase {
         strips = strips.map((s, i) => {
             if (Array.isArray(s)) {
                 // Plain format: Strip as an array of pixel positions.
-                this.strip_labels.push(null);
+                this.strip_labels.push(`channel_${i}`);
                 return s;
             } else {
                 // Labeled format: Strip as a {label, pixels} object.
-                this.strip_labels.push(s.label || `strip_${i}`);
+                this.strip_labels.push(s.label || `channel_${i}`);
                 return s.pixels;
             }
         });

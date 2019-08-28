@@ -37,7 +37,7 @@ function readPixel(frame, pixelOffset) {
 
 class EditorClient {
     constructor(model) {
-        this.model = model
+        this.model = model;
     }
     sendFrame(frame) {
         const strips = {};

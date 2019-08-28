@@ -24,7 +24,15 @@ const mappers = {};
 //    }
 //}
 //
-const panels = ['wing_left_1'];
+const panels = [
+    'controller_left_1',
+    'controller_left_2',
+    'controller_left_3',
+    'controller_right_1',
+    'controller_right_2',
+    'controller_right_3'
+];
+
 async function initMappers() {
     const pending = [];
     for (const panel of panels) {
