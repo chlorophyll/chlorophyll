@@ -17,8 +17,8 @@ toplevel=$(git rev-parse --show-toplevel)
 operator="${toplevel}/operator-ui"
 
 cd $operator/mapper
-yarn
-yarn build
+yarn --offline
+yarn --offline build
 cd $operator/backend
-yarn
-yarn build
+yarn --offline
+yarn --offline build
