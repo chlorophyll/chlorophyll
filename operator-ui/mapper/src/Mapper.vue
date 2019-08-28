@@ -17,7 +17,12 @@
     <v-spacer />
   </v-row>
   <v-row v-if="mode === 'count'">
-    <v-slider v-model='countGuess' min='100' max='510' />
+    <v-spacer />
+    <v-slider v-model='countGuess' min='0' max='510' />
+  </v-row>
+  <v-row v-if="mode !== 'count'">
+    <v-spacer />
+    <v-slider v-model='countGuess' min='0' max='150' />
   </v-row>
   <v-divider class="ma-12" />
   <v-row>
