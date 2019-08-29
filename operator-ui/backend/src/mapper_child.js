@@ -224,7 +224,7 @@ class Columns {
                 // readPixel(frame, ptr);
                 ptr++;
                 stripPtr++;
-                if (strip < counter.counts.length && stripPtr === counter.counts[strip]) {
+                if (strip < counter.counts.length && stripPtr >= counter.counts[strip]) {
                     strip++;
                     stripPtr = 0;
                     ptr = this.state.model.strip_offsets[strip];
