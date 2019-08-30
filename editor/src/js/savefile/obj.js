@@ -60,14 +60,22 @@ export default async function importOBJ(filename) {
             let allStrips = [];
             let allUvs = [];
             console.log('LOADER: Working directory:', workingDir);
+            const appliedPaths = new Map();
             for (let seg of index.segments) {
                 console.log(`LOADER: applying ${seg.pixels} to ${seg.model}`);
                 const obj = await loadObjFile(path.resolve(workingDir, seg.model));
                 const svg = await loadSvgFile(path.resolve(workingDir, seg.pixels));
 
+                if (!appliedPaths.has(seg.pixels))
+                    appliedPaths.set(seg.pixels, new Set());
+
                 const ignoreUnmapped = Boolean(seg.drop_unmapped);
                 const warnPartial = Boolean(seg.warn_partial);
-                let {strips, uvCoords} = uvMapStrips(obj, svg, {ignoreUnmapped, warnPartial});
+                let {strips, uvCoords} = uvMapStrips(obj, svg, {
+                    ignoreUnmapped,
+                    warnPartial,
+                    appliedPaths: appliedPaths.get(seg.pixels)
+                });
                 strips = labelStrips(seg.model, strips);
 
                 // Connect the first strip of the just-mapped segment to the
@@ -112,8 +120,21 @@ function uvMapStrips(obj, svg, options = {}) {
     geom.fromBufferGeometry(obj.children[0].geometry);
 
     let allMappedUvs = [];
+    let channelsHit = 0;
+    let consecutiveMissed = 0;
+
     // Each path in the SVG file becomes an LED strip.
-    let strips = svg.paths.map(shapePath => {
+    let strips = svg.paths.map((shapePath, pathIdx) => {
+        if (channelsHit > 0 && consecutiveMissed > 8) {
+            console.log('Probably done; skipping.');
+            return [];
+        }
+        if (options.appliedPaths.has(pathIdx)) {
+            consecutiveMissed++;
+            console.log('Already applied path; skipping.');
+            return [];
+        }
+
         const stripPixels = [];
         const unmappedUvs = [];
         shapePath.subPaths.forEach(path =>
@@ -181,7 +202,16 @@ function uvMapStrips(obj, svg, options = {}) {
                 console.error(`LOADER: Problem pixels found in range: (${bbox[0][0]},${bbox[0][1]}) => (${bbox[1][0]},${bbox[1][1]})`);
             }
         }
+
         console.log(`LOADER: Mapped strip: ${mapped.length} pixels.`);
+        if (mapped.length > 0) {
+            options.appliedPaths.add(pathIdx);
+            consecutiveMissed = 0;
+            channelsHit++;
+        } else {
+            consecutiveMissed++;
+        }
+
         return mapped;
     });
 
