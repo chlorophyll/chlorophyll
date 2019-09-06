@@ -7,6 +7,7 @@ attribute vec2 uv;
 
 attribute vec2 aOffset;
 attribute vec3 aTranslate;
+attribute float aPointSize;
 uniform sampler2D computedColors;
 
 attribute vec3 aOverlayColor;
@@ -35,7 +36,6 @@ void main() {
     }
 
     vec4 mvPosition = modelViewMatrix * vec4(aTranslate, 1.);
-    float pSize = pointSize;
-    mvPosition.xyz += position * pointSize;
+    mvPosition.xyz += position * max(aPointSize, pointSize);
     gl_Position = projectionMatrix * mvPosition;
 }

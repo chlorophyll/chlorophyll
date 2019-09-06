@@ -269,6 +269,9 @@ export class Model extends ModelBase {
         const aTranslate = new THREE.InstancedBufferAttribute(this.positions, 3, false);
         const aOverlayColor = new THREE.InstancedBufferAttribute(this.colors, 3, false);
         const aOffset = new THREE.InstancedBufferAttribute(offsets, 2, false);
+        const pointSizes = new Float32Array(this.num_pixels);
+        const aPointSize = new THREE.InstancedBufferAttribute(pointSizes, 1, false);
+        geometry.addAttribute('aPointSize', aPointSize);
         geometry.addAttribute('aTranslate', aTranslate);
         geometry.addAttribute('aOverlayColor', aOverlayColor);
         geometry.addAttribute('aOffset', aOffset);
@@ -302,7 +305,7 @@ export class Model extends ModelBase {
         if (this.model_info.pixelsize && isLanding) {
             this.pixelsize = this.model_info.pixelsize;
             if (this.num_pixels > 1000) {
-                this.pixelsize *= 2;
+                this.pixelsize *= 2.5;
             }
         } else {
             if (this.model_info.tree) {
@@ -314,29 +317,45 @@ export class Model extends ModelBase {
 
             const minDistances = [];
             const seen = new Set();
-            for (let i = 0; i < allPositions.length; i+= 4) {
-                if (seen.has(i)) {
-                    continue;
-                }
-                const pos = allPositions[i];
-                const pts = this.tree.knn(pos, 2);
-                const nIdx = pts[1];
-                seen.add(nIdx);
-                const nearest = allPositions[nIdx];
-                let distsq = 0;
-                for (let j = 0; j < pos.length; j++) {
-                    const d = nearest[j] - pos[j];
-                    distsq += d*d;
-                }
-                minDistances.push(distsq);
+            const minDistancesByStrip = new Map();
+
+            for (let strip = 0; strip < this.num_strips; strip++) {
+                const stripMinDistances = [];
+                minDistancesByStrip.set(strip, stripMinDistances);
+                this.forEachPixelInStrip(strip, idx => {
+                    if (seen.has(idx)) {
+                        return;
+                    }
+                    const pos = allPositions[idx];
+                    const pts = this.tree.knn(pos, 2);
+                    const nIdx = pts[1];
+                    const nearest = allPositions[nIdx];
+                    let distsq = 0;
+                    for (let j = 0; j < pos.length; j++) {
+                        const d = nearest[j] - pos[j];
+                        distsq += d*d;
+                    }
+                    stripMinDistances.push(distsq);
+                    minDistances.push(distsq);
+                    seen.add(idx);
+                    seen.add(nIdx);
+                });
             }
 
-            const distsq = quickSelect(minDistances, 0.75);
-            const dist = Math.sqrt(distsq);
+            for (const [strip, stripMinDistances] of minDistancesByStrip.entries()) {
+                if (stripMinDistances.length === 0) continue;
+                const distsq = quickSelect(stripMinDistances, 0.75);
+                const pixelsize = 0.8 * Math.sqrt(distsq);
+                this.forEachPixelInStrip(strip, idx => {
+                    pointSizes[idx] = pixelsize;
+                });
+            }
 
+            const overallDistsq = quickSelect(minDistances, 0.75);
+            const dist = Math.sqrt(overallDistsq);
             this.pixelsize = 0.8 * dist;
             if (isLanding && this.num_pixels > 1000) {
-                this.pixelsize *= 2;
+                this.pixelsize *= 2.5;
             }
             if (!isLanding) {
                 this.model_info.pixelsize = this.pixelsize;
