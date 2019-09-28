@@ -45,7 +45,14 @@ export default class GraphNode {
         };
     }
 
-    constructor(options, inputs, outputs, {config = {}} = {}) {
+    static getInputs() {
+        return [];
+    }
+    static getOutputs() {
+        return [];
+    }
+
+    constructor(options, {config = {}} = {}) {
         const {
             graph,
             id,
@@ -56,6 +63,9 @@ export default class GraphNode {
             properties = {},
             vm_factory
         } = options;
+
+        const inputs = (this.constructor as any).getInputs();
+        const outputs = (this.constructor as any).getOutputs();
 
         this.graph = graph;
         this.id = id;
@@ -136,7 +146,9 @@ export default class GraphNode {
             input_settings: this.vm.inputs.map(({settings}) => ({...settings})),
             output_settings: this.vm.outputs.map(({settings})=> ({...settings})),
             defaults: Serialization.save(this.vm.defaults),
-            parameters: Serialization.save(this.vm.parameters)
+            parameters: Serialization.save(this.vm.parameters),
+            color: this.vm.config.color,
+            boxcolor: this.vm.config.boxcolor,
         };
 
         return Object.freeze(data);
@@ -148,6 +160,12 @@ export default class GraphNode {
         }
         for (let i = 0; i < this.vm.outputs.length; i++) {
             this.vm.outputs[i].settings = nodesnap.output_settings[i];
+        }
+        if (nodesnap.color) {
+            this.vm.config.color = nodesnap.color;
+        }
+        if (nodesnap.boxcolor) {
+            this.vm.config.boxcolor = nodesnap.boxcolor;
         }
         this.vm.defaults = Serialization.restore(nodesnap.defaults);
         this.vm.parameters = Serialization.restore(nodesnap.parameters) || [];

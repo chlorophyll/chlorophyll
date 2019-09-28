@@ -70,12 +70,12 @@ vec3 hsv2rgb(vec3 c) {
 Compilation.registerAlias('CRGB', 'vec3');
 
 class fromHue extends GraphNode {
+    static getInputs() {
+        return [GraphNode.input('hue', Units.Numeric)];
+    }
 
-    constructor(options) {
-        let inputs = [GraphNode.input('hue', Units.Numeric)];
-        let outputs = [GraphNode.output('CRGB', 'CRGB')];
-
-        super(options, inputs, outputs);
+    static getOutputs() {
+        return [GraphNode.output('CRGB', 'CRGB')];
     }
 
     compile(c) {
@@ -92,15 +92,15 @@ fromHue.title = 'fromHue';
 node_types.push(['CRGB/fromHue', fromHue]);
 
 class fromHSV extends GraphNode {
-    constructor(options) {
-        let inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('hue', Units.Percentage),
             GraphNode.input('sat', Units.Percentage),
             GraphNode.input('val', Units.Percentage),
         ];
-        let outputs = [GraphNode.output('CRGB', 'CRGB')];
-
-        super(options, inputs, outputs);
+    }
+    static getOutputs() {
+        return [GraphNode.output('CRGB', 'CRGB')];
     }
 
     compile(c) {
@@ -119,15 +119,15 @@ fromHSV.title = 'fromHSV';
 node_types.push(['CRGB/fromHSV', fromHSV]);
 
 class fadeToBlackBy extends GraphNode {
-    constructor(options) {
-        let inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('input', 'CRGB'),
             GraphNode.input('fadeFactor', Units.Numeric),
         ];
-        let outputs = [GraphNode.output('output', 'CRGB')];
-        super(options, inputs, outputs);
     }
-
+    static getOutputs() {
+        return [GraphNode.output('output', 'CRGB')];
+    }
     compile(c) {
         const input = c.getInput(this, 0);
         const fadeFactor = glsl.BinOp(glsl.Const(1.0), '-', c.getInput(this, 1));
@@ -139,18 +139,18 @@ fadeToBlackBy.title = 'fadeToBlackBy';
 node_types.push(['CRGB/fadeToBlackBy', fadeToBlackBy]);
 
 class lerpColor extends GraphNode {
-    constructor(options) {
-        let inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('start', 'CRGB'),
             GraphNode.input('end', 'CRGB'),
             GraphNode.input('amount', Units.Numeric),
         ];
+    }
 
-        let outputs = [
+    static getOutputs() {
+        return [
             GraphNode.output('output', 'CRGB')
         ];
-
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -165,20 +165,25 @@ lerpColor.title = 'lerpColor';
 node_types.push(['CRGB/lerpColor', lerpColor]);
 
 class CRGB extends GraphNode {
-    constructor(options) {
-        let inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('red', Units.Percentage),
             GraphNode.input('green', Units.Percentage),
             GraphNode.input('blue', Units.Percentage),
         ];
+    }
 
-        let outputs = [
+    static getOutputs() {
+        return [
             GraphNode.output('output', 'CRGB')
         ];
+    }
+
+    constructor(options) {
         const config = {
             visualization: 'color-preview',
         };
-        super(options, inputs, outputs, { config });
+        super(options, { config });
     }
 
     compile(c) {
@@ -194,16 +199,16 @@ CRGB.title = 'CRGB';
 node_types.push(['CRGB/CRGB', CRGB]);
 
 class Grayscale extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('value', Units.Numeric),
         ];
+    }
 
-        const outputs = [
+    static getOutputs() {
+        return [
             GraphNode.output('output', 'CRGB')
         ];
-
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -215,15 +220,17 @@ Grayscale.title = 'Grayscale';
 node_types.push(['CRGB/Grayscale', Grayscale]);
 
 class TestPattern extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', Units.Distance),
             GraphNode.input('y', Units.Distance),
         ];
-        const outputs = [
+    }
+
+    static getOutputs() {
+        return [
             GraphNode.output('output', 'CRGB')
         ];
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -280,15 +287,16 @@ function makeColormapNode(colormap) {
     const {importName} = colormap;
     const alias = colormap.alias || importName;
     const node = class extends GraphNode {
-        constructor(options) {
-            const inputs = [
+        static getInputs() {
+            return [
                 GraphNode.input('value', Units.Numeric),
             ];
+        }
 
-            const outputs = [
+        static getOutputs() {
+            return [
                 GraphNode.output('color', 'CRGB'),
             ];
-            super(options, inputs, outputs);
         }
 
         compile(c) {

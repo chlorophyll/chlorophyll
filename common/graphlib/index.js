@@ -1,6 +1,7 @@
 // Avoid circular dependency between compiler and units
 import Units from '@/common/units'; // eslint-disable-line no-unused-vars
 import GraphNode from './graph_node';
+import _ from 'lodash';
 
 export {default as GraphNode} from './graph_node';
 
@@ -13,20 +14,31 @@ export const GraphLib = {
      *
      * @param {String} path - slash-separated path, unique per-node.
      * @param {GraphNode} Constructor - Class for the node itself.
-     * @param {Object} [presets] - Additional parameters object to pass to the
-     *                             constructor for parameterized nodes.
      */
-    registerNodeType(path, Constructor, presets) {
+    registerNodeType(path, Constructor) {
         if (!GraphNode.isPrototypeOf(Constructor))
             throw new Error('All registered node types must inherit from GraphNode');
 
-        nodeTypes.set(path, {Constructor, presets});
+        nodeTypes.set(path, Constructor);
         Constructor.type = path;
     },
 
+    areNodeTypesCompatible(pathA, pathB) {
+        const NodeA = nodeTypes.get(pathA);
+        const NodeB = nodeTypes.get(pathB);
+
+        const inputsA = NodeA.getInputs().map(input => input.type);
+        const outputsA = NodeA.getOutputs().map(output => output.type);
+
+        const inputsB = NodeB.getInputs().map(input => input.type);
+        const outputsB = NodeB.getOutputs().map(output => output.type);
+
+        return _.isEqual(inputsA, inputsB) && _.isEqual(outputsA, outputsB);
+    },
+
     registerNodeTypes(nodeList) {
-        for (let [path, Constructor, presets] of nodeList) {
-            this.registerNodeType(path, Constructor, presets);
+        for (let [path, Constructor] of nodeList) {
+            this.registerNodeType(path, Constructor);
         }
     },
 
@@ -69,6 +81,7 @@ export class GraphBase {
         this.global_outputs = new Map();
 
         this.refs = new Map();
+        this.refsById = new Map();
 
         this.nodes = new Map();
         this.order = [];
@@ -121,8 +134,7 @@ export class GraphBase {
     }
 
     addNode(path, id, vm_factory, options = {}) {
-        const nodeDef = nodeTypes.get(path);
-        const Ctor = nodeDef.Constructor;
+        const Ctor = nodeTypes.get(path);
 
         if (!Ctor) {
             throw new Error('unknown node type' + path);
@@ -134,13 +146,13 @@ export class GraphBase {
         const title = options.title || Ctor.title || path;
 
         const nodeAttrs = {graph, id, title, pos, path, properties, parameters, vm_factory};
-        const nodeTypePresets = nodeDef.presets;
-        const node = new Ctor(nodeAttrs, nodeTypePresets);
+        const node = new Ctor(nodeAttrs);
 
         this.nodes.set(node.id, node);
 
         if (ref !== undefined) {
             this.refs.set(ref, id);
+            this.refsById.set(id, ref);
         }
 
         this.order.push(id);
@@ -154,7 +166,6 @@ export class GraphBase {
         return node;
     }
 
-
     removeNode(node_or_id) {
         let node;
         if (typeof(node_or_id) == 'number') {
@@ -167,7 +178,11 @@ export class GraphBase {
         this.forEachEdgeFromNode(node, (edge) => this.disconnect(edge));
 
         this.nodes.delete(node.id);
-        this.refs.delete(node.id);
+        const ref = this.refsById.get(node.id);
+        if (ref) {
+            this.refs.delete(ref);
+            this.refsById.delete(node.id);
+        }
 
         let index = this.order.indexOf(node.id);
         this.order.splice(index, 1);
@@ -178,6 +193,41 @@ export class GraphBase {
         }
 
         this.emit('node-removed', { node });
+    }
+
+    replaceNode(node_or_id, type) {
+        let node;
+        if (typeof(node_or_id) == 'number') {
+            node = this.getNodeById(node_or_id);
+        } else {
+            node = node_or_id;
+        }
+
+        const edgesToNode = [];
+        const edgesFromNode = [];
+
+        this.forEachEdgeToNode(node, edge => edgesToNode.push(edge));
+        this.forEachEdgeFromNode(node, edge => edgesFromNode.push(edge));
+
+        const settings = node.save();
+
+        this.removeNode(node);
+
+        const newNode = this.addNode(type, {
+            id: settings.id,
+            pos: settings.pos,
+            type,
+        });
+        newNode.restore_settings(settings);
+        for (const {src_id, src_slot, dst_slot} of edgesToNode) {
+            const src = this.getNodeById(src_id);
+            this.connect(src, src_slot, newNode, dst_slot, true);
+        }
+
+        for (const {src_slot, dst_id, dst_slot} of edgesFromNode) {
+            const dst = this.getNodeById(dst_id);
+            this.connect(newNode, src_slot, dst, dst_slot, true);
+        }
     }
 
     numOscillators() {

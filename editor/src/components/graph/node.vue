@@ -1,15 +1,28 @@
 <template>
     <g class="node"
-       :class="{connecting: curSrc !== null}"
+       :class="{connecting: curSrc !== null, replace}"
        :transform="position" @click="onClick" @dblclick="onDblClick">
         <g>
+        <!-- full outline -->
+        <rect
+            x="0"
+            y="0"
+            :width="width"
+            :height="height"
+            :stroke="node.config.color"
+            class="outline" />
         <!-- main box -->
         <rect x="0"
+              class="mainbox"
               :y="tHeight"
               :width="width"
               :height="height-tHeight"
               :stroke="node.config.color"
-              :fill="node.config.bgcolor" />
+              :fill="node.config.bgcolor"
+              @dragenter="dragEnter"
+              @drop="drop"
+              @dragleave="dragExit"
+              />
         <!-- titlebar -->
         <rect x="0"
               y="0"
@@ -17,13 +30,18 @@
               :width="width"
               :height="tHeight"
               :stroke="node.config.color"
-              :fill="node.config.color" @mousedown.stop="startDrag" />
+              :fill="node.config.color"
+              @mousedown.stop="startDrag"
+              />
         <!-- title box -->
         <rect x="3"
               y="3"
               :width="tHeight - 6"
               :height="tHeight - 6"
-              :fill="node.config.boxcolor" />
+              class="titlebox"
+              :fill="node.config.boxcolor"
+              @click="togglePicker"
+              />
 
         <!-- closebox -->
         <g v-if="node.config.removable"
@@ -114,21 +132,98 @@
             </text>
         </template>
         </g>
+        <g :transform="swatchTransform" v-if="showPicker">
+            <foreignObject x="0" y="0" :width="pickerWidth" :height="pickerHeight">
+                <swatches
+                    :background-color="node.config.bgcolor"
+                    v-model="color"
+                    inline
+                    :colors="colors"
+                    :swatch-size="swatchSize"
+                    :swatch-style="{padding: '1px', margin: '1px'}"
+                    :wrapper-style="pickerWrapperStyle"
+                />
+            </foreignObject>
+        </g>
     </g>
 </template>
 
 <script>
 import { GraphConstants } from 'chl/graphlib';
+import GraphLib from '@/common/graphlib';
+import tinycolor from 'tinycolor2';
+import Swatches from 'vue-swatches'
 
 export default {
     name: 'graph-node',
-    props: ['node', 'curSrc'],
+    props: ['node', 'curSrc', 'curHighlight'],
+    components: {Swatches},
     data() {
         return {
             dragstart: null,
+            replace: false,
+            showPicker: false,
         };
     },
+    watch: {
+        curHighlight() {
+            if (this.curHighlight !== this.node.id) {
+                console.log('curHighlight');
+                this.showPicker = false;
+            }
+        },
+    },
     computed: {
+        color: {
+            get() {
+                return tinycolor(this.node.config.color).toHexString();
+            },
+            set(val) {
+                this.node.config.color = val;
+                let boxcolor = '#aef';
+                if (val !== '#999999') {
+                    boxcolor = tinycolor(val).lighten(20).toHexString();
+                }
+                this.node.config.boxcolor = boxcolor;
+            },
+        },
+        colors() {
+            return [
+                "#FFB7A5", "#E9947D", "#D17257",
+                "#FFB3D0", "#EB91AF", "#D56F90",
+                "#E1BAE1", "#BF93BE", "#9D6D9C",
+                "#D6CCFF", "#B7A8E8", "#9784D2",
+                "#B3CFFF", "#91ACE5", "#6F8ACB",
+                "#97F3EB", "#78D5CC", "#58B8AE",
+                "#B1ECB5", "#8DCD8F", "#6AAE6A",
+                "#E8F9B6", "#CADD91", "#ADC16D",
+                '#999999',
+            ];
+        },
+        pickerWrapperStyle() {
+            return {
+                width: `${this.pickerWidth}px`,
+                height: `${this.pickerHeight}px`,
+                border: '1px solid #999',
+            };
+        },
+
+        swatchSize() {
+            return 16;
+        },
+        swatchPadding() {
+            return 2;
+        },
+        pickerHeight() {
+            return (this.swatchSize + this.swatchPadding) * 3 + 12 + 8;
+        },
+        pickerWidth() {
+            return (this.swatchSize + this.swatchPadding) * 9 + 12;
+        },
+
+        swatchTransform() {
+            return `translate(0, -${this.pickerHeight+4})`;
+        },
         width() {
             return this.node.width;
         },
@@ -200,6 +295,47 @@ export default {
         onClick() {
             this.$emit('node-clicked', this.node);
         },
+        dragEnter(event) {
+            const replacementPath = this.$parent.dragPath;
+            const graphNode = this.node.graph_node;
+            const path = graphNode.path;
+            if (
+                path === replacementPath ||
+                !GraphLib.areNodeTypesCompatible(path, replacementPath)
+            ) {
+                return;
+            }
+            this.interval = setTimeout(() => {
+                this.replace = true;
+                this.interval = null;
+            }, 200);
+            event.preventDefault();
+        },
+
+        endReplace() {
+            this.replace = false;
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = null;
+            }
+        },
+
+        dragExit(event) {
+            this.endReplace();
+        },
+        drop(event) {
+            if (this.replace) {
+                event.stopPropagation();
+                const graphNode = this.node.graph_node;
+                const graph = graphNode.graph;
+                const path = event.dataTransfer.getData('text');
+                graph.replaceNode(graphNode, path);
+            }
+            this.endReplace();
+        },
+        togglePicker() {
+            this.showPicker = !this.showPicker;
+        }
     }
 };
 </script>
@@ -207,6 +343,21 @@ export default {
 <style scoped>
 .node {
     user-select: none;
+}
+@keyframes pulse {
+    0% {
+        stroke-width: 2;
+        stroke-opacity: 100%;
+    }
+
+    100% {
+        stroke-width: 25;
+        stroke-opacity: 0.01;
+    }
+}
+
+.replace .outline{
+    animation: pulse 1s infinite;
 }
 
 .titlebar {

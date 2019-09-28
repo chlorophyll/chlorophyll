@@ -5,10 +5,11 @@ let node_types = [];
 // Structural node types for the pattern graph
 
 class OutputColor extends GraphNode {
+    static getInputs() {
+        return [GraphNode.input('outcolor', 'CRGB')];
+    }
     constructor(options) {
-        const inputs = [GraphNode.input('outcolor', 'CRGB')];
-        const outputs = [];
-        super(options, inputs, outputs, {
+        super(options, {
             config: {
                 color: '#e5a88a',
                 boxcolor: '#cc8866',

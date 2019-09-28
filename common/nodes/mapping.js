@@ -6,14 +6,16 @@ function make_nodes(Mapping) {
     return Mapping.views.map(mappingView => {
         const path = `mapping/${Mapping.className}/${mappingView.className}`;
 
+
         const MapInputNode = class extends GraphNode {
+            static getOutputs() {
+                return [
+                    ...mappingView.coords.map((c) => GraphNode.output(c.name, c.unit)),
+                    GraphNode.output('color', 'CRGB'),
+                ];
+            }
             constructor(options) {
-                const inputs = [];
-                const outputs = mappingView.coords.map((c) => GraphNode.output(c.name, c.unit));
-
-                outputs.push(GraphNode.output('color', 'CRGB'));
-
-                super(options, inputs, outputs, {
+                super(options, {
                     config: {
                         color: '#7496a6',
                         boxcolor: '#69a4bf',

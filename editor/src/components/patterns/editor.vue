@@ -112,7 +112,7 @@
                   </template>
                 </tree>
               </div>
-              <graph-canvas ref="canvas" slot="first" :graph="cur_graph"/>
+              <graph-canvas ref="canvas" slot="first" :graph="cur_graph" :drag-path="dragPath" />
             </split-pane>
           </div>
           <pattern-preview v-if="can_preview"
@@ -304,6 +304,7 @@ export default {
             runstate: RunState.Stopped,
             node_list: getNodeList(this.$store),
             query: '',
+            dragPath: null,
         };
     },
     watch: {
@@ -356,6 +357,7 @@ export default {
         dragNode(item, event) {
             event.dataTransfer.setData('text/plain', item.path);
             event.dataTransfer.dragEffect = 'link';
+            this.dragPath = item.path;
         },
         autolayout() {
             this.$refs.canvas.autolayout();

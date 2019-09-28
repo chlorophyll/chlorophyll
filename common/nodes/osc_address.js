@@ -85,8 +85,8 @@ class LiveInput extends GraphNode {
         }
     }
 }
-LiveInput.title = 'OSC address';
-
-export default function register_input_nodes() {
-    GraphLib.registerNodeType('input/OSC Address', LiveInput);
-};
+//LiveInput.title = 'OSC address';
+//
+//export default function register_input_nodes() {
+//    GraphLib.registerNodeType('input/OSC Address', LiveInput);
+//};

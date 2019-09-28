@@ -154,23 +154,25 @@ class VideoSource {
 
 
 class VideoNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', Units.Numeric),
             GraphNode.input('y', Units.Numeric),
         ];
-
+    }
+    static getOutputs() {
+        return [
+            GraphNode.output('color', 'CRGB'),
+        ];
+    }
+    constructor(options) {
         if (!options.parameters) {
             options.parameters = [
                 GraphNode.parameter('file', 'MediaFile'),
             ];
         }
 
-        const outputs = [
-            GraphNode.output('color', 'CRGB'),
-        ];
-
-        super(options, inputs, outputs);
+        super(options);
 
         this.videoSource = new VideoSource(this.vm.mediaFolder);
         this.refreshVideoSource();

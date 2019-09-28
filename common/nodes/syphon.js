@@ -78,20 +78,17 @@ function resetClient(gl) {
 }
 
 class SampleNode extends GraphNode {
-    constructor(options) {
-
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', Units.Numeric),
             GraphNode.input('y', Units.Numeric),
         ];
-
-        const outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('color', 'CRGB'),
         ];
-
-        super(options, inputs, outputs);
     }
-
     compile(c) {
         resetClient(c.gl);
         const texture = c.variable();

@@ -50,13 +50,15 @@ function fbm(c, func, args) {
 
 function makeFractalNoise(dimension) {
     const type = 'simplex';
+
     const node = class extends GraphNode {
-        constructor(options) {
-            const inputs = getInputs(dimension);
-            const outputs = [
+        static getInputs() {
+            return getInputs(dimension);
+        }
+        static getOutputs() {
+            return [
                 GraphNode.output('noise', Units.Numeric),
             ];
-            super(options, inputs, outputs);
         }
 
         compile(c) {
@@ -75,15 +77,16 @@ function makeTimeFractalNoise(fullDimension) {
     const type = 'simplex';
     const dimension = fullDimension-1;
     const node = class extends GraphNode {
-        constructor(options) {
-            const inputs = [
+        static getInputs() {
+            return [
                 ...getInputs(dimension),
                 GraphNode.input('speed', Units.Percentage),
             ];
-            const outputs = [
+        }
+        static getOutputs() {
+            return [
                 GraphNode.output('noise', Units.Numeric),
             ];
-            super(options, inputs, outputs);
         }
 
         compile(c) {
@@ -101,18 +104,18 @@ function makeTimeFractalNoise(fullDimension) {
 
 function makeWorleyNoise(dimension) {
     const node = class extends GraphNode {
-        constructor(options) {
-            const inputs = [
+        static getInputs() {
+            return [
                 ...getInputs(dimension),
                 GraphNode.input('jitter', Units.Percentage),
             ];
-            const outputs = [
+        }
+        static getOutputs() {
+            return [
                 GraphNode.output('F1', Units.Numeric),
                 GraphNode.output('F2', Units.Numeric),
             ];
-            super(options, inputs, outputs);
         }
-
         compile(c) {
             const args = _.range(dimension).map(i => c.getInput(this, i));
             const jitter = c.getInput(this, dimension);
@@ -129,19 +132,19 @@ function makeWorleyNoise(dimension) {
 function makeTimeWorleyNoise(fullDimension) {
     const dimension = fullDimension-1;
     const node = class extends GraphNode {
-        constructor(options) {
-            const inputs = [
+        static getInputs() {
+            return [
                 ...getInputs(dimension),
                 GraphNode.input('jitter', Units.Percentage),
                 GraphNode.input('speed', Units.Percentage),
             ];
-            const outputs = [
+        }
+        static getOutputs() {
+            return [
                 GraphNode.output('F1', Units.Numeric),
                 GraphNode.output('F2', Units.Numeric),
             ];
-            super(options, inputs, outputs);
         }
-
         compile(c) {
             const args = _.range(dimension).map(i => c.getInput(this, i));
             const jitter = c.getInput(this, dimension);
@@ -160,14 +163,15 @@ function makeTimeWorleyNoise(fullDimension) {
 
 function makeNoiseNode(type, dimension) {
     const staticNode = class extends GraphNode {
-        constructor(options) {
-            const inputs = getInputs(dimension);
-            const outputs = [
-                GraphNode.output('noise', Units.Numeric),
-            ];
-            super(options, inputs, outputs);
+        static getInputs() {
+            return getInputs(dimension);
         }
 
+        static getOutputs() {
+            return [
+                GraphNode.output('noise', Units.Numeric),
+            ];
+        }
         compile(c) {
             const args = _.range(dimension).map(i => c.getInput(this, i));
             const func = c.import(`glsl-noise/${type}/${dimension}d`);
@@ -183,18 +187,17 @@ function makeTimeNoiseNode(type, fullDimension) {
     const dimension = fullDimension-1;
 
     const node = class extends GraphNode {
-        constructor(options) {
-            const inputs = [
+        static getInputs() {
+            return [
                 ...getInputs(dimension),
                 GraphNode.input('speed', Units.Percentage),
             ];
-
-            const outputs = [
+        }
+        static getOutputs() {
+            return [
                 GraphNode.output('noise', Units.Numeric),
             ];
-            super(options, inputs, outputs);
         }
-
         compile(c) {
             const args = _.range(dimension).map(i => c.getInput(this, i));
             const speed = c.getInput(this, dimension);

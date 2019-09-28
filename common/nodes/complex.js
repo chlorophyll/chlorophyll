@@ -48,17 +48,17 @@ function sinh(x) {
 }
 
 class ComplexValue extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('a', Units.Distance),
             GraphNode.input('b', Units.Distance),
         ];
+    }
 
-        const outputs = [
+    static getOutputs() {
+        return [
             GraphNode.output('a + bi', 'vec2'),
         ];
-
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -72,16 +72,17 @@ ComplexValue.title = 'a + bi';
 node_types.push(['complex/value', ComplexValue]);
 
 class ComplexMultiply extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', 'vec2'),
             GraphNode.input('y', 'vec2'),
         ];
+    }
 
-        const outputs = [
+    static getOutputs() {
+        return [
             GraphNode.output('x * y', 'vec2'),
         ];
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -96,16 +97,17 @@ ComplexMultiply.title = 'complex multiply';
 node_types.push(['complex/multiply', ComplexMultiply]);
 
 class ComplexDivide extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', 'vec2'),
             GraphNode.input('y', 'vec2'),
         ];
+    }
 
-        const outputs = [
+    static getOutputs() {
+        return [
             GraphNode.output('x / y', 'vec2'),
         ];
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -123,16 +125,15 @@ ComplexDivide.title = 'complex divide';
 node_types.push(['complex/divide', ComplexDivide]);
 
 class ComplexDomain extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('c', 'vec2'),
         ];
-
-        const outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('domain(c)', Units.Distance)
         ];
-
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -152,16 +153,17 @@ ComplexDomain.title = 'domain(complex)';
 node_types.push(['complex/domain', ComplexDomain]);
 
 class ComplexAdd extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', 'vec2'),
             GraphNode.input('y', 'vec2'),
         ];
+    }
 
-        const outputs = [
+    static getOutputs() {
+        return [
             GraphNode.output('x + y', 'vec2'),
         ];
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -175,18 +177,18 @@ ComplexAdd.title = 'a + b';
 node_types.push(['complex/add', ComplexAdd]);
 
 class ComplexSubtract extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', 'vec2'),
             GraphNode.input('y', 'vec2'),
         ];
-
-        const outputs = [
-            GraphNode.output('x - y', 'vec2'),
-        ];
-        super(options, inputs, outputs);
     }
 
+    static getOutputs() {
+        return [
+            GraphNode.output('x - y', 'vec2'),
+        ];
+    }
     compile(c) {
         const c1 = c.getInput(this, 0);
         const c2 = c.getInput(this, 1);
@@ -197,16 +199,15 @@ ComplexSubtract.title = 'a - b';
 node_types.push(['complex/sub', ComplexSubtract]);
 
 class ExpNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('c', 'vec2'),
         ];
-
-        const outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('exp(c)', 'vec2')
         ];
-
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -231,15 +232,15 @@ ExpNode.title = 'exp(c)';
 node_types.push(['complex/exp', ExpNode]);
 
 class ComplexSine extends GraphNode {
-    constructor(options) {
-        const inputs = [
-            GraphNode.input('z', 'vec2'),
+    static getInputs() {
+        return [
+            GraphNode.input('c', 'vec2'),
         ];
-        const outputs = [
-            GraphNode.input('sin(z)', 'vec2'),
+    }
+    static getOutputs() {
+        return [
+            GraphNode.output('sin(c)', 'vec2')
         ];
-
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -257,15 +258,15 @@ ComplexSine.title = 'sin(c)';
 node_types.push(['complex/sin', ComplexSine]);
 
 class ComplexCosine extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('c', 'vec2'),
         ];
-        const outputs = [
-            GraphNode.input('cos(c)', 'vec2'),
+    }
+    static getOutputs() {
+        return [
+            GraphNode.output('cos(c)', 'vec2')
         ];
-
-        super(options, inputs, outputs);
     }
     compile(c) {
         const z = c.getInput(this, 0);
@@ -282,15 +283,15 @@ ComplexCosine.title = 'cos(c)';
 node_types.push(['complex/cos', ComplexCosine]);
 
 class ComplexMagnitude extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('c', 'vec2'),
         ];
-
-        const outputs = [
-            GraphNode.output('|c|', Units.Numeric),
+    }
+    static getOutputs() {
+        return [
+            GraphNode.output('|c|', Units.Numeric)
         ];
-        super(options, inputs, outputs);
     }
     compile(c) {
         const z = c.getInput(this, 0);
@@ -301,17 +302,16 @@ ComplexMagnitude.title = '|c|';
 node_types.push(['complex/magnitude', ComplexMagnitude]);
 
 class ReNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('c', 'vec2'),
         ];
-
-        const outputs = [
-            GraphNode.output('Re(c)', Units.Numeric),
-        ];
-        super(options, inputs, outputs);
     }
-
+    static getOutputs() {
+        return [
+            GraphNode.output('Re(c)', Units.Numeric)
+        ];
+    }
     compile(c) {
         c.setOutput(this, 0, glsl.Dot(c.getInput(this, 0), 'x'));
     }
@@ -320,17 +320,16 @@ ReNode.title = 'Re(c)';
 node_types.push(['complex/re', ReNode]);
 
 class ImNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('c', 'vec2'),
         ];
-
-        const outputs = [
-            GraphNode.output('Im(c)', Units.Numeric),
-        ];
-        super(options, inputs, outputs);
     }
-
+    static getOutputs() {
+        return [
+            GraphNode.output('Im(c)', Units.Numeric)
+        ];
+    }
     compile(c) {
         c.setOutput(this, 0, glsl.Dot(c.getInput(this, 0), 'y'));
     }

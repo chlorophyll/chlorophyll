@@ -7,18 +7,18 @@ import Range from '@/common/util/range';
 let node_types = [];
 
 class IfNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('clause', 'bool'),
             GraphNode.input('trueBranch'),
             GraphNode.input('falseBranch'),
         ];
+    }
 
-        const outputs = [
+    static getOutputs() {
+        return [
             GraphNode.output('result')
         ];
-
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -50,15 +50,15 @@ function make_binop_node(type, sym, {a, b, result}) {
 
     let title = `a ${symbol} b`;
     let BinopNode = class extends GraphNode {
-        constructor(options) {
-            const inputs = [
+        static getInputs() {
+            return [
                 GraphNode.input('a', a),
                 GraphNode.input('b', b)
             ];
+        }
 
-            const outputs = [GraphNode.output(title, result)];
-
-            super(options, inputs, outputs);
+        static getOutputs() {
+            return [GraphNode.output(title, result)];
         }
 
         compile(c) {
@@ -77,10 +77,12 @@ function make_unary_node(type, sym, {a, result}) {
     let title = `${sym}a`;
 
     let UnaryNode = class extends GraphNode {
-        constructor(options) {
-            const inputs = [GraphNode.input('a', a)];
-            const outputs = [GraphNode.output(title, result)];
-            super(options, inputs, outputs);
+        static getInputs() {
+            return [GraphNode.input('a', a)];
+        }
+
+        static getOutputs() {
+            return [GraphNode.output(title, result)];
         }
 
         compile(c) {
@@ -94,10 +96,12 @@ function make_unary_node(type, sym, {a, result}) {
 
 function make_function_node(type, title, fname, args, result) {
     let FuncNode = class extends GraphNode {
-        constructor(options) {
-            const inputs = args.map(([name, argtype]) => GraphNode.input(name, argtype));
-            const outputs = [GraphNode.output(title, result)];
-            super(options, inputs, outputs);
+        static getInputs() {
+            return args.map(([name, argtype]) => GraphNode.input(name, argtype));
+        }
+
+        static getOutputs() {
+            return [GraphNode.output(title, result)];
         }
 
         compile(c) {
@@ -235,19 +239,19 @@ make_function_node('math', 'eˣ', 'exp',
 
 
 class Rotate2D extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', Units.Distance),
             GraphNode.input('y', Units.Distance),
             GraphNode.input('theta', Units.Angle),
         ];
-        const outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('x\'', Units.Distance),
             GraphNode.output('y\'', Units.Distance),
         ];
-        super(options, inputs, outputs);
     }
-
     compile(c) {
         const x = c.getInput(this, 0);
         const y = c.getInput(this, 1);
@@ -277,18 +281,21 @@ Rotate2D.title = '2D rotation';
 node_types.push(['2d/rotate', Rotate2D]);
 
 class Scale2D extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', Units.Distance),
             GraphNode.input('y', Units.Distance),
             GraphNode.input('scale', Units.Numeric),
         ];
-        const outputs = [
+    }
+
+    static getOutputs() {
+        return [
             GraphNode.output('x\'', Units.Distance),
             GraphNode.output('y\'', Units.Distance),
         ];
-        super(options, inputs, outputs);
     }
+
     compile(c) {
         let x = c.getInput(this, 0);
         let y = c.getInput(this, 1);
@@ -303,19 +310,18 @@ Scale2D.title = '2D scale';
 node_types.push(['2d/scale', Scale2D]);
 
 class Polar2D extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', Units.Distance),
             GraphNode.input('y', Units.Distance),
         ];
-
-        const outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('r', Units.Numeric),
             GraphNode.output('theta', Units.Angle),
         ];
-        super(options, inputs, outputs);
     }
-
     compile(c) {
         const x = c.getInput(this, 0);
         const y = c.getInput(this, 1);
@@ -338,19 +344,20 @@ Polar2D.title = '2D polar';
 node_types.push(['2d/polar', Polar2D]);
 
 class Scale3D extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('x', Units.Distance),
             GraphNode.input('y', Units.Distance),
             GraphNode.input('z', Units.Distance),
             GraphNode.input('scale', Units.Numeric),
         ];
-        const outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('x\'', Units.Distance),
             GraphNode.output('y\'', Units.Distance),
             GraphNode.output('z\'', Units.Distance),
         ];
-        super(options, inputs, outputs);
     }
     compile(c) {
         let x = c.getInput(this, 0);
@@ -369,19 +376,17 @@ node_types.push(['3d/scale', Scale3D]);
 
 
 class RangeNode extends GraphNode {
-    constructor(options) {
-        let inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('min', Units.Numeric),
             GraphNode.input('max', Units.Numeric),
         ];
-
-        let outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('range', 'Range'),
         ];
-
-        super(options, inputs, outputs);
     }
-
     compile(c) {
         const min = c.getInput(this, 0);
         const max = c.getInput(this, 1);
@@ -394,15 +399,17 @@ RangeNode.title = 'Range';
 node_types.push(['util/range', RangeNode]);
 
 class ConstNode extends GraphNode {
-    constructor(options) {
+    static getInputs() {
         const inp = GraphNode.input('constant', Units.Numeric);
         inp.settings.read_only = true;
-        const inputs = [inp];
-        const outputs = [
-            GraphNode.output('', Units.Numeric),
-        ];
+        return [inp];
+    }
+    static getOutputs() {
+        return [GraphNode.output('', Units.Numeric)];
+    }
+    constructor(options) {
         options.properties = {constant: 0, ...options.properties};
-        super(options, inputs, outputs);
+        super(options);
     }
 
     compile(c) {
@@ -414,20 +421,23 @@ ConstNode.title = 'Constant';
 node_types.push(['util/constant', ConstNode]);
 
 class ClampNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('value', Units.Numeric),
             GraphNode.input('range', 'Range'),
         ];
+    }
+    static getOutputs() {
+        return [GraphNode.output('clamped', Units.Numeric)];
+    }
+    constructor(options) {
 
         options.properties = {
             range: new Range(0, 1, 0, 1),
             ...options.properties,
         };
 
-        const outputs = [GraphNode.output('clamped', Units.Numeric)];
-
-        super(options, inputs, outputs);
+        super(options);
     }
 
     compile(c) {
@@ -463,18 +473,20 @@ export default function register_pattern_nodes() {
 };
 
 class LerpNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('from', Units.Numeric),
             GraphNode.input('to', Units.Numeric),
             GraphNode.input('pct', Units.Percentage),
         ];
+    }
 
-        const outputs = [
+    static getOutputs() {
+        return [
             GraphNode.output('result', Units.Numeric)
         ];
-        super(options, inputs, outputs);
     }
+
     compile(c) {
         const a = c.getInput(this, 0);
         const b = c.getInput(this, 1);
@@ -486,15 +498,15 @@ class LerpNode extends GraphNode {
 LerpNode.title = 'Lerp';
 node_types.push(['util/lerp', LerpNode]);
 class MirrorNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('t', Units.Numeric)
         ];
-
-        const outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('mirrored', Units.Numeric),
         ];
-        super(options, inputs, outputs);
     }
 
     compile(c) {
@@ -516,22 +528,20 @@ MirrorNode.title = 'Mirror';
 node_types.push(['util/mirror', MirrorNode]);
 
 class RemapNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('value', Units.Numeric),
             GraphNode.input('fromLow', Units.Numeric),
             GraphNode.input('fromHigh', Units.Numeric),
             GraphNode.input('toLow', Units.Numeric),
             GraphNode.input('toHigh', Units.Numeric),
         ];
-
-        const outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('remapped', Units.Numeric),
         ];
-
-        super(options, inputs, outputs);
     }
-
     compile(c) {
         const numInputs = this.input_info.length;
 
@@ -545,19 +555,17 @@ RemapNode.title = 'Remap';
 node_types.push(['util/remap', RemapNode]);
 
 class MaxNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('a', Units.Numeric),
             GraphNode.input('b', Units.Numeric),
         ];
-
-        const outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('max', Units.Numeric),
         ];
-
-        super(options, inputs, outputs);
     }
-
     compile(c) {
         const a = c.getInput(this, 0);
         const b = c.getInput(this, 1);
@@ -570,20 +578,17 @@ MaxNode.title = 'max';
 node_types.push(['util/max', MaxNode]);
 
 class MinNode extends GraphNode {
-    constructor(options) {
-        const inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('a', Units.Numeric),
             GraphNode.input('b', Units.Numeric),
         ];
-
-        const outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('min', Units.Numeric),
         ];
-
-        super(options, inputs, outputs);
-
     }
-
     compile(c) {
         const a = c.getInput(this, 0);
         const b = c.getInput(this, 1);

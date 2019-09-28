@@ -14,18 +14,19 @@ function frequency_default_parameters() {
 }
 
 class FrequencyNode extends GraphNode {
-    constructor(options) {
-        let inputs = [
+    static getInputs() {
+        return [
             GraphNode.input('value', Units.Numeric),
         ];
-
-        options.parameters = frequency_default_parameters();
-
-        let outputs = [
+    }
+    static getOutputs() {
+        return [
             GraphNode.output('freq', 'Frequency')
         ];
-
-        super(options, inputs, outputs);
+    }
+    constructor(options) {
+        options.parameters = frequency_default_parameters();
+        super(options);
     }
 
     onPropertyChange() {
@@ -49,14 +50,11 @@ FrequencyNode.title = 'Frequency';
 node_types.push(['oscillators/util/frequency', FrequencyNode]);
 
 class TimeNode extends GraphNode {
-    constructor(options) {
-        const inputs = [];
-        const outputs = [
+    static getOutputs() {
+        return [
             GraphNode.output('t', Units.Numeric),
         ];
-        super(options, inputs, outputs);
     }
-
     compile(c) {
         const t = glsl.BinOp(c.getGlobalInput('t'), '/', glsl.Const(60));
         c.setOutput(this, 0, t);
@@ -76,13 +74,19 @@ function applyAmplitude(amplitude, val) {
 
 function make_oscillator(name, {new_phase, value}) {
     let Oscillator = class extends GraphNode {
-        constructor(options) {
-            const outputs = [GraphNode.output('result', Units.Percentage)];
-            const inputs = [
+        static getInputs() {
+            return [
                 GraphNode.input('frequency', 'Frequency'),
                 GraphNode.input('amplitude', 'Range'),
                 GraphNode.input('phase', Units.Percentage),
             ];
+        }
+
+        static getOutputs() {
+            return [GraphNode.output('result', Units.Percentage)];
+        }
+
+        constructor(options) {
             let frequency = new Frequency(1);
 
             const properties = {
@@ -97,7 +101,7 @@ function make_oscillator(name, {new_phase, value}) {
 
             options.properties = { ...properties, ...options.properties };
 
-            super(options, inputs, outputs, { config });
+            super(options, { config });
         }
         // phase is stored in units of cycles (0-1)
         new_phase(cur_phase, frequency, framerate) {

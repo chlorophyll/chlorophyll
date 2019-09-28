@@ -38,15 +38,15 @@ const easingFunctions = [
 
 function makeEasingNode(name) {
     const EasingNode = class extends GraphNode {
-        constructor(options) {
-            const inputs = [
+        static getInputs() {
+            return [
                 GraphNode.input('t', Units.Numeric)
             ];
-
-            const outputs = [
+        }
+        static getOutputs() {
+            return [
                 GraphNode.output('eased', Units.Numeric)
             ];
-            super(options, inputs, outputs);
         }
 
         compile(c) {

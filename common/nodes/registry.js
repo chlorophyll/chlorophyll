@@ -5,7 +5,6 @@ import pixelStageNodes from './pixel_stage';
 import oscillatorNodes from './oscillators';
 import crgbNodes from './color';
 import mappingNodes from './mapping';
-import inputNodes from './osc_address';
 import signalNodes from './signals';
 import syphonNodes from './syphon';
 import videoNodes from './video';
@@ -20,7 +19,6 @@ const staticNodes = [
     pixelStageNodes,
     oscillatorNodes,
     complexNodes,
-    inputNodes,
     syphonNodes,
     videoNodes,
     easingNodes,

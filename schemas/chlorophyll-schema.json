@@ -311,6 +311,12 @@
                     "type": {
                         "type": "string"
                     },
+                    "color": {
+                        "type": "string"
+                    },
+                    "boxcolor": {
+                        "type": "string"
+                    },
                     "input_settings": {
                         "type": "array",
                         "items": {

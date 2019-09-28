@@ -16,6 +16,8 @@ hubs = [
     ( 102.337, -267.923,  177.254), #11
 ]
 
+#https://www.dropbox.com/s/5e43gwe4ecsu68x/icosahedron-numbering.png?dl=0
+
 # this is arbitrary (wrong) for now until I can get my hands on the artpiece
 # just edges, not strips
 green = [(0,1), (0, 3), (0,4), (1,7), (7,11), (4,9)]

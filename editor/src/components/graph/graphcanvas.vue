@@ -17,6 +17,7 @@
         <template v-for="node in nodes">
             <graph-node :node="node"
                         :cur-src="cur_src"
+                        :cur-highlight="cur_highlight"
                         @node-clicked="highlightNode"
                         @dst-hover-start="onDstHover"
                         @dst-hover-end="cur_dst = null"
@@ -47,6 +48,7 @@ export default {
     components: { GraphNode, GraphEdge, NodeConfig },
     props: {
         graph: { type: Object, default: null },
+        dragPath: { type: String, default: null},
     },
 
     data() {
