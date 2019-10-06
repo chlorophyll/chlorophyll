@@ -1,6 +1,11 @@
 import * as glsl from '@/common/glsl';
 import * as glslify from 'glslify';
 
+import * as GlslOptimizerModule from 'glsl-optimizer-js';
+
+const optimizer = new GlslOptimizerModule();
+const optimize = optimizer.cwrap('optimize_glsl', 'string', ['string', 'number', 'number']);
+
 let global_decls = [];
 let types = new Map();
 
@@ -64,9 +69,11 @@ export let Compilation = {
         ]);
         const toplevel = Compilation.global_decls().join('\n');
         const sourceString = toplevel + glsl.generate(ast);
-        return glslify.compile(sourceString, {
+        const unoptimized = glslify.compile(sourceString, {
             basedir: global.__glslifyBasedir || __dirname, //eslint-disable-line
         });
+
+        return optimize(unoptimized, 3, false);
     }
 
 };

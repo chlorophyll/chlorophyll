@@ -1107,6 +1107,11 @@ glsl-noise@^0.0.0:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/glsl-noise/-/glsl-noise-0.0.0.tgz#367745f3a33382c0eeec4cb54b7e99cfc1d7670b"
 
+glsl-optimizer-js@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/glsl-optimizer-js/-/glsl-optimizer-js-0.0.2.tgz#ac6eaa96bd8240c068dc9cdc9f42017312af6fdc"
+  integrity sha512-SMkVILyc1LeBEBgiHOe+4Bh8MEqxLNyAns0NfgmxJTxZZdj7oCoZt+n846rbdB8OLGsg16f5C9nmhi9XEuM8SQ==
+
 glsl-resolve@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/glsl-resolve/-/glsl-resolve-0.0.1.tgz#894bef73910d792c81b5143180035d0a78af76d3"
