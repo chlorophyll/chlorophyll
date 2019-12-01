@@ -4870,7 +4870,7 @@ wolfy87-eventemitter@5.2.5:
 
 "wpe-webgl@git+https://github.com/chlorophyll/node-wpe-webgl.git":
   version "0.0.5"
-  resolved "git+https://github.com/chlorophyll/node-wpe-webgl.git#dd41c30f127864bf1eb73e35bfcf56aa0eed8134"
+  resolved "git+https://github.com/chlorophyll/node-wpe-webgl.git#e052c91dee326d601f7e7da19d969a7b8a578d51"
   dependencies:
     nan "^2.1.0"
 
