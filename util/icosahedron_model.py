@@ -18,7 +18,6 @@ hubs = [
 
 #https://www.dropbox.com/s/5e43gwe4ecsu68x/icosahedron-numbering.png?dl=0
 
-# this is arbitrary (wrong) for now until I can get my hands on the artpiece
 # just edges, not strips
 green = [(0,1), (0, 3), (0,4), (1,7), (7,11), (4,9)]
 purple = [(0,2), (0,5), (2,3), (3,8), (8,9), (9,11)]
@@ -26,6 +25,7 @@ red = [(3,4), (4,5), (3,9), (9,10), (5,10), (10,11)]
 orange = [(5,1), (1,2), (2,7), (2,8), (7,8), (8,11)]
 yellow = [(11,6), (6,7), (6,10), (6,1), (6,5), (10,4)]
 
+# both the order (which strip corresponds to which numbered label) and the orientation of each edge are arbitrary
 strips = [[ #green
     ((11, 7), 6),
     (( 7, 1), 6),
