@@ -129,18 +129,19 @@ export default class TransformMapping implements T.PixelMapping {
             case 'cylinder3d':
                 // x, y, z -> r, theta, z
                 const polar = new Vector2(cart.x, cart.z);
-                return new Vector3(polar.length(), polar.angle(), cart.y);
+                return new Vector3(2*polar.length(), polar.angle(), cart.y);
 
             case 'sphere3d':
-                const r = cart.length();
+                const recentered = cart.clone().multiplyScalar(2).subScalar(1);
+                const r = recentered.length();
                 if (r === 0)
                     return new Vector3(r, 0, 0);
 
                 // longitude
-                const theta = new Vector2(cart.x, cart.z).angle();
+                const theta = new Vector2(recentered.x, recentered.z).angle();
                 // latitude, 0 -> south pole, 1 -> north pole
                 const south = new Vector3(0, -1, 0);
-                const phi = south.angleTo(cart) * 2;
+                const phi = south.angleTo(recentered) * 2;
 
                 return new Vector3(r, theta, phi);
 

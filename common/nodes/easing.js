@@ -50,7 +50,8 @@ function makeEasingNode(name) {
         }
 
         compile(c) {
-            const t = c.getInput(this, 0);
+            const t = glsl.FunctionCall('clamp', [c.getInput(this, 0), glsl.Const(0), glsl.Const(1)]);
+            //const t = c.getInput(this, 0);
             const func = c.import(`glsl-easings/${name}`);
             c.setOutput(this, 0, glsl.FunctionCall(func, [t]));
         }
