@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import * as tar from 'tar-stream';
 import concatStream from 'concat-stream';
 
@@ -23,7 +24,7 @@ function stringStream(next, cb) {
     });
 }
 
-function restoreSaveObject(obj) {
+function restoreSaveObject(obj, projectDir) {
     let state = {};
     nodeRegistry.refreshFromSavedState(obj);
 
@@ -46,13 +47,13 @@ function restoreSaveObject(obj) {
 
     state.obj = obj;
 
-    restoreAllGraphs(obj.graphs);
+    restoreAllGraphs(obj.graphs, projectDir);
 
     return state;
 }
 
-function restoreSave(path, version, content) {
-    const msg = `${path} is not a valid Chlorophyll project file.`;
+function restoreSave(filepath, version, content) {
+    const msg = `${filepath} is not a valid Chlorophyll project file.`;
 
     let obj;
 
@@ -77,10 +78,11 @@ function restoreSave(path, version, content) {
     //     throw new Error(msg);
     // }
 
-    return restoreSaveObject(obj);
+    const projectDir = path.dirname(filepath);
+    return restoreSaveObject(obj, projectDir);
 }
 
-export function readSavefile(path) {
+export function readSavefile(filepath) {
     return new Promise((resolve, reject) => {
         let extract = tar.extract();
         let content = '';
@@ -103,18 +105,18 @@ export function readSavefile(path) {
 
         extract.on('finish', () => {
             try {
-                let res = restoreSave(path, version, content);
+                let res = restoreSave(filepath, version, content);
                 resolve(res);
             } catch (err) {
                 extract.emit('error', err);
             }
         });
 
-        fs.createReadStream(path).pipe(extract);
+        fs.createReadStream(filepath).pipe(extract);
     });
 }
 
-export function writeSavefile(path, state) {
+export function writeSavefile(filepath, state) {
     return new Promise((resolve, reject) => {
         const playlists = savePlaylists(state);
         const mergedState = {
@@ -129,7 +131,7 @@ export function writeSavefile(path, state) {
         pack.entry({'name': 'data'}, contents);
         pack.finalize();
 
-        const fstream = fs.createWriteStream(path);
+        const fstream = fs.createWriteStream(filepath);
         fstream.on('close', () => resolve());
         fstream.on('error', err => reject(err));
         pack.pipe(fstream);

@@ -1,7 +1,7 @@
 import _ from 'lodash';
-import sharp from 'sharp';
-import { argv } from 'yargs';
+import * as yargs from 'yargs';
 import chalk from 'chalk';
+import * as os from 'os';
 import * as path from 'path';
 import * as address from 'address';
 import * as realtime from './realtime';
@@ -19,25 +19,43 @@ import PlaylistRunner, { createPlaylist } from './playlist';
 
 import * as WebGL from 'wpe-webgl';
 
-const SAMPLES = 15;
+const argv = yargs
+  .usage('USAGE: $0 [options] <project-filepath.chl>')
+  .option('a', {
+    alias: 'autostart',
+    type: 'boolean',
+    default: false,
+    describe: 'Immediately start playing the selected playlist, or the first found if none is specified.'
+  })
+  .option('p', {
+    alias: 'port',
+    type: 'number',
+    default: 3000,
+    describe: 'Port for operator UI webserver'
+  })
+  .check(argv => argv._.length === 1)
+  .argv;
+
+let port = argv.port || 3000;
+let filename = path.resolve(argv._[0]);
+
+let group;
+let client;
+let patternRunner;
+let playlistRunner;
+
+let isPlaying = false;
+let state;
+let realtimeState;
+let patternsById = {};
+
+const app = express();
 
 const gl = WebGL.initHeadless();
 gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
-console.log(gl.getParameter(gl.VERSION));
 
-let isPlaying = false;
-const app = express();
-const port = 3000;
-let group;
-let client;
-let patternRunner;
-
-let state;
-let realtimeState;
-let playlistRunner;
-
-const patternsById = {};
+console.log(`GL version: ${gl.getParameter(gl.VERSION)}`);
 
 process.on('uncaughtException', function (err) {
     console.log(err);
@@ -105,8 +123,6 @@ function runPattern(pattern, group, mapping) {
     patternRunner.start();
     runAnimation(frame);
 }
-
-const filename = argv._[0];
 
 async function generatePatternInfo() {
     const mappingsByType = _.groupBy(_.values(state.mappings), m => m.type);
@@ -322,7 +338,7 @@ function sendBlackFrame() {
 }
 
 init().catch((e) => {
-    //console.log(chalk.red(e));
+    console.log(chalk.red(e));
     console.log(chalk.red(e.stack));
     process.exit(1);
 });
@@ -488,6 +504,8 @@ app.post('/api/newgid', (req, res) => {
 });
 
 const external = address.ip();
+const hostname = os.hostname();
+const portString = port === 80 ? '' : `:${port}`;
 
 const server = app.listen(port, () => {
     console.log();
@@ -495,10 +513,19 @@ const server = app.listen(port, () => {
     console.log('App running at: ');
     console.log(    ` -   local:   ${chalk.cyan.bold(`http://localhost:${port}/`)}`);
     if (external) {
-        console.log(` - Network:   ${chalk.cyan.bold(`http://${external}:${port}/`)}`);
+        console.log(` - Network: by IP: ${chalk.cyan.bold(`http://${external}${portString}/`)}`);
+        console.log(`      or hostname: ${chalk.cyan.bold(`http://${hostname}.local${portString}/`)}`);
     }
     console.log();
     console.log();
 });
 
 realtime.listen(server);
+
+if (argv.autostart) {
+  setTimeout(() => {
+    const index = 0;
+    console.log(`Auto-starting playlist ${0}`);
+    runPlaylist(index);
+  }, 5000);
+}

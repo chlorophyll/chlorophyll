@@ -1,11 +1,8 @@
 import GraphLib, { GraphBase } from '@/common/graphlib';
 import EventEmitter from 'events';
 import * as path from 'path';
-import * as fs from 'fs';
-import { argv } from 'yargs';
-const filename = argv._[0];
-const mediaFolder = path.join(path.dirname(filename), 'media');
 
+let mediaFolder = '/tmp/chlorophyll-media';
 function vm_factory(graph, node, data) {
     return {
         ...data,
@@ -36,13 +33,14 @@ export class Graph extends GraphBase {
         return graph;
     }
 
-    addNode(path, options) {
+    addNode(nodePath, options) {
         const { id } = options;
-        return super.addNode(path, id, vm_factory, options);
+        return super.addNode(nodePath, id, vm_factory, options);
     }
 }
 
-export function restoreAllGraphs(graphset) {
+export function restoreAllGraphs(graphset, projectDir) {
+    mediaFolder = path.join(projectDir, 'media');
     GraphLib.restore(graphset.map(Graph.restore));
 }
 
