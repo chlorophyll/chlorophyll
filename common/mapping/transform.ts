@@ -126,10 +126,12 @@ export default class TransformMapping implements T.PixelMapping {
             case 'cartesian3d':
                 return cart;
 
-            case 'cylinder3d':
+            case 'cylinder3d': {
+                const recentered = cart.clone().multiplyScalar(2).subScalar(1);
                 // x, y, z -> r, theta, z
-                const polar = new Vector2(cart.x, cart.z);
-                return new Vector3(2*polar.length(), polar.angle(), cart.y);
+                const polar = new Vector2(recentered.x, recentered.z);
+                return new Vector3(polar.length(), polar.angle(), cart.y);
+            }
 
             case 'sphere3d':
                 const recentered = cart.clone().multiplyScalar(2).subScalar(1);
