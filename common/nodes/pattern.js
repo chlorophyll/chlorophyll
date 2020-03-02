@@ -260,7 +260,7 @@ class Rotate2D extends GraphNode {
         const sv = c.declare('float', c.variable(), glsl.FunctionCall('sin', [theta]));
         const cv = c.declare('float', c.variable(), glsl.FunctionCall('cos', [theta]));
 
-        const origin = glsl.FunctionCall('vec2', [glsl.Const(-0.0)]);
+        const origin = glsl.FunctionCall('vec2', [glsl.Const(0.5)]);
 
         const vec = glsl.BinOp(glsl.FunctionCall('vec2', [x, y]), '-', origin);
 
