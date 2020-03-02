@@ -415,6 +415,7 @@ export default {
             this.nodeset = nodeset;
             this.edgeset = edgeset;
             this.nodes_configuring = [];
+            this.resetZoom();
         },
     }
 };
