@@ -271,6 +271,10 @@ export default {
 
             const mapping = this.getMapping(this.preview_map_id);
 
+            if (!mapping) {
+                return null;
+            }
+
             if (mapping.type !== this.cur_pattern.mapping_type) {
                 return null;
             } else {
@@ -278,7 +282,14 @@ export default {
             }
         },
         preview_group() {
-            return this.preview_group_id !== null ? this.getGroup(this.preview_group_id) : null;
+            if (this.preview_group_id === null) {
+                return null;
+            }
+            const group = this.getGroup(this.preview_group_id);
+            if (!group) {
+                return null;
+            }
+            return group;
         },
         curFpsSample() {
             const last = this.fpsSamples[this.fpsSamples.length-1];
@@ -313,8 +324,8 @@ export default {
                 this.preview_map_id = newval[0].id;
             }
         },
-        groups(newval) {
-            if (this.preview_group_id === null && newval.length > 0) {
+        group_list(newval) {
+            if (this.preview_group === null && newval.length > 0) {
                 this.preview_group_id = newval[0].id;
             }
         },
