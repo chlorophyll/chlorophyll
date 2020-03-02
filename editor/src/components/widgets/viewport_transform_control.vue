@@ -121,6 +121,8 @@ export default {
   beforeDestroy() {
     const viewport = this.mainViewport();
 
+    this.control.dispose();
+
     this.control.removeEventListener('objectChange', this.onChange);
     this.control.removeEventListener('mouseDown', this.onStartManipulate);
     this.control.removeEventListener('mouseUp', this.onEndManipulate);
