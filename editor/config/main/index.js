@@ -40,8 +40,18 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  const webContents = mainWindow.webContents;
+
+  webContents.on('did-finish-load', () => {
+    webContents.setZoomFactor(1);
+    webContents.setVisualZoomLevelLimits(1, 1);
+    webContents.setLayoutZoomLevelLimits(0, 0);
+  });
 }
 
+
+app.commandLine.appendSwitch('disable-pinch');
 app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
