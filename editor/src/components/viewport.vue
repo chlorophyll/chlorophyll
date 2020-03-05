@@ -4,8 +4,8 @@
                 :initial-split="[Const.toolbar_size, null]">
         <div class="panel config" slot="first">
             <div class="t">
-                <button class="smol" @click="openConfig">
-                    <span class="material-icons">settings</span>
+                <button class="smol" @click="openConfig" v-tooltip.right-end="'Project Settings'">
+                    <span class="mdi mdi-cogs" />
                 </button>
             </div>
         <toolbox>

@@ -25,15 +25,19 @@
                           label="main"
                           projection="perspective"
                           :show-toolbox="true">
-                    <tool label="C"
+                    <tool label-classes="mdi mdi-rotate-3d-variant"
                           :is-enabled="true"
+                          v-tooltip.right-end="'Camera'"
                           :hotkey="Hotkey.camera"
                           :momentary-hotkey="Hotkey.momentary_camera"><camera /></tool>
-                    <tool label="M"
+                    <tool label-classes="mdi mdi-selection-drag"
+                          v-tooltip.right-end="'Select marquee'"
                           :hotkey="Hotkey.select_marquee"><marquee-selection /></tool>
-                    <tool label="L"
+                    <tool label-classes="mdi mdi-vector-line"
+                          v-tooltip.right-end="'Select line'"
                           :hotkey="Hotkey.select_line"><line-selection /></tool>
-                    <tool label="P"
+                    <tool label-classes="mdi mdi-cube-outline"
+                          v-tooltip.right-end="'Select plane'"
                           :hotkey="Hotkey.select_plane"><plane-selection /></tool>
                 </viewport>
         </split-pane>

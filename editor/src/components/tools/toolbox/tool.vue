@@ -1,7 +1,7 @@
 <template>
     <div class="control">
         <button class="smol" :class="{ highlighted: enabled }" @click="selected">
-            {{ label }}
+            <span :class="labelClasses">{{ label }}</span>
         </button>
         <slot />
     </div>
@@ -17,7 +17,9 @@ export default {
     },
     props: {
         label: {
-            required: true,
+            type: String,
+        },
+        labelClasses: {
             type: String,
         },
         hotkey: {
