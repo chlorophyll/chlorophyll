@@ -6,37 +6,87 @@ import Range from '@/common/util/range';
 
 let node_types = [];
 
+function glslNot(x) {
+    return glsl.BinOp(glsl.Const(1), '-', x);
+}
+
+function glslWhenNeq(x, y) {
+    const diff = glsl.BinOp(x, '-', y);
+    return glsl.FunctionCall('abs', [glsl.FunctionCall('sign', [diff])]);
+}
+
+function glslWhenEq(x, y) {
+    return glslNot(glslWhenNeq(x, y));
+}
+
+function glslWhenGt(x, y) {
+    const diff = glsl.BinOp(x, '-', y);
+    const sgn = glsl.FunctionCall('sign', [diff]);
+    return glsl.FunctionCall('max', [sgn, glsl.Const(0)]);
+}
+
+function glslWhenLt(x, y) {
+    return glslWhenGt(y, x);
+}
+
+function glslWhenGte(x, y) {
+    return glslNot(glslWhenLt(x, y));
+}
+
+function glslWhenLte(x, y) {
+    return glslNot(glslWhenGt(x, y));
+}
+
 class IfNode extends GraphNode {
     static getInputs() {
         return [
-            GraphNode.input('clause', 'bool'),
-            GraphNode.input('trueBranch'),
-            GraphNode.input('falseBranch'),
+            GraphNode.input('clause', Units.Numeric),
+            GraphNode.input('trueBranch', Units.Numeric),
+            GraphNode.input('falseBranch', Units.Numeric),
         ];
     }
 
     static getOutputs() {
         return [
-            GraphNode.output('result')
+            GraphNode.output('result', Units.Numeric),
         ];
     }
 
     compile(c) {
-        let clause = c.getInput(this, 0);
-        let {v: trueBranch, type} = c.getInputAndInferType(this, 1, 'number');
-        let falseBranch = c.getInput(this, 2);
+        const cond = c.getInput(this, 0);
+        const t = c.getInput(this, 1);
+        const f = c.getInput(this, 1);
 
-        if (!type) {
-            type = 'number';
-        }
-
-        c.setOutput(this, 0, glsl.TernaryOp(clause, trueBranch, falseBranch), type);
+        c.setOutput(this, 0, glsl.FunctionCall('mix', [f, t, glslWhenEq(cond, glsl.Const(1))]));
     }
-};
+}
 
 IfNode.title = 'if';
-
 node_types.push(['logic/if', IfNode]);
+
+function make_conditional_node(title, fn, n) {
+
+    const node = class extends GraphNode {
+        static getInputs() {
+            const nodes = [
+                GraphNode.input('a', Units.Numeric),
+                GraphNode.input('b', Units.Numeric),
+            ];
+            return nodes.slice(0, n);
+        }
+        static getOutputs() {
+            return [GraphNode.output(title, Units.Numeric)];
+        }
+
+        compile(c) {
+            const inps = _.range(n).map(i => c.getInput(this, i));
+            c.setOutput(this, 0, fn(...inps));
+        }
+    };
+    node.title = title;
+    node_types.push([`logic/${title}`, node]);
+}
+
 
 function make_binop_node(type, sym, {a, b, result}) {
     let symbol, named;
@@ -73,27 +123,6 @@ function make_binop_node(type, sym, {a, b, result}) {
     node_types.push([`${type}/${named}`, BinopNode]);
 };
 
-function make_unary_node(type, sym, {a, result}) {
-    let title = `${sym}a`;
-
-    let UnaryNode = class extends GraphNode {
-        static getInputs() {
-            return [GraphNode.input('a', a)];
-        }
-
-        static getOutputs() {
-            return [GraphNode.output(title, result)];
-        }
-
-        compile(c) {
-            let inp = c.getInput(this, 0);
-            c.setOutput(this, 0, glsl.UnOp(sym, inp));
-        }
-    };
-    UnaryNode.title = title;
-    node_types.push([`${type}/${title}`, UnaryNode]);
-}
-
 function make_function_node(type, title, fname, args, result) {
     let FuncNode = class extends GraphNode {
         static getInputs() {
@@ -120,35 +149,19 @@ function make_function_node(type, title, fname, args, result) {
 
 
 // Logic
-
-make_unary_node('logic', '!', {result: 'bool'});
-make_binop_node('logic', '==', {result: 'bool'});
-make_binop_node('logic', '&&', {result: 'bool'});
-make_binop_node('logic', '||', {result: 'bool'});
-
-make_binop_node('logic', '<', {
-    a: Units.Numeric,
-    b: Units.Numeric,
-    result: 'bool'
-});
-
-make_binop_node('logic', '<=', {
-    a: Units.Numeric,
-    b: Units.Numeric,
-    result: 'bool'
-});
-
-make_binop_node('logic', '>', {
-    a: Units.Numeric,
-    b: Units.Numeric,
-    result: 'bool'
-});
-
-make_binop_node('logic', '>=', {
-    a: Units.Numeric,
-    b: Units.Numeric,
-    result: 'bool'
-});
+make_conditional_node('!', glslNot, 1);
+make_conditional_node('==', glslWhenEq, 2);
+make_conditional_node('!=', glslWhenNeq, 2);
+make_conditional_node('&&', (x, y) => {
+    return glsl.BinOp(x, '*', y);
+}, 2);
+make_conditional_node('||', (x, y) => {
+    return glsl.FunctionCall('clamp', [glsl.BinOp(x, '+', y), glsl.Const(0), glsl.Const(1)]);
+}, 2);
+make_conditional_node('<', glslWhenLt, 2);
+make_conditional_node('>', glslWhenGt, 2);
+make_conditional_node('<=', glslWhenLte, 2);
+make_conditional_node('>=', glslWhenGte, 2);
 
 // math
 make_binop_node('math', {symbol: '+', named: 'add'}, {
