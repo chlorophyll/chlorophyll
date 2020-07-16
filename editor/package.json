@@ -66,7 +66,7 @@
     "html-webpack-plugin": "^3.2.0",
     "js-yaml": "^3.13.1",
     "keyboardjs": "^2.3.4",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.19",
     "numeral": "^2.0.6",
     "osc": "^2.2.4",
     "pixelpusher-driver": "https://github.com/chlorophyll/pixelpusher-driver",
