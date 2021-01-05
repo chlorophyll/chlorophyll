@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@mdi/font": "^3.8.95",
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "core-js": "^2.6.5",
     "diff-match-patch": "^1.0.4",
     "json0-ot-diff": "^1.0.5",
