@@ -47,7 +47,7 @@
     "sharedb": "^1.0.0-beta.23",
     "sharp": "^0.23.0",
     "tar-stream": "^1.5.4",
-    "three": "^0.87.1",
+    "three": "^0.125.0",
     "tmp": "^0.1.0",
     "tmp-promise": "^2.0.2",
     "twgl.js": "^4.4.0",
