@@ -209,7 +209,11 @@ export function settingsFromUserConfig(config: UserConfig, model: ModelBase): Ar
             const numPixels = model.numPixelsInStrip(stripIdx);
             const startUniverse = prevEndUniverse+1;
             const endChannel = numPixels * 3 - 1;
-            const endUniverse = startUniverse + Math.floor(endChannel / maxChannelsInUniverse);
+            let endUniverse = startUniverse + Math.floor(endChannel / maxChannelsInUniverse);
+            // XXX EGREGIOUS HACK LOL
+            if (stripLabel.includes('wing'))
+                endUniverse = startUniverse + 2
+                
             mappings.push({
                 controller: {host},
                 strip: stripIdx,

@@ -87,7 +87,7 @@ function runPattern(pattern, group, mapping) {
         patternRunner.step(time, readbuf);
         [prevPixels, pixels] = [pixels, prevPixels];
         if (readbuf) {
-            client.sendFrame(readbuf);
+            safeSendFrame(client, readbuf);
         }
 
         if (time > 0 && time % 300 === 0) {
@@ -183,7 +183,7 @@ function runPlaylist(index) {
 
         [prevPixels, pixels] = [pixels, prevPixels];
         if (readbuf) {
-            client.sendFrame(readbuf);
+            safeSendFrame(client, readbuf);
         }
         if (frames > 0 && frames % 300 === 0) {
             const diff = process.hrtime(curTime);
@@ -308,10 +308,19 @@ function isReady() {
     return !!state;
 }
 
+function safeSendFrame(client, buf) {
+  try {
+    client.sendFrame(buf);
+  } catch (e) {
+    console.error('Failed to push frame! Dropping and continuing.');
+    console.error(e);
+  }
+}
+
 function sendBlackFrame() {
     const w = state.model.textureWidth;
     const buf = new Float32Array(w * w * 4);
-    client.sendFrame(buf);
+    safeSendFrame(client, buf);
 }
 
 init().catch((e) => {

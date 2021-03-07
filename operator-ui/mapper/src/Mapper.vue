@@ -48,11 +48,17 @@
 
 <script>
 import {mapState, mapActions} from 'vuex';
+import keyboard from 'keyboardjs';
 import store from './store';
 
 export default {
   name: 'Mapper',
   store,
+  mounted() {
+    keyboard.bind('p', () => this.increment());
+    keyboard.bind('m', () => this.decrement());
+    keyboard.bind('space', () => this.next());
+  },
   computed: {
     ...mapState(['guess', 'col', 'panel', 'mode']),
     noun() {

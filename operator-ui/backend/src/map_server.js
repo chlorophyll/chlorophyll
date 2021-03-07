@@ -25,12 +25,12 @@ const mappers = {};
 //}
 //
 const panels = [
-    'controller_left_1',
-    'controller_left_2',
-    'controller_left_3',
-    'controller_right_1',
-    'controller_right_2',
-    'controller_right_3'
+    'controller-left-1',
+    'controller-left-2',
+    'controller-left-3',
+    'controller-right-1',
+    'controller-right-2',
+    'controller-right-3'
 ];
 
 async function initMappers() {
