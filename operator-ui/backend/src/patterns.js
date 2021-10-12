@@ -4,9 +4,15 @@ import ffmpeg from 'fluent-ffmpeg';
 import ffmpegBin from 'ffmpeg-static';
 import {Readable} from 'stream';
 import tmp from 'tmp-promise';
+import crypto from 'crypto';
+import os from 'os';
+import path from 'path';
+import fs from 'fs';
 import PatternRunner from '@/common/patterns/runner';
 
 ffmpeg.setFfmpegPath(ffmpegBin.path);
+
+const previewDir = path.join(os.homedir(), '.chlorophyll-previews');
 
 class FrameStream extends Readable {
   constructor(model, runner, duration, options) {
@@ -58,7 +64,6 @@ export default class Pattern {
 
     this.runnersByMappingId = {};
 
-    this.staticPreviewsByMappingId = {};
     this.animatedPreviewsByMappingId = {};
     this.defaultRunner = this.getRunner(this.group, firstMapping);
     this.defaults = {
@@ -84,11 +89,18 @@ export default class Pattern {
   }
 
   async getStaticPreviewAsync(mapping) {
+    const hasher = crypto.createHash('sha256');
+    hasher.update(JSON.stringify({pattern: this.pattern, mapping: mapping.id}));
+    const patternHash = hasher.digest('hex');
+    const previewPath = path.join(previewDir, `${patternHash}.png`);
     try {
-      if (this.staticPreviewsByMappingId[mapping.id]) {
-        return this.staticPreviewsByMappingId[mapping.id];
+      if (fs.existsSync(previewPath)) {
+        return previewPath;
       }
-      const tmpFile = await tmp.file();
+
+      if (!fs.existsSync(previewDir)) {
+        fs.mkdirSync(previewDir);
+      }
 
       const runner = this.getRunner(this.group, mapping);
       const w = this.model.textureWidth;
@@ -111,10 +123,9 @@ export default class Pattern {
           height: w,
           channels: 3,
         }
-      }).png().toFile(tmpFile.path);
+      }).png().toFile(previewPath);
 
-      this.staticPreviewsByMappingId[mapping.id] = tmpFile.path;
-      return tmpFile.path;
+      return previewPath;
     } catch (e) {
       console.log('error', e);
       return null;
