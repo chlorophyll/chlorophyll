@@ -104,8 +104,8 @@ function make_oscillator(name, {new_phase, value}) {
             super(options, { config });
         }
         // phase is stored in units of cycles (0-1)
-        new_phase(cur_phase, frequency, framerate) {
-            return new_phase(cur_phase, frequency, framerate);
+        new_phase(cur_phase, frequency) {
+            return new_phase(cur_phase, frequency);
         }
 
         value(cur_phase, amplitude, phase_offset) {
@@ -124,9 +124,8 @@ function make_oscillator(name, {new_phase, value}) {
                 const out_phase = glsl.Ident('out_phase');
 
                 const frequency = c.getInput(this, 0);
-                const framerate = 60;
                 const cond = glsl.BinOp(cur_oscillator, '==', glsl.Ident(oscillator_id));
-                const next_phase = this.new_phase(cur_phase, frequency, framerate);
+                const next_phase = this.new_phase(cur_phase, frequency);
                 const stmt = glsl.IfStmt(cond, [
                     glsl.BinOp(out_phase, '=', next_phase),
                     glsl.Return(),
@@ -157,8 +156,8 @@ function make_oscillator(name, {new_phase, value}) {
 
 // 2.*abs(t/p - floor(t/p+0.5));
 make_oscillator('triangle', {
-    new_phase(cur_phase, frequency, framerate) {
-        const t = glsl.Const(1/framerate);
+    new_phase(cur_phase, frequency) {
+        const t = glsl.Ident('frametime');
         const p = glsl.BinOp(glsl.Const(1), '/', frequency);
         return glsl.BinOp(cur_phase, '+', glsl.BinOp(t, '/', p));
     },
@@ -177,8 +176,8 @@ make_oscillator('triangle', {
 
 // (2*floor(f*t)-floor(2*f*t))+1
 make_oscillator('square', {
-    new_phase(cur_phase, frequency, framerate) {
-        const c = glsl.Const(1/framerate);
+    new_phase(cur_phase, frequency) {
+        const c = glsl.Ident('frametime');
         return glsl.BinOp(cur_phase, '+', glsl.BinOp(frequency, '*', c));
     },
     value(cur_phase, phase_offset) {
@@ -199,8 +198,8 @@ make_oscillator('square', {
 
 // t - floor(t)
 make_oscillator('saw', {
-    new_phase(cur_phase, frequency, framerate) {
-        const c = glsl.Const(1/framerate);
+    new_phase(cur_phase, frequency) {
+        const c = glsl.Ident('frametime');
         return glsl.BinOp(cur_phase, '+', glsl.BinOp(frequency, '*', c));
     },
     value(cur_phase, phase_offset) {
@@ -210,8 +209,8 @@ make_oscillator('saw', {
 });
 
 make_oscillator('sine', {
-    new_phase(cur_phase, frequency, framerate) {
-        const c = glsl.Const(1/framerate);
+    new_phase(cur_phase, frequency) {
+        const c = glsl.Ident('frametime');
         return glsl.BinOp(cur_phase, '+', glsl.BinOp(c, '*', frequency));
     },
 
@@ -225,8 +224,8 @@ make_oscillator('sine', {
     }
 });
 make_oscillator('cos', {
-    new_phase(cur_phase, frequency, framerate) {
-        const c = glsl.Const(1/framerate);
+    new_phase(cur_phase, frequency) {
+        const c = glsl.Ident('frametime');
         return glsl.BinOp(cur_phase, '+', glsl.BinOp(c, '*', frequency));
     },
 

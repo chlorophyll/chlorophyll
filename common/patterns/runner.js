@@ -7,6 +7,8 @@ import { mappingHasView, createFromConfig} from '@/common/mapping';
 import { glTrace } from '@/common/util/gl_debug';
 import { ShaderRunner, getFloatingPointTextureOptions } from '@/common/util/shader_runner';
 import * as twgl from 'twgl.js';
+import process from 'process';
+
 
 function extractFromTexture(target, ident, vec2, swizzle) {
     const pos = _.isArray(vec2) ? glsl.FunctionCall('vec2', vec2) : vec2;
@@ -41,6 +43,7 @@ export default class RawPatternRunner {
     }
 
     start() {
+        this.hrtime = undefined;
         this.graph.emit('start');
     }
 
@@ -168,6 +171,7 @@ export default class RawPatternRunner {
             glsl.UniformDecl('sampler2D', 'uColor'),
             glsl.UniformDecl('sampler2D', 'tPrev'),
             glsl.UniformDecl('float', 'time'),
+            glsl.UniformDecl('float', 'frametime'),
         ];
 
         const {glslType, glslSwizzle} = this.mapping.getView(this.pattern.coord_type);
@@ -232,6 +236,7 @@ export default class RawPatternRunner {
 
         const uniforms = {
             time: 0,
+            frametime: 1 / 60,
             uCoords: this.uCoords,
             uColor: null,
         };
@@ -279,6 +284,7 @@ export default class RawPatternRunner {
             glsl.UniformDecl('sampler2D', 'uCurPhase'),
             glsl.UniformDecl('sampler2D', 'tPrev'),
             glsl.UniformDecl('float', 'time'),
+            glsl.UniformDecl('float', 'frametime'),
         ];
         const {glslType, glslSwizzle} = this.mapping.getView(this.pattern.coord_type);
 
@@ -315,6 +321,7 @@ export default class RawPatternRunner {
 
         const uniforms = {
             time: 0,
+            frametime: 1/60,
             uCoords: this.uCoords,
             uCurPhase: null,
         };
@@ -342,8 +349,9 @@ export default class RawPatternRunner {
         this._compilePhaseUpdateStage();
     }
 
-    updateUniforms(shader, time) {
+    updateUniforms(shader, time, frametime) {
         shader.uniforms.time = time;
+        shader.uniforms.frametime = frametime;
         for (let {name, getValue} of this.graphUniforms) {
             shader.uniforms[name] = getValue();
         }
@@ -354,10 +362,19 @@ export default class RawPatternRunner {
     }
 
     step(time, pixels=null) {
-        this.updateUniforms(this.pixelStage, time);
+        const curtime = process.hrtime();
+        let frametime = 1 / 60;
+        if (this.hrtime) {
+            const secDiff = curtime[0] - this.hrtime[0];
+            const nsDiff = curtime[1] - this.hrtime[1];
+            frametime = secDiff + nsDiff / 1e9;
+        }
+        this.hrtime = curtime;
+
+        this.updateUniforms(this.pixelStage, time, frametime);
         let uCurPhase = null;
         if (this.num_oscillators > 0) {
-            this.updateUniforms(this.phaseUpdateStage, time);
+            this.updateUniforms(this.phaseUpdateStage, time, frametime);
             const uColor = this.pixelStage.prevTexture();
             this.phaseUpdateStage.uniforms['uColor'] = uColor;
             this.phaseUpdateStage.step();
