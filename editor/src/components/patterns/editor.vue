@@ -37,6 +37,12 @@
             </template>
           </select>
           <div class="square" />
+
+          <tempo-tap v-model="bpm" />
+          <div class="tempo-tap">{{bpm.toFixed(0)}}</div>
+
+          
+          <div class="square" />
           <button
             class="square"
             @click="autolayout"
@@ -142,11 +148,14 @@ import SplitPane from '@/components/widgets/split';
 import Tree from '@/components/widgets/tree';
 import GraphCanvas from '@/components/graph/graphcanvas';
 import Sparkline from '@/components/widgets/sparkline';
+import TempoTap from '@/components/widgets/tempo_tap';
 import * as nodeRegistry from '@/common/nodes/registry';
 import { RunState, PatternPreview } from 'chl/patterns/preview';
 import GraphLib from '@/common/graphlib';
 import store from 'chl/vue/store';
 import * as numeral from 'numeral';
+import { input } from '@/common/osc';
+import ot from '@/common/osc/osc_types';
 
 function getNodeList(store) {
     nodeRegistry.refreshFromStore(store);
@@ -174,7 +183,7 @@ function getNodeList(store) {
 
 export default {
     store,
-    components: {Tree, GraphCanvas, SplitPane, PatternPreview, PatternList, Toggle, Sparkline},
+    components: {Tree, GraphCanvas, SplitPane, PatternPreview, PatternList, Toggle, Sparkline, TempoTap},
     mixins: [ConstMixin, mappingUtilsMixin],
     computed: {
         allNodePaths() {
@@ -316,6 +325,7 @@ export default {
             node_list: getNodeList(this.$store),
             query: '',
             dragPath: null,
+            bpm: 120,
         };
     },
     watch: {
@@ -342,6 +352,9 @@ export default {
                 this.stopAnimation();
             }
         },
+      bpm(newval) {
+        input.send('/chlorophyll/tempo', ot.FLOAT32(newval));
+      },
     },
 
     methods: {
@@ -449,7 +462,7 @@ export default {
     user-select: none;
 }
 
-label, .fps-graph, .cur-fps {
+label, .fps-graph, .cur-fps, .tempo-tap {
     display: inline-block;
     vertical-align: middle;
     padding-top: 5px;
@@ -459,7 +472,7 @@ label, .fps-graph, .cur-fps {
     padding-bottom: 5px;
 }
 
-.cur-fps {
+.cur-fps, .tempo-tap {
     padding-left: 5px;
 }
 
