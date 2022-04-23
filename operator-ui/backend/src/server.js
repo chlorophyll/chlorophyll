@@ -16,6 +16,8 @@ import PixelpusherClient from './hardware/pixelpusher';
 import { ArtnetRegistry } from '@/common/hardware/artnet';
 import Pattern from './patterns';
 import PlaylistRunner, { createPlaylist } from './playlist';
+import { input } from '@/common/osc';
+import ot from '@/common/osc/osc_types';
 
 import * as WebGL from 'wpe-webgl';
 
@@ -321,6 +323,11 @@ async function init() {
     realtimeState.on('op', () => {
         const globalBrightness = realtimeState.data.globalBrightness / 100;
         client.setGlobalBrightness(globalBrightness);
+    });
+
+    realtimeState.on('op', () => {
+        const bpm = realtimeState.data.bpm;
+        input.send('/chlorophyll/tempo', ot.FLOAT32(bpm));
     });
 
     let group_id = state.group_list[0];
