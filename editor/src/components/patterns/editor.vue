@@ -340,6 +340,7 @@ export default {
             }
         },
         cur_pattern(newval, oldval) {
+          input.send('/chlorophyll/tempo', ot.FLOAT32(this.bpm));
             if (!this.can_preview) {
                 this.stopAnimation();
             } else if (
