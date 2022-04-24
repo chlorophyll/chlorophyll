@@ -25,7 +25,9 @@ class FrequencyNode extends GraphNode {
         ];
     }
     constructor(options) {
-        options.parameters = frequency_default_parameters();
+        if (!options.parameters) {
+            options.parameters = frequency_default_parameters();
+        }
         super(options);
     }
 
