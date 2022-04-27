@@ -2,6 +2,7 @@ import GraphLib, { GraphNode } from '@/common/graphlib';
 import { Compilation } from '@/common/graphlib/compiler';
 import Units from '@/common/units';
 import * as glsl from '@/common/glsl';
+import blendingModes from '@/common/util/blending_modes';
 
 let node_types = [];
 // vec3 hsv2rgb(vec3 c) {
@@ -341,6 +342,40 @@ const colormaps = [
 
 for (const colormap of colormaps) {
     node_types.push(makeColormapNode(colormap));
+}
+
+
+function makeBlendNode(mode) {
+    const node = class extends GraphNode {
+        static getInputs() {
+            return [
+                GraphNode.input('start', 'CRGB'),
+                GraphNode.input('end', 'CRGB'),
+                GraphNode.input('amount', Units.Numeric),
+            ];
+        }
+
+        static getOutputs() {
+            return [
+                GraphNode.output('output', 'CRGB'),
+            ];
+        }
+
+        compile(c) {
+            const func = c.import(`glsl-blend/${mode}`);
+            const a = c.getInput(this, 0);
+            const b = c.getInput(this, 1);
+            const amount = c.getInput(this, 2);
+            c.setOutput(this, 0, glsl.FunctionCall(func, [a, b, amount]));
+        }
+    };
+
+    node.title = mode;
+    return [`CRGB/blend/${mode}`, node];
+}
+
+for (const {module} of blendingModes) {
+  node_types.push(makeBlendNode(module));
 }
 
 
