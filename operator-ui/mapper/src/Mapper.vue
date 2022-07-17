@@ -57,7 +57,10 @@ export default {
   mounted() {
     keyboard.bind('p', () => this.increment());
     keyboard.bind('m', () => this.decrement());
+    keyboard.bind('shift + p', () => this.bigIncrement());
+    keyboard.bind('shift + m', () => this.bigDecrement());
     keyboard.bind('space', () => this.next());
+    keyboard.bind('shift + space', () => this.prev());
   },
   computed: {
     ...mapState(['guess', 'col', 'panel', 'mode']),

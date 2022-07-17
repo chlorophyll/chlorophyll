@@ -74,7 +74,7 @@ class Counter {
         } catch (e) {
             console.log('error reading file, probably didnt exist');
         }
-        this.cur = this.counts.length;
+        this.cur = 0; //this.counts.length;
         this.frame = new Float32Array(state.model.num_pixels * 4);
         this.initGuess();
     }
@@ -153,7 +153,7 @@ class Columns {
             this.client = new ArtnetRegistry(state.model, settings);
         }
         this.heights = [];
-        this.output = storage(panel);
+        this.output = columnsFile(panel);
         this.history = history(panel);
         try {
             const res = JSON.parse(fs.readFileSync(this.output));
@@ -161,7 +161,7 @@ class Columns {
         } catch (e) {
             console.log('error reading file, probably didnt exist');
         }
-        this.cur = this.heights.length;
+        this.cur = 0; //this.heights.length;
         this.frame = new Float32Array(state.model.num_pixels * 4);
         this.initGuess();
     }
@@ -255,7 +255,7 @@ function filename(panel) {
     return path.join(dataDir, `${panel}.chl`);
 }
 
-function storage(panel) {
+function columnsFile(panel) {
     return path.join(dataDir, `height-${panel}.json`);
 }
 
