@@ -67,8 +67,9 @@ export default class ModelBase {
     forEachPixelInStrip(strip, func) {
         const strip_start = this.strip_offsets[strip];
         const strip_end = this.strip_offsets[strip+1];
-        for (let i = strip_start; i < strip_end; i++) {
-            func(i);
+        for (let globalIdx = strip_start; globalIdx < strip_end; globalIdx++) {
+            const stripLocalIdx = globalIdx - strip_start;
+            func(globalIdx, stripLocalIdx);
         }
     }
 

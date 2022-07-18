@@ -423,25 +423,71 @@ export class Model extends ModelBase {
         const stripMaterial = new THREE.LineBasicMaterial({
             color: 0xffffff,
             linewidth: 1,
-            opacity: 0.50,
+            opacity: 0.80,
+            transparent: true
+        });
+        const highlightStartMaterial = new THREE.LineBasicMaterial({
+            color: 0x00ff30,
+            linewidth: 10,
+            opacity: 1,
+            transparent: true
+        });
+        const highlightEndMaterial = new THREE.LineBasicMaterial({
+            color: 0xff0030,
+            linewidth: 10,
+            opacity: 1,
             transparent: true
         });
 
         for (let strip = 0; strip < this.num_strips; strip++) {
-            let stripGeometry = new THREE.Geometry();
+            // If the strip is long enough to show it, highlight the beginning
+            // and end of the strip to show wiring direction
+            const stripLength = this.numPixelsInStrip(strip);
+            const shouldHighlightEnds = stripLength >= 3;
+            const highlightLength = shouldHighlightEnds
+                ? Math.max(1, Math.floor(stripLength / 20))
+                : 0;
+
+            const stripGeometry = {
+                highlightStart: new THREE.Geometry(),
+                default: new THREE.Geometry(),
+                highlightEnd: new THREE.Geometry(),
+            };
+
             let prevPos = undefined;
-            this.forEachPixelInStrip(strip, (idx) => {
-                const pos = this.getPosition(idx);
+            this.forEachPixelInStrip(strip, (globalIdx, stripLocalIdx) => {
+                const pos = this.getPosition(globalIdx);
+                let destChunk = stripGeometry.default;
+                if (shouldHighlightEnds) {
+                    if (stripLocalIdx < highlightLength) {
+                        destChunk = stripGeometry.highlightStart;
+                    } else if (stripLocalIdx >= (stripLength - highlightLength)) {
+                        destChunk = stripGeometry.highlightEnd;
+                    }
+                }
                 if (prevPos !== undefined) {
-                    stripGeometry.vertices.push(prevPos);
-                    stripGeometry.vertices.push(pos);
+                    destChunk.vertices.push(prevPos);
+                    destChunk.vertices.push(pos);
                 }
                 prevPos = pos;
             });
-            let strip_model = new THREE.LineSegments(stripGeometry, stripMaterial);
-            strip_model.visible = false;
+            const strip_model = {
+                chunks: [
+                    new THREE.LineSegments(stripGeometry.default, stripMaterial),
+                    ...(shouldHighlightEnds
+                        ? [
+                            new THREE.LineSegments(stripGeometry.highlightStart, highlightStartMaterial),
+                            new THREE.LineSegments(stripGeometry.highlightEnd, highlightEndMaterial),
+                        ]
+                        : []
+                    )
+                ]
+            };
+            for (let chunk of strip_model.chunks) {
+                chunk.visible = false;
+                this.scene.add(chunk);
+            }
             this.strip_models.push(strip_model);
-            this.scene.add(strip_model);
         }
     }
 
@@ -453,7 +499,6 @@ export class Model extends ModelBase {
         if (this.model_info.flip_camera) {
             oversizeFactor *= -1;
         }
-
 
         if (camera.isPerspectiveCamera) {
             const fov = camera.fov * ( Math.PI / 180 );
@@ -474,13 +519,15 @@ export class Model extends ModelBase {
 
     // ui
     setStripVisibility(val) {
-        for (let model of this.strip_models) {
-            model.visible = val;
+        for (let strip_model of this.strip_models) {
+            for (let chunk of strip_model.chunks) {
+                chunk.visible = val;
+            }
         }
     }
 
     getStripVisibility() {
-        return this.strip_models[0].visible;
+        return this.strip_models.some(({chunks}) => chunks.some(chunk => chunk.visible));
     }
 
     get display_only() {

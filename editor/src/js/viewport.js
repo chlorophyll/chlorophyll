@@ -100,12 +100,12 @@ export function createCamera(projection, width, height) {
     if (projection === 'perspective') {
         camera = new THREE.PerspectiveCamera(
             45, width / height,
-            1, Const.max_draw_dist);
+            0.1, Const.max_draw_dist);
     } else {
         camera = new THREE.OrthographicCamera(
             width / -2, width / 2,
             height / 2, height / -2,
-            1, Const.max_draw_dist);
+            0.1, Const.max_draw_dist);
         camera.zoom /= 2;
     }
     camera.position.z = 1000;

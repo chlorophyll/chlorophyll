@@ -149,7 +149,7 @@ export default {
         },
         showEffects(val) {
             if (this.bloomPass) {
-                this.bloomPass.enabled = val;
+                this.bloomPass.enabled = false;
             }
         },
         autoRotate(val) {
@@ -239,13 +239,16 @@ export default {
                 0.20 // Threshold
             );
 
+            /*
             if (!this.preview && this.showEffects) {
                 this.bloomPass.enabled = true;
             }
+            */
+            this.bloomPass.enabled = false;
             const screenPass = new THREE.ShaderPass(THREE.CopyShader);
             screenPass.renderToScreen = true;
             this.composer.addPass(this.renderPass);
-            this.composer.addPass(this.bloomPass);
+            // this.composer.addPass(this.bloomPass);
             this.composer.addPass(screenPass);
         },
 
