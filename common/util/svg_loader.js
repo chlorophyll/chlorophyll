@@ -115,6 +115,12 @@ export class SVGLoader {
 
         if (path) {
             this.transformPath(path, this.currentTransform);
+            if (node.hasAttribute('id')) {
+                const pathId = node.getAttribute('id');
+                if (pathId && pathId.length > 0) {
+                    path._svg_label = pathId;
+                }
+            }
             this.paths.push(path);
         }
 

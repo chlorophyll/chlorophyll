@@ -71,9 +71,16 @@ export default async function importOBJ(filename) {
 
                 const ignoreUnmapped = Boolean(seg.drop_unmapped);
                 const warnPartial = Boolean(seg.warn_partial);
+                const reverseWiringDirection = Boolean(seg.reverse_wiring_direction);
+                const reverseSvgPathIds = seg.reverse_wiring_by_pathid || [];
+                if (reverseSvgPathIds && !Array.isArray(reverseSvgPathIds)) {
+                    throw new Error(`Invalid reverse_wiring_by_pathid (expected array): ${JSON.stringify(seg)}`);
+                }
                 let {strips, uvCoords} = uvMapStrips(obj, svg, {
                     ignoreUnmapped,
                     warnPartial,
+                    reverseWiringDirection,
+                    reverseSvgPathIds,
                     appliedPaths: appliedPaths.get(seg.pixels)
                 });
                 strips = labelStrips(seg.model, strips);
@@ -134,6 +141,10 @@ function uvMapStrips(obj, svg, options = {}) {
             console.log('Already applied path; skipping.');
             return [];
         }
+        const svgPathLabel = shapePath._svg_label;
+        if (svgPathLabel) {
+            console.log(`  path: ${svgPathLabel}`);
+        }
 
         const stripPixels = [];
         const unmappedUvs = [];
@@ -155,6 +166,13 @@ function uvMapStrips(obj, svg, options = {}) {
                 }
             })
         );
+        if (options.reverseWiringDirection) {
+            console.log('Reversing direction (reverseWiringDirection)');
+            stripPixels.reverse();
+        } else if (options.reverseSvgPathIds.includes(svgPathLabel)) {
+            console.log('Reversing direction (reverseSvgPathIds)');
+            stripPixels.reverse();
+        }
 
         const bounds = new THREE.Vector2(svg.width, svg.height);
         const uvs = stripPixels
