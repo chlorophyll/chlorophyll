@@ -345,7 +345,7 @@
                         }
                     }
                 },
-                "additionalProperties": false,
+                "additionalProperties": true,
                 "required": ["id", "title", "type", "defaults"]
             },
             "edge": {

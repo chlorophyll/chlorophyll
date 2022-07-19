@@ -32,6 +32,7 @@ function spawnMapper() {
     console.log(child);
     child.on('exit', ()=>console.log('exit'));
     child.on('message', ({cmd, args}) => {
+        console.log({cmd, args});
         const strips = args;
         for (let i = 0; i < currentModel.colors.length; i++) {
             currentModel.colors[i] = 0;
@@ -58,8 +59,9 @@ export function setCurrentModel(model) {
     store.commit('pixels/clear_active_selection');
     currentModel = model;
     console.log(currentModel);
-    spawnMapper();
     colorDisplay.$emit('refresh_model');
+
+    setImmediate(() => spawnMapper());
 }
 
 function createStripGroup(strip) {
@@ -331,9 +333,15 @@ export class Model extends ModelBase {
         }
 
         const boundingBox = new THREE.Box3();
-        for (const {pos} of this.allPixelPositions()) {
-            boundingBox.expandByPoint(pos);
+        for (let i = 0; i < 32; i++) {
+            const strip = this.getStripByLabel(`wing_left_1_${i}`);
+            this.forEachPixelInStrip(strip, (idx) => {
+                boundingBox.expandByPoint(this.getPosition(idx));
+            });
         }
+        //for (const {pos} of this.allPixelPositions()) {
+        //    boundingBox.expandByPoint(pos);
+        //} 
         this.boundingBox = boundingBox;
 
         this.boxSize = new THREE.Vector3();
@@ -450,9 +458,9 @@ export class Model extends ModelBase {
         const {x, y, z} = this.boxSize;
         const maxDim = Math.max(x, y, z);
 
-        if (this.model_info.flip_camera) {
+        //if (this.model_info.flip_camera) {
             oversizeFactor *= -1;
-        }
+        //}
 
 
         if (camera.isPerspectiveCamera) {

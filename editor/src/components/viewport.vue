@@ -258,7 +258,8 @@ export default {
 
         initControls() {
             this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-
+            this.controls.minDistance = -10;
+            this.controls.screenSpacePanning = false;
             this.controls.enableDamping = true;
             this.controls.dampingFactor = 0.75;
             this.controls.enableZoom = true;

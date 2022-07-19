@@ -28,7 +28,7 @@
   <v-row v-if="mode === 'count'">
     <v-slider v-model='countGuess' min='0' max='510' />
   </v-row>
-  <v-row v-if="mode !== 'count'">
+  <v-row v-if="mode === 'column'">
     <v-slider v-model='countGuess' min='0' max='150' />
   </v-row>
   <v-divider class="ma-12" />
@@ -41,7 +41,7 @@
   </v-row>
   <v-divider class="ma-12" />
   <v-row>
-    <v-spacer/><v-btn class="px-8" x-large @click="swapMode">Swap to {{ otherMode }} mode</v-btn>
+    <v-spacer/><v-btn class="px-8" x-large @click="swapMode">Swap to {{ nextMode }} mode</v-btn>
   </v-row>
 </v-container>
 </template>
@@ -50,6 +50,14 @@
 import {mapState, mapActions} from 'vuex';
 import keyboard from 'keyboardjs';
 import store from './store';
+
+
+const modelist = ['column', 'count', 'offsets'];
+const nextmode = {};
+for (let i = 0; i < modelist.length; i++) {
+  nextmode[modelist[i]] = modelist[(i+1)%modelist.length];
+}
+console.log(nextmode);
 
 export default {
   name: 'Mapper',
@@ -65,7 +73,14 @@ export default {
   computed: {
     ...mapState(['guess', 'col', 'panel', 'mode']),
     noun() {
-      return this.mode === 'count' ? 'strip' : 'column';
+      switch (this.mode) {
+        case 'count':
+          return 'strip';
+          case 'column':
+          return 'column';
+          case 'offsets':
+          return 'offset';
+      }
     },
     countGuess: {
       get() {
@@ -75,8 +90,8 @@ export default {
         this.setGuess(val);
       },
     },
-    otherMode() {
-      return this.mode === 'count' ? 'column' : 'count';
+    nextMode() {
+      return nextmode[this.mode];
     },
   },
   methods: {
@@ -91,7 +106,7 @@ export default {
     },
 
     async swapMode() {
-      await this.setMode(this.otherMode);
+      await this.setMode(this.nextMode);
     }
   },
 }

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { readSavefile } from './restore';
 import { argv } from 'yargs';
 import * as path from 'path';
-let mapper, counter, columns, mode;
+let mapper, counter, columns, mode, offsets;
 
 const l = console.log;
 const dataDir = argv._[1];
@@ -142,6 +142,109 @@ class Counter {
     }
 }
 
+class Offsets {
+    constructor(panel, state) {
+        this.state = state;
+        this.panel = panel;
+        const settings = state.hardware.settings[state.hardware.protocol];
+        if (isEditor) {
+            this.client = new EditorClient(state.model);
+        } else {
+            this.client = new ArtnetRegistry(state.model, settings);
+        }
+        this.offsets = [];
+        this.output = offsetsStorage(panel);
+        this.history = history(panel);
+        try {
+            const res = JSON.parse(fs.readFileSync(this.output));
+            this.offsets= res.offsets;
+        } catch (e) {
+            console.log('error reading file, probably didnt exist');
+        }
+
+        this.cur = 0; //this.heights.length;
+        this.frame = new Float32Array(state.model.num_pixels * 4);
+        this.initGuess();
+    }
+    initGuess() {
+        const {offsets, cur} = this;
+        if (offsets[cur] === undefined || offsets[cur] === null) {
+            if (cur > 1)
+                offsets[cur] = offsets[cur - 2];
+            else
+                offsets[cur] = 1;
+        }
+    }
+    makeGuess(nextGuess) {
+        if (nextGuess !== null && nextGuess !== undefined) {
+            this.offsets[this.cur] = nextGuess;
+        }
+        fs.writeFileSync(this.output, JSON.stringify({offsets: this.offsets}));
+        fs.appendFileSync(this.history, JSON.stringify({offsets: this.offsets})+'\n');
+        process.send({cmd: 'guess', args: this.curGuess});
+    }
+
+    get curGuess() {
+        return this.offsets[this.cur];
+    }
+
+    showFrame() {
+        const {frame, offsets, cur} = this;
+
+        for (let i = 0; i < this.frame.length; i++) {
+            this.frame[i] = 0;
+        }
+
+        let ptr = 0;
+        let strip = 0;
+        let stripPtr = 0;
+
+        for (let col = 0; col < columns.heights.length; col++) {
+            height = columns.heights[col];
+            let positions = [];
+            const offset = offsets[col];
+            let colPos = [];
+            for (let j = 0; j < height; j++) {
+                colPos.push(offset - (j*2));
+            }
+            if (col % 2 == 1) {
+                colPos.reverse();
+            }
+            positions = positions.concat(calPos);
+        }
+        for (const y of positions) {
+            //let clr = [0,0,0];
+            let clr = col===this.cur ? [1,1,1] : [0,0,0];
+            if (y % 8 == 0) {
+                const ci = (200*colors.length + Math.floor(y / 8) * 2) % colors.length;
+                clr = colors[ci];
+            } else if (y % 8 == 1) { 
+                const ci = (200*colors.length + 1 + Math.floor(y / 8) * 2) % colors.length;
+                clr = colors[ci];
+            }
+            writePixel(frame, ptr, clr[0], clr[1], clr[2]);
+            ptr++;
+            stripPtr++;
+            if (strip < counter.counts.length && stripPtr >= counter.counts[strip]) {
+                strip++;
+                stripPtr = 0;
+                ptr = this.state.model.strip_offsets[strip];
+            }
+        }
+        this.client.sendFrame(frame);
+    }
+    setCol(nextCol) {
+        this.cur = nextCol;
+        process.send({cmd: 'col', args: this.cur});
+        if (this.curGuess === undefined) {
+            console.log('making guess for new column');
+            this.makeGuess(this.offsets[this.cur-1]);
+        } else {
+            process.send({cmd: 'guess', args: this.curGuess});
+        }
+    }
+}
+
 class Columns {
     constructor(panel, state) {
         this.state = state;
@@ -255,6 +358,10 @@ function filename(panel) {
     return path.join(dataDir, `${panel}.chl`);
 }
 
+function offsetsStorage(panel) {
+    return path.join(dataDir, `offsets-${panel}.json`);
+}
+
 function columnsFile(panel) {
     return path.join(dataDir, `height-${panel}.json`);
 }
@@ -270,6 +377,7 @@ async function init() {
     const state = await readSavefile(filename(panel), false);
     counter = new Counter(panel, state);
     columns = new Columns(panel, state);
+    offsets = new Offsets(panel, state);
     setMode('count');
 
     // Refresh automatically at 4fps in case of collisions
@@ -286,7 +394,17 @@ async function init() {
 
 function setMode(m) {
     mode = m;
-    mapper = mode === 'count' ? counter : columns;
+    switch (mode) {
+        case 'count':
+            mapper = counter;
+            break;
+        case 'column':
+            mapper = columns;
+            break;
+        case 'offsets':
+            mapper = offsets;
+            break;
+    }
     process.send({cmd: 'mode', args: {
         guess: mapper.curGuess,
         col: mapper.cur,
@@ -295,6 +413,7 @@ function setMode(m) {
 }
 
 process.on('message', ({cmd, args}) => {
+    console.log({cmd, args});
     if (cmd === 'init') {
         init()
             .then(() => {
@@ -316,7 +435,8 @@ process.on('message', ({cmd, args}) => {
             }
             case 'increment': {
                 nextGuess = mapper.curGuess + args;
-                if (nextGuess < 0)
+                console.log({nextGuess});
+                if (nextGuess < 0 && mode != 'offsets')
                     nextGuess = null;
                 break;
             }
