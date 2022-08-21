@@ -605,7 +605,7 @@ export class Model extends ModelBase {
 
     stripStats() {
         for (let i = 0; i < this.num_strips; i++) {
-            console.log(`STRIP ${i}:\t${this.numPixelsInStrip(i)} pixels`);
+            console.log(`STRIP ${i} ${this.stripLabel(i)}:\t${this.numPixelsInStrip(i)} pixels`);
         }
     }
 }
