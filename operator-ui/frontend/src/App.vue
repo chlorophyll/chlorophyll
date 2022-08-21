@@ -172,11 +172,7 @@ export default {
       if (!this.isPlaying) {
         this.playlistStart();
       } else {
-        if (!this.canAccessSettings) {
-          this.dialog = true;
-        } else {
-          this.playlistStop();
-        }
+        this.playlistStop();
       }
     },
     toggleShuffle() {

@@ -111,7 +111,7 @@ export default class OSCBus {
    * Receive a packet, route it, call callbacks
    */
   _recv(message, timeTag, info) {
-    console.log(`OSC Bus: Received OSC message:`, message);
+    //console.log(`OSC Bus: Received OSC message:`, message);
 
     const parts = message.address.split('/').slice(1);
     this.listeners.forEach((addressListeners, addr) => {
@@ -123,8 +123,8 @@ export default class OSCBus {
         if (!listener.patterns.every((pattern, i) => pattern.test(parts[i])))
           return;
 
-        console.log(`OSC Bus: routing message to ${addr}`);
-        console.log('OSC Bus: spec', listener.spec, 'args', message.args);
+        //console.log(`OSC Bus: routing message to ${addr}`);
+        //console.log('OSC Bus: spec', listener.spec, 'args', message.args);
         const args = parseArguments(listener.spec, message.args);
         listener.callback(args, timeTag, message.address);
       });
