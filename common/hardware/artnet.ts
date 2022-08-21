@@ -180,9 +180,9 @@ export class ArtnetRegistry {
                 packet.writeUInt8(lCount, 17);
                 this.socket.send(packet, 0, count+18, ArtnetPort, host);
             }
-            if (sync) {
-                this.socket.send(syncPacket, 0, syncPacket.length, ArtnetPort, '2.255.255.255');
-            }
+        }
+        if (sync) {
+            this.socket.send(syncPacket, 0, syncPacket.length, ArtnetPort, '2.255.255.255');
         }
     }
 }
