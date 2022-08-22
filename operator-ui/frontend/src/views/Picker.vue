@@ -3,7 +3,6 @@
     <v-layout wrap>
       <v-flex xs12>
         <v-container>
-        <v-subheader>Switch playlist</v-subheader>
         <v-card-text>
           <v-layout>
         <v-menu offset-y>
@@ -23,11 +22,13 @@
           </v-layout>
         </v-card-text>
         </v-container>
+          <v-container>
+              <tempo-tap v-model="bpm" :is-textbox="true"/>
+          </v-container>
       </v-flex>
       <v-flex><v-divider /></v-flex>
       <v-flex xs12>
         <v-container>
-          <v-subheader>Play a pattern</v-subheader>
             <template v-for="(playlistItem, index) in activePlaylist">
               <v-flex xs12 :key="`pattern${playlistItem.pattern.id}`">
               <playlist-card
@@ -54,11 +55,15 @@ import * as realtime from '@/realtime';
 import api from '@/api';
 import * as THREE from 'three';
 import PlaylistCard from '@/components/PlaylistCard';
+import TempoTap from '@/components/tempo_tap';
 
 export default {
   name: 'Picker',
   store,
-  components: { PlaylistCard },
+  components: { PlaylistCard, TempoTap },
+  mixins: [
+    realtime.mixin('bpm', realtime.ops.number),
+  ],
   computed: {
     ...mapState([
       'patternsById',

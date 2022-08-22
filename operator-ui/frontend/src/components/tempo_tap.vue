@@ -1,5 +1,23 @@
 <template>
-<button class="square" @mousedown="tap">tap</button>
+    <v-container>
+    <template v-if="isTextbox">
+                <v-text-field
+                  v-model="value"
+                  type="number"
+                  :min="10"
+                  :max="256"
+                  class="mt-0 pt-0"
+                  style="width: 5em"
+                  hide-details
+                  single-line
+                  solo
+                  @mousedown="tap"
+                /> 
+    </template>
+    <template v-else>
+        <button class="square" @mousedown="tap">tap</button>
+    </template>
+    </v-container>
 </template>
 
 <script>
@@ -9,7 +27,7 @@ const SKIPPED_TAP_THRESHOLD_HIGH = 2.75;
 const TOTAL_TAP_VALUES = 5;
 export default {
     name: 'tempo-tap',
-    props: ['value'],
+    props: ['value', 'isTextbox'],
     data() {
         return {
             buttonDown: false,
