@@ -521,7 +521,7 @@ const server = app.listen(port, () => {
     console.log(    ` -   local:   ${chalk.cyan.bold(`http://localhost:${port}/`)}`);
     if (external) {
         console.log(` - Network: by IP: ${chalk.cyan.bold(`http://${external}${portString}/`)}`);
-        console.log(`      or hostname: ${chalk.cyan.bold(`http://${hostname}.local${portString}/`)}`);
+        console.log(`      or hostname: ${chalk.cyan.bold(`http://${hostname}${portString}/`)}`);
     }
     console.log();
     console.log();

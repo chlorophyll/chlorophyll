@@ -14,11 +14,19 @@
       >
         <v-list-item link to="/">
           <v-list-item-icon>
-            <v-icon>mdi-view-list</v-icon>
+            <v-icon>mdi-playlist-play</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>
             <v-list-item-title>Patterns</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item link to="/playlist-editor">
+          <v-list-item-icon>
+            <v-icon>mdi-playlist-edit</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>Playlist Editor</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-list-item link to="/parameters">

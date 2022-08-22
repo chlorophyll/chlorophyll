@@ -15,29 +15,34 @@
               <div class="ml-3 title">{{ pattern.name}}</div>
               <v-card-actions>
                 <v-btn @click="playNow">Play now</v-btn>
-                <v-btn @click="$emit('close')">Remove</v-btn>
+                <v-btn v-if="editable" @click="$emit('close')">Remove</v-btn>
               </v-card-actions>
             </v-layout>
           </v-flex>
           <v-spacer />
-          <v-flex>
-            <v-card>
-            <masked-input
-              type="text"
-              class="pa-1"
-              style="width: 5em"
-              @focus="focusDuration"
-              @blur="blurDuration"
-              :mask="[/\d/, /\d/, ':', /\d/, /\d/, ]"
-              :keep-char-positions="true"
-              placeholder="mm:ss"
-              v-model="durationString" />
-            </v-card>
-          </v-flex>
-          <v-spacer/>
-          <v-flex shrink>
-            <v-icon class="handle" x-large>mdi-drag</v-icon>
-          </v-flex>
+            <template v-if="editable">
+              <v-flex>
+                <v-card>
+                  <masked-input
+                    type="text"
+                    class="pa-1"
+                    style="width: 5em"
+                    @focus="focusDuration"
+                    @blur="blurDuration"
+                    :mask="[/\d/, /\d/, ':', /\d/, /\d/, ]"
+                    :keep-char-positions="true"
+                    placeholder="mm:ss"
+                    v-model="durationString" />
+                </v-card>
+              </v-flex>
+              <v-spacer/>
+                <v-flex shrink>
+                  <v-icon class="handle" x-large>mdi-drag</v-icon>
+                </v-flex>
+            </template>
+            <template v-else>
+              {{ durationString }}
+            </template>
         </v-layout>
       </v-flex>
       <v-flex class="px-1">
@@ -58,7 +63,7 @@ import {ApiMixin} from '@/api';
 
 export default {
   store,
-  props: ['size', 'index', 'playlistItem', 'renderer', 'loader', 'draggable'],
+  props: ['size', 'index', 'playlistItem', 'renderer', 'loader', 'draggable', "editable"],
   components: {PreviewModel, MaskedInput},
   mixins: [ApiMixin],
   name: 'playlist-card',

@@ -4,13 +4,14 @@ import PatternList from './views/PatternList.vue';
 import Parameters from './views/Parameters.vue';
 import Settings from './views/Settings.vue';
 import Login from './views/Login.vue';
+import Picker from './views/Picker.vue';
 
 Vue.use(Router)
 
 export default new Router({
   routes: [
     {
-      path: '/',
+      path: '/playlist-editor',
       name: 'pattern-list',
       component: PatternList
     },
@@ -28,6 +29,11 @@ export default new Router({
       path: '/login',
       name: 'login',
       component: Login,
+    },
+    {
+      path: '/',
+      name: 'picker',
+      component: Picker,
     },
   ]
 })

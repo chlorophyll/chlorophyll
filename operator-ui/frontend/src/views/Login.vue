@@ -5,7 +5,7 @@
   >
   <v-card-title>Configuration Management</v-card-title>
   <v-card-text>
-  This panel isn't particularly interesting. It lets you turn off the lights, delete playlists, and access some stats.
+  This isn't particularly interesting. It lets you edit playlists, turn off the lights, delete playlists, and access some stats.
   <v-form>
   <v-text-field
     ref="password"

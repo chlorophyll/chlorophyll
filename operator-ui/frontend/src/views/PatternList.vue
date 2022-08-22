@@ -101,6 +101,7 @@
                   :renderer="renderer"
                   :loader="loader"
                   :draggable="true"
+                  :editable="true"
                   @close="onClose(playlistItem, index)"
                 />
               </v-flex>
@@ -136,6 +137,16 @@ export default {
   store,
   components: { PatternCard, PreviewCard, PlaylistCard, draggable },
   name: 'PatternList',
+  beforeRouteEnter(to, from, next) {
+    if (store.state.canAccessSettings) {
+      next();
+    } else {
+      next({
+        name: 'login',
+        query: {redirectFrom: to.fullPath},
+      });
+    }
+  },
   computed: {
     ...mapState([
       'patternsById',
