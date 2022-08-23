@@ -22,9 +22,36 @@
           </v-layout>
         </v-card-text>
         </v-container>
-          <v-container>
-              <tempo-tap v-model="bpm" :is-textbox="true"/>
-          </v-container>
+      </v-flex>
+      <v-flex xs12>
+        <v-card-text>
+          <v-layout class="mx-12 px-12">
+            <v-flex class="px-12 pr-4">
+            <v-slider
+              v-model="bpm"
+              class="align-center"
+              :min="10"
+              :max="256">
+              <template v-slot:prepend>
+                <tempo-tap v-model="bpm" />
+              </template>
+              <template v-slot:append>
+                <v-text-field
+                  v-model="bpm"
+                  type="number"
+                  :min="10"
+                  :max="256"
+                  class="mt-0 pt-0"
+                  style="width: 4em"
+                  hide-details
+                  single-line
+                  solo
+                />
+              </template>
+            </v-slider>
+            </v-flex>
+          </v-layout>
+        </v-card-text>
       </v-flex>
       <v-flex><v-divider /></v-flex>
       <v-flex xs12>
