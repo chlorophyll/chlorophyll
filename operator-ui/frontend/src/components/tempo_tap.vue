@@ -1,5 +1,5 @@
 <template>
-<v-btn @mousedown="tap">tap</v-btn>
+<v-btn @mousedown="tap" style="touch-action: manipulation">tap</v-btn>
 </template>
 
 <script>
