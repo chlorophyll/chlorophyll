@@ -186,6 +186,7 @@ export default {
     },
     confirmPowerOff() {
       this.dialog = true;
+      this.drawer = false;
     },
     toggleShuffle() {
       realtime.submitOp({p: ['shuffleMode'], oi: !this.realtime.shuffleMode});
