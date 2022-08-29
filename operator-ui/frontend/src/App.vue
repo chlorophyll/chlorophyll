@@ -41,6 +41,14 @@
       </v-list>
     <template v-slot:append>
       <v-list dense nav>
+        <v-list-item v-if="platform === 'darwin'" @click="confirmPowerOff">
+          <v-list-item-icon>
+            <v-icon>mdi-power</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>Power off</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
         <v-list-item link to="/settings">
           <v-list-item-icon>
             <v-icon>mdi-settings</v-icon>
@@ -78,25 +86,14 @@
     </v-app-bar>
     <v-dialog v-model="dialog" max-width="400">
     <v-card class="mx-auto">
-    <v-card-title>Confirm</v-card-title>
-    <v-card-text>To stop the playlist, enter the password
-    <v-form>
-      <v-text-field
-        id="password"
-        @keyup.enter="submit"
-        @focus="clearFail"
-        v-model="password"
-        :error="failed"
-        type="password"
-        label="Password"
-        autocomplete="one-time-code"
-      />
-    </v-form>
-    </v-card-text>
+    <v-card-title>Confirm Power Off</v-card-title>
+    <v-card-text v-if="shutdownState==='failed'" class="red--text">There seems to have been a problem shutting down</v-card-text>
+    <v-card-text tag="p">This will power off the computer and the lights will go dark. It will take several minutes to turn the lights back on.</v-card-text>
+    <v-card-text tag="p">Are you sure you want to do this?</v-card-text>
     <v-card-actions>
     <v-spacer />
-    <v-btn @click="cancel">Cancel</v-btn>
-    <v-btn @click="submit" color="primary">Stop Playlist</v-btn>
+    <v-btn @click="cancel" :disabled="shutdownState === 'pending'" color="blue-grey">Cancel</v-btn>
+    <v-btn @click="submit" :loading="shutdownState === 'pending'" :disabled="!realtimeLoaded" color="red">Power off</v-btn>
     </v-card-actions>
     </v-card>
     </v-dialog>
@@ -122,11 +119,11 @@ export default {
       drawer: false,
       dialog: false,
       password: '',
-      failed: false,
+      shutdownState: null,
     };
   },
   computed: {
-    ...mapState(['realtimeLoaded', 'realtime', 'patternsById', 'canAccessSettings']),
+    ...mapState(['realtimeLoaded', 'realtime', 'patternsById', 'canAccessSettings', 'platform']),
     ...mapGetters(['activePlaylist']),
     activeItemId() {
       if (!this.realtime.timeInfo) {
@@ -160,15 +157,19 @@ export default {
     },
   },
   watch: {
-    canAccessSettings() {
-      this.dialog = false;
+    realtimeLoaded() {
+      if (this.shutdownState == 'pending' && !this.realtimeLoaded) {
+        this.shutdownState = null;
+        this.dialog = false;
+      }
     },
-    dialog() {
-      if (this.dialog) {
-        this.$nextTick(() => {
-          const el = document.getElementById('password');
-          el.focus();
-        });
+    shutdownState() {
+      if (this.shutdownState == 'pending') {
+        this.shutdownInterval = window.setTimeout(() => this.shutdownState = 'failed', 60*1000);
+      } else {
+        if (this.shutdownInterval) {
+          window.clearInterval(this.shutdownInterval);
+        }
       }
     },
   },
@@ -183,6 +184,9 @@ export default {
         this.playlistStop();
       }
     },
+    confirmPowerOff() {
+      this.dialog = true;
+    },
     toggleShuffle() {
       realtime.submitOp({p: ['shuffleMode'], oi: !this.realtime.shuffleMode});
     },
@@ -190,20 +194,12 @@ export default {
       realtime.submitOp({p: ['hold'], oi: !this.realtime.hold});
     },
     async submit() {
-      this.failed = false;
-      const result = await this.authenticate({password: this.password});
-      if (result) {
-        this.playlistStop();
-      } else {
-        this.failed = true;
-      }
+      this.shutdownState = 'pending';
+      await this.shutdown();
     },
     cancel() {
-      this.failed = false;
+      this.pendingShutdown = null;
       this.dialog = false;
-    },
-    clearFail() {
-      this.failed = false;
     },
   },
 

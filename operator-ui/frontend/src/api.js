@@ -46,6 +46,10 @@ const api = {
   async playlistSwitch(playlistId) {
     await axios.post('/api/playlist/switch', {playlistId});
   },
+
+  async shutdown() {
+    await axios.post('/api/shutdown');
+  }
 };
 
 export default api;

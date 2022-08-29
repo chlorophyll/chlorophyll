@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import * as yargs from 'yargs';
+import * as child_process from 'child_process';
 import chalk from 'chalk';
 import * as os from 'os';
 import * as path from 'path';
@@ -372,6 +373,7 @@ app.get('/api/state', (req, res) => {
 
     const result = {
         ...serialized,
+        platform: process.platform,
         model: state.model.model_info,
         realtime: realtimeState.data,
     };
@@ -438,6 +440,23 @@ app.post('/api/playlist/new', (req, res) => {
         res.json({
             playlistsById: state.playlistsById,
             playlistOrder: state.playlistOrder,
+        });
+    }
+});
+
+app.post('/api/shutdown', (req, res) => {
+    if (process.platform === 'darwin') {
+        if (!playlistRunner.isPlaying) {
+            runAnimation(sendBlackFrame);
+        }
+        child_process.exec('osascript -e \'tell app "System Events" to shut down\'', (error, stdout, stderr) => {
+            if (error) {
+                console.error(`exec error: ${error}`);
+                return;
+            }
+            console.log(`stdout: ${stdout}`);
+            console.error(`stderr: ${stderr}`);
+            res.send('ok');
         });
     }
 });

@@ -20,15 +20,17 @@ export default new Vuex.Store({
     realtimeLoaded: false,
     previewItem: null,
     canAccessSettings: false,
+    platform: null,
   },
   mutations: {
     setSavefileState(state, savefile) {
-      const {patterns, patternOrder, mappings, playlistsById, playlistOrder} = savefile;
+      const {patterns, patternOrder, mappings, playlistsById, playlistOrder, platform} = savefile;
       state.patternsById = patterns;
       state.patternOrder = patternOrder;
       state.mappingsById = mappings;
       state.playlistsById = playlistsById;
       state.playlistOrder = playlistOrder;
+      state.platform = platform;
       state.model = true;
     },
     realtimeChange(state, doc) {
