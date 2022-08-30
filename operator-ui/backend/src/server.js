@@ -548,10 +548,10 @@ const server = app.listen(port, () => {
 
 realtime.listen(server);
 
-if (argv.autostart) {
+//if (argv.autostart) {
   setTimeout(() => {
     const index = 0;
     console.log(`Auto-starting playlist ${0}`);
     runPlaylist(index);
   }, 5000);
-}
+//}
