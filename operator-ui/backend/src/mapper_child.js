@@ -200,9 +200,9 @@ class Offsets {
         let stripPtr = 0;
 
         for (let col = 0; col < columns.heights.length; col++) {
-            height = columns.heights[col];
-            let positions = [];
+            const height = columns.heights[col];
             const offset = offsets[col];
+            let positions = [];
             let colPos = [];
             for (let j = 0; j < height; j++) {
                 colPos.push(offset - (j*2));
@@ -210,25 +210,25 @@ class Offsets {
             if (col % 2 == 1) {
                 colPos.reverse();
             }
-            positions = positions.concat(calPos);
-        }
-        for (const y of positions) {
-            //let clr = [0,0,0];
-            let clr = col===this.cur ? [1,1,1] : [0,0,0];
-            if (y % 8 == 0) {
-                const ci = (200*colors.length + Math.floor(y / 8) * 2) % colors.length;
-                clr = colors[ci];
-            } else if (y % 8 == 1) { 
-                const ci = (200*colors.length + 1 + Math.floor(y / 8) * 2) % colors.length;
-                clr = colors[ci];
-            }
-            writePixel(frame, ptr, clr[0], clr[1], clr[2]);
-            ptr++;
-            stripPtr++;
-            if (strip < counter.counts.length && stripPtr >= counter.counts[strip]) {
-                strip++;
-                stripPtr = 0;
-                ptr = this.state.model.strip_offsets[strip];
+            positions = positions.concat(colPos);
+            for (const y of positions) {
+                //let clr = [0,0,0];
+                let clr = col===this.cur ? [1,1,1] : [0,0,0];
+                if (y % 8 == 0) {
+                    const ci = (200*colors.length + Math.floor(y / 8) * 2) % colors.length;
+                    clr = colors[ci];
+                } else if (y % 8 == 1) { 
+                    const ci = (200*colors.length + 1 + Math.floor(y / 8) * 2) % colors.length;
+                    clr = colors[ci];
+                }
+                writePixel(frame, ptr, clr[0], clr[1], clr[2]);
+                ptr++;
+                stripPtr++;
+                if (strip < counter.counts.length && stripPtr >= counter.counts[strip]) {
+                    strip++;
+                    stripPtr = 0;
+                    ptr = this.state.model.strip_offsets[strip];
+                }
             }
         }
         this.client.sendFrame(frame);
